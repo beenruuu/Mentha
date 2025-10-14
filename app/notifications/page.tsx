@@ -8,19 +8,19 @@ import { AppSidebar } from "@/components/app-sidebar"
 
 export default function NotificationsPage() {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5]">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0F]">
       <AppSidebar />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto md:ml-64">
-        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-8 py-4 flex items-center justify-between">
           <div className="flex-1 max-w-md">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 border-gray-200" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white border border-gray-200 rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white border border-gray-200 rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
               </div>
             </div>
           </div>
@@ -34,10 +34,10 @@ export default function NotificationsPage() {
         <div className="p-8">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-semibold text-gray-900 mb-2">Notificaciones</h1>
-              <p className="text-gray-600">Mantente al día con los cambios en tus marcas.</p>
+              <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">Notificaciones</h1>
+              <p className="text-gray-600 dark:text-gray-400">Mantente al día con los cambios en tus marcas.</p>
             </div>
-            <Button variant="outline" className="text-sm bg-transparent">
+            <Button variant="outline" className="text-sm bg-transparent dark:bg-transparent dark:text-white dark:border-[#2A2A30]">
               Marcar todas como leídas
             </Button>
           </div>
@@ -45,19 +45,19 @@ export default function NotificationsPage() {
           <div className="grid grid-cols-1 gap-4 max-w-4xl">
             {/* Today */}
             <div className="mb-4">
-              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Hoy</h2>
+              <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Hoy</h2>
               <div className="space-y-3">
-                <Card className="p-4 bg-white hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-green-500">
+                <Card className="p-4 bg-white dark:bg-black hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-green-500">
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <TrendingUp className="w-5 h-5 text-green-600" />
+                    <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
+                      <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-1">
-                        <h3 className="text-sm font-semibold text-gray-900">Mejora en el ranking de Airbnb</h3>
-                        <span className="text-xs text-gray-500">Hace 2h</span>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Mejora en el ranking de Airbnb</h3>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Hace 2h</span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         Airbnb subió 3 posiciones en GPT-5 para consultas de "recomendaciones de viaje".
                       </p>
                       <div className="flex items-center gap-2">
@@ -72,17 +72,17 @@ export default function NotificationsPage() {
                   </div>
                 </Card>
 
-                <Card className="p-4 bg-white hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-blue-500">
+                <Card className="p-4 bg-white dark:bg-black hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-blue-500">
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <CheckCircle className="w-5 h-5 text-blue-600" />
+                    <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-1">
-                        <h3 className="text-sm font-semibold text-gray-900">Nueva mención detectada</h3>
-                        <span className="text-xs text-gray-500">Hace 4h</span>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Nueva mención detectada</h3>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Hace 4h</span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         Vercel fue mencionado en Claude-4-sonnet para "herramientas de desarrollo web".
                       </p>
                       <div className="flex items-center gap-2">
@@ -101,19 +101,19 @@ export default function NotificationsPage() {
 
             {/* Yesterday */}
             <div className="mb-4">
-              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Ayer</h2>
+              <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Ayer</h2>
               <div className="space-y-3">
-                <Card className="p-4 bg-white hover:shadow-md transition-shadow cursor-pointer">
+                <Card className="p-4 bg-white dark:bg-black hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <AlertCircle className="w-5 h-5 text-orange-600" />
+                    <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center flex-shrink-0">
+                      <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-1">
-                        <h3 className="text-sm font-semibold text-gray-900">Cambio en la competencia</h3>
-                        <span className="text-xs text-gray-500">Hace 1d</span>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Cambio en la competencia</h3>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Hace 1d</span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         Booking.com superó a Expedia en el ranking de "sitios de reserva de hoteles".
                       </p>
                       <div className="flex items-center gap-2">
@@ -128,17 +128,17 @@ export default function NotificationsPage() {
                   </div>
                 </Card>
 
-                <Card className="p-4 bg-white hover:shadow-md transition-shadow cursor-pointer">
+                <Card className="p-4 bg-white dark:bg-black hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <TrendingUp className="w-5 h-5 text-green-600" />
+                    <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
+                      <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-1">
-                        <h3 className="text-sm font-semibold text-gray-900">Strava alcanza nuevo récord</h3>
-                        <span className="text-xs text-gray-500">Hace 1d</span>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Strava alcanza nuevo récord</h3>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Hace 1d</span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         Strava alcanzó la posición #1 en Grok-3 para "aplicaciones de fitness".
                       </p>
                       <div className="flex items-center gap-2">
@@ -157,19 +157,19 @@ export default function NotificationsPage() {
 
             {/* This Week */}
             <div>
-              <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Esta Semana</h2>
+              <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Esta Semana</h2>
               <div className="space-y-3">
-                <Card className="p-4 bg-white hover:shadow-md transition-shadow cursor-pointer">
+                <Card className="p-4 bg-white dark:bg-black hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <CheckCircle className="w-5 h-5 text-purple-600" />
+                    <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center flex-shrink-0">
+                      <CheckCircle className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-1">
-                        <h3 className="text-sm font-semibold text-gray-900">Informe semanal disponible</h3>
-                        <span className="text-xs text-gray-500">Hace 3d</span>
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Informe semanal disponible</h3>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Hace 3d</span>
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         Tu informe semanal de rendimiento está listo para revisar.
                       </p>
                       <Button variant="outline" size="sm" className="mt-2 bg-transparent">
@@ -186,3 +186,7 @@ export default function NotificationsPage() {
     </div>
   )
 }
+
+
+
+

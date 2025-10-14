@@ -8,19 +8,19 @@ import Link from 'next/link'
 
 export default function UpgradePage() {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5]">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0F]">
       <AppSidebar />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto md:ml-64">
-        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-8 py-4 flex items-center justify-between">
           <div className="flex-1 max-w-md">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 border-gray-200" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white border border-gray-200 rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white border border-gray-200 rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
               </div>
             </div>
           </div>
@@ -32,29 +32,94 @@ export default function UpgradePage() {
         </header>
 
         <div className="p-8">
-          <h1 className="text-3xl font-semibold text-gray-900 mb-2">Actualizar a Pro</h1>
-          <p className="text-gray-600 mb-8">En la versión Pro obtendrás más consultas, prioridad en soporte y funciones avanzadas.</p>
+          {/* Hero */}
+          <div className="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 items-center mb-8">
+            <div className="lg:col-span-2">
+              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-3">Actualiza a Pro y desbloquea insights</h1>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">Más consultas, análisis avanzados, prioridades de soporte y exportes. Todo pensado para escalar tu investigación de marca.</p>
 
-          <Card className="p-6 bg-white max-w-3xl">
-            <h2 className="text-xl font-semibold mb-3">¿Qué incluye Pro?</h2>
-            <ul className="list-disc pl-5 space-y-2 text-sm text-gray-700">
-              <li>Más consultas mensuales</li>
-              <li>Acceso a análisis avanzados</li>
-              <li>Soporte prioritario</li>
-              <li>Integraciones y exportaciones</li>
-            </ul>
-
-            <div className="mt-6 flex items-center gap-3">
-              <a className="inline-block bg-black text-white px-4 py-2 rounded-md text-sm" href="#start-upgrade">
-                Empezar actualización
-              </a>
-              <Link href="/dashboard" className="text-sm text-gray-600 hover:underline">
-                Volver al panel
-              </Link>
+              <div className="flex items-center gap-3">
+                <a href="#start-upgrade" className="inline-block bg-black dark:bg-black text-white dark:text-white px-5 py-3 rounded-md text-sm hover:bg-[#1E1E24]">Empezar actualización</a>
+                <Link href="/dashboard" className="text-sm text-gray-600 dark:text-gray-300 hover:underline">Volver al panel</Link>
+              </div>
             </div>
-          </Card>
+
+            <div className="lg:col-span-1">
+              <Card className="p-6 bg-white dark:bg-black">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Tu plan</h3>
+                <div className="text-4xl font-bold text-gray-900 dark:text-white">Gratis</div>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Prueba básica — limitado a 100 consultas/mes</p>
+                <div className="mt-4">
+                  <a href="#start-upgrade" className="block w-full text-center bg-black dark:bg-black text-white dark:text-white px-3 py-2 rounded-md hover:bg-[#1E1E24]">Actualizar</a>
+                </div>
+              </Card>
+            </div>
+          </div>
+
+          {/* Features + Pricing */}
+          <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <Card className="p-6 bg-white dark:bg-black">
+              <h4 className="text-sm font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wide mb-2">Por qué Pro</h4>
+              <p className="text-sm text-gray-700 dark:text-gray-300">Accede a mayor cuota de consultas, historial extendido y análisis por modelo.</p>
+            </Card>
+
+            <Card className="p-6 bg-white dark:bg-black">
+              <h4 className="text-sm font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wide mb-2">Soporte</h4>
+              <p className="text-sm text-gray-700 dark:text-gray-300">Canal dedicado y tiempos de respuesta prioritarios para incidencias y configuraciones.</p>
+            </Card>
+
+            <Card className="p-6 bg-white dark:bg-black">
+              <h4 className="text-sm font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wide mb-2">Exportes</h4>
+              <p className="text-sm text-gray-700 dark:text-gray-300">Exporta reportes en CSV/PDF y conecta con tus pipelines de datos.</p>
+            </Card>
+          </div>
+
+          {/* Pricing Tiers */}
+          <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="p-6 bg-white dark:bg-black">
+              <h5 className="text-lg font-semibold text-gray-900 dark:text-white">Pro Básico</h5>
+              <div className="text-3xl font-bold text-gray-900 dark:text-white mt-2">$29<span className="text-sm font-medium">/mes</span></div>
+              <ul className="mt-4 space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <li>1,000 consultas/mes</li>
+                <li>Análisis por modelo</li>
+                <li>Soporte por email</li>
+              </ul>
+              <div className="mt-6">
+                <a className="inline-block w-full text-center bg-black dark:bg-black text-white dark:text-white px-4 py-2 rounded-md hover:bg-[#1E1E24]">Seleccionar</a>
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-white dark:bg-black border-2 border-black dark:border-[#2A2A30]">
+              <h5 className="text-lg font-semibold text-gray-900 dark:text-white">Pro Plus</h5>
+              <div className="text-3xl font-bold text-gray-900 dark:text-white mt-2">$79<span className="text-sm font-medium">/mes</span></div>
+              <ul className="mt-4 space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <li>5,000 consultas/mes</li>
+                <li>Historial extendido 12 meses</li>
+                <li>Soporte prioritario</li>
+              </ul>
+              <div className="mt-6">
+                <a className="inline-block w-full text-center bg-black dark:bg-black text-white dark:text-white px-4 py-2 rounded-md hover:bg-[#1E1E24]">Seleccionar</a>
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-white dark:bg-black">
+              <h5 className="text-lg font-semibold text-gray-900 dark:text-white">Enterprise</h5>
+              <div className="text-3xl font-bold text-gray-900 dark:text-white mt-2">Contacto<span className="text-sm font-medium">/mes</span></div>
+              <ul className="mt-4 space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <li>Consultas ilimitadas</li>
+                <li>SLA y soporte dedicado</li>
+                <li>Integración personalizada</li>
+              </ul>
+              <div className="mt-6">
+                <a className="inline-block w-full text-center bg-black dark:bg-black text-white dark:text-white px-4 py-2 rounded-md hover:bg-[#1E1E24]">Contactar</a>
+              </div>
+            </Card>
+          </div>
         </div>
       </main>
     </div>
   )
 }
+
+
+

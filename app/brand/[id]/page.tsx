@@ -131,19 +131,19 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5]">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-black">
       <AppSidebar />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto md:ml-64">
-        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-8 py-4 flex items-center justify-between">
           <div className="flex-1 max-w-md">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 border-gray-200" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white border border-gray-200 rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white border border-gray-200 rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
               </div>
             </div>
           </div>
@@ -156,27 +156,27 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
 
         <div className="p-8">
           {/* Brand Header */}
-          <Card className="p-6 bg-white mb-6">
+          <Card className="p-6 bg-white dark:bg-black mb-6">
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-4">
                 <div className={`w-12 h-12 ${brand.iconBg} rounded-xl flex items-center justify-center`}>
                   <span
-                    className={`text-xl font-bold ${brand.iconBg.includes("border") ? "text-black" : "text-white"}`}
+                    className={`text-xl font-bold ${brand.iconBg.includes("border") ? "text-black dark:text-white" : "text-white"}`}
                   >
                     {brand.icon}
                   </span>
                 </div>
                 <div>
-                  <h1 className="text-2xl font-semibold text-gray-900 mb-2">{brand.name}</h1>
-                  <p className="text-sm text-gray-600 max-w-2xl mb-3">{brand.description}</p>
-                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">{brand.name}</h1>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 max-w-2xl mb-3">{brand.description}</p>
+                  <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex items-center gap-1.5">
                       <MapPin className="w-4 h-4" />
                       <span>{brand.location}</span>
                     </div>
                     <div className="flex items-center gap-1.5">
                       <Globe className="w-4 h-4" />
-                      <a href={brand.website} className="hover:text-gray-700">
+                      <a href={brand.website} className="hover:text-gray-700 dark:hover:text-gray-300">
                         {brand.website}
                       </a>
                     </div>
@@ -187,8 +187,8 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
           </Card>
 
           {/* Notable Changes */}
-          <Card className="p-6 bg-white mb-6">
-            <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Cambios Notables</h2>
+          <Card className="p-6 bg-white dark:bg-black mb-6">
+            <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Cambios Notables</h2>
             <div className="space-y-3">
               {[
                 {
@@ -236,15 +236,15 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
                   query: "comparaciones fintech",
                 },
               ].map((change, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-sm text-gray-700 flex-wrap">
+                <div key={idx} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 flex-wrap">
                   <span>{change.text}</span>
                   <Badge
                     variant="secondary"
-                    className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 hover:bg-gray-100"
+                    className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 dark:bg-[#0A0A0F] hover:bg-gray-100 dark:hover:bg-[#1E1E24]"
                   >
                     <div className={`w-3.5 h-3.5 ${change.brandBg} rounded-full flex items-center justify-center`}>
                       <span
-                        className={`text-[8px] font-bold ${change.brandBg.includes("border") ? "text-black" : "text-white"}`}
+                        className={`text-[8px] font-bold ${change.brandBg.includes("border") ? "text-black dark:text-white" : "text-white"}`}
                       >
                         {change.brandIcon}
                       </span>
@@ -254,12 +254,12 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
                   <span>{change.context}</span>
                   <Badge
                     variant="secondary"
-                    className={`flex items-center gap-1.5 px-2 py-0.5 ${change.modelBg} hover:${change.modelBg}`}
+                    className={`flex items-center gap-1.5 px-2 py-0.5 ${change.modelBg} dark:bg-black hover:${change.modelBg} dark:hover:bg-[#1E1E24]`}
                   >
                     <span>{change.modelIcon}</span>
                     <span className="font-medium">{change.model}</span>
                   </Badge>
-                  <span className="text-gray-500">{change.query}</span>
+                  <span className="text-gray-500 dark:text-gray-400">{change.query}</span>
                 </div>
               ))}
             </div>
@@ -267,34 +267,44 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Brand Overview */}
-            <Card className="lg:col-span-2 p-6 bg-white">
+            <Card className="lg:col-span-2 p-6 bg-white dark:bg-black">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide">Resumen de Marca</h2>
+                <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Resumen de Marca</h2>
               </div>
               <div className="space-y-4">
-                <div className="flex items-center justify-between pb-4 border-b border-gray-100">
+                <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-[#2A2A30]">
                   <div className="flex items-center gap-3">
                     <div className={`w-6 h-6 ${brand.iconBg} rounded-full flex items-center justify-center`}>
                       <span
-                        className={`text-xs font-bold ${brand.iconBg.includes("border") ? "text-black" : "text-white"}`}
+                        className={`text-xs font-bold ${brand.iconBg.includes("border") ? "text-black dark:text-white" : "text-white"}`}
                       >
                         {brand.icon}
                       </span>
                     </div>
-                    <span className="text-sm font-medium text-gray-900">{brand.name}</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">{brand.name}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center relative">
-                      <span className="text-xs font-semibold text-gray-900">{brand.score}</span>
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center relative">
+                      <span className="text-xs font-semibold text-gray-900 dark:text-white z-10">{brand.score}</span>
                       <svg className="absolute inset-0 w-full h-full -rotate-90">
                         <circle
                           cx="20"
                           cy="20"
-                          r="18"
+                          r="16"
+                          fill="none"
+                          stroke="#e5e7eb"
+                          strokeWidth="3"
+                          className="dark:stroke-[#0A0A0F]"
+                        />
+                        <circle
+                          cx="20"
+                          cy="20"
+                          r="16"
                           fill="none"
                           stroke="#10b981"
-                          strokeWidth="2"
-                          strokeDasharray={`${(brand.score / 100) * 113} 113`}
+                          strokeWidth="3"
+                          strokeDasharray={`${(brand.score / 100) * 100.53} 100.53`}
+                          strokeLinecap="round"
                         />
                       </svg>
                     </div>
@@ -310,20 +320,31 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
                       <div className={`w-6 h-6 ${competitor.iconBg} rounded-full flex items-center justify-center`}>
                         <span className="text-xs font-bold text-white">{competitor.icon}</span>
                       </div>
-                      <span className="text-sm font-medium text-gray-900">{competitor.name}</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{competitor.name}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center relative">
-                        <span className="text-xs font-semibold text-gray-900">{competitor.score}</span>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center relative">
+                        <span className="text-xs font-semibold text-gray-900 dark:text-white z-10">{competitor.score}</span>
                         <svg className="absolute inset-0 w-full h-full -rotate-90">
                           <circle
                             cx="20"
                             cy="20"
-                            r="18"
+                            r="16"
                             fill="none"
-                            stroke="#10b981"
-                            strokeWidth="2"
-                            strokeDasharray={`${(competitor.score / 100) * 113} 113`}
+                            stroke="#e5e7eb"
+                            strokeWidth="3"
+                            className="dark:stroke-[#0A0A0F]"
+                          />
+                          <circle
+                            cx="20"
+                            cy="20"
+                            r="16"
+                            fill="none"
+                            stroke="#9ca3af"
+                            strokeWidth="3"
+                            strokeDasharray={`${(competitor.score / 100) * 100.53} 100.53`}
+                            strokeLinecap="round"
+                            className="dark:stroke-[#0A0A0F]"
                           />
                         </svg>
                       </div>
@@ -338,8 +359,8 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
             </Card>
 
             {/* Potential Competitors */}
-            <Card className="p-6 bg-white">
-              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">
+            <Card className="p-6 bg-white dark:bg-black">
+              <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
                 Competidores Potenciales
               </h2>
               <div className="space-y-3">
@@ -349,14 +370,14 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
                       <div className={`w-5 h-5 ${competitor.iconBg} rounded flex items-center justify-center`}>
                         <span className="text-[10px] font-bold text-white">{competitor.icon}</span>
                       </div>
-                      <span className="text-sm font-medium text-gray-900">{competitor.name}</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{competitor.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <button className="p-1 hover:bg-gray-100 rounded">
-                        <ExternalLink className="w-4 h-4 text-gray-400" />
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-[#1E1E24] rounded">
+                        <ExternalLink className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                       </button>
-                      <button className="p-1 hover:bg-gray-100 rounded">
-                        <Plus className="w-4 h-4 text-gray-400" />
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-[#1E1E24] rounded">
+                        <Plus className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                       </button>
                     </div>
                   </div>
@@ -366,22 +387,22 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
           </div>
 
           {/* Position Trends */}
-          <Card className="p-6 bg-white">
+          <Card className="p-6 bg-white dark:bg-black">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                 Tendencias de Posición por Modelos
               </h2>
               <div className="flex items-center gap-2">
-                <button className="px-4 py-1.5 text-sm font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                <button className="px-4 py-1.5 text-sm font-medium bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
                   Modelos
                 </button>
-                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">
+                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                   Personas
                 </button>
-                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">
+                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                   Regiones
                 </button>
-                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">
+                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                   Idiomas
                 </button>
               </div>
@@ -456,7 +477,7 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
               ].map((model) => (
                 <div key={model.name} className="flex items-center gap-2">
                   <div className={`w-3 h-3 ${model.color} rounded-full`}></div>
-                  <span className="text-xs text-gray-600">{model.name}</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">{model.name}</span>
                 </div>
               ))}
             </div>
@@ -464,12 +485,12 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
 
           {/* Queries Section */}
           <div className="mt-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Consultas Rastreadas</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Consultas Rastreadas</h2>
             <div className="space-y-3">
               {brand.queries.map((query: any) => (
                 <Link key={query.id} href={`/brand/${params.id}/query/${query.id}`}>
-                  <Card className="p-4 bg-white hover:shadow-md transition-shadow cursor-pointer">
-                    <p className="text-sm font-medium text-gray-900">{query.title}</p>
+                  <Card className="p-4 bg-white dark:bg-black hover:shadow-md transition-shadow cursor-pointer">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">{query.title}</p>
                   </Card>
                 </Link>
               ))}
@@ -480,3 +501,7 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
     </div>
   )
 }
+
+
+
+

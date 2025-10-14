@@ -8,20 +8,20 @@ import { AppSidebar } from "@/components/app-sidebar"
 
 export default function DashboardPage() {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5]">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0F]">
       <AppSidebar />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto md:ml-64">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-8 py-4 flex items-center justify-between">
           <div className="flex-1 max-w-md">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 border-gray-200" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white border border-gray-200 rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white border border-gray-200 rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
               </div>
             </div>
           </div>
@@ -34,14 +34,14 @@ export default function DashboardPage() {
 
         {/* Content */}
         <div className="p-8">
-          <h1 className="text-3xl font-semibold text-gray-900 mb-8">Movimientos de ranking esta semana.</h1>
+          <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-8">Movimientos de ranking esta semana.</h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Brand Overview */}
-            <Card className="p-6 bg-white">
+            <Card className="p-6 bg-white dark:bg-black">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide">Resumen de Marca</h2>
-                <Info className="w-4 h-4 text-gray-400" />
+                <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Resumen de Marca</h2>
+                <Info className="w-4 h-4 text-gray-400 dark:text-gray-500" />
               </div>
               <div className="space-y-4">
                 {[
@@ -59,20 +59,30 @@ export default function DashboardPage() {
                           {brand.icon}
                         </span>
                       </div>
-                      <span className="text-sm font-medium text-gray-900">{brand.name}</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{brand.name}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center relative">
-                        <span className="text-xs font-semibold text-gray-900">{brand.score}</span>
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center relative">
+                        <span className="text-xs font-semibold text-gray-900 dark:text-white z-10">{brand.score}</span>
                         <svg className="absolute inset-0 w-full h-full -rotate-90">
                           <circle
                             cx="20"
                             cy="20"
-                            r="18"
+                            r="16"
+                            fill="none"
+                            stroke="#e5e7eb"
+                            strokeWidth="3"
+                            className="dark:stroke-[#0A0A0F]"
+                          />
+                          <circle
+                            cx="20"
+                            cy="20"
+                            r="16"
                             fill="none"
                             stroke="#10b981"
-                            strokeWidth="2"
-                            strokeDasharray={`${(brand.score / 100) * 113} 113`}
+                            strokeWidth="3"
+                            strokeDasharray={`${(brand.score / 100) * 100.53} 100.53`}
+                            strokeLinecap="round"
                           />
                         </svg>
                       </div>
@@ -87,9 +97,9 @@ export default function DashboardPage() {
             </Card>
 
             {/* Competitor Overview */}
-            <Card className="p-6 bg-white">
+            <Card className="p-6 bg-white dark:bg-black">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide">Resumen de Competidores</h2>
+                <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Resumen de Competidores</h2>
                 <div className="flex items-center gap-2">
                   {[
                     { name: "Airbnb", color: "bg-[#FF5A5F]" },
@@ -99,7 +109,7 @@ export default function DashboardPage() {
                   ].map((brand) => (
                     <div key={brand.name} className="flex items-center gap-1.5">
                       <div className={`w-4 h-4 ${brand.color} rounded-full`}></div>
-                      <span className="text-xs text-gray-600">{brand.name}</span>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">{brand.name}</span>
                     </div>
                   ))}
                 </div>
@@ -117,12 +127,12 @@ export default function DashboardPage() {
                         <div className={`w-5 h-5 ${competitor.iconBg} rounded flex items-center justify-center`}>
                           <span className="text-[10px] font-bold text-white">{competitor.icon}</span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900">{competitor.name}</span>
-                        <span className="text-sm text-gray-600">{competitor.percentage}%</span>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{competitor.name}</span>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">{competitor.percentage}%</span>
                       </div>
-                      <span className="text-xs text-gray-500">POSICIÓN PROM. {competitor.position}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">POSICIÓN PROM. {competitor.position}</span>
                     </div>
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-gray-100 dark:bg-[#0A0A0F] rounded-full overflow-hidden">
                       <div
                         className="h-full bg-green-500 rounded-full"
                         style={{ width: `${competitor.percentage}%` }}
@@ -138,8 +148,8 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Notable Changes */}
-            <Card className="lg:col-span-2 p-6 bg-white">
-              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Cambios Notables</h2>
+            <Card className="lg:col-span-2 p-6 bg-white dark:bg-black">
+              <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Cambios Notables</h2>
               <div className="space-y-3">
                 {[
                   {
@@ -187,11 +197,11 @@ export default function DashboardPage() {
                     query: "comparaciones fintech",
                   },
                 ].map((change, idx) => (
-                  <div key={idx} className="flex items-center gap-2 text-sm text-gray-700 flex-wrap">
+                  <div key={idx} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 flex-wrap">
                     <span>{change.text}</span>
                     <Badge
                       variant="secondary"
-                      className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 hover:bg-gray-100"
+                      className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 dark:bg-[#0A0A0F] dark:border dark:border-[#2A2A30] hover:bg-gray-100 dark:hover:bg-[#1E1E24]"
                     >
                       <div className={`w-3.5 h-3.5 ${change.brandBg} rounded-full flex items-center justify-center`}>
                         <span
@@ -205,12 +215,12 @@ export default function DashboardPage() {
                     <span>{change.context}</span>
                     <Badge
                       variant="secondary"
-                      className={`flex items-center gap-1.5 px-2 py-0.5 ${change.modelBg} hover:${change.modelBg}`}
+                      className={`flex items-center gap-1.5 px-2 py-0.5 ${change.modelBg} dark:bg-black dark:border dark:border-[#2A2A30] hover:${change.modelBg} dark:hover:bg-[#1E1E24]`}
                     >
                       <span>{change.modelIcon}</span>
-                      <span className="font-medium">{change.model}</span>
+                      <span className="font-medium text-gray-900 dark:text-white">{change.model}</span>
                     </Badge>
-                    <span className="text-gray-500">{change.query}</span>
+                    <span className="text-gray-500 dark:text-gray-400">{change.query}</span>
                   </div>
                 ))}
               </div>
@@ -226,7 +236,7 @@ export default function DashboardPage() {
                   <br />
                   que un error 404
                 </h3>
-                <Button className="bg-black hover:bg-gray-800 text-white">Rastrea tu marca</Button>
+                <Button className="bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black">Rastrea tu marca</Button>
               </div>
               <div className="absolute right-4 bottom-4 w-32 h-32">
                 <svg viewBox="0 0 120 120" className="w-full h-full">
@@ -272,21 +282,21 @@ export default function DashboardPage() {
           </div>
 
           {/* Data Table */}
-          <Card className="p-6 bg-white">
+          <Card className="p-6 bg-white dark:bg-black">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  <tr className="border-b border-gray-200 dark:border-[#2A2A30]">
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       Marca
                     </th>
-                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       Posición promedio
                     </th>
-                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       Tasa de inclusión
                     </th>
-                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       Mejor modelo
                     </th>
                   </tr>
@@ -321,31 +331,41 @@ export default function DashboardPage() {
                       modelIcon: "⚡",
                     },
                   ].map((row) => (
-                    <tr key={row.name} className="border-b border-gray-100 hover:bg-gray-50">
+                    <tr key={row.name} className="border-b border-gray-100 dark:border-[#1E1E24] hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-6 h-6 ${row.iconBg} rounded-full flex items-center justify-center`}>
                             <span className="text-xs font-bold text-white">{row.icon}</span>
                           </div>
-                          <span className="text-sm font-medium text-gray-900">{row.name}</span>
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">{row.name}</span>
                         </div>
                       </td>
                       <td className="py-4 px-4">
-                        <span className="text-sm text-gray-700">{row.position}</span>
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{row.position}</span>
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 rounded-full border-2 border-gray-200 flex items-center justify-center relative">
-                            <span className="text-xs font-semibold text-gray-900">{row.rate}</span>
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center relative">
+                            <span className="text-xs font-semibold text-gray-900 dark:text-white z-10">{row.rate}</span>
                             <svg className="absolute inset-0 w-full h-full -rotate-90">
                               <circle
                                 cx="20"
                                 cy="20"
-                                r="18"
+                                r="16"
+                                fill="none"
+                                stroke="#e5e7eb"
+                                strokeWidth="3"
+                                className="dark:stroke-[#0A0A0F]"
+                              />
+                              <circle
+                                cx="20"
+                                cy="20"
+                                r="16"
                                 fill="none"
                                 stroke="#10b981"
-                                strokeWidth="2"
-                                strokeDasharray={`${(row.rate / 100) * 113} 113`}
+                                strokeWidth="3"
+                                strokeDasharray={`${(row.rate / 100) * 100.53} 100.53`}
+                                strokeLinecap="round"
                               />
                             </svg>
                           </div>
@@ -354,7 +374,7 @@ export default function DashboardPage() {
                       <td className="py-4 px-4">
                         <Badge
                           variant="secondary"
-                          className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-100 w-fit"
+                          className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 dark:bg-[#0A0A0F] dark:border dark:border-[#2A2A30] hover:bg-gray-100 dark:hover:bg-[#1E1E24] w-fit"
                         >
                           <span>{row.modelIcon}</span>
                           <span className="font-medium text-sm">{row.model}</span>
@@ -371,3 +391,7 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+
+
+

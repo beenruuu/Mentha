@@ -7,19 +7,19 @@ import Link from "next/link"
 
 export default function SearchPage() {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5]">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0F]">
       <AppSidebar />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto md:ml-64">
-        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-8 py-4 flex items-center justify-between">
           <div className="flex-1 max-w-md">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 border-gray-200" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white border border-gray-200 rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white border border-gray-200 rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
               </div>
             </div>
           </div>
@@ -31,24 +31,24 @@ export default function SearchPage() {
         </header>
 
         <div className="p-8">
-          <h1 className="text-3xl font-semibold text-gray-900 mb-2">Buscar</h1>
-          <p className="text-gray-600 mb-8">Encuentra marcas, consultas e insights en tu panel.</p>
+          <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">Buscar</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-8">Encuentra marcas, consultas e insights en tu panel.</p>
 
           <div className="max-w-2xl mb-8">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <Input
                 placeholder="Buscar marcas, consultas, modelos..."
-                className="pl-12 pr-4 py-6 text-base bg-white border-gray-300"
+                className="pl-12 pr-4 py-6 text-base bg-white dark:bg-black border-gray-300 dark:border-[#2A2A30]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <Card className="p-6 bg-white">
+            <Card className="p-6 bg-white dark:bg-black">
               <div className="flex items-center gap-3 mb-4">
-                <Clock className="w-5 h-5 text-gray-400" />
-                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Búsquedas Recientes</h2>
+                <Clock className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wide">Búsquedas Recientes</h2>
               </div>
               <div className="space-y-3">
                 {[
@@ -59,22 +59,22 @@ export default function SearchPage() {
                 ].map((item, idx) => (
                   <button
                     key={idx}
-                    className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <Search className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-700">{item.text}</span>
+                      <Search className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{item.text}</span>
                     </div>
-                    <span className="text-xs text-gray-500">{item.time}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{item.time}</span>
                   </button>
                 ))}
               </div>
             </Card>
 
-            <Card className="p-6 bg-white">
+            <Card className="p-6 bg-white dark:bg-black">
               <div className="flex items-center gap-3 mb-4">
-                <TrendingUp className="w-5 h-5 text-gray-400" />
-                <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Búsquedas Populares</h2>
+                <TrendingUp className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wide">Búsquedas Populares</h2>
               </div>
               <div className="space-y-3">
                 {[
@@ -85,23 +85,23 @@ export default function SearchPage() {
                 ].map((item, idx) => (
                   <button
                     key={idx}
-                    className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg transition-colors"
                   >
                     <div className="flex items-center gap-3">
                       <TrendingUp className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-gray-700">{item.text}</span>
+                      <span className="text-sm text-gray-700 dark:text-gray-300">{item.text}</span>
                     </div>
-                    <span className="text-xs text-gray-500">{item.count}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">{item.count}</span>
                   </button>
                 ))}
               </div>
             </Card>
           </div>
 
-          <Card className="p-6 bg-white">
+          <Card className="p-6 bg-white dark:bg-black">
             <div className="flex items-center gap-3 mb-4">
-              <FileText className="w-5 h-5 text-gray-400" />
-              <h2 className="text-sm font-semibold text-gray-900 uppercase tracking-wide">Accesos Rápidos</h2>
+              <FileText className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wide">Accesos Rápidos</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {[
@@ -111,18 +111,18 @@ export default function SearchPage() {
                 { name: "Revolut", icon: "R", iconBg: "bg-white border border-gray-300", queries: "6 consultas" },
               ].map((brand) => (
                 <Link key={brand.name} href={`/brand/${brand.name.toLowerCase()}`}>
-                  <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer">
+                  <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer bg-white dark:bg-black">
                     <div className="flex items-center gap-3 mb-2">
                       <div className={`w-8 h-8 ${brand.iconBg} rounded-full flex items-center justify-center`}>
                         <span
-                          className={`text-sm font-bold ${brand.iconBg.includes("border") ? "text-black" : "text-white"}`}
+                          className={`text-sm font-bold ${brand.iconBg.includes("border") ? "text-black dark:text-white" : "text-white"}`}
                         >
                           {brand.icon}
                         </span>
                       </div>
-                      <span className="text-sm font-semibold text-gray-900">{brand.name}</span>
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">{brand.name}</span>
                     </div>
-                    <p className="text-xs text-gray-500">{brand.queries}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">{brand.queries}</p>
                   </Card>
                 </Link>
               ))}
@@ -133,3 +133,7 @@ export default function SearchPage() {
     </div>
   )
 }
+
+
+
+

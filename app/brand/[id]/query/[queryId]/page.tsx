@@ -68,19 +68,19 @@ export default function QueryDetailPage({ params }: { params: { id: string; quer
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5]">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-black">
       <AppSidebar />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto md:ml-64">
-        <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
+        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-8 py-4 flex items-center justify-between">
           <div className="flex-1 max-w-md">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 border-gray-200" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white border border-gray-200 rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white border border-gray-200 rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
               </div>
             </div>
           </div>
@@ -94,12 +94,12 @@ export default function QueryDetailPage({ params }: { params: { id: string; quer
         <div className="p-8">
           {/* Back Button */}
           <Link href={`/brand/${params.id}`}>
-            <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 mb-6">
+            <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6">
               <ArrowLeft className="w-4 h-4" />
               <span className="uppercase tracking-wide">Volver a {brand.name}</span>
               <div className={`w-4 h-4 ${brand.iconBg} rounded-full flex items-center justify-center ml-1`}>
                 <span
-                  className={`text-[8px] font-bold ${brand.iconBg.includes("border") ? "text-black" : "text-white"}`}
+                  className={`text-[8px] font-bold ${brand.iconBg.includes("border") ? "text-black dark:text-white" : "text-white"}`}
                 >
                   {brand.icon}
                 </span>
@@ -110,19 +110,19 @@ export default function QueryDetailPage({ params }: { params: { id: string; quer
           {/* Query Header */}
           <div className="flex items-start justify-between mb-6">
             <div className="flex-1">
-              <h1 className="text-3xl font-semibold text-gray-900 mb-3">{query.title}</h1>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
+              <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-3">{query.title}</h1>
+              <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                 <span>Creado el: {query.created}</span>
                 <span>•</span>
                 <div className="flex items-center gap-2">
                   <div className={`w-4 h-4 ${brand.iconBg} rounded-full flex items-center justify-center`}>
                     <span
-                      className={`text-[8px] font-bold ${brand.iconBg.includes("border") ? "text-black" : "text-white"}`}
+                      className={`text-[8px] font-bold ${brand.iconBg.includes("border") ? "text-black dark:text-white" : "text-white"}`}
                     >
                       {brand.icon}
                     </span>
                   </div>
-                  <Badge variant="secondary" className="bg-gray-100">
+                  <Badge variant="secondary" className="bg-gray-100 dark:bg-[#0A0A0F]">
                     ⚡
                   </Badge>
                   <span>+1</span>
@@ -138,7 +138,7 @@ export default function QueryDetailPage({ params }: { params: { id: string; quer
                 <Switch defaultChecked />
                 <span className="text-sm font-medium text-green-600">Activo</span>
               </div>
-              <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50">
+              <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
                 Última ejecución
                 <ChevronDown className="w-4 h-4" />
               </button>
@@ -146,39 +146,39 @@ export default function QueryDetailPage({ params }: { params: { id: string; quer
           </div>
 
           {/* Average Rank */}
-          <Card className="p-6 bg-gray-50 mb-6">
-            <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+          <Card className="p-6 bg-gray-50 dark:bg-[#0A0A0F] mb-6">
+            <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
               Ranking Promedio por Modelos
             </h2>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Los rankings muestran cómo se desempeña tu marca en diferentes modelos. Los números más bajos son mejores
               (1 es el mejor ranking).
             </p>
           </Card>
 
           {/* Position Performance Chart */}
-          <Card className="p-6 bg-white mb-6">
+          <Card className="p-6 bg-white dark:bg-black mb-6">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                 Rendimiento de Posición por Modelos
               </h2>
               <div className="flex items-center gap-2">
-                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">
+                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                   General
                 </button>
-                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">
+                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                   Competidores
                 </button>
-                <button className="px-4 py-1.5 text-sm font-medium bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
+                <button className="px-4 py-1.5 text-sm font-medium bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
                   Modelos
                 </button>
-                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">
+                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                   Personas
                 </button>
-                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">
+                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                   Regiones
                 </button>
-                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-lg">
+                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                   Idiomas
                 </button>
               </div>
@@ -262,3 +262,7 @@ export default function QueryDetailPage({ params }: { params: { id: string; quer
     </div>
   )
 }
+
+
+
+
