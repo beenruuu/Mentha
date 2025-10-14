@@ -1,133 +1,17 @@
-import { Search, Bell, Settings, ChevronRight, Command, Clock, TrendingUp, FileText } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Search, Clock, TrendingUp, FileText } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { AppSidebar } from "@/components/app-sidebar"
 import Link from "next/link"
 
 export default function SearchPage() {
   return (
     <div className="flex min-h-screen bg-[#f5f5f5]">
-      {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
-        <div className="p-4">
-          <Link href="/">
-            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center cursor-pointer">
-              <Command className="w-5 h-5 text-white" />
-            </div>
-          </Link>
-        </div>
-
-        <div className="px-4 mb-6">
-          <Button className="w-full bg-black hover:bg-gray-800 text-white rounded-lg">+ Crear marca</Button>
-        </div>
-
-        <nav className="flex-1 px-3">
-          <Link href="/search">
-            <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-900 bg-gray-100 rounded-lg mb-1">
-              <Search className="w-4 h-4" />
-              <span className="text-sm font-medium">Buscar</span>
-            </button>
-          </Link>
-          <Link href="/notifications">
-            <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg mb-1">
-              <Bell className="w-4 h-4" />
-              <span className="text-sm">Notificaciones</span>
-            </button>
-          </Link>
-          <Link href="/">
-            <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg mb-1 justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-4 h-4 flex items-center justify-center">
-                  <div className="w-3 h-3 border-2 border-gray-600 rounded"></div>
-                </div>
-                <span className="text-sm">Panel</span>
-              </div>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </Link>
-          <Link href="/settings">
-            <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 hover:bg-gray-50 rounded-lg mb-6">
-              <Settings className="w-4 h-4" />
-              <span className="text-sm">Configuración</span>
-            </button>
-          </Link>
-
-          <div className="mb-3">
-            <div className="flex items-center gap-2 px-3 mb-2">
-              <span className="text-xs font-medium text-gray-500 uppercase">Marcas</span>
-              <ChevronRight className="w-3 h-3 text-gray-400 rotate-90" />
-            </div>
-            <div className="space-y-1">
-              <Link href="/brand/airbnb">
-                <button className="w-full flex items-center justify-between px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 bg-[#FF5A5F] rounded-full flex items-center justify-center">
-                      <span className="text-[10px] text-white font-bold">A</span>
-                    </div>
-                    <span className="text-sm">Airbnb</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                </button>
-              </Link>
-              <Link href="/brand/strava">
-                <button className="w-full flex items-center justify-between px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 bg-[#FC4C02] rounded-full flex items-center justify-center">
-                      <span className="text-[10px] text-white font-bold">S</span>
-                    </div>
-                    <span className="text-sm">Strava</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                </button>
-              </Link>
-              <Link href="/brand/vercel">
-                <button className="w-full flex items-center justify-between px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 bg-black rounded-full flex items-center justify-center">
-                      <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="white">
-                        <path d="M12 2L2 19.5h20L12 2z" />
-                      </svg>
-                    </div>
-                    <span className="text-sm">Vercel</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                </button>
-              </Link>
-              <Link href="/brand/revolut">
-                <button className="w-full flex items-center justify-between px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 bg-white border border-gray-300 rounded-full flex items-center justify-center">
-                      <span className="text-[10px] text-black font-bold">R</span>
-                    </div>
-                    <span className="text-sm">Revolut</span>
-                  </div>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                </button>
-              </Link>
-            </div>
-          </div>
-        </nav>
-
-        <div className="p-4 border-t border-gray-200">
-          <div className="mb-3">
-            <p className="text-sm font-medium text-gray-900 mb-1">Casi alcanzas tu límite</p>
-            <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-gradient-to-r from-green-500 to-yellow-500 rounded-full"
-                style={{ width: "25%" }}
-              ></div>
-            </div>
-            <p className="text-xs text-gray-500 mt-1">2,564 / 10,000 tokens usados</p>
-          </div>
-          <Button variant="outline" className="w-full text-sm bg-transparent">
-            Actualizar a Pro →
-          </Button>
-        </div>
-      </aside>
+      <AppSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto md:ml-64">
         <header className="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between">
           <div className="flex-1 max-w-md">
             <div className="relative">

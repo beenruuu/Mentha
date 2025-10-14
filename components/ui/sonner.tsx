@@ -1,14 +1,13 @@
 'use client'
 
-import { useTheme } from 'next-themes'
 import { Toaster as Sonner, ToasterProps } from 'sonner'
 
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = 'system' } = useTheme()
-
+  // Do not depend on next-themes to avoid SSR hydration mismatch.
+  // Use a fixed theme (light) and CSS variables from globals.css.
   return (
     <Sonner
-      theme={theme as ToasterProps['theme']}
+      theme={'light'}
       className="toaster group"
       style={
         {

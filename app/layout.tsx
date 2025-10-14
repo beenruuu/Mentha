@@ -18,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+  {/* Theme support removed — no client-side theme initializer */}
         {children}
         <Analytics />
       </body>
