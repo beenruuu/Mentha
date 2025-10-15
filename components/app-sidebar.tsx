@@ -1,9 +1,10 @@
 "use client"
 
-import { Search, Bell, Settings, ChevronRight, X } from "lucide-react"
+import { Search, Bell, Settings, ChevronRight, X, Bot, Search as SearchIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { create } from "zustand"
+import { useState } from "react"
 
 // Store para manejar el estado de la sidebar
 interface SidebarStore {
@@ -17,6 +18,49 @@ export const useSidebar = create<SidebarStore>((set) => ({
   toggle: () => set((state) => ({ isOpen: !state.isOpen })),
   close: () => set({ isOpen: false }),
 }))
+
+function BrandItem({ id, name, icon, iconBg, iconColor }: { id: string; name: string; icon: string; iconBg: string; iconColor: string }) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg"
+      >
+        <div className="flex items-center gap-3">
+          <div className={`w-4 h-4 ${iconBg} rounded-full flex items-center justify-center`}>
+            <span className={`text-[10px] ${iconColor} font-bold`}>{icon}</span>
+          </div>
+          <span className="text-sm">{name}</span>
+        </div>
+        <ChevronRight className={`w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+      </button>
+      
+      {expanded && (
+        <div className="ml-7 mt-1 space-y-1">
+          <Link href={`/brand/${id}`}>
+            <button className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded">
+              Vista general
+            </button>
+          </Link>
+          <Link href={`/brand/${id}/queries`}>
+            <button className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded">
+              <SearchIcon className="w-3 h-3" />
+              Queries
+            </button>
+          </Link>
+          <Link href={`/brand/${id}/crawlers`}>
+            <button className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded">
+              <Bot className="w-3 h-3" />
+              Crawlers IA
+            </button>
+          </Link>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function AppSidebar() {
   const { isOpen, close } = useSidebar()
@@ -104,52 +148,10 @@ export function AppSidebar() {
             <ChevronRight className="w-3 h-3 text-gray-400 dark:text-gray-500 rotate-90" />
           </div>
           <div className="space-y-1">
-            <Link href="/brand/airbnb">
-              <button className="w-full flex items-center justify-between px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 bg-[#FF5A5F] rounded-full flex items-center justify-center">
-                    <span className="text-[10px] text-white font-bold">A</span>
-                  </div>
-                  <span className="text-sm">Airbnb</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-              </button>
-            </Link>
-            <Link href="/brand/strava">
-              <button className="w-full flex items-center justify-between px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 bg-[#FC4C02] rounded-full flex items-center justify-center">
-                    <span className="text-[10px] text-white font-bold">S</span>
-                  </div>
-                  <span className="text-sm">Strava</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-              </button>
-            </Link>
-            <Link href="/brand/vercel">
-              <button className="w-full flex items-center justify-between px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 bg-black dark:bg-white rounded-full flex items-center justify-center">
-                    <svg className="w-2.5 h-2.5 fill-white dark:fill-black" viewBox="0 0 24 24">
-                      <path d="M12 2L2 19.5h20L12 2z" />
-                    </svg>
-                  </div>
-                  <span className="text-sm">Vercel</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-              </button>
-            </Link>
-            <Link href="/brand/revolut">
-              <button className="w-full flex items-center justify-between px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-full flex items-center justify-center">
-                    <span className="text-[10px] text-black dark:text-white font-bold">R</span>
-                  </div>
-                  <span className="text-sm">Revolut</span>
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-              </button>
-            </Link>
+            <BrandItem id="airbnb" name="Airbnb" icon="A" iconBg="bg-[#FF5A5F]" iconColor="text-white" />
+            <BrandItem id="strava" name="Strava" icon="S" iconBg="bg-[#FC4C02]" iconColor="text-white" />
+            <BrandItem id="vercel" name="Vercel" icon="▲" iconBg="bg-black dark:bg-white" iconColor="text-white dark:text-black" />
+            <BrandItem id="revolut" name="Revolut" icon="R" iconBg="bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30]" iconColor="text-black dark:text-white" />
           </div>
         </div>
       </nav>

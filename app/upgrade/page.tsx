@@ -9,7 +9,7 @@ import Link from 'next/link'
 
 export default function UpgradePage() {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0F]">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
       <AppSidebar />
 
       {/* Main Content */}
@@ -19,10 +19,10 @@ export default function UpgradePage() {
           <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-white dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                 <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">Y</kbd>
               </div>
             </div>
           </div>
@@ -41,7 +41,7 @@ export default function UpgradePage() {
               <p className="text-gray-600 dark:text-gray-300 mb-6">Más consultas, análisis avanzados, prioridades de soporte y exportes. Todo pensado para escalar tu investigación de marca.</p>
 
               <div className="flex items-center gap-3">
-                <a href="#start-upgrade" className="inline-block bg-black dark:bg-black text-white dark:text-white px-5 py-3 rounded-md text-sm hover:bg-[#1E1E24]">Empezar actualización</a>
+                <a href="#start-upgrade" className="inline-block bg-black dark:bg-white text-white dark:text-black px-5 py-3 rounded-md text-sm hover:bg-gray-800 dark:hover:bg-gray-200">Empezar actualización</a>
                 <Link href="/dashboard" className="text-sm text-gray-600 dark:text-gray-300 hover:underline">Volver al panel</Link>
               </div>
             </div>

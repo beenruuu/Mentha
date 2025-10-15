@@ -69,7 +69,7 @@ export default function QueryDetailPage({ params }: { params: { id: string; quer
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-black">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
       <AppSidebar />
 
       {/* Main Content */}
@@ -79,10 +79,10 @@ export default function QueryDetailPage({ params }: { params: { id: string; quer
           <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-white dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                 <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">Y</kbd>
               </div>
             </div>
           </div>
@@ -140,7 +140,7 @@ export default function QueryDetailPage({ params }: { params: { id: string; quer
                 <Switch defaultChecked />
                 <span className="text-sm font-medium text-green-600">Activo</span>
               </div>
-              <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
+              <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#0A0A0A]">
                 Última ejecución
                 <ChevronDown className="w-4 h-4" />
               </button>
@@ -171,7 +171,7 @@ export default function QueryDetailPage({ params }: { params: { id: string; quer
                 <button className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                   Competidores
                 </button>
-                <button className="px-4 py-1.5 text-sm font-medium bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
+                <button className="px-4 py-1.5 text-sm font-medium bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#0A0A0A]">
                   Modelos
                 </button>
                 <button className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
@@ -252,12 +252,200 @@ export default function QueryDetailPage({ params }: { params: { id: string; quer
             </div>
           </Card>
 
+          {/* AI Responses Analysis */}
+          <Card className="p-6 bg-white dark:bg-black mb-6">
+            <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+              Análisis de Respuestas de IA
+            </h2>
+            <div className="space-y-4">
+              {[
+                {
+                  model: "GPT-5",
+                  icon: "⚫",
+                  mentioned: true,
+                  position: 2,
+                  response:
+                    "Para reservar alquileres vacacionales confiables, **Airbnb** es una excelente opción con verificación de anfitriones y sistema de reseñas robusto. También puedes considerar Booking.com y Vrbo, que ofrecen garantías similares.",
+                  competitors: ["Booking.com", "Vrbo"],
+                  sentiment: "positivo",
+                  sources: ["airbnb.com/trust", "airbnb.com/host-verification"],
+                },
+                {
+                  model: "Claude-4-sonnet",
+                  icon: "✨",
+                  mentioned: true,
+                  position: 1,
+                  response:
+                    "**Airbnb** es probablemente la plataforma más reconocida para alquileres vacacionales. Ofrece verificación de identidad para anfitriones, sistema de reseñas transparente y protección para huéspedes. Otras opciones incluyen Vrbo y HomeAway.",
+                  competitors: ["Vrbo", "HomeAway"],
+                  sentiment: "muy positivo",
+                  sources: [],
+                },
+                {
+                  model: "Gemini-2.5-flash",
+                  icon: "✦",
+                  mentioned: false,
+                  position: null,
+                  response:
+                    "Para alquileres vacacionales seguros, Booking.com y Vrbo son opciones sólidas con verificación de propiedades. También puedes explorar Expedia para paquetes completos.",
+                  competitors: ["Booking.com", "Vrbo", "Expedia"],
+                  sentiment: "neutral",
+                  sources: ["booking.com", "vrbo.com"],
+                },
+                {
+                  model: "Perplexity",
+                  icon: "◆",
+                  mentioned: true,
+                  position: 3,
+                  response:
+                    "Las plataformas más confiables incluyen Booking.com, Vrbo y Airbnb. Airbnb destaca por su programa de verificación de anfitriones y cobertura de seguro.",
+                  competitors: ["Booking.com", "Vrbo"],
+                  sentiment: "positivo",
+                  sources: ["airbnb.com", "trustpilot.com"],
+                },
+              ].map((ai, idx) => (
+                <div
+                  key={idx}
+                  className={`p-4 rounded-lg border ${
+                    ai.mentioned
+                      ? "bg-green-50 dark:bg-green-900/10 border-green-200 dark:border-green-900"
+                      : "bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900"
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <Badge
+                        variant="secondary"
+                        className="flex items-center gap-1.5 px-2 py-1 bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30]"
+                      >
+                        <span>{ai.icon}</span>
+                        <span className="font-medium text-sm">{ai.model}</span>
+                      </Badge>
+                      {ai.mentioned ? (
+                        <Badge className="bg-green-600 dark:bg-green-700 text-white">Mencionado en posición {ai.position}</Badge>
+                      ) : (
+                        <Badge className="bg-red-600 dark:bg-red-700 text-white">No mencionado</Badge>
+                      )}
+                      <Badge
+                        variant="outline"
+                        className={`${
+                          ai.sentiment === "muy positivo"
+                            ? "border-green-500 text-green-700 dark:text-green-400"
+                            : ai.sentiment === "positivo"
+                              ? "border-green-400 text-green-600 dark:text-green-400"
+                              : "border-gray-400 text-gray-600 dark:text-gray-400"
+                        }`}
+                      >
+                        {ai.sentiment === "muy positivo" ? "😊" : ai.sentiment === "positivo" ? "🙂" : "😐"} {ai.sentiment}
+                      </Badge>
+                    </div>
+                    <Button size="sm" variant="outline" className="h-7 text-xs">
+                      Ver completo
+                    </Button>
+                  </div>
+                  <p
+                    className="text-sm text-gray-700 dark:text-gray-300 mb-3 leading-relaxed"
+                    dangerouslySetInnerHTML={{ __html: ai.response }}
+                  />
+                  <div className="flex items-center gap-4 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-gray-500 dark:text-gray-400">Competidores mencionados:</span>
+                      <div className="flex items-center gap-1">
+                        {ai.competitors.map((comp, i) => (
+                          <Badge key={i} variant="secondary" className="bg-gray-200 dark:bg-[#1E1E24] text-xs">
+                            {comp}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    {ai.sources.length > 0 && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500 dark:text-gray-400">Fuentes citadas:</span>
+                        <div className="flex items-center gap-1">
+                          {ai.sources.map((source, i) => (
+                            <a
+                              key={i}
+                              href={`https://${source}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 dark:text-blue-400 hover:underline"
+                            >
+                              {source}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          {/* Semantic Analysis */}
+          <Card className="p-6 bg-white dark:bg-black mb-6">
+            <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
+              Análisis Semántico: Por Qué Apareces (o No)
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Conceptos Dominantes en Respuestas</h3>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { term: "verificación", count: 8 },
+                    { term: "confiable", count: 7 },
+                    { term: "reseñas", count: 6 },
+                    { term: "seguro", count: 5 },
+                    { term: "anfitriones", count: 5 },
+                    { term: "protección", count: 4 },
+                    { term: "transparente", count: 3 },
+                    { term: "identidad", count: 3 },
+                  ].map((concept) => (
+                    <Badge
+                      key={concept.term}
+                      variant="secondary"
+                      className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-1"
+                      style={{ fontSize: `${10 + concept.count * 1.5}px` }}
+                    >
+                      {concept.term} ({concept.count})
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Gap Analysis</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+                  Términos que tus competidores tienen en sus descripciones y tú no:
+                </p>
+                <div className="space-y-2">
+                  {[
+                    { term: "garantía de precio", competitor: "Booking.com", impact: "Alta" },
+                    { term: "cancelación flexible", competitor: "Vrbo", impact: "Alta" },
+                    { term: "soporte 24/7", competitor: "Expedia", impact: "Media" },
+                  ].map((gap, i) => (
+                    <div key={i} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-[#0A0A0F] rounded">
+                      <div>
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">{gap.term}</span>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">({gap.competitor})</span>
+                      </div>
+                      <Badge
+                        className={gap.impact === "Alta" ? "bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400" : "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400"}
+                      >
+                        {gap.impact}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Card>
+
           {/* Competitor Comparison */}
-          <Card className="p-6 bg-white">
-            <h2 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">
+          <Card className="p-6 bg-white dark:bg-black">
+            <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
               Comparación de Competidores
             </h2>
-            <div className="h-32 bg-gray-50 rounded-lg"></div>
+            <div className="h-32 bg-gray-50 dark:bg-[#0A0A0F] rounded-lg"></div>
           </Card>
         </div>
       </main>

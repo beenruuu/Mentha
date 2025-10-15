@@ -9,7 +9,7 @@ import { MenuButton } from "@/components/menu-button"
 
 export default function DashboardPage() {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0F]">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
       <AppSidebar />
 
       {/* Main Content */}
@@ -20,10 +20,10 @@ export default function DashboardPage() {
           <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-white dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                 <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">Y</kbd>
               </div>
             </div>
           </div>
@@ -36,7 +36,7 @@ export default function DashboardPage() {
 
         {/* Content */}
         <div className="p-8">
-          <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-8">Movimientos de ranking esta semana.</h1>
+          <h1 className="text-3xl font-semibold text-[#0A0A0A] dark:text-white mb-8">Movimientos de ranking esta semana.</h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Brand Overview */}
@@ -61,12 +61,17 @@ export default function DashboardPage() {
                           {brand.icon}
                         </span>
                       </div>
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">{brand.name}</span>
+                      <span className="text-sm font-medium text-[#0A0A0A] dark:text-white">{brand.name}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center relative">
-                        <span className="text-xs font-semibold text-gray-900 dark:text-white z-10">{brand.score}</span>
-                        <svg className="absolute inset-0 w-full h-full -rotate-90">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center relative shrink-0">
+                        <span className="text-xs font-semibold text-[#0A0A0A] dark:text-white z-10">{brand.score}</span>
+                        <svg
+                          viewBox="0 0 40 40"
+                          preserveAspectRatio="xMidYMid meet"
+                          className="absolute inset-0 w-10 h-10 -rotate-90"
+                          style={{ transformOrigin: "50% 50%" }}
+                        >
                           <circle
                             cx="20"
                             cy="20"
@@ -99,7 +104,7 @@ export default function DashboardPage() {
             </Card>
 
             {/* Competitor Overview */}
-            <Card className="p-6 bg-white dark:bg-black">
+            <Card id="competitors-overview" className="p-6 bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] shadow-sm">
               <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Resumen de Competidores</h2>
               <div className="flex items-center gap-2 mb-6">
                 {[
@@ -127,7 +132,7 @@ export default function DashboardPage() {
                         <div className={`w-5 h-5 ${competitor.iconBg} rounded flex items-center justify-center`}>
                           <span className="text-[10px] font-bold text-white">{competitor.icon}</span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">{competitor.name}</span>
+                        <span className="text-sm font-medium text-[#0A0A0A] dark:text-white">{competitor.name}</span>
                         <span className="text-sm text-gray-600 dark:text-gray-400">{competitor.percentage}%</span>
                       </div>
                       <span className="text-xs text-gray-500 dark:text-gray-400">POSICIÓN PROM. {competitor.position}</span>
@@ -201,7 +206,7 @@ export default function DashboardPage() {
                     <span>{change.text}</span>
                     <Badge
                       variant="secondary"
-                      className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 dark:bg-[#0A0A0F] dark:border dark:border-[#2A2A30] hover:bg-gray-100 dark:hover:bg-[#1E1E24]"
+                      className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 dark:bg-[#0A0A0F] dark:border dark:border-[#2A2A30] hover:bg-gray-100 dark:hover:bg-[#0A0A0A]"
                     >
                       <div className={`w-3.5 h-3.5 ${change.brandBg} rounded-full flex items-center justify-center`}>
                         <span
@@ -215,10 +220,10 @@ export default function DashboardPage() {
                     <span>{change.context}</span>
                     <Badge
                       variant="secondary"
-                      className={`flex items-center gap-1.5 px-2 py-0.5 ${change.modelBg} dark:bg-black dark:border dark:border-[#2A2A30] hover:${change.modelBg} dark:hover:bg-[#1E1E24]`}
+                      className={`flex items-center gap-1.5 px-2 py-0.5 ${change.modelBg} dark:bg-black dark:border dark:border-[#2A2A30] hover:${change.modelBg} dark:hover:bg-[#0A0A0A]`}
                     >
                       <span>{change.modelIcon}</span>
-                      <span className="font-medium text-gray-900 dark:text-white">{change.model}</span>
+                      <span className="font-medium text-[#0A0A0A] dark:text-white">{change.model}</span>
                     </Badge>
                     <span className="text-gray-500 dark:text-gray-400">{change.query}</span>
                   </div>
@@ -229,7 +234,7 @@ export default function DashboardPage() {
             {/* Promotional Card */}
             <Card className="p-6 bg-gradient-to-br from-pink-300 to-pink-400 border-0 relative overflow-hidden">
               <div className="relative z-10">
-                <h3 className="text-xl font-bold text-gray-900 mb-6 leading-tight">
+                <h3 className="text-xl font-bold text-[#0A0A0A] mb-6 leading-tight">
                   Ser invisible en
                   <br />
                   IA duele más
@@ -331,13 +336,13 @@ export default function DashboardPage() {
                       modelIcon: "⚡",
                     },
                   ].map((row) => (
-                    <tr key={row.name} className="border-b border-gray-100 dark:border-[#1E1E24] hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
+                    <tr key={row.name} className="border-b border-gray-100 dark:border-[#1E1E24] hover:bg-gray-50 dark:hover:bg-[#0A0A0A]">
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
                           <div className={`w-6 h-6 ${row.iconBg} rounded-full flex items-center justify-center`}>
                             <span className="text-xs font-bold text-white">{row.icon}</span>
                           </div>
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">{row.name}</span>
+                          <span className="text-sm font-medium text-[#0A0A0A] dark:text-white">{row.name}</span>
                         </div>
                       </td>
                       <td className="py-4 px-4">
@@ -345,9 +350,14 @@ export default function DashboardPage() {
                       </td>
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-2">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center relative">
-                            <span className="text-xs font-semibold text-gray-900 dark:text-white z-10">{row.rate}</span>
-                            <svg className="absolute inset-0 w-full h-full -rotate-90">
+                          <div className="w-10 h-10 rounded-full flex items-center justify-center relative shrink-0">
+                            <span className="text-xs font-semibold text-[#0A0A0A] dark:text-white z-10">{row.rate}</span>
+                            <svg
+                              viewBox="0 0 40 40"
+                              preserveAspectRatio="xMidYMid meet"
+                              className="absolute inset-0 w-10 h-10 -rotate-90"
+                              style={{ transformOrigin: "50% 50%" }}
+                            >
                               <circle
                                 cx="20"
                                 cy="20"

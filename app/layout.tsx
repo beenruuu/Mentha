@@ -7,9 +7,9 @@ import { CommandPalette } from '@/components/command-palette'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Mentha #codebase',
-  description: 'Created with v0',
-  generator: 'v0.app',
+  title: 'Mentha',
+  description: 'Analiza la visibilidad de marcas en motores de IA y asistentes conversacionales.',
+  generator: 'Mentha',
 }
 
 export default function RootLayout({
@@ -18,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <ThemeScript />
         <CommandPalette />

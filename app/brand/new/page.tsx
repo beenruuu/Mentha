@@ -76,7 +76,7 @@ export default function CreateBrandPage() {
   ]
 
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-black">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
       <AppSidebar />
 
       {/* Main Content */}

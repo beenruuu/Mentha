@@ -11,7 +11,7 @@ import { MenuButton } from "@/components/menu-button"
 
 export default function SettingsPage() {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0F]">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
       <AppSidebar />
 
       {/* Main Content */}
@@ -21,10 +21,10 @@ export default function SettingsPage() {
           <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-white dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                 <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">Y</kbd>
               </div>
             </div>
           </div>
@@ -157,12 +157,12 @@ export default function SettingsPage() {
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Facturación</h2>
               </div>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-[#0A0A0F] rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-white dark:bg-[#0A0A0A] rounded-lg border border-gray-200 dark:border-[#2A2A30]">
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-white">Plan Gratuito</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">2,564 / 10,000 tokens usados este mes</p>
                   </div>
-                  <Button className="bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black">Actualizar a Pro</Button>
+                  <Button className="bg-black dark:bg-[#0A0A0A] hover:bg-gray-800 dark:hover:bg-[#0A0A0A] text-white">Actualizar a Pro</Button>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Historial de facturación</h3>
