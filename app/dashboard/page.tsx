@@ -8,20 +8,20 @@ import { AppSidebar } from "@/components/app-sidebar"
 
 export default function DashboardPage() {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0F]">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
       <AppSidebar />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto md:ml-64">
         {/* Header */}
-        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
+        <header className="bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
           <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
               </div>
             </div>
           </div>
@@ -47,7 +47,7 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
             {/* Brand Overview */}
-            <Card className="p-4 md:p-6 bg-white dark:bg-black">
+            <Card className="p-4 md:p-6 bg-white dark:bg-[#000000]">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Resumen de Marca</h2>
                 <Info className="w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -81,7 +81,7 @@ export default function DashboardPage() {
                             fill="none"
                             stroke="#e5e7eb"
                             strokeWidth="3"
-                            className="dark:stroke-[#0A0A0F]"
+                            className="dark:stroke-[#0A0A0A]"
                           />
                           <circle
                             cx="20"
@@ -106,7 +106,7 @@ export default function DashboardPage() {
             </Card>
 
             {/* Competitor Overview */}
-            <Card className="p-4 md:p-6 bg-white dark:bg-black">
+            <Card className="p-4 md:p-6 bg-white dark:bg-[#000000]">
               <div className="mb-6">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Resumen de Competidores</h2>
@@ -156,7 +156,7 @@ export default function DashboardPage() {
                       </div>
                       <span className="text-xs text-gray-500 dark:text-gray-400">POSICIÓN PROM. {competitor.position}</span>
                     </div>
-                    <div className="w-full h-2 bg-gray-100 dark:bg-[#0A0A0F] rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-gray-100 dark:bg-[#0A0A0A] rounded-full overflow-hidden">
                       <div
                         className="h-full bg-green-500 rounded-full"
                         style={{ width: `${competitor.percentage}%` }}
@@ -172,7 +172,7 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
             {/* Notable Changes */}
-            <Card className="lg:col-span-2 p-4 md:p-6 bg-white dark:bg-black">
+            <Card className="lg:col-span-2 p-4 md:p-6 bg-white dark:bg-[#000000]">
               <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Cambios Notables</h2>
               <div className="space-y-3">
                 {[
@@ -225,7 +225,7 @@ export default function DashboardPage() {
                     <span>{change.text}</span>
                     <Badge
                       variant="secondary"
-                      className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 dark:bg-[#0A0A0F] dark:border dark:border-[#2A2A30] hover:bg-gray-100 dark:hover:bg-[#1E1E24]"
+                      className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 dark:bg-[#0A0A0A] dark:border dark:border-[#2A2A30] hover:bg-gray-100 dark:hover:bg-[#1E1E24]"
                     >
                       <div className={`w-3.5 h-3.5 ${change.brandBg} rounded-full flex items-center justify-center`}>
                         <span
@@ -239,7 +239,7 @@ export default function DashboardPage() {
                     <span>{change.context}</span>
                     <Badge
                       variant="secondary"
-                      className={`flex items-center gap-1.5 px-2 py-0.5 ${change.modelBg} dark:bg-black dark:border dark:border-[#2A2A30] hover:${change.modelBg} dark:hover:bg-[#1E1E24]`}
+                      className={`flex items-center gap-1.5 px-2 py-0.5 ${change.modelBg} dark:bg-[#0A0A0A] dark:border dark:border-[#2A2A30] hover:${change.modelBg} dark:hover:bg-[#1E1E24]`}
                     >
                       <span>{change.modelIcon}</span>
                       <span className="font-medium text-gray-900 dark:text-white">{change.model}</span>
@@ -306,7 +306,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Data Table */}
-          <Card className="p-4 md:p-6 bg-white dark:bg-black">
+          <Card className="p-4 md:p-6 bg-white dark:bg-[#000000]">
             <div className="overflow-x-auto -mx-4 md:mx-0">
               <table className="w-full">
                 <thead>
@@ -379,7 +379,7 @@ export default function DashboardPage() {
                                 fill="none"
                                 stroke="#e5e7eb"
                                 strokeWidth="3"
-                                className="dark:stroke-[#0A0A0F]"
+                                className="dark:stroke-[#0A0A0A]"
                               />
                               <circle
                                 cx="20"
@@ -398,7 +398,7 @@ export default function DashboardPage() {
                       <td className="py-4 px-4">
                         <Badge
                           variant="secondary"
-                          className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 dark:bg-[#0A0A0F] dark:border dark:border-[#2A2A30] hover:bg-gray-100 dark:hover:bg-[#1E1E24] w-fit"
+                          className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 dark:bg-[#0A0A0A] dark:border dark:border-[#2A2A30] hover:bg-gray-100 dark:hover:bg-[#1E1E24] w-fit"
                         >
                           <span>{row.modelIcon}</span>
                           <span className="font-medium text-sm">{row.model}</span>
@@ -415,6 +415,9 @@ export default function DashboardPage() {
     </div>
   )
 }
+
+
+
 
 
 

@@ -8,19 +8,19 @@ import { AppSidebar } from "@/components/app-sidebar"
 
 export default function NotificationsPage() {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0F]">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
       <AppSidebar />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto md:ml-64">
-        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
+        <header className="bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
           <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
               </div>
             </div>
           </div>
@@ -56,7 +56,7 @@ export default function NotificationsPage() {
             <div className="mb-4">
               <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Hoy</h2>
               <div className="space-y-3">
-                <Card className="p-4 bg-white dark:bg-black hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-green-500">
+                <Card className="p-4 bg-white dark:bg-[#000000] hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-green-500">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
                       <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -81,7 +81,7 @@ export default function NotificationsPage() {
                   </div>
                 </Card>
 
-                <Card className="p-4 bg-white dark:bg-black hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-blue-500">
+                <Card className="p-4 bg-white dark:bg-[#000000] hover:shadow-md transition-shadow cursor-pointer border-l-4 border-l-blue-500">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
                       <CheckCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
@@ -112,7 +112,7 @@ export default function NotificationsPage() {
             <div className="mb-4">
               <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Ayer</h2>
               <div className="space-y-3">
-                <Card className="p-4 bg-white dark:bg-black hover:shadow-md transition-shadow cursor-pointer">
+                <Card className="p-4 bg-white dark:bg-[#000000] hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center flex-shrink-0">
                       <AlertCircle className="w-5 h-5 text-orange-600 dark:text-orange-400" />
@@ -137,7 +137,7 @@ export default function NotificationsPage() {
                   </div>
                 </Card>
 
-                <Card className="p-4 bg-white dark:bg-black hover:shadow-md transition-shadow cursor-pointer">
+                <Card className="p-4 bg-white dark:bg-[#000000] hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center flex-shrink-0">
                       <TrendingUp className="w-5 h-5 text-green-600 dark:text-green-400" />
@@ -168,7 +168,7 @@ export default function NotificationsPage() {
             <div>
               <h2 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">Esta Semana</h2>
               <div className="space-y-3">
-                <Card className="p-4 bg-white dark:bg-black hover:shadow-md transition-shadow cursor-pointer">
+                <Card className="p-4 bg-white dark:bg-[#000000] hover:shadow-md transition-shadow cursor-pointer">
                   <div className="flex items-start gap-4">
                     <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center flex-shrink-0">
                       <CheckCircle className="w-5 h-5 text-purple-600 dark:text-purple-400" />
@@ -195,6 +195,9 @@ export default function NotificationsPage() {
     </div>
   )
 }
+
+
+
 
 
 

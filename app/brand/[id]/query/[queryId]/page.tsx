@@ -69,19 +69,19 @@ export default async function QueryDetailPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-black">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
       <AppSidebar />
 
       {/* Main Content */}
       <main className="flex-1 overflow-x-hidden overflow-y-auto md:ml-64">
-        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
+        <header className="bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
           <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
               </div>
             </div>
           </div>
@@ -132,7 +132,7 @@ export default async function QueryDetailPage({ params }: { params: Promise<{ id
                       {brand.icon}
                     </span>
                   </div>
-                  <Badge variant="secondary" className="bg-gray-100 dark:bg-[#0A0A0F]">
+                  <Badge variant="secondary" className="bg-gray-100 dark:bg-[#0A0A0A]">
                     ⚡
                   </Badge>
                   <span>+1</span>
@@ -156,7 +156,7 @@ export default async function QueryDetailPage({ params }: { params: Promise<{ id
           </div>
 
           {/* Average Rank */}
-          <Card className="p-6 bg-gray-50 dark:bg-[#0A0A0F] mb-6">
+          <Card className="p-6 bg-gray-50 dark:bg-[#0A0A0A] mb-6">
             <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">
               Ranking Promedio por Modelos
             </h2>
@@ -167,7 +167,7 @@ export default async function QueryDetailPage({ params }: { params: Promise<{ id
           </Card>
 
           {/* Position Performance Chart */}
-          <Card className="p-6 bg-white dark:bg-black mb-6">
+          <Card className="p-6 bg-white dark:bg-[#000000] mb-6">
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
@@ -180,7 +180,7 @@ export default async function QueryDetailPage({ params }: { params: Promise<{ id
                   <button className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                     Competidores
                   </button>
-                  <button className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
+                  <button className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium bg-white dark:bg-[#000000] border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
                     Modelos
                   </button>
                   <button className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
@@ -201,7 +201,7 @@ export default async function QueryDetailPage({ params }: { params: Promise<{ id
                 <button className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                   Competidores
                 </button>
-                <button className="px-3 py-1.5 text-xs font-medium bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
+                <button className="px-3 py-1.5 text-xs font-medium bg-white dark:bg-[#000000] border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
                   Modelos
                 </button>
                 <button className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">

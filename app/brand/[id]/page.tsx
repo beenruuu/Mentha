@@ -132,19 +132,19 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-black">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
       <AppSidebar />
 
       {/* Main Content */}
       <main className="flex-1 overflow-x-hidden overflow-y-auto md:ml-64">
-        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
+        <header className="bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
           <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
               </div>
             </div>
           </div>
@@ -166,7 +166,7 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ id
 
         <div className="p-4 md:p-8">
           {/* Brand Header */}
-          <Card className="p-4 md:p-6 bg-white dark:bg-black mb-4 md:mb-6">
+          <Card className="p-4 md:p-6 bg-white dark:bg-[#000000] mb-4 md:mb-6">
             <div className="flex flex-col md:flex-row items-start justify-between gap-4">
               <div className="flex items-start gap-3 md:gap-4 w-full">
                 <div className={`w-10 h-10 md:w-12 md:h-12 ${brand.iconBg} rounded-xl flex items-center justify-center flex-shrink-0`}>
@@ -197,7 +197,7 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ id
           </Card>
 
           {/* Notable Changes */}
-          <Card className="p-4 md:p-6 bg-white dark:bg-black mb-4 md:mb-6">
+          <Card className="p-4 md:p-6 bg-white dark:bg-[#000000] mb-4 md:mb-6">
             <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Cambios Notables</h2>
             <div className="space-y-3">
               {[
@@ -250,7 +250,7 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ id
                   <span>{change.text}</span>
                   <Badge
                     variant="secondary"
-                    className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 dark:bg-[#0A0A0F] hover:bg-gray-100 dark:hover:bg-[#1E1E24]"
+                    className="flex items-center gap-1.5 px-2 py-0.5 bg-gray-100 dark:bg-[#0A0A0A] hover:bg-gray-100 dark:hover:bg-[#1E1E24]"
                   >
                     <div className={`w-3.5 h-3.5 ${change.brandBg} rounded-full flex items-center justify-center`}>
                       <span
@@ -277,7 +277,7 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ id
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
             {/* Brand Overview */}
-            <Card className="lg:col-span-2 p-4 md:p-6 bg-white dark:bg-black">
+            <Card className="lg:col-span-2 p-4 md:p-6 bg-white dark:bg-[#000000]">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Resumen de Marca</h2>
               </div>
@@ -304,7 +304,7 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ id
                           fill="none"
                           stroke="#e5e7eb"
                           strokeWidth="3"
-                          className="dark:stroke-[#0A0A0F]"
+                          className="dark:stroke-[#0A0A0A]"
                         />
                         <circle
                           cx="20"
@@ -343,7 +343,7 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ id
                             fill="none"
                             stroke="#e5e7eb"
                             strokeWidth="3"
-                            className="dark:stroke-[#0A0A0F]"
+                            className="dark:stroke-[#0A0A0A]"
                           />
                           <circle
                             cx="20"
@@ -354,7 +354,7 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ id
                             strokeWidth="3"
                             strokeDasharray={`${(competitor.score / 100) * 100.53} 100.53`}
                             strokeLinecap="round"
-                            className="dark:stroke-[#0A0A0F]"
+                            className="dark:stroke-[#0A0A0A]"
                           />
                         </svg>
                       </div>
@@ -369,7 +369,7 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ id
             </Card>
 
             {/* Potential Competitors */}
-            <Card className="p-4 md:p-6 bg-white dark:bg-black">
+            <Card className="p-4 md:p-6 bg-white dark:bg-[#000000]">
               <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
                 Competidores Potenciales
               </h2>
@@ -397,14 +397,14 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ id
           </div>
 
           {/* Position Trends */}
-          <Card className="p-4 md:p-6 bg-white dark:bg-black">
+          <Card className="p-4 md:p-6 bg-white dark:bg-[#000000]">
             <div className="mb-6">
               <div className="flex items-center justify-between mb-3">
                 <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                   Tendencias de Posición por Modelos
                 </h2>
                 <div className="hidden md:flex flex-wrap items-center gap-2">
-                  <button className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
+                  <button className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium bg-white dark:bg-[#000000] border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
                     Modelos
                   </button>
                   <button className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
@@ -418,8 +418,8 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ id
                   </button>
                 </div>
               </div>
-              <div className="flex md:hidden flex-wrap items-center gap-2">
-                <button className="px-3 py-1.5 text-xs font-medium bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
+              <div className="flex md:hidden items-center gap-2 mb-4">
+                <button className="px-3 py-1.5 text-xs font-medium bg-white dark:bg-[#000000] border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
                   Modelos
                 </button>
                 <button className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
@@ -514,8 +514,8 @@ export default async function BrandDetailPage({ params }: { params: Promise<{ id
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Consultas Rastreadas</h2>
             <div className="space-y-3">
               {brand.queries.map((query: any) => (
-                <Link key={query.id} href={`/brand/${params.id}/query/${query.id}`}>
-                  <Card className="p-4 bg-white dark:bg-black hover:shadow-md transition-shadow cursor-pointer">
+                <Link key={query.id} href={`/brand/${id}/query/${query.id}`}>
+                  <Card className="p-4 bg-white dark:bg-[#000000] hover:shadow-md transition-shadow cursor-pointer">
                     <p className="text-sm font-medium text-gray-900 dark:text-white">{query.title}</p>
                   </Card>
                 </Link>

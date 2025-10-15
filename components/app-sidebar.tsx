@@ -13,7 +13,7 @@ export function AppSidebar() {
       {/* Mobile Menu Button */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded-lg shadow-lg"
+        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#2A2A30] rounded-lg shadow-lg"
       >
         {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
       </button>
@@ -27,7 +27,7 @@ export function AppSidebar() {
       )}
 
       {/* Sidebar */}
-      <aside className={`w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-[#2A2A30] flex flex-col fixed left-0 top-0 h-screen z-40 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
+      <aside className={`w-64 bg-white dark:bg-[#000000] border-r border-gray-200 dark:border-[#2A2A30] flex flex-col fixed left-0 top-0 h-screen z-40 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
       {/* Logo */}
       <div className="p-4">
         <Link href="/">
@@ -126,7 +126,7 @@ export function AppSidebar() {
             <Link href="/brand/revolut">
               <button className="w-full flex items-center justify-between px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-full flex items-center justify-center">
+                  <div className="w-4 h-4 bg-white dark:bg-[#000000] border border-gray-300 dark:border-[#2A2A30] rounded-full flex items-center justify-center">
                     <span className="text-[10px] text-black dark:text-white font-bold">R</span>
                   </div>
                   <span className="text-sm">Revolut</span>
@@ -142,7 +142,7 @@ export function AppSidebar() {
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
         <div className="mb-3">
           <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Casi alcanzas tu límite</p>
-          <div className="w-full h-1.5 bg-gray-200 dark:bg-black rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-gray-200 dark:bg-[#0A0A0A] rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-green-500 to-yellow-500 rounded-full"
               style={{ width: "25%" }}
@@ -161,6 +161,9 @@ export function AppSidebar() {
     </>
   )
 }
+
+
+
 
 
 

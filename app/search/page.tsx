@@ -7,19 +7,19 @@ import Link from "next/link"
 
 export default function SearchPage() {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0F]">
+    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
       <AppSidebar />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto md:ml-64">
-        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
+        <header className="bg-white dark:bg-[#000000] border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
           <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
+              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
+                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
               </div>
             </div>
           </div>
@@ -48,13 +48,13 @@ export default function SearchPage() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
               <Input
                 placeholder="Buscar marcas, consultas, modelos..."
-                className="pl-12 pr-4 py-6 text-base bg-white dark:bg-black border-gray-300 dark:border-[#2A2A30]"
+                className="pl-12 pr-4 py-6 text-base bg-white dark:bg-[#000000] border-gray-300 dark:border-[#2A2A30]"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
-            <Card className="p-4 md:p-6 bg-white dark:bg-black">
+            <Card className="p-4 md:p-6 bg-white dark:bg-[#000000]">
               <div className="flex items-center gap-3 mb-4">
                 <Clock className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <h2 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wide">Búsquedas Recientes</h2>
@@ -80,7 +80,7 @@ export default function SearchPage() {
               </div>
             </Card>
 
-            <Card className="p-4 md:p-6 bg-white dark:bg-black">
+            <Card className="p-4 md:p-6 bg-white dark:bg-[#000000]">
               <div className="flex items-center gap-3 mb-4">
                 <TrendingUp className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                 <h2 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wide">Búsquedas Populares</h2>
@@ -107,7 +107,7 @@ export default function SearchPage() {
             </Card>
           </div>
 
-          <Card className="p-4 md:p-6 bg-white dark:bg-black">
+          <Card className="p-4 md:p-6 bg-white dark:bg-[#000000]">
             <div className="flex items-center gap-3 mb-4">
               <FileText className="w-5 h-5 text-gray-400 dark:text-gray-500" />
               <h2 className="text-sm font-semibold text-gray-900 dark:text-white uppercase tracking-wide">Accesos Rápidos</h2>
@@ -120,7 +120,7 @@ export default function SearchPage() {
                 { name: "Revolut", icon: "R", iconBg: "bg-white border border-gray-300", queries: "6 consultas" },
               ].map((brand) => (
                 <Link key={brand.name} href={`/brand/${brand.name.toLowerCase()}`}>
-                  <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer bg-white dark:bg-black">
+                  <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer bg-white dark:bg-[#000000]">
                     <div className="flex items-center gap-3 mb-2">
                       <div className={`w-8 h-8 ${brand.iconBg} rounded-full flex items-center justify-center`}>
                         <span
@@ -142,6 +142,9 @@ export default function SearchPage() {
     </div>
   )
 }
+
+
+
 
 
 
