@@ -1,35 +1,42 @@
 "use client"
 
-import { Search, Bell, Settings, ChevronRight, Menu, X } from "lucide-react"
+import { Search, Bell, Settings, ChevronRight, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { useState } from "react"
+import { create } from "zustand"
+
+// Store para manejar el estado de la sidebar
+interface SidebarStore {
+  isOpen: boolean
+  toggle: () => void
+  close: () => void
+}
+
+export const useSidebar = create<SidebarStore>((set) => ({
+  isOpen: false,
+  toggle: () => set((state) => ({ isOpen: !state.isOpen })),
+  close: () => set({ isOpen: false }),
+}))
 
 export function AppSidebar() {
-  const [isOpen, setIsOpen] = useState(false)
+  const { isOpen, close } = useSidebar()
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-[#000000] border border-gray-200 dark:border-[#2A2A30] rounded-lg shadow-lg"
-      >
-        {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-      </button>
-
-      {/* Overlay */}
+      {/* Overlay for mobile */}
       {isOpen && (
-        <div 
-          className="md:hidden fixed inset-0 bg-black/50 z-40"
-          onClick={() => setIsOpen(false)}
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={close}
         />
       )}
 
       {/* Sidebar */}
-      <aside className={`w-64 bg-white dark:bg-[#000000] border-r border-gray-200 dark:border-[#2A2A30] flex flex-col fixed left-0 top-0 h-screen z-40 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
-      {/* Logo */}
-      <div className="p-4">
+      <aside className={`${
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      } md:translate-x-0 fixed left-0 top-0 h-screen w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-[#2A2A30] flex flex-col z-50 transition-transform duration-300 ease-in-out`}>
+      {/* Logo and Close Button */}
+      <div className="p-4 flex items-center justify-between">
         <Link href="/">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer">
             {/* Mentha logo - color follows text color: black in light, white in dark */}
@@ -42,11 +49,20 @@ export function AppSidebar() {
             </svg>
           </div>
         </Link>
+        <button
+          onClick={close}
+          className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-[#1E1E24] rounded-lg transition-colors"
+          aria-label="Cerrar menú"
+        >
+          <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+        </button>
       </div>
 
       {/* Create Brand Button */}
       <div className="px-4 mb-6">
-        <Button className="w-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black rounded-lg">+ Crear marca</Button>
+        <Link href="/brand/new">
+          <Button className="w-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black rounded-lg">+ Crear marca</Button>
+        </Link>
       </div>
 
       {/* Navigation */}
@@ -126,7 +142,7 @@ export function AppSidebar() {
             <Link href="/brand/revolut">
               <button className="w-full flex items-center justify-between px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                 <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 bg-white dark:bg-[#000000] border border-gray-300 dark:border-[#2A2A30] rounded-full flex items-center justify-center">
+                  <div className="w-4 h-4 bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-full flex items-center justify-center">
                     <span className="text-[10px] text-black dark:text-white font-bold">R</span>
                   </div>
                   <span className="text-sm">Revolut</span>
@@ -142,7 +158,7 @@ export function AppSidebar() {
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
         <div className="mb-3">
           <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Casi alcanzas tu límite</p>
-          <div className="w-full h-1.5 bg-gray-200 dark:bg-[#0A0A0A] rounded-full overflow-hidden">
+          <div className="w-full h-1.5 bg-gray-200 dark:bg-black rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-green-500 to-yellow-500 rounded-full"
               style={{ width: "25%" }}
@@ -157,13 +173,10 @@ export function AppSidebar() {
           </Button>
         </Link>
       </div>
-    </aside>
+      </aside>
     </>
   )
 }
-
-
-
 
 
 

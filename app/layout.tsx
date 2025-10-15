@@ -7,7 +7,7 @@ import { CommandPalette } from '@/components/command-palette'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
+  title: 'Mentha #codebase',
   description: 'Created with v0',
   generator: 'v0.app',
 }
