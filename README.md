@@ -45,8 +45,8 @@ A modern and comprehensive dashboard for analyzing brand visibility in search en
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/beenruuu/brand-analytics-dashboard.git
-   cd brand-analytics-dashboard
+   git clone https://github.com/beenruuu/Mentha.git
+   cd Mentha
    ```
 
 2. **Install dependencies**
@@ -158,8 +158,8 @@ This project is licensed under the Apache License 2.0. See the `LICENSE` file fo
 ## 📞 Contact
 
 - **Author**: beenruuu
-- **Repository**: [GitHub](https://github.com/beenruuu/brand-analytics-dashboard)
-- **Issues**: [Report Issues](https://github.com/beenruuu/brand-analytics-dashboard/issues)
+- **Repository**: [GitHub](https://github.com/beenruuu/mentha)
+- **Issues**: [Report Issues](https://github.com/beenruuu/mentha/issues)
 
 ---
 
