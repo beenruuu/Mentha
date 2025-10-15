@@ -1,6 +1,6 @@
 # Mentha - IA-SEO Brand Analytics Dashboard
 
-![Mentha Dashboard Preview](dashboard-preview.jpeg)
+![Mentha Dashboard Preview](preview.jpeg)
 
 Un dashboard moderno y completo para el análisis de visibilidad de marca en motores de búsqueda y modelos de IA. Rastrea el rendimiento de tu marca en diferentes consultas y modelos de IA, monitorea competidores, y obtén insights accionables para mejorar tu presencia digital.
 
