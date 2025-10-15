@@ -14,18 +14,27 @@ export default function DashboardPage() {
       {/* Main Content */}
       <main className="flex-1 overflow-auto md:ml-64">
         {/* Header */}
-        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-8 py-4 flex items-center justify-between">
-          <div className="flex-1 max-w-md">
+        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
+          <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
               <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1">
                 <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
                 <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
               </div>
             </div>
           </div>
-          <Avatar className="w-10 h-10">
+          <div className="sm:hidden absolute left-1/2 -translate-x-1/2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" className="w-6 h-6 text-black dark:text-white" aria-hidden="true">
+              <path d="M19.7,26.3l3.2-4.2c1.7-2.6,3.5-5.4,3.9-8.5l-1.8,3.4c-1.3,1.8-2.6,3.8-4.1,5.4s-2.3,2.3-2.7,2.4-.2,0-.2-.2c-1-3.3-1.1-7.5.3-10.7s6.4-8,9.5-10.6,2.5-2.1,2.7-2c2.5,4.1,4.3,9.4,3.1,14.3-1.5,6.1-7.9,10.2-13.9,10.7Z" fill="currentColor"/>
+              <path d="M33.7,20.5v15.1c0,1-1.6,2.5-2.6,2.7-2.4.4-4.2-1-4.4-3.4s-.2-6.1,0-8,0-.4.2-.6,1.7-.9,2.1-1.2c1.8-1.2,3.3-2.7,4.7-4.5Z" fill="currentColor"/>
+              <path d="M16.3,25.4c-.1.1-.9-.6-1.1-.7-1.6-1.5-3.1-3.8-4-5.8-.3,0-.1.3,0,.4.6,2.5,2.6,4.8,4.1,6.9-3.5-.3-7.2-2.6-8.2-6.2s.4-5.7,1.7-8.4c.1,0,1.4,1,1.6,1.1,1.9,1.6,5,4.4,5.8,6.7s.4,4,0,6Z" fill="currentColor"/>
+              <path d="M7.3,24.4c1.9,2,4.3,3.2,7,3.9-.3,2.2.5,6.1-.4,8.1s-3.4,2.6-5.1,1.5-1.5-1.6-1.5-2.2v-11.2Z" fill="currentColor"/>
+              <path d="M23.9,27.5v8.1c0,.4-.8,1.6-1.1,1.9-1.6,1.4-4.4,1.1-5.4-.9s-.5-1.4-.5-1.6v-6.7c2.4,0,4.7-.1,7-.8Z" fill="currentColor"/>
+            </svg>
+          </div>
+          <Avatar className="w-10 h-10 ml-auto">
             <AvatarImage src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-VUcSRydRPw7ZxpM77k5JPTb70b6iXC.png" />
             <AvatarFallback>U</AvatarFallback>
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
@@ -33,12 +42,12 @@ export default function DashboardPage() {
         </header>
 
         {/* Content */}
-        <div className="p-8">
-          <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-8">Movimientos de ranking esta semana.</h1>
+        <div className="p-4 md:p-8">
+          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900 dark:text-white mb-6 md:mb-8">Movimientos de ranking esta semana.</h1>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
             {/* Brand Overview */}
-            <Card className="p-6 bg-white dark:bg-black">
+            <Card className="p-4 md:p-6 bg-white dark:bg-black">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Resumen de Marca</h2>
                 <Info className="w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -52,7 +61,7 @@ export default function DashboardPage() {
                 ].map((brand) => (
                   <div key={brand.name} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`w-6 h-6 ${brand.iconBg} rounded-full flex items-center justify-center`}>
+                      <div className={`w-6 h-6 ${brand.iconBg} rounded-full flex items-center justify-center flex-shrink-0`}>
                         <span
                           className={`text-xs font-bold ${brand.iconBg === "bg-white border border-gray-300" ? "text-black" : "text-white"}`}
                         >
@@ -62,7 +71,7 @@ export default function DashboardPage() {
                       <span className="text-sm font-medium text-gray-900 dark:text-white">{brand.name}</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center relative">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center relative flex-shrink-0">
                         <span className="text-xs font-semibold text-gray-900 dark:text-white z-10">{brand.score}</span>
                         <svg className="absolute inset-0 w-full h-full -rotate-90">
                           <circle
@@ -86,7 +95,7 @@ export default function DashboardPage() {
                           />
                         </svg>
                       </div>
-                      <div className="flex items-center gap-1 text-green-600">
+                      <div className="flex items-center gap-1 text-green-600 min-w-[3rem]">
                         <ArrowUp className="w-3 h-3" />
                         <span className="text-sm font-semibold">{brand.change}</span>
                       </div>
@@ -97,10 +106,25 @@ export default function DashboardPage() {
             </Card>
 
             {/* Competitor Overview */}
-            <Card className="p-6 bg-white dark:bg-black">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Resumen de Competidores</h2>
-                <div className="flex items-center gap-2">
+            <Card className="p-4 md:p-6 bg-white dark:bg-black">
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Resumen de Competidores</h2>
+                  <div className="hidden md:flex items-center gap-2">
+                    {[
+                      { name: "Airbnb", color: "bg-[#FF5A5F]" },
+                      { name: "Strava", color: "bg-[#FC4C02]" },
+                      { name: "Vercel", color: "bg-black" },
+                      { name: "Revolut", color: "bg-white border border-gray-300" },
+                    ].map((brand) => (
+                      <div key={brand.name} className="flex items-center gap-1.5">
+                        <div className={`w-4 h-4 ${brand.color} rounded-full`}></div>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">{brand.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex md:hidden flex-wrap items-center gap-2">
                   {[
                     { name: "Airbnb", color: "bg-[#FF5A5F]" },
                     { name: "Strava", color: "bg-[#FC4C02]" },
@@ -146,9 +170,9 @@ export default function DashboardPage() {
 
           {/* Mentha quick view removed to avoid duplication */}
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
             {/* Notable Changes */}
-            <Card className="lg:col-span-2 p-6 bg-white dark:bg-black">
+            <Card className="lg:col-span-2 p-4 md:p-6 bg-white dark:bg-black">
               <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Cambios Notables</h2>
               <div className="space-y-3">
                 {[
@@ -227,16 +251,16 @@ export default function DashboardPage() {
             </Card>
 
             {/* Promotional Card */}
-            <Card className="p-6 bg-gradient-to-br from-pink-300 to-pink-400 border-0 relative overflow-hidden">
+            <Card className="p-4 md:p-6 bg-gradient-to-br from-pink-300 to-pink-400 border-0 relative overflow-hidden min-h-[200px]">
               <div className="relative z-10">
-                <h3 className="text-xl font-bold text-gray-900 mb-6 leading-tight">
+                <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6 leading-tight">
                   Ser invisible en
                   <br />
                   IA duele más
                   <br />
                   que un error 404
                 </h3>
-                <Button className="bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black">Rastrea tu marca</Button>
+                <Button className="bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black text-sm md:text-base">Rastrea tu marca</Button>
               </div>
               <div className="absolute right-4 bottom-4 w-32 h-32">
                 <svg viewBox="0 0 120 120" className="w-full h-full">
@@ -282,8 +306,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Data Table */}
-          <Card className="p-6 bg-white dark:bg-black">
-            <div className="overflow-x-auto">
+          <Card className="p-4 md:p-6 bg-white dark:bg-black">
+            <div className="overflow-x-auto -mx-4 md:mx-0">
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-[#2A2A30]">

@@ -1,10 +1,33 @@
-import { Search, Bell, Settings, ChevronRight, Leaf } from "lucide-react"
+"use client"
+
+import { Search, Bell, Settings, ChevronRight, Menu, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { useState } from "react"
 
 export function AppSidebar() {
+  const [isOpen, setIsOpen] = useState(false)
+
   return (
-    <aside className="w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-[#2A2A30] flex flex-col fixed left-0 top-0 h-screen">
+    <>
+      {/* Mobile Menu Button */}
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded-lg shadow-lg"
+      >
+        {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+      </button>
+
+      {/* Overlay */}
+      {isOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={`w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-[#2A2A30] flex flex-col fixed left-0 top-0 h-screen z-40 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
       {/* Logo */}
       <div className="p-4">
         <Link href="/">
@@ -135,7 +158,10 @@ export function AppSidebar() {
         </Link>
       </div>
     </aside>
+    </>
   )
 }
+
+
 
 

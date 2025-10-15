@@ -123,8 +123,9 @@ const brandData: Record<string, any> = {
   },
 }
 
-export default function BrandDetailPage({ params }: { params: { id: string } }) {
-  const brand = brandData[params.id]
+export default async function BrandDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const brand = brandData[id]
 
   if (!brand) {
     return <div>Marca no encontrada</div>
@@ -135,40 +136,49 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
       <AppSidebar />
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto md:ml-64">
-        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-8 py-4 flex items-center justify-between">
-          <div className="flex-1 max-w-md">
+      <main className="flex-1 overflow-x-hidden overflow-y-auto md:ml-64">
+        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
+          <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
               <Input placeholder="Buscar..." className="pl-10 pr-20 bg-gray-50 dark:bg-[#0A0A0F] border-gray-200 dark:border-[#2A2A30]" />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 hidden md:flex items-center gap-1">
                 <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
                 <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">K</kbd>
               </div>
             </div>
           </div>
-          <Avatar className="w-10 h-10">
+          <div className="sm:hidden absolute left-1/2 -translate-x-1/2">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" className="w-6 h-6 text-black dark:text-white" aria-hidden="true">
+              <path d="M19.7,26.3l3.2-4.2c1.7-2.6,3.5-5.4,3.9-8.5l-1.8,3.4c-1.3,1.8-2.6,3.8-4.1,5.4s-2.3,2.3-2.7,2.4-.2,0-.2-.2c-1-3.3-1.1-7.5.3-10.7s6.4-8,9.5-10.6,2.5-2.1,2.7-2c2.5,4.1,4.3,9.4,3.1,14.3-1.5,6.1-7.9,10.2-13.9,10.7Z" fill="currentColor"/>
+              <path d="M33.7,20.5v15.1c0,1-1.6,2.5-2.6,2.7-2.4.4-4.2-1-4.4-3.4s-.2-6.1,0-8,0-.4.2-.6,1.7-.9,2.1-1.2c1.8-1.2,3.3-2.7,4.7-4.5Z" fill="currentColor"/>
+              <path d="M16.3,25.4c-.1.1-.9-.6-1.1-.7-1.6-1.5-3.1-3.8-4-5.8-.3,0-.1.3,0,.4.6,2.5,2.6,4.8,4.1,6.9-3.5-.3-7.2-2.6-8.2-6.2s.4-5.7,1.7-8.4c.1,0,1.4,1,1.6,1.1,1.9,1.6,5,4.4,5.8,6.7s.4,4,0,6Z" fill="currentColor"/>
+              <path d="M7.3,24.4c1.9,2,4.3,3.2,7,3.9-.3,2.2.5,6.1-.4,8.1s-3.4,2.6-5.1,1.5-1.5-1.6-1.5-2.2v-11.2Z" fill="currentColor"/>
+              <path d="M23.9,27.5v8.1c0,.4-.8,1.6-1.1,1.9-1.6,1.4-4.4,1.1-5.4-.9s-.5-1.4-.5-1.6v-6.7c2.4,0,4.7-.1,7-.8Z" fill="currentColor"/>
+            </svg>
+          </div>
+          <Avatar className="w-10 h-10 ml-auto">
             <AvatarImage src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-VUcSRydRPw7ZxpM77k5JPTb70b6iXC.png" />
             <AvatarFallback>U</AvatarFallback>
             <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
           </Avatar>
         </header>
 
-        <div className="p-8">
+        <div className="p-4 md:p-8">
           {/* Brand Header */}
-          <Card className="p-6 bg-white dark:bg-black mb-6">
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-4">
-                <div className={`w-12 h-12 ${brand.iconBg} rounded-xl flex items-center justify-center`}>
+          <Card className="p-4 md:p-6 bg-white dark:bg-black mb-4 md:mb-6">
+            <div className="flex flex-col md:flex-row items-start justify-between gap-4">
+              <div className="flex items-start gap-3 md:gap-4 w-full">
+                <div className={`w-10 h-10 md:w-12 md:h-12 ${brand.iconBg} rounded-xl flex items-center justify-center flex-shrink-0`}>
                   <span
-                    className={`text-xl font-bold ${brand.iconBg.includes("border") ? "text-black dark:text-white" : "text-white"}`}
+                    className={`text-lg md:text-xl font-bold ${brand.iconBg.includes("border") ? "text-black dark:text-white" : "text-white"}`}
                   >
                     {brand.icon}
                   </span>
                 </div>
-                <div>
-                  <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">{brand.name}</h1>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 max-w-2xl mb-3">{brand.description}</p>
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-xl md:text-2xl font-semibold text-gray-900 dark:text-white mb-2">{brand.name}</h1>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{brand.description}</p>
                   <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex items-center gap-1.5">
                       <MapPin className="w-4 h-4" />
@@ -187,7 +197,7 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
           </Card>
 
           {/* Notable Changes */}
-          <Card className="p-6 bg-white dark:bg-black mb-6">
+          <Card className="p-4 md:p-6 bg-white dark:bg-black mb-4 md:mb-6">
             <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Cambios Notables</h2>
             <div className="space-y-3">
               {[
@@ -254,10 +264,10 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
                   <span>{change.context}</span>
                   <Badge
                     variant="secondary"
-                    className={`flex items-center gap-1.5 px-2 py-0.5 ${change.modelBg} dark:bg-black hover:${change.modelBg} dark:hover:bg-[#1E1E24]`}
+                    className={`flex items-center gap-1.5 px-2 py-0.5 ${change.modelBg} dark:bg-[#1E1E24] dark:border dark:border-[#2A2A30] hover:${change.modelBg} dark:hover:bg-[#2A2A30]`}
                   >
                     <span>{change.modelIcon}</span>
-                    <span className="font-medium">{change.model}</span>
+                    <span className="font-medium text-gray-900 dark:text-white">{change.model}</span>
                   </Badge>
                   <span className="text-gray-500 dark:text-gray-400">{change.query}</span>
                 </div>
@@ -265,9 +275,9 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
             </div>
           </Card>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6 mb-4 md:mb-6">
             {/* Brand Overview */}
-            <Card className="lg:col-span-2 p-6 bg-white dark:bg-black">
+            <Card className="lg:col-span-2 p-4 md:p-6 bg-white dark:bg-black">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Resumen de Marca</h2>
               </div>
@@ -359,7 +369,7 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
             </Card>
 
             {/* Potential Competitors */}
-            <Card className="p-6 bg-white dark:bg-black">
+            <Card className="p-4 md:p-6 bg-white dark:bg-black">
               <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
                 Competidores Potenciales
               </h2>
@@ -387,30 +397,46 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
           </div>
 
           {/* Position Trends */}
-          <Card className="p-6 bg-white dark:bg-black">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                Tendencias de Posición por Modelos
-              </h2>
-              <div className="flex items-center gap-2">
-                <button className="px-4 py-1.5 text-sm font-medium bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
+          <Card className="p-4 md:p-6 bg-white dark:bg-black">
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Tendencias de Posición por Modelos
+                </h2>
+                <div className="hidden md:flex flex-wrap items-center gap-2">
+                  <button className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
+                    Modelos
+                  </button>
+                  <button className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
+                    Personas
+                  </button>
+                  <button className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
+                    Regiones
+                  </button>
+                  <button className="px-3 md:px-4 py-1.5 text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
+                    Idiomas
+                  </button>
+                </div>
+              </div>
+              <div className="flex md:hidden flex-wrap items-center gap-2">
+                <button className="px-3 py-1.5 text-xs font-medium bg-white dark:bg-black border border-gray-300 dark:border-[#2A2A30] rounded-lg hover:bg-gray-50 dark:hover:bg-[#1E1E24]">
                   Modelos
                 </button>
-                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
+                <button className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                   Personas
                 </button>
-                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
+                <button className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                   Regiones
                 </button>
-                <button className="px-4 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
+                <button className="px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg">
                   Idiomas
                 </button>
               </div>
             </div>
 
             {/* Chart */}
-            <div className="relative h-80">
-              <svg className="w-full h-full" viewBox="0 0 1200 320">
+            <div className="relative h-64 md:h-80 overflow-hidden">
+              <svg className="w-full h-full" viewBox="0 0 1200 320" preserveAspectRatio="xMidYMid meet">
                 {/* Grid lines */}
                 {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
                   <g key={i}>
@@ -468,7 +494,7 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
             </div>
 
             {/* Legend */}
-            <div className="flex items-center justify-center gap-6 mt-6">
+            <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 mt-6">
               {[
                 { name: "gpt-5", color: "bg-[#06b6d4]", icon: "⚫" },
                 { name: "claude-4-sonnet", color: "bg-[#fbbf24]", icon: "✨" },
