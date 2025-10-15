@@ -2,165 +2,165 @@
 
 ![Mentha Dashboard Preview](preview.jpeg)
 
-Un dashboard moderno y completo para el análisis de visibilidad de marca en motores de búsqueda y modelos de IA. Rastrea el rendimiento de tu marca en diferentes consultas y modelos de IA, monitorea competidores, y obtén insights accionables para mejorar tu presencia digital.
+A modern and comprehensive dashboard for analyzing brand visibility in search engines and AI models. Track your brand's performance across different queries and AI models, monitor competitors, and get actionable insights to improve your digital presence.
 
-## 🚀 Características
+## 🚀 Features
 
-### 📊 Dashboard Principal
-- **Resumen de Marca**: Visualiza el rendimiento de tu marca en diferentes métricas
-- **Análisis de Competidores**: Compara tu posición con marcas similares
-- **Cambios Notables**: Mantente al día con las últimas actualizaciones y mejoras
-- **Tabla de Datos**: Vista detallada de posiciones promedio y tasas de inclusión
+### 📊 Main Dashboard
+- **Brand Summary**: Visualize your brand's performance across different metrics
+- **Competitor Analysis**: Compare your position with similar brands
+- **Notable Changes**: Stay up to date with the latest updates and improvements
+- **Data Table**: Detailed view of average positions and inclusion rates
 
 ### 🤖 IA-SEO Monitoring
-- **Crawlers IA**: Monitorea la actividad de bots de IA en tu sitio web
-- **Análisis de Consultas**: Rastrea cómo responden los modelos de IA a consultas relacionadas con tu marca
-- **Métricas en Tiempo Real**: Estadísticas actualizadas de visitas, páginas indexadas y tendencias
+- **AI Crawlers**: Monitor AI bot activity on your website
+- **Query Analysis**: Track how AI models respond to queries related to your brand
+- **Real-time Metrics**: Updated statistics on visits, indexed pages, and trends
 
-### 🎨 Interfaz Moderna
-- **Modo Oscuro/Claro**: Interfaz adaptativa con tema consistente
-- **Diseño Responsivo**: Optimizado para desktop y dispositivos móviles
-- **Componentes UI**: Construido con shadcn/ui para una experiencia premium
+### 🎨 Modern Interface
+- **Dark/Light Mode**: Adaptive interface with consistent theming
+- **Responsive Design**: Optimized for desktop and mobile devices
+- **UI Components**: Built with shadcn/ui for a premium experience
 
-## 🛠️ Tecnologías
+## 🛠️ Technologies
 
-- **Framework**: Next.js 15.2.4 con App Router
-- **Lenguaje**: TypeScript
+- **Framework**: Next.js 15.2.4 with App Router
+- **Language**: TypeScript
 - **Styling**: Tailwind CSS 4.1.11
-- **UI Components**: shadcn/ui con Radix UI
-- **Iconos**: Lucide React
-- **Estado**: React Hooks con localStorage para persistencia
+- **UI Components**: shadcn/ui with Radix UI
+- **Icons**: Lucide React
+- **State**: React Hooks with localStorage for persistence
 
-## ⚠️ Estado del Proyecto
+## ⚠️ Project Status
 
-**Actualmente solo hay frontend implementado.** El proyecto está en desarrollo y utiliza datos mock para la demostración. Se planea implementar próximamente:
+**Currently only frontend is implemented.** The project is in development and uses mock data for demonstration. Planned implementations include:
 
-- **Backend API** con Next.js API Routes
-- **Base de datos** (SQLite/PostgreSQL) para persistencia de datos
-- **Sistema de autenticación** con NextAuth.js
-- **APIs externas** para recopilación de datos de IA-SEO
-- **Web scraping** para monitoreo automático de competidores
+- **Backend API** with Next.js API Routes
+- **Database** (SQLite/PostgreSQL) for data persistence
+- **Authentication System** with NextAuth.js
+- **External APIs** for IA-SEO data collection
+- **Web scraping** for automatic competitor monitoring
 
-## 📦 Instalación
+## 📦 Installation
 
-1. **Clona el repositorio**
+1. **Clone the repository**
    ```bash
    git clone https://github.com/beenruuu/brand-analytics-dashboard.git
    cd brand-analytics-dashboard
    ```
 
-2. **Instala las dependencias**
+2. **Install dependencies**
    ```bash
    npm install
-   # o
+   # or
    pnpm install
    ```
 
-3. **Ejecuta el servidor de desarrollo**
+3. **Run the development server**
    ```bash
    npm run dev
-   # o
+   # or
    pnpm dev
    ```
 
-4. **Abre tu navegador**
-   Visita [http://localhost:3000](http://localhost:3000)
+4. **Open your browser**
+   Visit [http://localhost:3000](http://localhost:3000)
 
-## 📁 Estructura del Proyecto
+## 📁 Project Structure
 
 ```
 mentha/
-├── app/                    # Páginas Next.js App Router
-│   ├── dashboard/         # Dashboard principal
-│   ├── brand/[id]/        # Páginas de marca individual
-│   │   ├── crawlers/      # Monitoreo de crawlers IA
-│   │   ├── queries/       # Análisis de consultas
-│   │   └── page.tsx       # Detalles de marca
-│   ├── search/            # Búsqueda de marcas
-│   ├── settings/          # Configuración de usuario
-│   └── layout.tsx         # Layout principal
-├── components/            # Componentes reutilizables
-│   ├── ui/               # Componentes base shadcn/ui
-│   ├── app-sidebar.tsx   # Sidebar de navegación
-│   └── dark-mode-toggle.tsx # Toggle de modo oscuro
-├── lib/                  # Utilidades y configuraciones
+├── app/                    # Next.js App Router pages
+│   ├── dashboard/         # Main dashboard
+│   ├── brand/[id]/        # Individual brand pages
+│   │   ├── crawlers/      # AI crawler monitoring
+│   │   ├── queries/       # Query analysis
+│   │   └── page.tsx       # Brand details
+│   ├── search/            # Brand search
+│   ├── settings/          # User settings
+│   └── layout.tsx         # Main layout
+├── components/            # Reusable components
+│   ├── ui/               # Base shadcn/ui components
+│   ├── app-sidebar.tsx   # Navigation sidebar
+│   └── dark-mode-toggle.tsx # Dark mode toggle
+├── lib/                  # Utilities and configurations
 ├── hooks/               # Custom hooks
-└── public/              # Assets estáticos
+└── public/              # Static assets
 ```
 
-## 🎯 Uso
+## 🎯 Usage
 
-### Navegación Principal
-- **Dashboard**: Vista general del rendimiento de tu marca
-- **Buscar**: Encuentra y analiza nuevas marcas
-- **Notificaciones**: Mantente al día con alertas importantes
-- **Configuración**: Personaliza tu experiencia
+### Main Navigation
+- **Dashboard**: General overview of your brand's performance
+- **Search**: Find and analyze new brands
+- **Notifications**: Stay up to date with important alerts
+- **Settings**: Customize your experience
 
-### Análisis de Marca
-1. Selecciona una marca desde el dashboard o búsqueda
-2. Revisa el resumen general y métricas clave
-3. Explora el análisis de competidores
-4. Monitorea la actividad de crawlers IA
-5. Analiza consultas específicas relacionadas con tu marca
+### Brand Analysis
+1. Select a brand from the dashboard or search
+2. Review the general summary and key metrics
+3. Explore competitor analysis
+4. Monitor AI crawler activity
+5. Analyze specific queries related to your brand
 
-## 🔧 Configuración
+## 🔧 Configuration
 
-### Requisitos del Sistema
+### System Requirements
 
-Antes de comenzar, asegúrate de tener instalado:
+Before starting, make sure you have installed:
 
-- **Node.js** 18.0 o superior
-- **npm** 8.0 o superior (viene incluido con Node.js)
-- **pnpm** (opcional, pero recomendado para mejor rendimiento)
-- **Git** para control de versiones
+- **Node.js** 18.0 or higher
+- **npm** 8.0 or higher (comes included with Node.js)
+- **pnpm** (optional, but recommended for better performance)
+- **Git** for version control
 
-### Verificar Instalación
+### Verify Installation
 
 ```bash
-# Verificar Node.js
+# Verify Node.js
 node --version
-# Debería mostrar v18.0.0 o superior
+# Should show v18.0.0 or higher
 
-# Verificar npm
+# Verify npm
 npm --version
-# Debería mostrar 8.0.0 o superior
+# Should show 8.0.0 or higher
 
-# Verificar Git
+# Verify Git
 git --version
-# Debería mostrar la versión de Git
+# Should show the Git version
 ```
 
-### Tema Oscuro
-El dashboard incluye soporte completo para modo oscuro:
-- Se guarda automáticamente tu preferencia
-- Tema consistente en todos los componentes
-- Transiciones suaves entre modos
+### Dark Theme
+The dashboard includes full dark mode support:
+- Your preference is automatically saved
+- Consistent theme across all components
+- Smooth transitions between modes
 
-## 📈 Métricas y KPIs
+## 📈 Metrics and KPIs
 
-- **Posición Promedio**: Ranking en consultas relacionadas
-- **Tasa de Inclusión**: Porcentaje de respuestas que incluyen tu marca
-- **Mejor Modelo**: Modelo de IA con mejor rendimiento para tu marca
-- **Actividad de Crawlers**: Visitas y páginas indexadas por bots IA
+- **Average Position**: Ranking in related queries
+- **Inclusion Rate**: Percentage of responses that include your brand
+- **Best Model**: AI model with best performance for your brand
+- **Crawler Activity**: Visits and pages indexed by AI bots
 
-## 🤝 Contribuir
+## 🤝 Contributing
 
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
-3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
-4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+1. Fork the project
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-## 📝 Licencia
+## 📝 License
 
-Este proyecto está bajo la Licencia Apache 2.0. Ver el archivo `LICENSE` para más detalles.
+This project is licensed under the Apache License 2.0. See the `LICENSE` file for more details.
 
-## 📞 Contacto
+## 📞 Contact
 
-- **Autor**: beenruuu
-- **Repositorio**: [GitHub](https://github.com/beenruuu/brand-analytics-dashboard)
-- **Issues**: [Reportar Problemas](https://github.com/beenruuu/brand-analytics-dashboard/issues)
+- **Author**: beenruuu
+- **Repository**: [GitHub](https://github.com/beenruuu/brand-analytics-dashboard)
+- **Issues**: [Report Issues](https://github.com/beenruuu/brand-analytics-dashboard/issues)
 
 ---
 
-*Construido con ❤️ para mejorar la visibilidad de marca en la era de la IA*
+*Built with ❤️ to improve brand visibility in the AI era*
