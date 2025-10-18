@@ -1,8 +1,27 @@
 import Stripe from 'stripe'
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
-  typescript: true,
+// Lazy initialization to avoid build errors
+let stripeClient: Stripe | null = null
+
+export function getStripe() {
+  if (!stripeClient && process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_demo') {
+    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-12-18.acacia',
+      typescript: true,
+    })
+  }
+  return stripeClient
+}
+
+// Mantener exportación para compatibilidad, pero usar getter
+export const stripe = new Proxy({} as Stripe, {
+  get: (target, prop) => {
+    const client = getStripe()
+    if (!client) {
+      throw new Error('Stripe client not initialized. Please configure STRIPE_SECRET_KEY.')
+    }
+    return (client as any)[prop]
+  }
 })
 
 export const PLANS = {

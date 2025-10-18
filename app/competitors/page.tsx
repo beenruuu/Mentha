@@ -12,17 +12,52 @@ import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Users, Plus, Search, TrendingUp, TrendingDown, ArrowUpDown } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { useToast } from '@/hooks/use-toast'
 
 import { mockCompetitorData } from '@/lib/mock-data'
 
 export default function CompetitorsPage() {
   const [competitors] = useState(mockCompetitorData)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [competitorName, setCompetitorName] = useState('')
+  const [competitorDomain, setCompetitorDomain] = useState('')
+  const { toast } = useToast()
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return 'text-green-600'
     if (score >= 80) return 'text-yellow-600'
     if (score >= 70) return 'text-orange-600'
     return 'text-red-600'
+  }
+
+  const handleAddCompetitor = () => {
+    if (!competitorName.trim() || !competitorDomain.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Por favor completa todos los campos',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    toast({
+      title: 'Competidor agregado',
+      description: `${competitorName} se agregó a tu lista de competidores`,
+    })
+    
+    setCompetitorName('')
+    setCompetitorDomain('')
+    setIsDialogOpen(false)
   }
 
   return (
@@ -99,10 +134,51 @@ export default function CompetitorsPage() {
                     Analiza tu rendimiento frente a la competencia en motores de IA
                   </CardDescription>
                 </div>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Agregar Competidor
-                </Button>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Agregar Competidor
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Agregar Nuevo Competidor</DialogTitle>
+                      <DialogDescription>
+                        Ingresa los datos del competidor que deseas analizar
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="name">Nombre del Competidor</Label>
+                        <Input
+                          id="name"
+                          placeholder="Ej: Empresa XYZ"
+                          value={competitorName}
+                          onChange={(e) => setCompetitorName(e.target.value)}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="domain">Dominio</Label>
+                        <Input
+                          id="domain"
+                          placeholder="Ej: empresaxyz.com"
+                          value={competitorDomain}
+                          onChange={(e) => setCompetitorDomain(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleAddCompetitor()}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button onClick={handleAddCompetitor}>
+                        Agregar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardHeader>
             <CardContent>

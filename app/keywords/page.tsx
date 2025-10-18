@@ -11,11 +11,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { TrendingUp, TrendingDown, Plus, Search } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { useToast } from '@/hooks/use-toast'
 
 import { mockKeywordData } from '@/lib/mock-data'
 
 export default function KeywordsPage() {
   const [keywords] = useState(mockKeywordData)
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [newKeyword, setNewKeyword] = useState('')
+  const { toast } = useToast()
 
   const getDifficultyColor = (difficulty: number) => {
     if (difficulty >= 70) return 'text-red-600'
@@ -27,6 +41,25 @@ export default function KeywordsPage() {
     if (score >= 80) return 'text-green-600'
     if (score >= 60) return 'text-yellow-600'
     return 'text-red-600'
+  }
+
+  const handleAddKeyword = () => {
+    if (!newKeyword.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Por favor ingresa una keyword',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    toast({
+      title: 'Keyword agregada',
+      description: `"${newKeyword}" se agregó a tu lista de trackeo`,
+    })
+    
+    setNewKeyword('')
+    setIsDialogOpen(false)
   }
 
   return (
@@ -103,10 +136,42 @@ export default function KeywordsPage() {
                     Rastrea el rendimiento de tus keywords en motores de IA
                   </CardDescription>
                 </div>
-                <Button className="ml-0 md:ml-auto">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Agregar Keyword
-                </Button>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="ml-0 md:ml-auto">
+                      <Plus className="mr-2 h-4 w-4" />
+                      Agregar Keyword
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Agregar Nueva Keyword</DialogTitle>
+                      <DialogDescription>
+                        Ingresa la keyword que deseas trackear en los motores de IA
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="keyword">Keyword</Label>
+                        <Input
+                          id="keyword"
+                          placeholder="Ej: software de gestión"
+                          value={newKeyword}
+                          onChange={(e) => setNewKeyword(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword()}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                        Cancelar
+                      </Button>
+                      <Button onClick={handleAddKeyword}>
+                        Agregar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </CardHeader>
             <CardContent>

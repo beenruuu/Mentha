@@ -4,6 +4,9 @@ import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function POST(request: Request) {
   const body = await request.text()
   const headersList = await headers()

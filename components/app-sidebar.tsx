@@ -4,7 +4,7 @@ import { Search, Bell, Settings, ChevronRight, X, Bot, Search as SearchIcon, Spa
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useSidebar } from "@/components/ui/sidebar"
 
 function BrandItem({ id, name, icon, iconBg, iconColor }: { id: string; name: string; icon: string; iconBg: string; iconColor: string }) {
@@ -53,6 +53,7 @@ function BrandItem({ id, name, icon, iconBg, iconColor }: { id: string; name: st
 export function AppSidebar() {
   const { openMobile, setOpenMobile, isMobile } = useSidebar()
   const router = useRouter()
+  const pathname = usePathname()
 
   const handleLogout = async () => {
     // En modo demo, simplemente redirigir
@@ -121,10 +122,18 @@ export function AppSidebar() {
       {/* Navigation */}
       <nav className="flex-1 px-3 overflow-y-auto">
         <Link href="/dashboard">
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg mb-1 justify-between">
+          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 justify-between ${
+            pathname === '/dashboard' 
+              ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium' 
+              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
+          }`}>
             <div className="flex items-center gap-3">
               <div className="w-4 h-4 flex items-center justify-center">
-                <div className="w-3 h-3 border-2 border-gray-600 dark:border-gray-300 rounded"></div>
+                <div className={`w-3 h-3 border-2 rounded ${
+                  pathname === '/dashboard'
+                    ? 'border-gray-900 dark:border-white'
+                    : 'border-gray-600 dark:border-gray-300'
+                }`}></div>
               </div>
               <span className="text-sm">Panel</span>
             </div>
@@ -132,37 +141,61 @@ export function AppSidebar() {
           </button>
         </Link>
         <Link href="/aeo-analysis">
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg mb-1">
+          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${
+            pathname === '/aeo-analysis'
+              ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium'
+              : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+          }`}>
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm font-medium">Análisis AEO</span>
+            <span className="text-sm">Análisis AEO</span>
           </button>
         </Link>
         <Link href="/keywords">
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg mb-1">
+          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${
+            pathname === '/keywords'
+              ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium'
+              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
+          }`}>
             <TrendingUp className="w-4 h-4" />
             <span className="text-sm">Keywords IA</span>
           </button>
         </Link>
         <Link href="/competitors">
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg mb-1">
+          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${
+            pathname === '/competitors'
+              ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium'
+              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
+          }`}>
             <Users className="w-4 h-4" />
             <span className="text-sm">Competencia</span>
           </button>
         </Link>
         <Link href="/search">
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg mb-1">
+          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${
+            pathname === '/search'
+              ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium'
+              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
+          }`}>
             <Search className="w-4 h-4" />
             <span className="text-sm">Buscar</span>
           </button>
         </Link>
         <Link href="/notifications">
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg mb-1">
+          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${
+            pathname === '/notifications'
+              ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium'
+              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
+          }`}>
             <Bell className="w-4 h-4" />
             <span className="text-sm">Notificaciones</span>
           </button>
         </Link>
         <Link href="/settings">
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg mb-6">
+          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-6 ${
+            pathname === '/settings'
+              ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium'
+              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
+          }`}>
             <Settings className="w-4 h-4" />
             <span className="text-sm">Configuración</span>
           </button>

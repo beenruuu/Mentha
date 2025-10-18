@@ -3,6 +3,9 @@ import { analyzeContentWithOpenAI } from '@/lib/ai/openai'
 import { analyzeContentWithClaude } from '@/lib/ai/anthropic'
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient()
