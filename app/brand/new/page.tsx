@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
 import { MenuButton } from "@/components/menu-button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -76,11 +77,12 @@ export default function CreateBrandPage() {
   ]
 
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
-      <AppSidebar />
+    <SidebarProvider>
+      <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
+        <AppSidebar />
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto md:ml-64">
+        {/* Main Content */}
+        <main className="flex-1 overflow-auto md:ml-64">
         <div className="p-4 sm:p-6 md:p-8">
           <div className="w-full max-w-6xl mx-auto">
             {/* Mobile Menu and Back Button */}
@@ -455,6 +457,7 @@ export default function CreateBrandPage() {
           </div>
         </div>
       </main>
-    </div>
+      </div>
+    </SidebarProvider>
   )
 }

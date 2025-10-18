@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
 import { MenuButton } from "@/components/menu-button"
 import Link from "next/link"
 
@@ -71,8 +72,9 @@ export default function QueriesPage({ params }: { params: { id: string } }) {
   ]
 
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
-      <AppSidebar />
+    <SidebarProvider>
+      <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
+        <AppSidebar />
 
       <main className="flex-1 overflow-auto md:ml-64">
         <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
@@ -279,6 +281,7 @@ export default function QueriesPage({ params }: { params: { id: string } }) {
           </Card>
         </div>
       </main>
-    </div>
+      </div>
+    </SidebarProvider>
   )
 }

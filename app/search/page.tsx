@@ -3,13 +3,15 @@ import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { AppSidebar } from "@/components/app-sidebar"
+import { SidebarProvider } from "@/components/ui/sidebar"
 import { MenuButton } from "@/components/menu-button"
 import Link from "next/link"
 
 export default function SearchPage() {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
-      <AppSidebar />
+    <SidebarProvider>
+      <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
+        <AppSidebar />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto md:ml-64">
@@ -132,7 +134,8 @@ export default function SearchPage() {
           </Card>
         </div>
       </main>
-    </div>
+      </div>
+    </SidebarProvider>
   )
 }
 

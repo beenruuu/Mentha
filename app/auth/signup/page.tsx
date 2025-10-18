@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -17,7 +16,6 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const router = useRouter()
-  const supabase = createClient()
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,6 +24,21 @@ export default function SignupPage() {
     setSuccess(false)
 
     try {
+      const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+      
+      if (isDemoMode) {
+        // En modo demo, simular registro exitoso
+        setSuccess(true)
+        setTimeout(() => {
+          router.push('/auth/login')
+        }, 2000)
+        return
+      }
+
+      // En producción, usar Supabase
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -55,6 +68,18 @@ export default function SignupPage() {
     setError('')
 
     try {
+      const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+      
+      if (isDemoMode) {
+        // En modo demo, simplemente redirigir
+        router.push('/dashboard')
+        return
+      }
+
+      // En producción, usar Supabase
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
