@@ -1,11 +1,24 @@
 import Anthropic from '@anthropic-ai/sdk'
 
-export const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY!,
-})
+// Lazy initialization to avoid build errors
+let anthropicClient: Anthropic | null = null
+
+function getAnthropicClient() {
+  if (!anthropicClient && process.env.ANTHROPIC_API_KEY) {
+    anthropicClient = new Anthropic({
+      apiKey: process.env.ANTHROPIC_API_KEY,
+    })
+  }
+  return anthropicClient
+}
 
 export async function analyzeContentWithClaude(content: string, domain: string) {
   try {
+    const anthropic = getAnthropicClient()
+    if (!anthropic) {
+      throw new Error('Anthropic client not initialized')
+    }
+    
     const message = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 2000,
@@ -50,6 +63,11 @@ export async function compareWithCompetitors(
   competitorContents: Array<{ name: string; content: string }>
 ) {
   try {
+    const anthropic = getAnthropicClient()
+    if (!anthropic) {
+      throw new Error('Anthropic client not initialized')
+    }
+    
     const message = await anthropic.messages.create({
       model: 'claude-3-5-sonnet-20241022',
       max_tokens: 3000,

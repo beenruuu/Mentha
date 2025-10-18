@@ -1,11 +1,24 @@
 import OpenAI from 'openai'
 
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-})
+// Lazy initialization to avoid build errors
+let openaiClient: OpenAI | null = null
+
+function getOpenAIClient() {
+  if (!openaiClient && process.env.OPENAI_API_KEY) {
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  }
+  return openaiClient
+}
 
 export async function analyzeContentWithOpenAI(content: string, domain: string) {
   try {
+    const openai = getOpenAIClient()
+    if (!openai) {
+      throw new Error('OpenAI client not initialized')
+    }
+    
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
@@ -42,6 +55,11 @@ export async function analyzeContentWithOpenAI(content: string, domain: string) 
 
 export async function generateKeywordSuggestions(domain: string, industry: string) {
   try {
+    const openai = getOpenAIClient()
+    if (!openai) {
+      throw new Error('OpenAI client not initialized')
+    }
+    
     const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
