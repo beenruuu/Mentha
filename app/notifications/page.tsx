@@ -1,45 +1,35 @@
-import { Search, TrendingUp, AlertCircle, CheckCircle } from "lucide-react"
+'use client'
+
+import { Search, TrendingUp, AlertCircle, CheckCircle, Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { AppSidebar } from "@/components/app-sidebar"
-import { MenuButton } from "@/components/menu-button"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
+import { Separator } from '@/components/ui/separator'
+import { UserAvatarMenu } from '@/components/user-avatar-menu'
 
 export default function NotificationsPage() {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
+    <SidebarProvider>
       <AppSidebar />
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto md:ml-64">
-        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
-          <MenuButton />
-          <div className="flex-1 max-w-md hidden sm:block">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-white dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">Y</kbd>
-              </div>
-            </div>
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <div className="flex items-center gap-2">
+            <Bell className="h-5 w-5 text-emerald-600" />
+            <h1 className="text-xl font-semibold">Notificaciones</h1>
           </div>
-          <Avatar className="w-10 h-10">
-            <AvatarImage src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-VUcSRydRPw7ZxpM77k5JPTb70b6iXC.png" />
-            <AvatarFallback>U</AvatarFallback>
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-          </Avatar>
+          <div className="flex-1" />
+          <UserAvatarMenu />
         </header>
 
-        <div className="p-8">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">Notificaciones</h1>
-              <p className="text-gray-600 dark:text-gray-400">Mantente al día con los cambios en tus marcas.</p>
-            </div>
-            <Button variant="outline" className="text-sm bg-transparent dark:bg-transparent dark:text-white dark:border-[#2A2A30]">
+        <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
+          <div className="flex items-center justify-end mb-4">
+            <Button variant="outline" size="sm">
               Marcar todas como leídas
             </Button>
           </div>
@@ -184,8 +174,8 @@ export default function NotificationsPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
 

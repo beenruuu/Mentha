@@ -96,16 +96,17 @@ export function CommandPalette() {
 
   React.useEffect(() => {
     const down = (e: KeyboardEvent) => {
-      // Abrir/cerrar paleta de comandos con Ctrl+Y
+      // Abrir/cerrar paleta de comandos con Ctrl+Y o Cmd+Y
       if (e.key === "y" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
+        e.stopPropagation()
         setOpen((open) => !open)
       }
     }
 
     document.addEventListener("keydown", down)
     return () => document.removeEventListener("keydown", down)
-  }, [open, router])
+  }, [])
 
   const runCommand = React.useCallback((command: () => void) => {
     setOpen(false)

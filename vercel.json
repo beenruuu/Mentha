@@ -1,0 +1,24 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "@stripe_publishable_key",
+    "STRIPE_SECRET_KEY": "@stripe_secret_key",
+    "STRIPE_WEBHOOK_SECRET": "@stripe_webhook_secret",
+    "STRIPE_PRICE_ID_STARTER_MONTHLY": "@stripe_price_starter_monthly",
+    "STRIPE_PRICE_ID_STARTER_YEARLY": "@stripe_price_starter_yearly",
+    "STRIPE_PRICE_ID_PRO_MONTHLY": "@stripe_price_pro_monthly",
+    "STRIPE_PRICE_ID_PRO_YEARLY": "@stripe_price_pro_yearly",
+    "STRIPE_PRICE_ID_ENTERPRISE_MONTHLY": "@stripe_price_enterprise_monthly",
+    "STRIPE_PRICE_ID_ENTERPRISE_YEARLY": "@stripe_price_enterprise_yearly",
+    "OPENAI_API_KEY": "@openai_api_key",
+    "ANTHROPIC_API_KEY": "@anthropic_api_key",
+    "NEXT_PUBLIC_APP_URL": "@app_url"
+  }
+}

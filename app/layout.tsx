@@ -4,12 +4,16 @@ import { GeistMono } from 'geist/font/mono'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeScript } from '@/components/theme-script'
 import { CommandPalette } from '@/components/command-palette'
+import { DemoBanner } from '@/components/demo-banner'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Mentha',
-  description: 'Analiza la visibilidad de marcas en motores de IA y asistentes conversacionales.',
+  title: 'Mentha - AI Engine Optimization Platform',
+  description: 'Optimiza tu visibilidad en motores de IA como ChatGPT, Claude, Perplexity y Gemini. Análisis AEO completo para mejorar tu presencia digital.',
   generator: 'Mentha',
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({
@@ -21,6 +25,7 @@ export default function RootLayout({
     <html lang="es">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <ThemeScript />
+        <DemoBanner />
         <CommandPalette />
         {children}
         <Analytics />

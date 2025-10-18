@@ -1,47 +1,66 @@
-# Mentha - IA-SEO Brand Analytics Dashboard
+# Mentha - AI Engine Optimization Platform
 
 ![Mentha Dashboard Preview](preview.jpeg)
 
-A modern and comprehensive dashboard for analyzing brand visibility in search engines and AI models. Track your brand's performance across different queries and AI models, monitor competitors, and get actionable insights to improve your digital presence.
+A complete SaaS platform for optimizing brand visibility in AI search engines and conversational assistants. Analyze, track, and improve your presence across ChatGPT, Claude, Perplexity, Gemini, and other AI models with actionable insights powered by advanced AI analysis.
 
 ## 🚀 Features
 
-### 📊 Main Dashboard
-- **Brand Summary**: Visualize your brand's performance across different metrics
-- **Competitor Analysis**: Compare your position with similar brands
-- **Notable Changes**: Stay up to date with the latest updates and improvements
-- **Data Table**: Detailed view of average positions and inclusion rates
+### 🤖 AI Engine Optimization (AEO)
+- **Content Analysis**: Deep analysis of your content for AI visibility
+- **Domain Scanning**: Complete website evaluation for AI engine optimization
+- **AI-Powered Recommendations**: Get actionable insights from GPT-4 and Claude
+- **Multi-Model Support**: Analyze across ChatGPT, Claude, Perplexity, and Gemini
+- **Scoring System**: Comprehensive AEO scores (0-100) for your content
 
-### 🤖 IA-SEO Monitoring
-- **AI Crawlers**: Monitor AI bot activity on your website
-- **Query Analysis**: Track how AI models respond to queries related to your brand
-- **Real-time Metrics**: Updated statistics on visits, indexed pages, and trends
+### 📊 Keyword Tracking
+- **AI Visibility Scores**: Track how visible your keywords are in AI responses
+- **Multi-Model Tracking**: Monitor mentions across different AI models
+- **Position Tracking**: See where you rank in AI-generated responses
+- **Trend Analysis**: Identify improving and declining keyword performance
+- **Keyword Suggestions**: AI-generated keyword opportunities
 
-### 🎨 Modern Interface
-- **Dark/Light Mode**: Adaptive interface with consistent theming
-- **Responsive Design**: Optimized for desktop and mobile devices
-- **UI Components**: Built with shadcn/ui for a premium experience
+### 👥 Competitor Analysis
+- **Visibility Comparison**: See how you stack up against competitors
+- **Gap Analysis**: Identify areas where competitors outperform you
+- **Strength Identification**: Understand competitor advantages
+- **Opportunity Detection**: Find keywords and topics to target
+
+### 💳 Subscription Management
+- **Stripe Integration**: Secure payment processing
+- **Multiple Plans**: Starter, Pro, and Enterprise tiers
+- **Usage Tracking**: Monitor API usage and limits
+- **Billing Portal**: Self-service subscription management
+
+### 🔒 Security & Authentication
+- **Supabase Auth**: Secure authentication with email and OAuth
+- **Row Level Security**: Data isolation between users
+- **Protected Routes**: Middleware-based route protection
+- **Session Management**: Secure session handling
 
 ## 🛠️ Technologies
 
-- **Framework**: Next.js 15.2.4 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS 4.1.11
-- **UI Components**: shadcn/ui with Radix UI
+- **Frontend**: Next.js 15.2.4 with App Router, TypeScript
+- **UI**: Tailwind CSS 4.1.11, shadcn/ui, Radix UI
+- **Backend**: Next.js API Routes, Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth with RLS
+- **Payments**: Stripe (subscriptions + webhooks)
+- **AI**: OpenAI GPT-4, Anthropic Claude
+- **Deployment**: Vercel/Fly.io ready
 - **Icons**: Lucide React
-- **State**: React Hooks with localStorage for persistence
+- **State**: React Hooks, Zustand
 
-## ⚠️ Project Status
+## ⚡ Quick Start
 
-**Currently only frontend is implemented.** The project is in development and uses mock data for demonstration. Planned implementations include:
+### Prerequisites
 
-- **Backend API** with Next.js API Routes
-- **Database** (SQLite/PostgreSQL) for data persistence
-- **Authentication System** with NextAuth.js
-- **External APIs** for IA-SEO data collection
-- **Web scraping** for automatic competitor monitoring
+- Node.js 18+
+- Supabase account
+- Stripe account
+- OpenAI API key
+- Anthropic API key
 
-## 📦 Installation
+### Installation
 
 1. **Clone the repository**
    ```bash
@@ -52,100 +71,150 @@ A modern and comprehensive dashboard for analyzing brand visibility in search en
 2. **Install dependencies**
    ```bash
    npm install
-   # or
-   pnpm install
    ```
 
-3. **Run the development server**
+3. **Set up environment variables**
+   ```bash
+   cp .env.local.example .env.local
+   ```
+   
+   Fill in all required environment variables (see SETUP.md for detailed instructions)
+
+4. **Set up Supabase database**
+   - Create a new Supabase project
+   - Run the SQL schema from `supabase/schema.sql` in the SQL Editor
+   - Configure authentication providers
+
+5. **Run the development server**
    ```bash
    npm run dev
-   # or
-   pnpm dev
    ```
 
-4. **Open your browser**
+6. **Open your browser**
    Visit [http://localhost:3000](http://localhost:3000)
 
-## 📁 Project Structure
+## 📖 Documentation
+
+- **[SETUP.md](SETUP.md)** - Complete setup and deployment guide
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
+
+## 🏗️ Project Structure
 
 ```
 mentha/
-├── app/                    # Next.js App Router pages
-│   ├── dashboard/         # Main dashboard
-│   ├── brand/[id]/        # Individual brand pages
-│   │   ├── crawlers/      # AI crawler monitoring
-│   │   ├── queries/       # Query analysis
-│   │   └── page.tsx       # Brand details
-│   ├── search/            # Brand search
-│   ├── settings/          # User settings
-│   └── layout.tsx         # Main layout
-├── components/            # Reusable components
-│   ├── ui/               # Base shadcn/ui components
-│   ├── app-sidebar.tsx   # Navigation sidebar
-│   └── dark-mode-toggle.tsx # Dark mode toggle
-├── lib/                  # Utilities and configurations
-├── hooks/               # Custom hooks
-└── public/              # Static assets
+├── app/                       # Next.js App Router
+│   ├── api/                  # API Routes
+│   │   ├── auth/            # Authentication endpoints
+│   │   ├── aeo/             # AEO analysis endpoints
+│   │   └── stripe/          # Stripe payment endpoints
+│   ├── auth/                # Authentication pages
+│   │   ├── login/           # Login page
+│   │   └── signup/          # Signup page
+│   ├── aeo-analysis/        # AEO analysis interface
+│   ├── keywords/            # Keyword tracking
+│   ├── competitors/         # Competitor analysis
+│   ├── dashboard/           # Main dashboard
+│   └── settings/            # User settings
+├── components/              # React components
+│   ├── ui/                 # shadcn/ui components
+│   └── app-sidebar.tsx     # Navigation sidebar
+├── lib/                    # Utilities and configurations
+│   ├── supabase/          # Supabase client & middleware
+│   ├── stripe/            # Stripe configuration
+│   └── ai/                # AI service integrations
+├── supabase/              # Database schema and migrations
+├── public/                # Static assets
+└── middleware.ts          # Next.js middleware for auth
 ```
 
-## 🎯 Usage
+## 🎯 Key Features Implementation
 
-### Main Navigation
-- **Dashboard**: General overview of your brand's performance
-- **Search**: Find and analyze new brands
-- **Notifications**: Stay up to date with important alerts
-- **Settings**: Customize your experience
+### Authentication Flow
+- Email/password signup and login
+- OAuth with Google (configurable)
+- Automatic profile creation on signup
+- Protected routes with middleware
+- Session management with Supabase
 
-### Brand Analysis
-1. Select a brand from the dashboard or search
-2. Review the general summary and key metrics
-3. Explore competitor analysis
-4. Monitor AI crawler activity
-5. Analyze specific queries related to your brand
+### Payment Flow
+1. User selects a plan
+2. Stripe Checkout session created
+3. Payment processed by Stripe
+4. Webhook updates subscription in database
+5. User gains access to features
 
-## 🔧 Configuration
+### AEO Analysis Flow
+1. User inputs domain and content
+2. Content sent to AI (GPT-4 or Claude)
+3. AI analyzes for optimization opportunities
+4. Results stored in database
+5. Recommendations generated
+6. User receives actionable insights
 
-### System Requirements
+## 📊 Database Schema
 
-Before starting, make sure you have installed:
+Key tables:
+- `profiles` - User profiles
+- `subscriptions` - Stripe subscriptions
+- `brands` - Monitored brands
+- `aeo_analyses` - AEO analysis results
+- `keywords` - Tracked keywords
+- `keyword_rankings` - AI model rankings
+- `competitors` - Competitor data
+- `recommendations` - AI-generated recommendations
 
-- **Node.js** 18.0 or higher
-- **npm** 8.0 or higher (comes included with Node.js)
-- **pnpm** (optional, but recommended for better performance)
-- **Git** for version control
+All tables protected with Row Level Security (RLS).
 
-### Verify Installation
+## 🚢 Deployment
 
+### Vercel (Recommended)
 ```bash
-# Verify Node.js
-node --version
-# Should show v18.0.0 or higher
-
-# Verify npm
-npm --version
-# Should show 8.0.0 or higher
-
-# Verify Git
-git --version
-# Should show the Git version
+vercel --prod
 ```
 
-### Dark Theme
-The dashboard includes full dark mode support:
-- Your preference is automatically saved
-- Consistent theme across all components
-- Smooth transitions between modes
+### Fly.io
+```bash
+fly launch
+fly deploy
+```
 
-## 📈 Metrics and KPIs
+See [SETUP.md](SETUP.md) for detailed deployment instructions.
 
-- **Average Position**: Ranking in related queries
-- **Inclusion Rate**: Percentage of responses that include your brand
-- **Best Model**: AI model with best performance for your brand
-- **Crawler Activity**: Visits and pages indexed by AI bots
+## 🔐 Environment Variables
+
+Required environment variables:
+
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+
+# Stripe
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
+STRIPE_SECRET_KEY=
+STRIPE_WEBHOOK_SECRET=
+STRIPE_PRICE_ID_*=
+
+# AI APIs
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+
+# App
+NEXT_PUBLIC_APP_URL=
+```
+
+## 🎨 Branding
+
+- **Logo**: mentha.svg (mint leaf design)
+- **Colors**: 
+  - Emerald/Mint: `#10b981`
+  - White: `#ffffff`
+  - Dark Gray: `#1f2937`
 
 ## 🤝 Contributing
 
-1. Fork the project
+1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
@@ -153,7 +222,7 @@ The dashboard includes full dark mode support:
 
 ## 📝 License
 
-This project is licensed under the Apache License 2.0. See the `LICENSE` file for more details.
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
 
 ## 📞 Contact
 
@@ -161,6 +230,18 @@ This project is licensed under the Apache License 2.0. See the `LICENSE` file fo
 - **Repository**: [GitHub](https://github.com/beenruuu/mentha)
 - **Issues**: [Report Issues](https://github.com/beenruuu/mentha/issues)
 
+## 🙏 Acknowledgments
+
+Inspired by leading AEO platforms:
+- Peec AI
+- Goodie AI
+- Profound
+- Ahrefs
+- Semrush
+- Athena
+- XFunnel
+- Geostar
+
 ---
 
-*Built with ❤️ to improve brand visibility in the AI era*
+**Built with ❤️ to optimize brand visibility in the AI era**

@@ -1,23 +1,11 @@
 "use client"
 
-import { Search, Bell, Settings, ChevronRight, X, Bot, Search as SearchIcon } from "lucide-react"
+import { Search, Bell, Settings, ChevronRight, X, Bot, Search as SearchIcon, Sparkles, TrendingUp, Users, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { create } from "zustand"
 import { useState } from "react"
-
-// Store para manejar el estado de la sidebar
-interface SidebarStore {
-  isOpen: boolean
-  toggle: () => void
-  close: () => void
-}
-
-export const useSidebar = create<SidebarStore>((set) => ({
-  isOpen: false,
-  toggle: () => set((state) => ({ isOpen: !state.isOpen })),
-  close: () => set({ isOpen: false }),
-}))
+import { useRouter } from "next/navigation"
+import { useSidebar } from "@/components/ui/sidebar"
 
 function BrandItem({ id, name, icon, iconBg, iconColor }: { id: string; name: string; icon: string; iconBg: string; iconColor: string }) {
   const [expanded, setExpanded] = useState(false)
@@ -63,21 +51,42 @@ function BrandItem({ id, name, icon, iconBg, iconColor }: { id: string; name: st
 }
 
 export function AppSidebar() {
-  const { isOpen, close } = useSidebar()
+  const { openMobile, setOpenMobile, isMobile } = useSidebar()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    // En modo demo, simplemente redirigir
+    const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+    
+    if (isDemoMode) {
+      router.push('/auth/login')
+    } else {
+      // En producción, usar Supabase
+      try {
+        const { createClient } = await import('@/lib/supabase/client')
+        const supabase = createClient()
+        await supabase.auth.signOut()
+        router.push('/auth/login')
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error)
+        router.push('/auth/login')
+      }
+    }
+  }
 
   return (
     <>
       {/* Overlay for mobile */}
-      {isOpen && (
+      {openMobile && isMobile && (
         <div
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={close}
+          onClick={() => setOpenMobile(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside className={`${
-        isOpen ? "translate-x-0" : "-translate-x-full"
+        openMobile ? "translate-x-0" : "-translate-x-full"
       } md:translate-x-0 fixed left-0 top-0 h-screen w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-[#2A2A30] flex flex-col z-50 transition-transform duration-300 ease-in-out`}>
       {/* Logo and Close Button */}
       <div className="p-4 flex items-center justify-between">
@@ -94,7 +103,7 @@ export function AppSidebar() {
           </div>
         </Link>
         <button
-          onClick={close}
+          onClick={() => setOpenMobile(false)}
           className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-[#1E1E24] rounded-lg transition-colors"
           aria-label="Cerrar menú"
         >
@@ -111,6 +120,35 @@ export function AppSidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 overflow-y-auto">
+        <Link href="/dashboard">
+          <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg mb-1 justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-4 h-4 flex items-center justify-center">
+                <div className="w-3 h-3 border-2 border-gray-600 dark:border-gray-300 rounded"></div>
+              </div>
+              <span className="text-sm">Panel</span>
+            </div>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </Link>
+        <Link href="/aeo-analysis">
+          <button className="w-full flex items-center gap-3 px-3 py-2 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg mb-1">
+            <Sparkles className="w-4 h-4" />
+            <span className="text-sm font-medium">Análisis AEO</span>
+          </button>
+        </Link>
+        <Link href="/keywords">
+          <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg mb-1">
+            <TrendingUp className="w-4 h-4" />
+            <span className="text-sm">Keywords IA</span>
+          </button>
+        </Link>
+        <Link href="/competitors">
+          <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg mb-1">
+            <Users className="w-4 h-4" />
+            <span className="text-sm">Competencia</span>
+          </button>
+        </Link>
         <Link href="/search">
           <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg mb-1">
             <Search className="w-4 h-4" />
@@ -121,17 +159,6 @@ export function AppSidebar() {
           <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg mb-1">
             <Bell className="w-4 h-4" />
             <span className="text-sm">Notificaciones</span>
-          </button>
-        </Link>
-        <Link href="/dashboard">
-          <button className="w-full flex items-center gap-3 px-3 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg mb-1 justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-4 h-4 flex items-center justify-center">
-                <div className="w-3 h-3 border-2 border-gray-600 dark:border-gray-300 rounded"></div>
-              </div>
-              <span className="text-sm">Panel</span>
-            </div>
-            <ChevronRight className="w-4 h-4" />
           </button>
         </Link>
         <Link href="/settings">
@@ -170,10 +197,19 @@ export function AppSidebar() {
         </div>
 
         <Link href="/upgrade">
-          <Button variant="outline" className="w-full text-sm bg-transparent">
+          <Button variant="outline" className="w-full text-sm bg-transparent mb-2">
             Actualizar a Pro →
           </Button>
         </Link>
+
+        <Button 
+          variant="ghost" 
+          onClick={handleLogout}
+          className="w-full text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 justify-start"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Cerrar sesión
+        </Button>
       </div>
       </aside>
     </>

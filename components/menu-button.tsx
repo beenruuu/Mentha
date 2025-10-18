@@ -1,14 +1,14 @@
 "use client"
 
 import { Menu } from "lucide-react"
-import { useSidebar } from "./app-sidebar"
+import { useSidebar } from "@/components/ui/sidebar"
 
 export function MenuButton() {
-  const { toggle } = useSidebar()
+  const { toggleSidebar } = useSidebar()
 
   return (
     <button
-      onClick={toggle}
+      onClick={toggleSidebar}
       className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-[#1E1E24] rounded-lg transition-colors"
       aria-label="Abrir menú"
     >

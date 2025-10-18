@@ -1,23 +1,29 @@
-import { Search, Info, ArrowUp } from "lucide-react"
+'use client'
+
+import { Search, Info, ArrowUp, LayoutDashboard } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AppSidebar } from "@/components/app-sidebar"
-import { MenuButton } from "@/components/menu-button"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
+import { Separator } from '@/components/ui/separator'
+import { UserAvatarMenu } from '@/components/user-avatar-menu'
 
 export default function DashboardPage() {
   return (
-    <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
+    <SidebarProvider>
       <AppSidebar />
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto md:ml-64">
-        {/* Header */}
-        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
-          <MenuButton />
-          <div className="flex-1 max-w-md hidden sm:block">
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white dark:bg-black">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <div className="flex items-center gap-2">
+            <LayoutDashboard className="h-5 w-5 text-emerald-600" />
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Dashboard</h1>
+          </div>
+          <div className="flex-1 max-w-md hidden sm:block mx-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
               <Input placeholder="Buscar..." className="pl-10 pr-20 bg-white dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
@@ -27,15 +33,10 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-          <Avatar className="w-10 h-10">
-            <AvatarImage src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-VUcSRydRPw7ZxpM77k5JPTb70b6iXC.png" />
-            <AvatarFallback>U</AvatarFallback>
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-          </Avatar>
+          <UserAvatarMenu />
         </header>
 
-        {/* Content */}
-        <div className="p-8">
+        <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8 bg-[#f5f5f5] dark:bg-[#0A0A0A]">
           <h1 className="text-3xl font-semibold text-[#0A0A0A] dark:text-white mb-8">Movimientos de ranking esta semana.</h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -397,8 +398,8 @@ export default function DashboardPage() {
             </div>
           </Card>
         </div>
-      </main>
-    </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
 
