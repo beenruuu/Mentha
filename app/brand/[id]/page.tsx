@@ -1,22 +1,23 @@
-import { Search, MapPin, Globe, ExternalLink, Plus } from "lucide-react"
+'use client'
+
+import { MapPin, Globe, ExternalLink, Plus, Building2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { AppSidebar } from "@/components/app-sidebar"
-import { SidebarProvider } from "@/components/ui/sidebar"
-import { MenuButton } from "@/components/menu-button"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { PageHeader } from '@/components/page-header'
 import Link from "next/link"
+import { useTranslations } from '@/lib/i18n'
+import { use } from 'react'
 
 const brandData: Record<string, any> = {
   airbnb: {
     name: "Airbnb",
     icon: "A",
     iconBg: "bg-[#FF5A5F]",
-    description:
-      "Plataforma global de alquiler vacacional que conecta viajeros con alojamientos únicos y experiencias locales.",
-    location: "San Francisco, EE.UU.",
+    descriptionKey: "airbnbDescription",
+    locationKey: "airbnbLocation",
     website: "https://www.airbnb.com",
     score: 71,
     change: 6.6,
@@ -43,9 +44,8 @@ const brandData: Record<string, any> = {
     name: "Strava",
     icon: "S",
     iconBg: "bg-[#FC4C02]",
-    description:
-      "Red social de fitness para atletas que rastrean, analizan y comparten sus entrenamientos y actividades.",
-    location: "San Francisco, EE.UU.",
+    descriptionKey: "stravaDescription",
+    locationKey: "stravaLocation",
     website: "https://www.strava.com",
     score: 72,
     change: 0.4,
@@ -71,9 +71,8 @@ const brandData: Record<string, any> = {
     name: "Vercel",
     icon: "▲",
     iconBg: "bg-black",
-    description:
-      "Plataforma cloud frontend para construir, desplegar y escalar aplicaciones web modernas con rendimiento óptimo.",
-    location: "San Francisco, EE.UU.",
+    descriptionKey: "vercelDescription",
+    locationKey: "vercelLocation",
     website: "https://www.vercel.com",
     score: 75,
     change: 3.0,
@@ -99,9 +98,8 @@ const brandData: Record<string, any> = {
     name: "Revolut",
     icon: "R",
     iconBg: "bg-white border border-gray-300",
-    description:
-      "Aplicación de banca digital que ofrece cambio de divisas, transferencias de dinero y herramientas de gestión financiera.",
-    location: "Londres, Reino Unido",
+    descriptionKey: "revolutDescription",
+    locationKey: "revolutLocation",
     website: "https://www.revolut.com",
     score: 69,
     change: 4.6,
@@ -125,40 +123,24 @@ const brandData: Record<string, any> = {
   },
 }
 
-export default function BrandDetailPage({ params }: { params: { id: string } }) {
-  const brand = brandData[params.id]
+export default function BrandPage({ params }: { params: Promise<{ id: string }> }) {
+  const { t } = useTranslations()
+  const { id } = use(params)
+  const brand = brandData[id]
 
   if (!brand) {
-    return <div>Marca no encontrada</div>
+    return <div>{t.brandNotFound}</div>
   }
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen bg-[#f5f5f5] dark:bg-[#0A0A0A]">
-        <AppSidebar />
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto md:ml-64">
-        <header className="bg-white dark:bg-black border-b border-gray-200 dark:border-[#2A2A30] px-4 md:px-8 py-4 flex items-center justify-between gap-4">
-          <MenuButton />
-          <div className="flex-1 max-w-md hidden sm:block">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-white dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">Y</kbd>
-              </div>
-            </div>
-          </div>
-          <Avatar className="w-10 h-10">
-            <AvatarImage src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-VUcSRydRPw7ZxpM77k5JPTb70b6iXC.png" />
-            <AvatarFallback>U</AvatarFallback>
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-          </Avatar>
-        </header>
-
-        <div className="p-8">
+      <AppSidebar />
+      <SidebarInset>
+        <PageHeader 
+          icon={<Building2 className="h-5 w-5 text-emerald-600" />}
+          title={brand.name}
+        />
+        <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8 bg-[#f5f5f5] dark:bg-[#0A0A0A]">
           {/* Brand Header */}
           <Card className="p-6 bg-white dark:bg-black mb-6">
             <div className="flex flex-col sm:flex-row items-start gap-4">
@@ -171,11 +153,11 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
               </div>
               <div className="flex-1 min-w-0">
                 <h1 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">{brand.name}</h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{brand.description}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{t[brand.descriptionKey as keyof typeof t]}</p>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 text-sm text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-1.5">
                     <MapPin className="w-4 h-4 shrink-0" />
-                    <span>{brand.location}</span>
+                    <span>{t[brand.locationKey as keyof typeof t]}</span>
                   </div>
                   <div className="flex items-center gap-1.5 min-w-0">
                     <Globe className="w-4 h-4 shrink-0" />
@@ -191,9 +173,9 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
           {/* Sugerencias Accionables */}
           <Card className="p-6 bg-white dark:bg-black mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Acciones Recomendadas</h2>
+              <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t.actionableInsights}</h2>
               <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400">
-                3 pendientes
+                {t.pendingActions.replace('{n}', '3')}
               </Badge>
             </div>
             <div className="space-y-3">
@@ -244,37 +226,37 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
 
           {/* Notable Changes */}
           <Card className="p-6 bg-white dark:bg-black mb-6">
-            <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Cambios Notables</h2>
+            <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">{t.notableChanges}</h2>
             <div className="space-y-3">
               {[
                 {
-                  text: "Ranking mejorado para",
+                  text: t.rankingImproved,
                   brand: "Strava",
                   brandIcon: "S",
                   brandBg: "bg-[#FC4C02]",
-                  context: "en",
+                  context: t.in,
                   model: "Claude-4-sonnet",
                   modelIcon: "✨",
                   modelBg: "bg-orange-100",
                   query: "consultas de fitness",
                 },
                 {
-                  text: "Nueva mención detectada para",
+                  text: t.newMention,
                   brand: brand.name,
                   brandIcon: brand.icon,
                   brandBg: brand.iconBg,
-                  context: "en",
+                  context: t.in,
                   model: "GPT-5",
                   modelIcon: "⚫",
                   modelBg: "bg-gray-100",
                   query: "recomendaciones de viaje",
                 },
                 {
-                  text: "Mejora de rendimiento para",
+                  text: t.performanceImprovement,
                   brand: "Vercel",
                   brandIcon: "▲",
                   brandBg: "bg-black",
-                  context: "en",
+                  context: t.in,
                   model: "Grok-3",
                   modelIcon: "⚡",
                   modelBg: "bg-gray-100",
@@ -285,7 +267,7 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
                   brand: "Revolut",
                   brandIcon: "R",
                   brandBg: "bg-white border border-gray-300",
-                  context: "visibilidad aumentada en",
+                  context: t.visibilityIncreased,
                   model: "Gemini-2.5-flash",
                   modelIcon: "✦",
                   modelBg: "bg-blue-100",
@@ -557,10 +539,10 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
 
           {/* Queries Section */}
           <div className="mt-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Consultas Rastreadas</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">{t.topQueries}</h2>
             <div className="space-y-3">
               {brand.queries.map((query: any) => (
-                <Link key={query.id} href={`/brand/${params.id}/query/${query.id}`}>
+                <Link key={query.id} href={`/brand/${id}/query/${query.id}`}>
                   <Card className="p-4 bg-white dark:bg-black hover:shadow-md transition-shadow cursor-pointer">
                     <p className="text-sm font-medium text-gray-900 dark:text-white">{query.title}</p>
                   </Card>
@@ -569,12 +551,9 @@ export default function BrandDetailPage({ params }: { params: { id: string } }) 
             </div>
           </div>
         </div>
-      </main>
-      </div>
+      </SidebarInset>
     </SidebarProvider>
   )
 }
-
-
 
 

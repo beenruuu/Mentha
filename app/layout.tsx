@@ -3,6 +3,8 @@ import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeScript } from '@/components/theme-script'
+import { ThemeInit } from '@/components/theme-init'
+import { LanguageInit } from '@/components/language-init'
 import { CommandPalette } from '@/components/command-palette'
 import { DemoBanner } from '@/components/demo-banner'
 import './globals.css'
@@ -22,9 +24,13 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="es">
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="es" suppressHydrationWarning>
+      <head>
         <ThemeScript />
+      </head>
+      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+        <LanguageInit />
+        <ThemeInit />
         <DemoBanner />
         <CommandPalette />
         {children}

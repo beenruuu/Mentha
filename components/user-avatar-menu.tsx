@@ -2,6 +2,7 @@
 
 import { LogOut, User, Settings } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -11,9 +12,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { getTranslations, getLanguage, type Language } from '@/lib/i18n'
 
 export function UserAvatarMenu() {
   const router = useRouter()
+  const [lang, setLang] = useState<Language>('es')
+  const t = getTranslations(lang)
+
+  useEffect(() => {
+    setLang(getLanguage())
+  }, [])
 
   const handleLogout = async () => {
     // En modo demo, simplemente redirigir
@@ -50,7 +58,7 @@ export function UserAvatarMenu() {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
         <DropdownMenuLabel className="text-gray-900 dark:text-white">
-          Mi Cuenta
+          {t.myAccount}
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-gray-200 dark:bg-[#2A2A30]" />
         <DropdownMenuItem 
@@ -58,7 +66,7 @@ export function UserAvatarMenu() {
           className="cursor-pointer text-gray-700 dark:text-gray-300 focus:bg-gray-100 dark:focus:bg-[#1E1E24]"
         >
           <Settings className="mr-2 h-4 w-4" />
-          <span>Configuración</span>
+          <span>{t.settings}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-gray-200 dark:bg-[#2A2A30]" />
         <DropdownMenuItem 
@@ -66,7 +74,7 @@ export function UserAvatarMenu() {
           className="cursor-pointer text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/20"
         >
           <LogOut className="mr-2 h-4 w-4" />
-          <span>Cerrar sesión</span>
+          <span>{t.logout}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

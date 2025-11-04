@@ -6,9 +6,11 @@ import Link from "next/link"
 import { useState } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import { useSidebar } from "@/components/ui/sidebar"
+import { useTranslations } from "@/lib/i18n"
 
 function BrandItem({ id, name, icon, iconBg, iconColor }: { id: string; name: string; icon: string; iconBg: string; iconColor: string }) {
   const [expanded, setExpanded] = useState(false)
+  const { t } = useTranslations()
 
   return (
     <div>
@@ -29,19 +31,19 @@ function BrandItem({ id, name, icon, iconBg, iconColor }: { id: string; name: st
         <div className="ml-7 mt-1 space-y-1">
           <Link href={`/brand/${id}`}>
             <button className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded">
-              Vista general
+              {t.overview}
             </button>
           </Link>
           <Link href={`/brand/${id}/queries`}>
             <button className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded">
               <SearchIcon className="w-3 h-3" />
-              Queries
+              {t.queries}
             </button>
           </Link>
           <Link href={`/brand/${id}/crawlers`}>
             <button className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded">
               <Bot className="w-3 h-3" />
-              Crawlers IA
+              {t.aiCrawlers}
             </button>
           </Link>
         </div>
@@ -54,6 +56,7 @@ export function AppSidebar() {
   const { openMobile, setOpenMobile, isMobile } = useSidebar()
   const router = useRouter()
   const pathname = usePathname()
+  const { t } = useTranslations()
 
   const handleLogout = async () => {
     // En modo demo, simplemente redirigir
@@ -106,7 +109,7 @@ export function AppSidebar() {
         <button
           onClick={() => setOpenMobile(false)}
           className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-[#1E1E24] rounded-lg transition-colors"
-          aria-label="Cerrar menú"
+          aria-label={t.closeMenu}
         >
           <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
         </button>
@@ -115,7 +118,7 @@ export function AppSidebar() {
       {/* Create Brand Button */}
       <div className="px-4 mb-6">
         <Link href="/brand/new">
-          <Button className="w-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black rounded-lg">+ Crear marca</Button>
+          <Button className="w-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black rounded-lg">+ {t.createBrand}</Button>
         </Link>
       </div>
 
@@ -135,7 +138,7 @@ export function AppSidebar() {
                     : 'border-gray-600 dark:border-gray-300'
                 }`}></div>
               </div>
-              <span className="text-sm">Panel</span>
+              <span className="text-sm">{t.panel}</span>
             </div>
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -147,7 +150,7 @@ export function AppSidebar() {
               : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
           }`}>
             <Sparkles className="w-4 h-4" />
-            <span className="text-sm">Análisis AEO</span>
+            <span className="text-sm">{t.aeoAnalysis}</span>
           </button>
         </Link>
         <Link href="/keywords">
@@ -157,7 +160,7 @@ export function AppSidebar() {
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
           }`}>
             <TrendingUp className="w-4 h-4" />
-            <span className="text-sm">Keywords IA</span>
+            <span className="text-sm">{t.keywordsAI}</span>
           </button>
         </Link>
         <Link href="/competitors">
@@ -167,7 +170,7 @@ export function AppSidebar() {
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
           }`}>
             <Users className="w-4 h-4" />
-            <span className="text-sm">Competencia</span>
+            <span className="text-sm">{t.competition}</span>
           </button>
         </Link>
         <Link href="/search">
@@ -177,7 +180,7 @@ export function AppSidebar() {
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
           }`}>
             <Search className="w-4 h-4" />
-            <span className="text-sm">Buscar</span>
+            <span className="text-sm">{t.search}</span>
           </button>
         </Link>
         <Link href="/notifications">
@@ -187,7 +190,7 @@ export function AppSidebar() {
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
           }`}>
             <Bell className="w-4 h-4" />
-            <span className="text-sm">Notificaciones</span>
+            <span className="text-sm">{t.notifications}</span>
           </button>
         </Link>
         <Link href="/settings">
@@ -197,14 +200,14 @@ export function AppSidebar() {
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
           }`}>
             <Settings className="w-4 h-4" />
-            <span className="text-sm">Configuración</span>
+            <span className="text-sm">{t.settings}</span>
           </button>
         </Link>
 
         {/* Brands Section */}
         <div className="mb-3">
           <div className="flex items-center gap-2 px-3 mb-2">
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Marcas</span>
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t.brands}</span>
             <ChevronRight className="w-3 h-3 text-gray-400 dark:text-gray-500 rotate-90" />
           </div>
           <div className="space-y-1">
@@ -219,19 +222,19 @@ export function AppSidebar() {
       {/* Token Usage */}
       <div className="p-4 border-t border-gray-200 dark:border-gray-700">
         <div className="mb-3">
-          <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Casi alcanzas tu límite</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">{t.almostReachedLimit}</p>
           <div className="w-full h-1.5 bg-gray-200 dark:bg-black rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-green-500 to-yellow-500 rounded-full"
               style={{ width: "25%" }}
             ></div>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">2,564 / 10,000 tokens usados</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">2,564 / 10,000 {t.tokensUsed}</p>
         </div>
 
         <Link href="/upgrade">
           <Button variant="outline" className="w-full text-sm bg-transparent mb-2">
-            Actualizar a Pro →
+            {t.upgradeToProArrow}
           </Button>
         </Link>
 
@@ -241,7 +244,7 @@ export function AppSidebar() {
           className="w-full text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 justify-start"
         >
           <LogOut className="mr-2 h-4 w-4" />
-          Cerrar sesión
+          {t.logoutButton}
         </Button>
       </div>
       </aside>

@@ -1,49 +1,34 @@
 'use client'
 
-import { Search, Info, ArrowUp, LayoutDashboard } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { Info, ArrowUp, LayoutDashboard } from "lucide-react"
 import { Card } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { AppSidebar } from "@/components/app-sidebar"
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
-import { Separator } from '@/components/ui/separator'
-import { UserAvatarMenu } from '@/components/user-avatar-menu'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import { PageHeader } from '@/components/page-header'
+import { useTranslations } from '@/lib/i18n'
 
 export default function DashboardPage() {
+  const { t } = useTranslations()
+
   return (
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white dark:bg-black">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <div className="flex items-center gap-2">
-            <LayoutDashboard className="h-5 w-5 text-emerald-600" />
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Dashboard</h1>
-          </div>
-          <div className="flex-1 max-w-md hidden sm:block mx-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-white dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">Y</kbd>
-              </div>
-            </div>
-          </div>
-          <UserAvatarMenu />
-        </header>
+        <PageHeader 
+          icon={<LayoutDashboard className="h-5 w-5 text-emerald-600" />}
+          title={t.dashboard}
+        />
 
         <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8 bg-[#f5f5f5] dark:bg-[#0A0A0A]">
-          <h1 className="text-3xl font-semibold text-[#0A0A0A] dark:text-white mb-8">Movimientos de ranking esta semana.</h1>
+          <h1 className="text-3xl font-semibold text-[#0A0A0A] dark:text-white mb-8">{t.rankingMovements}</h1>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             {/* Brand Overview */}
             <Card className="p-6 bg-white dark:bg-black">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Resumen de Marca</h2>
+                <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t.brandOverview}</h2>
                 <Info className="w-4 h-4 text-gray-400 dark:text-gray-500" />
               </div>
               <div className="space-y-4">
@@ -106,7 +91,7 @@ export default function DashboardPage() {
 
             {/* Competitor Overview */}
             <Card id="competitors-overview" className="p-6 bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] shadow-sm">
-              <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Resumen de Competidores</h2>
+              <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">{t.competitorOverview}</h2>
               <div className="flex items-center gap-2 mb-6">
                 {[
                   { name: "Airbnb", color: "bg-[#FF5A5F]" },
@@ -136,7 +121,7 @@ export default function DashboardPage() {
                         <span className="text-sm font-medium text-[#0A0A0A] dark:text-white">{competitor.name}</span>
                         <span className="text-sm text-gray-600 dark:text-gray-400">{competitor.percentage}%</span>
                       </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">POSICIÓN PROM. {competitor.position}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{t.averagePositionShort} {competitor.position}</span>
                     </div>
                     <div className="w-full h-2 bg-gray-100 dark:bg-[#0A0A0F] rounded-full overflow-hidden">
                       <div
@@ -155,52 +140,52 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {/* Notable Changes */}
             <Card className="lg:col-span-2 p-6 bg-white dark:bg-black">
-              <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">Cambios Notables</h2>
+              <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">{t.notableChanges}</h2>
               <div className="space-y-3">
                 {[
                   {
-                    text: "Ranking mejorado para",
+                    text: t.rankingImproved,
                     brand: "Strava",
                     brandIcon: "S",
                     brandBg: "bg-[#FC4C02]",
-                    context: "en",
+                    context: "in",
                     model: "Claude-4-sonnet",
                     modelIcon: "✨",
                     modelBg: "bg-orange-100",
-                    query: "consultas de fitness",
+                    query: "fitness queries",
                   },
                   {
-                    text: "Nueva mención detectada para",
+                    text: t.newMention,
                     brand: "Airbnb",
                     brandIcon: "A",
                     brandBg: "bg-[#FF5A5F]",
-                    context: "en",
+                    context: "in",
                     model: "GPT-5",
                     modelIcon: "⚫",
                     modelBg: "bg-gray-100",
-                    query: "recomendaciones de viaje",
+                    query: "travel recommendations",
                   },
                   {
-                    text: "Mejora de rendimiento para",
+                    text: t.performanceImprovement,
                     brand: "Vercel",
                     brandIcon: "▲",
                     brandBg: "bg-black",
-                    context: "en",
+                    context: "in",
                     model: "Grok-3",
                     modelIcon: "⚡",
                     modelBg: "bg-gray-100",
-                    query: "consultas de herramientas de desarrollo",
+                    query: "development tools queries",
                   },
                   {
                     text: "Revolut",
                     brand: "Revolut",
                     brandIcon: "R",
                     brandBg: "bg-white border border-gray-300",
-                    context: "visibilidad aumentada en",
+                    context: t.visibilityIncreased,
                     model: "Gemini-2.5-flash",
                     modelIcon: "✦",
                     modelBg: "bg-blue-100",
-                    query: "comparaciones fintech",
+                    query: "fintech comparisons",
                   },
                 ].map((change, idx) => (
                   <div key={idx} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 flex-wrap">
@@ -236,13 +221,9 @@ export default function DashboardPage() {
             <Card className="p-6 bg-gradient-to-br from-pink-300 to-pink-400 border-0 relative overflow-hidden">
               <div className="relative z-10">
                 <h3 className="text-xl font-bold text-[#0A0A0A] mb-6 leading-tight">
-                  Ser invisible en
-                  <br />
-                  IA duele más
-                  <br />
-                  que un error 404
+                  {t.invisibleInAI}
                 </h3>
-                <Button className="bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black">Rastrea tu marca</Button>
+                <Button className="bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black">{t.trackBrand}</Button>
               </div>
               <div className="absolute right-4 bottom-4 w-32 h-32">
                 <svg viewBox="0 0 120 120" className="w-full h-full">
@@ -294,16 +275,16 @@ export default function DashboardPage() {
                 <thead>
                   <tr className="border-b border-gray-200 dark:border-[#2A2A30]">
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Marca
+                      {t.brand}
                     </th>
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Posición promedio
+                      {t.averagePosition}
                     </th>
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Tasa de inclusión
+                      {t.inclusionRate}
                     </th>
                     <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                      Mejor modelo
+                      {t.bestModel}
                     </th>
                   </tr>
                 </thead>

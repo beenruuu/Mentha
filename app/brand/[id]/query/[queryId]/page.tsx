@@ -1,14 +1,18 @@
+'use client'
+
 import { Search, ArrowLeft, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { MenuButton } from "@/components/menu-button"
+import { UserAvatarMenu } from '@/components/user-avatar-menu'
 import Link from "next/link"
+import { useTranslations } from '@/lib/i18n'
+import { use } from 'react'
 
 const brandData: Record<string, any> = {
   airbnb: {
@@ -61,12 +65,14 @@ const queryData: Record<string, any> = {
   },
 }
 
-export default function QueryDetailPage({ params }: { params: { id: string; queryId: string } }) {
-  const brand = brandData[params.id]
-  const query = queryData[params.queryId]
+export default function QueryDetailPage({ params }: { params: Promise<{ id: string; queryId: string }> }) {
+  const { t } = useTranslations()
+  const { id, queryId } = use(params)
+  const brand = brandData[id]
+  const query = queryData[queryId]
 
   if (!brand || !query) {
-    return <div>Consulta no encontrada</div>
+    return <div>{t.brandNotFound}</div>
   }
 
   return (
@@ -81,23 +87,20 @@ export default function QueryDetailPage({ params }: { params: { id: string; quer
           <div className="flex-1 max-w-md hidden sm:block">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
-              <Input placeholder="Buscar..." className="pl-10 pr-20 bg-white dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
+              <Input placeholder={t.searchPlaceholder} className="pl-10 pr-20 bg-white dark:bg-[#0A0A0A] border-gray-200 dark:border-[#2A2A30]" />
               <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                 <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">⌘</kbd>
                 <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded">Y</kbd>
               </div>
             </div>
           </div>
-          <Avatar className="w-10 h-10">
-            <AvatarImage src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-VUcSRydRPw7ZxpM77k5JPTb70b6iXC.png" />
-            <AvatarFallback>U</AvatarFallback>
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full"></div>
-          </Avatar>
+          <UserAvatarMenu />
         </header>
 
-        <div className="p-8">
+        <div className="p-4 md:p-8">
+          <div className="max-w-7xl mx-auto">
           {/* Back Button */}
-          <Link href={`/brand/${params.id}`}>
+          <Link href={`/brand/${id}`}>
             <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-6">
               <ArrowLeft className="w-4 h-4" />
               <span className="uppercase tracking-wide">Volver a {brand.name}</span>
@@ -449,6 +452,7 @@ export default function QueryDetailPage({ params }: { params: { id: string; quer
             </h2>
             <div className="h-32 bg-gray-50 dark:bg-[#0A0A0F] rounded-lg"></div>
           </Card>
+          </div>
         </div>
       </main>
       </div>

@@ -57,3 +57,49 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Custom Scrollbar */
+@layer utilities {
+  /* Webkit browsers (Chrome, Safari, Edge) */
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: rgb(156, 163, 175);
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: rgb(107, 114, 128);
+    background-clip: padding-box;
+  }
+
+  /* Dark mode scrollbar */
+  .dark *::-webkit-scrollbar-thumb {
+    background: rgb(75, 85, 99);
+    background-clip: padding-box;
+  }
+
+  .dark *::-webkit-scrollbar-thumb:hover {
+    background: rgb(107, 114, 128);
+    background-clip: padding-box;
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(156, 163, 175) transparent;
+  }
+
+  .dark * {
+    scrollbar-color: rgb(75, 85, 99) transparent;
+  }
+}

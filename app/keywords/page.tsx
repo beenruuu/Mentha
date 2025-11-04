@@ -2,9 +2,8 @@
 
 import { useState } from 'react'
 import { AppSidebar } from '@/components/app-sidebar'
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
-import { Separator } from '@/components/ui/separator'
-import { UserAvatarMenu } from '@/components/user-avatar-menu'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import { PageHeader } from '@/components/page-header'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -22,10 +21,12 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
+import { useTranslations } from '@/lib/i18n'
 
 import { mockKeywordData } from '@/lib/mock-data'
 
 export default function KeywordsPage() {
+  const { t } = useTranslations()
   const [keywords] = useState(mockKeywordData)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [newKeyword, setNewKeyword] = useState('')
@@ -46,16 +47,16 @@ export default function KeywordsPage() {
   const handleAddKeyword = () => {
     if (!newKeyword.trim()) {
       toast({
-        title: 'Error',
-        description: 'Por favor ingresa una keyword',
+        title: t.errorTitle,
+        description: t.pleaseEnterKeyword,
         variant: 'destructive',
       })
       return
     }
 
     toast({
-      title: 'Keyword agregada',
-      description: `"${newKeyword}" se agregó a tu lista de trackeo`,
+      title: t.keywordAdded,
+      description: t.keywordAddedToTracking.replace('{keyword}', newKeyword),
     })
     
     setNewKeyword('')
@@ -66,61 +67,55 @@ export default function KeywordsPage() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-white dark:bg-black">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-emerald-600" />
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Keywords IA</h1>
-          </div>
-          <div className="flex-1" />
-          <UserAvatarMenu />
-        </header>
+        <PageHeader 
+          icon={<TrendingUp className="h-5 w-5 text-emerald-600" />}
+          title={t.keywordsTitle}
+        />
 
         <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8 bg-[#f5f5f5] dark:bg-[#0A0A0A]">
           {/* Stats Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Card className="bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
               <CardHeader className="pb-2">
-                <CardDescription className="text-gray-500 dark:text-gray-400">Keywords Trackeadas</CardDescription>
+                <CardDescription className="text-gray-500 dark:text-gray-400">{t.trackedKeywords}</CardDescription>
                 <CardTitle className="text-3xl text-gray-900 dark:text-white">24</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  +3 desde el mes pasado
+                  {t.sinceLastMonth}
                 </p>
               </CardContent>
             </Card>
             <Card className="bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
               <CardHeader className="pb-2">
-                <CardDescription className="text-gray-500 dark:text-gray-400">Visibilidad Promedio</CardDescription>
+                <CardDescription className="text-gray-500 dark:text-gray-400">{t.averageVisibility}</CardDescription>
                 <CardTitle className="text-3xl text-emerald-600">85%</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  +12% este mes
+                  {t.thisMonth}
                 </p>
               </CardContent>
             </Card>
             <Card className="bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
               <CardHeader className="pb-2">
-                <CardDescription className="text-gray-500 dark:text-gray-400">Top 3 Posiciones</CardDescription>
+                <CardDescription className="text-gray-500 dark:text-gray-400">{t.top3Positions}</CardDescription>
                 <CardTitle className="text-3xl text-gray-900 dark:text-white">8</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  33% de tus keywords
+                  {t.ofYourKeywords}
                 </p>
               </CardContent>
             </Card>
             <Card className="bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
               <CardHeader className="pb-2">
-                <CardDescription className="text-gray-500 dark:text-gray-400">Mejoras Potenciales</CardDescription>
+                <CardDescription className="text-gray-500 dark:text-gray-400">{t.potentialImprovements}</CardDescription>
                 <CardTitle className="text-3xl text-gray-900 dark:text-white">12</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Oportunidades identificadas
+                  {t.opportunitiesIdentified}
                 </p>
               </CardContent>
             </Card>
@@ -131,31 +126,31 @@ export default function KeywordsPage() {
             <CardHeader>
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                  <CardTitle className="text-gray-900 dark:text-white">Gestión de Keywords</CardTitle>
+                  <CardTitle className="text-gray-900 dark:text-white">{t.keywordManagement}</CardTitle>
                   <CardDescription className="text-gray-500 dark:text-gray-400">
-                    Rastrea el rendimiento de tus keywords en motores de IA
+                    {t.trackKeywordPerformance}
                   </CardDescription>
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
                     <Button className="ml-0 md:ml-auto">
                       <Plus className="mr-2 h-4 w-4" />
-                      Agregar Keyword
+                      {t.addKeyword}
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
                     <DialogHeader>
-                      <DialogTitle>Agregar Nueva Keyword</DialogTitle>
+                      <DialogTitle>{t.addNewKeyword}</DialogTitle>
                       <DialogDescription>
-                        Ingresa la keyword que deseas trackear en los motores de IA
+                        {t.enterKeywordToTrack}
                       </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                       <div className="grid gap-2">
-                        <Label htmlFor="keyword">Keyword</Label>
+                        <Label htmlFor="keyword">{t.keywordLabel}</Label>
                         <Input
                           id="keyword"
-                          placeholder="Ej: software de gestión"
+                          placeholder={t.keywordPlaceholder}
                           value={newKeyword}
                           onChange={(e) => setNewKeyword(e.target.value)}
                           onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword()}
@@ -164,10 +159,10 @@ export default function KeywordsPage() {
                     </div>
                     <DialogFooter>
                       <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                        Cancelar
+                        {t.cancel}
                       </Button>
                       <Button onClick={handleAddKeyword}>
-                        Agregar
+                        {t.add}
                       </Button>
                     </DialogFooter>
                   </DialogContent>
@@ -178,7 +173,7 @@ export default function KeywordsPage() {
               <div className="flex items-center gap-2 mb-4">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Buscar keywords..." className="pl-10" />
+                  <Input placeholder={t.searchKeywords} className="pl-10" />
                 </div>
               </div>
 
@@ -188,13 +183,13 @@ export default function KeywordsPage() {
                     <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Keyword</TableHead>
-                    <TableHead>Volumen</TableHead>
-                    <TableHead>Dificultad</TableHead>
-                    <TableHead>Visibilidad IA</TableHead>
-                    <TableHead>Posición</TableHead>
-                    <TableHead>Modelos IA</TableHead>
-                    <TableHead>Tendencia</TableHead>
+                    <TableHead>{t.keyword}</TableHead>
+                    <TableHead>{t.volume}</TableHead>
+                    <TableHead>{t.difficulty}</TableHead>
+                    <TableHead>{t.aiVisibility}</TableHead>
+                    <TableHead>{t.position}</TableHead>
+                    <TableHead>{t.aiModels}</TableHead>
+                    <TableHead>{t.trend}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
