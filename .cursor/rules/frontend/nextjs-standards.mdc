@@ -1,0 +1,158 @@
+---
+description: Next.js Frontend Development Standards and Patterns
+globs: ["frontend/**/*.tsx", "frontend/**/*.ts"]
+alwaysApply: false
+---
+
+# Next.js Frontend Standards
+
+## Component Structure
+
+Follow this pattern for all React components:
+
+```tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+import { ComponentProps } from './types'
+
+interface ComponentNameProps {
+  // Props interface at top
+  title: string
+  onAction?: () => void
+  className?: string
+}
+
+export default function ComponentName({
+  title,
+  onAction,
+  className = ''
+}: ComponentNameProps) {
+  // State and hooks
+  const [loading, setLoading] = useState(false)
+
+  // Event handlers
+  const handleAction = async () => {
+    setLoading(true)
+    try {
+      await onAction?.()
+    } catch (error) {
+      console.error('Action failed:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className={`component-base-styles ${className}`}>
+      {/* Component JSX */}
+    </div>
+  )
+}
+```
+
+## App Router Structure
+
+Use Next.js 13+ App Router patterns:
+
+- Place pages in `app/` directory
+- Use `layout.tsx` for shared layouts
+- Create `loading.tsx` for loading states
+- Create `error.tsx` for error boundaries
+- Use `route.ts` for API routes
+
+## Styling with Tailwind
+
+Follow Tailwind best practices:
+
+```tsx
+// Use semantic class groupings
+<div className="
+  flex items-center justify-between
+  p-4 rounded-lg
+  bg-white shadow-sm
+  hover:shadow-md transition-shadow
+">
+  {/* Content */}
+</div>
+
+// Use responsive design
+<div className="
+  grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3
+  gap-4 md:gap-6
+">
+  {/* Grid items */}
+</div>
+```
+
+## State Management
+
+Use appropriate state management patterns:
+
+```tsx
+// Local state for component-specific data
+const [formData, setFormData] = useState({})
+
+// URL state for shareable state
+const searchParams = useSearchParams()
+const router = useRouter()
+
+// Server state with proper loading/error handling
+const { data, error, isLoading } = useSWR('/api/data', fetcher)
+```
+
+## Error Handling
+
+Implement proper error boundaries and handling:
+
+```tsx
+'use client'
+
+import { useEffect } from 'react'
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    console.error('Component error:', error)
+  }, [error])
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[400px]">
+      <h2 className="text-xl font-semibold mb-4">Something went wrong!</h2>
+      <button
+        onClick={reset}
+        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+      >
+        Try again
+      </button>
+    </div>
+  )
+}
+```
+
+## API Integration
+
+Use consistent patterns for API calls:
+
+```tsx
+import { apiClient } from '@/services/api'
+
+// In component
+const handleSubmit = async (data: FormData) => {
+  try {
+    setLoading(true)
+    const response = await apiClient.post('/endpoint', data)
+    // Handle success
+  } catch (error) {
+    console.error('API error:', error)
+    // Handle error
+  } finally {
+    setLoading(false)
+  }
+}
+```

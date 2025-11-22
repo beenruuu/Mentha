@@ -12,6 +12,7 @@ A complete SaaS platform for optimizing brand visibility in AI search engines an
 - **AI-Powered Recommendations**: Get actionable insights from GPT-4 and Claude
 - **Multi-Model Support**: Analyze across ChatGPT, Claude, Perplexity, and Gemini
 - **Scoring System**: Comprehensive AEO scores (0-100) for your content
+- **Auto-Ingestion Pipeline**: Analysis results hydrate keywords, competitors, and crawler logs for the dashboard automatically
 
 ### 📊 Keyword Tracking
 - **AI Visibility Scores**: Track how visible your keywords are in AI responses
@@ -42,11 +43,12 @@ A complete SaaS platform for optimizing brand visibility in AI search engines an
 
 - **Frontend**: Next.js 15.2.4 with App Router, TypeScript
 - **UI**: Tailwind CSS 4.1.11, shadcn/ui, Radix UI
-- **Backend**: Next.js API Routes, Supabase (PostgreSQL)
+- **Backend**: Python FastAPI, Pydantic
+- **Database**: Supabase (PostgreSQL)
 - **Authentication**: Supabase Auth with RLS
 - **Payments**: Stripe (subscriptions + webhooks)
-- **AI**: OpenAI GPT-4, Anthropic Claude
-- **Deployment**: Vercel/Fly.io ready
+- **AI**: OpenRouter (GPT-4, Claude 3.5 Sonnet, Perplexity, Gemini)
+- **Deployment**: Vercel (Frontend) / Cloud Run or VPS (Backend)
 - **Icons**: Lucide React
 - **State**: React Hooks, Zustand
 
@@ -55,10 +57,11 @@ A complete SaaS platform for optimizing brand visibility in AI search engines an
 ### Prerequisites
 
 - Node.js 18+
+- pnpm 9+ (preferred package manager for the frontend)
+- Python 3.10+
 - Supabase account
 - Stripe account
-- OpenAI API key
-- Anthropic API key
+- OpenAI/OpenRouter API key
 
 ### Installation
 
@@ -68,29 +71,42 @@ A complete SaaS platform for optimizing brand visibility in AI search engines an
    cd Mentha
    ```
 
-2. **Install dependencies**
+2. **Backend Setup**
    ```bash
-   npm install
+   cd backend
+   python -m venv venv
+   # Windows
+   .\venv\Scripts\activate
+   # Linux/Mac
+   source venv/bin/activate
+   
+   pip install -r requirements.txt
+   
+   # Create .env file based on .env.example
+   cp .env.example .env
+   
+   # Run server
+   uvicorn app.main:app --reload
    ```
 
-3. **Set up environment variables**
+3. **Frontend Setup**
    ```bash
-   cp .env.local.example .env.local
-   ```
+   cd frontend
+   pnpm install
    
-   Fill in all required environment variables (see SETUP.md for detailed instructions)
+   # Create .env.local file
+   cp .env.local.example .env.local
+   
+   # Run development server
+   pnpm dev
+   ```
 
 4. **Set up Supabase database**
    - Create a new Supabase project
    - Run the SQL schema from `supabase/schema.sql` in the SQL Editor
    - Configure authentication providers
 
-5. **Run the development server**
-   ```bash
-   npm run dev
-   ```
-
-6. **Open your browser**
+5. **Open your browser**
    Visit [http://localhost:3000](http://localhost:3000)
 
 ## 📖 Documentation
@@ -102,29 +118,25 @@ A complete SaaS platform for optimizing brand visibility in AI search engines an
 
 ```
 mentha/
-├── app/                       # Next.js App Router
-│   ├── api/                  # API Routes
-│   │   ├── auth/            # Authentication endpoints
-│   │   ├── aeo/             # AEO analysis endpoints
-│   │   └── stripe/          # Stripe payment endpoints
-│   ├── auth/                # Authentication pages
-│   │   ├── login/           # Login page
-│   │   └── signup/          # Signup page
-│   ├── aeo-analysis/        # AEO analysis interface
-│   ├── keywords/            # Keyword tracking
-│   ├── competitors/         # Competitor analysis
-│   ├── dashboard/           # Main dashboard
-│   └── settings/            # User settings
-├── components/              # React components
-│   ├── ui/                 # shadcn/ui components
-│   └── app-sidebar.tsx     # Navigation sidebar
-├── lib/                    # Utilities and configurations
-│   ├── supabase/          # Supabase client & middleware
-│   ├── stripe/            # Stripe configuration
-│   └── ai/                # AI service integrations
-├── supabase/              # Database schema and migrations
-├── public/                # Static assets
-└── middleware.ts          # Next.js middleware for auth
+├── backend/                   # Python FastAPI Backend
+│   ├── app/
+│   │   ├── api/              # API Endpoints
+│   │   ├── core/             # Config & Security
+│   │   ├── models/           # Pydantic Models
+│   │   └── services/         # Business Logic (LLM, DB)
+│   └── requirements.txt
+├── frontend/                  # Next.js Frontend
+│   ├── app/                  # App Router Pages
+│   │   ├── dashboard/        # Main dashboard
+│   │   ├── brand/            # Brand management
+│   │   └── ...
+│   ├── components/           # React components
+│   ├── lib/                  # Utilities & API Clients
+│   │   ├── services/         # Frontend Services (Brands, Analysis)
+│   │   └── supabase/         # Supabase Client
+│   └── middleware.ts         # Auth Middleware
+├── supabase/                 # Database schema and migrations
+└── ...
 ```
 
 ## 🎯 Key Features Implementation

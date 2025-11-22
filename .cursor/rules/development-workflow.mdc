@@ -1,0 +1,250 @@
+---
+description: Development workflow and automation rules
+globs: ["Makefile", "docker-compose*.yml", "*.sh"]
+alwaysApply: false
+---
+
+# Development Workflow Standards
+
+## Project Setup Workflow
+
+When setting up the project for the first time:
+
+1. **Run Setup Script**: `./first-time.sh`
+   - Checks for required tools (Docker, Make, Node.js, Python)
+   - Guides through API key configuration
+   - Generates .env files
+
+2. **Environment Configuration**:
+   ```bash
+   # Copy environment files
+   cp .env.example .env
+   cp .env.example frontend/.env.local
+
+   # Edit with your API keys
+   # - SUPABASE_URL and SUPABASE_SERVICE_KEY (required)
+   # - OPENAI_API_KEY and/or ANTHROPIC_API_KEY (for LLM features)
+   # - QDRANT_URL and QDRANT_API_KEY (for vector database)
+   ```
+
+3. **Start Development Environment**: `make dev`
+
+## Daily Development Workflow
+
+### Starting Work
+```bash
+# Start all services
+make dev
+
+# Or start individual services
+make dev-frontend  # Frontend only
+make dev-backend   # Backend only
+```
+
+### Making Changes
+
+#### Backend Changes
+- Edit Python files in `backend/app/`
+- FastAPI auto-reloads on file changes
+- Check logs: `docker-compose logs -f backend`
+
+#### Frontend Changes
+- Edit TypeScript/React files in `frontend/`
+- Next.js auto-reloads on file changes
+- Check logs: `docker-compose logs -f frontend`
+
+#### Database Changes
+```bash
+# Create new migration
+make db-migration-new name=descriptive_name
+
+# Edit the generated SQL file in supabase/migrations/
+
+# Apply to remote database
+make db-apply
+
+# Check status
+make db-status
+```
+
+### Testing Changes
+
+#### API Testing
+- Visit http://localhost:8000/docs for interactive API documentation
+- Use the built-in FastAPI test interface
+- Test authentication endpoints with proper tokens
+
+#### Frontend Testing
+- Visit http://localhost:3000 for the application
+- Test authentication flows
+- Check browser console for errors
+
+### Code Quality
+
+#### Backend Code Quality
+- Follow FastAPI standards from `.cursor/rules/backend/fastapi-standards.mdc`
+- Use proper error handling and HTTP status codes
+- Include type hints and docstrings
+- Use the service layer pattern
+
+#### Frontend Code Quality
+- Follow Next.js standards from `.cursor/rules/frontend/nextjs-standards.mdc`
+- Use TypeScript interfaces for all props
+- Implement proper error boundaries
+- Use Tailwind CSS for styling
+
+## Environment Management
+
+### Development Environment
+```bash
+# Start development (with hot-reload)
+make dev
+
+# View logs
+make logs
+
+# Stop services
+make stop
+
+# Clean up containers and volumes
+make clean
+```
+
+### Production Environment
+```bash
+# Build and start production
+make prod
+
+# Stop production
+make prod-stop
+
+# View production logs
+make prod-logs
+```
+
+## Database Management
+
+### Migration Workflow
+```bash
+# Create migration
+make db-migration-new name=add_user_table
+
+# Check what migrations need to be applied
+make db-status
+
+# Apply pending migrations
+make db-apply
+
+# List applied migrations
+make db-list
+```
+
+### Migration Best Practices
+- Use descriptive names: `add_user_preferences_table`
+- Test migrations on staging first
+- Include proper RLS policies
+- Add appropriate indexes
+- Document complex migrations
+
+## Debugging and Troubleshooting
+
+### Common Issues
+
+#### Services Won't Start
+```bash
+# Check if ports are in use
+lsof -i :3000  # Frontend
+lsof -i :8000  # Backend
+
+# Clean up Docker
+make clean
+docker system prune -f
+
+# Restart
+make dev
+```
+
+#### Database Connection Issues
+```bash
+# Check Supabase connection
+make db-status
+
+# Verify environment variables
+cat .env | grep SUPABASE
+```
+
+#### Authentication Issues
+- Check Supabase project settings
+- Verify OAuth provider configuration
+- Check redirect URLs match your domain
+
+### Logging and Monitoring
+
+#### View Service Logs
+```bash
+# All services
+make logs
+
+# Specific service
+docker-compose logs -f backend
+docker-compose logs -f frontend
+```
+
+#### Debug Mode
+```bash
+# Set debug environment
+export DEBUG=true
+
+# Restart with debug logging
+make dev
+```
+
+## Git Workflow
+
+### Branch Strategy
+- `main`: Production-ready code
+- `develop`: Integration branch
+- `feature/*`: Feature branches
+- `hotfix/*`: Critical fixes
+
+### Commit Standards
+```bash
+# Format: type(scope): description
+git commit -m "feat(auth): add LinkedIn OAuth integration"
+git commit -m "fix(api): handle missing user data in profile endpoint"
+git commit -m "docs(readme): update setup instructions"
+```
+
+### Pre-commit Checklist
+- [ ] Code follows project standards
+- [ ] All tests pass
+- [ ] API endpoints tested
+- [ ] Frontend components render correctly
+- [ ] Database migrations applied
+- [ ] Environment variables documented
+- [ ] No sensitive data in commits
+
+## Deployment Preparation
+
+### Pre-deployment Checklist
+- [ ] All migrations applied to production database
+- [ ] Environment variables configured in production
+- [ ] OAuth providers configured for production domains
+- [ ] API keys and secrets properly secured
+- [ ] Docker images built and tested
+- [ ] Health checks passing
+
+### Production Environment Variables
+```bash
+# Required for production
+ENVIRONMENT=production
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_KEY=your-service-key
+CORS_ORIGINS=https://yourdomain.com
+
+# Optional but recommended
+OPENAI_API_KEY=your-openai-key
+ANTHROPIC_API_KEY=your-anthropic-key
+QDRANT_URL=your-qdrant-url
+QDRANT_API_KEY=your-qdrant-key
+```

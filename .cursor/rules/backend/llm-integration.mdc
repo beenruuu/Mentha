@@ -1,0 +1,113 @@
+---
+description: LLM Integration Patterns for OpenAI and Anthropic
+globs: ["backend/app/services/llm/**/*.py", "backend/app/api/endpoints/llm.py"]
+alwaysApply: false
+---
+
+# LLM Integration Standards
+
+## LLM Service Usage
+
+Use the abstracted LLM service for text generation:
+
+```python
+from app.services.llm.llm_service import LLMServiceFactory
+
+# Get service instance
+llm_service = LLMServiceFactory.get_service("openai")  # or "anthropic"
+
+# Generate text
+response = await llm_service.generate(
+    prompt="Your prompt here",
+    model="gpt-4",
+    temperature=0.7,
+    max_tokens=1000
+)
+
+# Access response data
+generated_text = response.content
+usage_stats = response.usage
+```
+
+## Embedding Service Usage
+
+Use the embedding service for vector generation:
+
+```python
+from app.services.llm.embedding_service import EmbeddingServiceFactory
+
+# Get service instance
+embedding_service = EmbeddingServiceFactory.get_service("openai")
+
+# Create embeddings
+response = await embedding_service.create_embedding(
+    text="Text to embed",
+    model="text-embedding-ada-002"
+)
+
+# Access embedding vector
+vector = response.embedding
+usage_stats = response.usage
+```
+
+## Model Configuration
+
+Use appropriate models for different use cases:
+
+### OpenAI Models
+- **gpt-4**: Complex reasoning, analysis, code generation
+- **gpt-3.5-turbo**: General purpose, faster responses
+- **text-embedding-ada-002**: Text embeddings
+
+### Anthropic Models
+- **claude-3-opus**: Most capable, complex tasks
+- **claude-3-sonnet**: Balanced performance and speed
+- **claude-3-haiku**: Fast responses, simple tasks
+
+## Error Handling
+
+Handle LLM-specific errors:
+
+```python
+try:
+    response = await llm_service.generate(prompt, model="gpt-4")
+except Exception as e:
+    if "rate limit" in str(e).lower():
+        raise HTTPException(status_code=429, detail="Rate limit exceeded")
+    elif "invalid model" in str(e).lower():
+        raise HTTPException(status_code=400, detail="Invalid model specified")
+    elif "context length" in str(e).lower():
+        raise HTTPException(status_code=400, detail="Prompt too long")
+    else:
+        raise HTTPException(status_code=500, detail="LLM service error")
+```
+
+## Usage Tracking
+
+Always track and log usage statistics:
+
+```python
+response = await llm_service.generate(prompt, model="gpt-4")
+
+# Log usage for monitoring
+logger.info(f"LLM Usage - Model: {model}, Tokens: {response.usage.total_tokens}")
+
+# Return usage info to client
+return {
+    "content": response.content,
+    "usage": {
+        "prompt_tokens": response.usage.prompt_tokens,
+        "completion_tokens": response.usage.completion_tokens,
+        "total_tokens": response.usage.total_tokens
+    }
+}
+```
+
+## Prompt Engineering Best Practices
+
+- Be specific and clear in prompts
+- Use system messages for context setting
+- Include examples when helpful
+- Set appropriate temperature values (0.0-1.0)
+- Use max_tokens to control response length
+- Consider using stop sequences for structured output

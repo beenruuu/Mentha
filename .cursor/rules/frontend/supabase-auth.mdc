@@ -1,0 +1,213 @@
+---
+description: Supabase Authentication Patterns for Frontend
+globs: ["frontend/components/auth/**/*.tsx", "frontend/services/supabase.ts", "frontend/app/auth/**/*.tsx"]
+alwaysApply: false
+---
+
+# Supabase Authentication Frontend Standards
+
+## Authentication Service Usage
+
+Use the centralized Supabase client:
+
+```tsx
+import { supabase } from '@/services/supabase'
+import { useRouter } from 'next/navigation'
+
+// Sign in with OAuth
+const handleOAuthSignIn = async (provider: 'google' | 'linkedin') => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`
+    }
+  })
+
+  if (error) {
+    console.error('OAuth error:', error)
+  }
+}
+
+// Sign out
+const handleSignOut = async () => {
+  const { error } = await supabase.auth.signOut()
+  if (!error) {
+    router.push('/')
+  }
+}
+```
+
+## Authentication State Management
+
+Use Supabase's built-in auth state:
+
+```tsx
+'use client'
+
+import { useEffect, useState } from 'react'
+import { User } from '@supabase/supabase-js'
+import { supabase } from '@/services/supabase'
+
+export function useAuth() {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null)
+        setLoading(false)
+      }
+    )
+
+    return () => subscription.unsubscribe()
+  }, [])
+
+  return { user, loading }
+}
+```
+
+## Protected Routes
+
+Implement route protection:
+
+```tsx
+'use client'
+
+import { useAuth } from '@/hooks/useAuth'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+
+export default function ProtectedPage() {
+  const { user, loading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.push('/auth/login')
+    }
+  }, [user, loading, router])
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
+
+  if (!user) {
+    return null
+  }
+
+  return (
+    <div>
+      {/* Protected content */}
+    </div>
+  )
+}
+```
+
+## Login Form Component
+
+Follow this pattern for authentication forms:
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+import { supabase } from '@/services/supabase'
+
+export default function LoginForm() {
+  const [loading, setLoading] = useState(false)
+
+  const handleOAuthLogin = async (provider: 'google' | 'linkedin') => {
+    try {
+      setLoading(true)
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
+
+      if (error) throw error
+    } catch (error) {
+      console.error('Login error:', error)
+      // Show error to user
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <button
+        onClick={() => handleOAuthLogin('google')}
+        disabled={loading}
+        className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+      >
+        {loading ? 'Signing in...' : 'Continue with Google'}
+      </button>
+
+      <button
+        onClick={() => handleOAuthLogin('linkedin')}
+        disabled={loading}
+        className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+      >
+        {loading ? 'Signing in...' : 'Continue with LinkedIn'}
+      </button>
+    </div>
+  )
+}
+```
+
+## Auth Callback Handler
+
+Handle OAuth callbacks properly:
+
+```tsx
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/services/supabase'
+
+export default function AuthCallback() {
+  const router = useRouter()
+
+  useEffect(() => {
+    const handleAuthCallback = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession()
+
+        if (error) {
+          console.error('Auth callback error:', error)
+          router.push('/auth/login?error=callback_error')
+          return
+        }
+
+        if (data.session) {
+          router.push('/dashboard')
+        } else {
+          router.push('/auth/login')
+        }
+      } catch (error) {
+        console.error('Unexpected error:', error)
+        router.push('/auth/login?error=unexpected_error')
+      }
+    }
+
+    handleAuthCallback()
+  }, [router])
+
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div>Processing authentication...</div>
+    </div>
+  )
+}
+```

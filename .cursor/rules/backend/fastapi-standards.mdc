@@ -1,0 +1,93 @@
+---
+description: FastAPI Backend Development Standards and Patterns
+globs: ["backend/**/*.py"]
+alwaysApply: false
+---
+
+# FastAPI Backend Standards
+
+## API Endpoint Structure
+
+Follow this pattern for all API endpoints:
+
+```python
+from fastapi import APIRouter, Depends, HTTPException
+from app.models.auth import User
+from app.services.supabase.auth import get_current_user
+
+router = APIRouter()
+
+@router.post("/endpoint", response_model=ResponseModel)
+async def endpoint_name(
+    request: RequestModel,
+    current_user: User = Depends(get_current_user)
+) -> ResponseModel:
+    try:
+        # Business logic here
+        result = await service.method(request.data)
+        return ResponseModel(**result)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+```
+
+## Service Layer Pattern
+
+All external service interactions must go through service classes:
+
+- Use `SupabaseDatabaseService` for database operations
+- Use `SupabaseStorageService` for file operations
+- Use `LLMService` for text generation
+- Use `EmbeddingService` for vector embeddings
+- Use `QdrantService` for vector database operations
+
+## Error Handling
+
+Always use proper HTTP status codes and descriptive error messages:
+
+```python
+from fastapi import HTTPException
+
+# Bad
+raise Exception("Something went wrong")
+
+# Good
+raise HTTPException(
+    status_code=404,
+    detail="Resource not found with the provided ID"
+)
+```
+
+## Authentication
+
+All protected endpoints must use the authentication dependency:
+
+```python
+from app.services.supabase.auth import get_current_user
+
+@router.get("/protected")
+async def protected_endpoint(current_user: User = Depends(get_current_user)):
+    # Endpoint logic
+```
+
+## Configuration
+
+Use the centralized config system:
+
+```python
+from app.core.config import settings
+
+# Access environment variables through settings
+supabase_url = settings.SUPABASE_URL
+```
+
+## Async/Await
+
+Always use async/await for I/O operations:
+
+```python
+# Database operations
+result = await database_service.create(data)
+
+# External API calls
+response = await llm_service.generate(prompt)
+```

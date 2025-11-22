@@ -1,0 +1,249 @@
+---
+description: Frontend API Integration Patterns
+globs: ["frontend/services/**/*.ts", "frontend/components/**/*.tsx"]
+alwaysApply: false
+---
+
+# Frontend API Integration Standards
+
+## API Client Setup
+
+Use a centralized API client with authentication:
+
+```typescript
+// services/api.ts
+import { supabase } from './supabase'
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+class ApiClient {
+  private async getAuthHeaders() {
+    const { data: { session } } = await supabase.auth.getSession()
+
+    if (!session?.access_token) {
+      throw new Error('No authentication token available')
+    }
+
+    return {
+      'Authorization': `Bearer ${session.access_token}`,
+      'Content-Type': 'application/json',
+    }
+  }
+
+  async get<T>(endpoint: string): Promise<T> {
+    const headers = await this.getAuthHeaders()
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'GET',
+      headers,
+    })
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`)
+    }
+
+    return response.json()
+  }
+
+  async post<T>(endpoint: string, data: any): Promise<T> {
+    const headers = await this.getAuthHeaders()
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status} ${response.statusText}`)
+    }
+
+    return response.json()
+  }
+}
+
+export const apiClient = new ApiClient()
+```
+
+## LLM Service Integration
+
+Create typed interfaces for LLM operations:
+
+```typescript
+// services/llm.ts
+import { apiClient } from './api'
+
+export interface LLMGenerateRequest {
+  prompt: string
+  model?: string
+  temperature?: number
+  max_tokens?: number
+}
+
+export interface LLMGenerateResponse {
+  content: string
+  usage: {
+    prompt_tokens: number
+    completion_tokens: number
+    total_tokens: number
+  }
+}
+
+export interface EmbeddingRequest {
+  text: string
+  model?: string
+}
+
+export interface EmbeddingResponse {
+  embedding: number[]
+  usage: {
+    prompt_tokens: number
+    total_tokens: number
+  }
+}
+
+export const llmService = {
+  async generate(request: LLMGenerateRequest): Promise<LLMGenerateResponse> {
+    return apiClient.post('/api/llm/generate', request)
+  },
+
+  async createEmbedding(request: EmbeddingRequest): Promise<EmbeddingResponse> {
+    return apiClient.post('/api/llm/embedding', request)
+  }
+}
+```
+
+## Component Integration Pattern
+
+Use this pattern for API-integrated components:
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+import { llmService, LLMGenerateRequest } from '@/services/llm'
+
+export default function TextGenerator() {
+  const [prompt, setPrompt] = useState('')
+  const [response, setResponse] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleGenerate = async () => {
+    if (!prompt.trim()) return
+
+    try {
+      setLoading(true)
+      setError(null)
+
+      const request: LLMGenerateRequest = {
+        prompt: prompt.trim(),
+        model: 'gpt-3.5-turbo',
+        temperature: 0.7,
+        max_tokens: 1000
+      }
+
+      const result = await llmService.generate(request)
+      setResponse(result.content)
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred'
+      setError(errorMessage)
+      console.error('Generation error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Prompt
+        </label>
+        <textarea
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          className="w-full p-3 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+          rows={4}
+          placeholder="Enter your prompt here..."
+        />
+      </div>
+
+      <button
+        onClick={handleGenerate}
+        disabled={loading || !prompt.trim()}
+        className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {loading ? 'Generating...' : 'Generate'}
+      </button>
+
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+          <p className="text-red-700">{error}</p>
+        </div>
+      )}
+
+      {response && (
+        <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+          <h3 className="font-medium text-gray-900 mb-2">Response:</h3>
+          <p className="text-gray-700 whitespace-pre-wrap">{response}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+## Error Handling
+
+Implement consistent error handling across API calls:
+
+```typescript
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    public statusText: string,
+    message: string
+  ) {
+    super(message)
+    this.name = 'ApiError'
+  }
+}
+
+// In API client
+if (!response.ok) {
+  let errorMessage = `API Error: ${response.status} ${response.statusText}`
+
+  try {
+    const errorData = await response.json()
+    errorMessage = errorData.detail || errorMessage
+  } catch {
+    // Use default error message if JSON parsing fails
+  }
+
+  throw new ApiError(response.status, response.statusText, errorMessage)
+}
+```
+
+## Loading States
+
+Implement consistent loading states:
+
+```tsx
+// Loading component
+export function LoadingSpinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
+  const sizeClasses = {
+    sm: 'w-4 h-4',
+    md: 'w-6 h-6',
+    lg: 'w-8 h-8'
+  }
+
+  return (
+    <div className={`animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 ${sizeClasses[size]}`} />
+  )
+}
+
+// Usage in components
+{loading && <LoadingSpinner />}
+```

@@ -2,9 +2,17 @@
 
 # dependencies
 /node_modules
+node_modules/
+**/node_modules/
+/.next/
+.next/
+frontend/.next/
+**/.next/
+**/__pycache__/
+*.pyc
+package-lock.json
 
 # next.js
-/.next/
 /out/
 
 # production

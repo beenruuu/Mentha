@@ -280,6 +280,38 @@ CREATE POLICY "Users can view logs of own brands"
   );
 
 -- =====================================================
+-- NOTIFICATIONS TABLE
+-- =====================================================
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  brand_id UUID REFERENCES public.brands(id) ON DELETE SET NULL,
+  type TEXT NOT NULL CHECK (type IN ('analysis_complete', 'analysis_failed', 'system', 'reminder')),
+  title TEXT NOT NULL,
+  message TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'unread' CHECK (status IN ('unread', 'read')),
+  metadata JSONB,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  read_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Enable RLS
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+-- Policies for notifications
+CREATE POLICY "Users can view own notifications"
+  ON public.notifications FOR SELECT
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own notifications"
+  ON public.notifications FOR UPDATE
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own notifications"
+  ON public.notifications FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- =====================================================
 -- FUNCTIONS
 -- =====================================================
 
@@ -345,3 +377,5 @@ CREATE INDEX idx_competitors_brand_id ON public.competitors(brand_id);
 CREATE INDEX idx_recommendations_user_id ON public.recommendations(user_id);
 CREATE INDEX idx_recommendations_analysis_id ON public.recommendations(analysis_id);
 CREATE INDEX idx_crawler_logs_brand_id ON public.crawler_logs(brand_id);
+CREATE INDEX idx_notifications_user_id ON public.notifications(user_id);
+CREATE INDEX idx_notifications_brand_id ON public.notifications(brand_id);
