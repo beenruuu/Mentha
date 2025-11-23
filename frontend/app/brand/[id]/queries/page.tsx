@@ -14,14 +14,7 @@ import { PageHeader } from '@/components/page-header'
 import { useTranslations } from '@/lib/i18n'
 import { brandsService, Brand } from '@/lib/services/brands'
 import { analysisService, Analysis } from '@/lib/services/analysis'
-
-type AnalysisQuery = {
-  title: string
-  question: string
-  category: string
-  frequency: string
-  priority: string
-}
+import { queriesService, Query } from '@/lib/services/queries'
 
 export default function QueriesPage() {
   const params = useParams<{ id: string }>()
@@ -29,6 +22,7 @@ export default function QueriesPage() {
   const { t } = useTranslations()
   const [brand, setBrand] = useState<Brand | null>(null)
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
+  const [queries, setQueries] = useState<Query[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -37,11 +31,14 @@ export default function QueriesPage() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [brandResponse, analyses] = await Promise.all([
+        const [brandResponse, analyses, queriesData] = await Promise.all([
           brandsService.getById(brandId),
           analysisService.getAll(brandId),
+          queriesService.getAll(brandId)
         ])
         setBrand(brandResponse)
+        setQueries(queriesData)
+
         const latestAnalysis = [...analyses]
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
         setAnalysis(latestAnalysis ?? null)
@@ -55,12 +52,7 @@ export default function QueriesPage() {
     fetchData()
   }, [brandId])
 
-  const queryInsights: AnalysisQuery[] = useMemo(() => {
-    if (!analysis?.results || !Array.isArray(analysis.results.queries)) {
-      return []
-    }
-    return analysis.results.queries as AnalysisQuery[]
-  }, [analysis])
+  const queryInsights = queries
 
   const stats = useMemo(() => {
     if (queryInsights.length === 0) {
@@ -133,7 +125,7 @@ export default function QueriesPage() {
                   {t.queryBuilder}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400">
-                  {analysis?.status === 'completed'
+                  {analysis?.status === 'completed' || queries.length > 0
                     ? t.createStrategicQueries
                     : 'El análisis está en progreso. Te avisaremos cuando existan sugerencias.'}
                 </p>
@@ -206,11 +198,10 @@ export default function QueriesPage() {
                                 {query.category}
                               </Badge>
                               <Badge
-                                className={`text-xs ${
-                                  query.priority === 'high'
+                                className={`text-xs ${query.priority === 'high'
                                     ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
                                     : 'bg-gray-100 dark:bg-[#0A0A0F] text-gray-700 dark:text-gray-300'
-                                }`}
+                                  }`}
                               >
                                 {query.priority}
                               </Badge>

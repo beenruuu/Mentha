@@ -14,6 +14,7 @@ import { brandsService, Brand } from "@/lib/services/brands"
 import { competitorsService, Competitor } from "@/lib/services/competitors"
 import { keywordsService, Keyword } from "@/lib/services/keywords"
 import { analysisService, Analysis } from "@/lib/services/analysis"
+import { technicalAeoService, TechnicalAEO } from "@/lib/services/technical-aeo"
 import { useRouter } from "next/navigation"
 import {
   AlertDialog,
@@ -35,22 +36,25 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
   const [competitors, setCompetitors] = useState<Competitor[]>([])
   const [keywords, setKeywords] = useState<Keyword[]>([])
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
+  const [technicalAeo, setTechnicalAeo] = useState<TechnicalAEO | null>(null)
   const [loading, setLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [brandData, competitorsData, keywordsData, analysesData] = await Promise.all([
+        const [brandData, competitorsData, keywordsData, analysesData, technicalAeoData] = await Promise.all([
           brandsService.getById(id),
           competitorsService.getAll(id),
           keywordsService.getAll(id),
-          analysisService.getAll(id)
+          analysisService.getAll(id),
+          technicalAeoService.getLatestByBrandId(id)
         ])
         setBrand(brandData)
         setCompetitors(competitorsData)
         setKeywords(keywordsData)
-        
+        setTechnicalAeo(technicalAeoData)
+
         if (analysesData.length > 0) {
           analysesData.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
           setAnalysis(analysesData[0])
@@ -125,18 +129,16 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <div className="flex items-center justify-between pr-4 md:pr-6 lg:pr-8">
-          <PageHeader 
-            icon={<Building2 className="h-5 w-5 text-emerald-600" />}
-            title={brand.name}
-          />
-        </div>
+        <PageHeader
+          icon={<Building2 className="h-5 w-5 text-emerald-600" />}
+          title={brand.name}
+        />
         <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8 bg-[#f5f5f5] dark:bg-[#0A0A0A]">
           {/* Brand Header */}
           <Card className="p-6 bg-white dark:bg-black mb-6">
             <div className="flex flex-col sm:flex-row items-start gap-4">
               <div className="w-12 h-12 shrink-0 rounded-xl overflow-hidden bg-white flex items-center justify-center border border-gray-100">
-                <img 
+                <img
                   src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=128`}
                   alt={`${brand.name} logo`}
                   className="w-8 h-8 object-contain"
@@ -178,28 +180,28 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t.actionableInsights}</h2>
               <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400">
-                {t.pendingActions.replace('{n}', analysis?.results?.recommendations?.length?.toString() || '0')}
+                {t.pendingActions.replace('{n}', technicalAeo?.recommendations?.length?.toString() || '0')}
               </Badge>
             </div>
-            {analysis?.results?.recommendations && analysis.results.recommendations.length > 0 ? (
+            {technicalAeo?.recommendations && technicalAeo.recommendations.length > 0 ? (
               <div className="space-y-3">
-                {analysis.results.recommendations.slice(0, 3).map((rec: any, i: number) => (
+                {technicalAeo.recommendations.slice(0, 3).map((rec: any, i: number) => (
                   <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#1E1E24]">
-                    <div className="w-2 h-2 mt-2 rounded-full bg-emerald-500 shrink-0" />
+                    <div className={`w-2 h-2 mt-2 rounded-full shrink-0 ${rec.priority === 'critical' ? 'bg-red-500' :
+                        rec.priority === 'high' ? 'bg-orange-500' : 'bg-emerald-500'
+                      }`} />
                     <div>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        {typeof rec === 'string' ? rec : rec.title || rec.description}
+                        {rec.title}
                       </p>
-                      {typeof rec !== 'string' && rec.description && (
-                        <p className="text-xs text-gray-500 mt-1">{rec.description}</p>
-                      )}
+                      <p className="text-xs text-gray-500 mt-1">{rec.description}</p>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
               <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                {analysis ? 'No specific recommendations found.' : 'Start an analysis to get recommendations.'}
+                {technicalAeo ? 'No specific recommendations found.' : 'Start an analysis to get recommendations.'}
               </div>
             )}
           </Card>
@@ -214,7 +216,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                 <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-[#2A2A30]">
                   <div className="flex items-center gap-3">
                     <div className="w-6 h-6 rounded-full overflow-hidden bg-white flex items-center justify-center border border-gray-100">
-                      <img 
+                      <img
                         src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`}
                         alt={`${brand.name} logo`}
                         className="w-4 h-4 object-contain"
@@ -232,11 +234,10 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                     <span className="text-sm font-medium text-gray-900 dark:text-white">{brand.name}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className={`text-sm font-bold ${
-                      (analysis?.score || 0) >= 70 ? 'text-emerald-600' : 
-                      (analysis?.score || 0) >= 40 ? 'text-yellow-600' : 'text-red-600'
-                    }`}>
-                      {analysis?.score ? `${Math.round(analysis.score)}/100` : 'Score pending'}
+                    <div className={`text-sm font-bold ${(technicalAeo?.aeo_readiness_score || 0) >= 70 ? 'text-emerald-600' :
+                      (technicalAeo?.aeo_readiness_score || 0) >= 40 ? 'text-yellow-600' : 'text-red-600'
+                      }`}>
+                      {technicalAeo ? `${Math.round(technicalAeo.aeo_readiness_score)}/100` : 'Score pending'}
                     </div>
                   </div>
                 </div>
@@ -322,5 +323,3 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
     </SidebarProvider>
   )
 }
-
-

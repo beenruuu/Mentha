@@ -5,6 +5,7 @@ export interface Competitor {
   name: string;
   domain: string;
   brand_id?: string;
+  similarity_score?: number;
   visibility_score?: number;
   tracked: boolean;
   created_at: string;
@@ -15,6 +16,7 @@ export interface CreateCompetitorData {
   name: string;
   domain: string;
   brand_id?: string;
+  similarity_score?: number;
   tracked?: boolean;
 }
 

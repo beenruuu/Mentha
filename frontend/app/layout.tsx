@@ -8,6 +8,7 @@ import { LanguageInit } from '@/components/language-init'
 import { CommandPalette } from '@/components/command-palette'
 import { DemoBanner } from '@/components/demo-banner'
 import { CookieConsent } from '@/components/cookie-consent'
+import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -36,6 +37,7 @@ export default function RootLayout({
         <CommandPalette />
         {children}
         <CookieConsent />
+        <Toaster position="top-right" expand={true} richColors />
         <Analytics />
       </body>
     </html>

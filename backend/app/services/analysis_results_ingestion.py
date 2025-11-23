@@ -17,6 +17,8 @@ class AnalysisResultsIngestionService:
         self.keyword_db = SupabaseDatabaseService("keywords", Keyword)
         self.crawler_log_db = SupabaseDatabaseService("crawler_logs", CrawlerLog)
         self.competitor_db = SupabaseDatabaseService("competitors", Competitor)
+        # New tables for GEO/AEO data
+        self.supabase_client = self.keyword_db.supabase  # Reuse supabase client
 
     async def ingest_results(self, analysis: Analysis, results: Dict[str, Any]) -> None:
         if not results:
@@ -32,6 +34,10 @@ class AnalysisResultsIngestionService:
             
             print(f"Ingesting crawlers: {len(results.get('crawlers', []))} found.")
             await self._ingest_crawlers(analysis, results.get("crawlers"))
+            
+            print(f"Ingesting queries: {len(results.get('queries', []))} found.")
+            await self._ingest_queries(analysis, results.get("queries"))
+            
         except Exception as ingestion_error:
             print(f"Failed to ingest analysis results: {ingestion_error}")
 
@@ -141,6 +147,144 @@ class AnalysisResultsIngestionService:
             created += 1
 
         print(f"Hydrated {created} crawler logs for brand {brand_id}")
+    
+    async def _ingest_queries(self, analysis: Analysis, queries: Optional[List[Dict[str, Any]]]) -> None:
+        """Ingest query/prompt data."""
+        if not queries or not analysis.brand_id:
+            return
+
+        user_id = str(analysis.user_id)
+        brand_id = str(analysis.brand_id)
+
+        # Delete previous queries for this brand
+        try:
+            self.supabase_client.table("queries").delete().eq("brand_id", brand_id).execute()
+        except Exception as delete_error:
+            print(f"Failed to clean previous queries: {delete_error}")
+
+        created = 0
+        for query in queries:
+            title = (query.get("title") or "").strip()
+            question = (query.get("question") or "").strip()
+            if not title or not question:
+                continue
+
+            payload = {
+                "user_id": user_id,
+                "brand_id": brand_id,
+                "title": title,
+                "question": question,
+                "answer": query.get("answer"),
+                "estimated_volume": self._to_int(query.get("estimated_volume")),
+                "ai_models": query.get("ai_models", []),
+                "tracked": query.get("tracked", True),
+                "created_at": datetime.utcnow().isoformat() + "Z",
+                "updated_at": datetime.utcnow().isoformat() + "Z",
+            }
+            
+            try:
+                self.supabase_client.table("queries").insert(payload).execute()
+                created += 1
+            except Exception as e:
+                print(f"Failed to create query '{title}': {e}")
+
+        print(f"Hydrated {created} queries for brand {brand_id}")
+    
+    async def ingest_technical_aeo(self, analysis: Analysis, technical_aeo_data: Dict[str, Any]) -> None:
+        """Ingest technical AEO audit results."""
+        if not technical_aeo_data or not technical_aeo_data.get("enabled"):
+            print("No technical AEO data to ingest.")
+            return
+        
+        if not analysis.brand_id:
+            print("No brand_id for technical AEO ingestion.")
+            return
+        
+        user_id = str(analysis.user_id)
+        brand_id = str(analysis.brand_id)
+        domain = technical_aeo_data.get("domain", "")
+        
+        # Delete previous technical AEO data for this brand
+        try:
+            self.supabase_client.table("technical_aeo").delete().eq("brand_id", brand_id).execute()
+        except Exception as delete_error:
+            print(f"Failed to clean previous technical AEO data: {delete_error}")
+        
+        # Extract structured data info
+        schemas = technical_aeo_data.get("structured_data", {})
+        
+        payload = {
+            "user_id": user_id,
+            "brand_id": brand_id,
+            "domain": domain,
+            "ai_crawler_permissions": technical_aeo_data.get("ai_crawler_permissions"),
+            "schema_types": schemas.get("schema_types", []),
+            "total_schemas": schemas.get("total_schemas", 0),
+            "has_faq": schemas.get("has_faq", False),
+            "has_howto": schemas.get("has_howto", False),
+            "has_article": schemas.get("has_article", False),
+            "has_rss": technical_aeo_data.get("technical_signals", {}).get("has_rss_feed", False),
+            "has_api": technical_aeo_data.get("technical_signals", {}).get("potential_api", False),
+            "mobile_responsive": technical_aeo_data.get("technical_signals", {}).get("has_viewport", False),
+            "https_enabled": technical_aeo_data.get("technical_signals", {}).get("https", False),
+            "response_time_ms": technical_aeo_data.get("technical_signals", {}).get("response_time_ms"),
+            "aeo_readiness_score": technical_aeo_data.get("aeo_readiness_score"),
+            "recommendations": technical_aeo_data.get("recommendations", []),
+            "last_audit": datetime.utcnow().isoformat() + "Z",
+            "created_at": datetime.utcnow().isoformat() + "Z",
+        }
+        
+        try:
+            self.supabase_client.table("technical_aeo").insert(payload).execute()
+            print(f"Saved technical AEO data for brand {brand_id} (score: {payload['aeo_readiness_score']}/100)")
+        except Exception as e:
+            print(f"Failed to save technical AEO data: {e}")
+    
+    async def ingest_web_search_results(self, analysis: Analysis, search_context: Dict[str, Any]) -> None:
+        """Ingest web search results."""
+        if not search_context or not search_context.get("enabled"):
+            print("No web search data to ingest.")
+            return
+        
+        if not analysis.brand_id:
+            print("No brand_id for web search ingestion.")
+            return
+        
+        user_id = str(analysis.user_id)
+        brand_id = str(analysis.brand_id)
+        analysis_id = str(analysis.id)
+        
+        # Store each type of search results
+        search_types = [
+            ("keyword", search_context.get("keyword_results", [])),
+            ("competitor", search_context.get("competitor_results", [])),
+            ("mention", search_context.get("mention_results", [])),
+            ("industry", search_context.get("industry_results", []))
+        ]
+        
+        saved = 0
+        for search_type, results in search_types:
+            if not results:
+                continue
+            
+            payload = {
+                "user_id": user_id,
+                "brand_id": brand_id,
+                "analysis_id": analysis_id,
+                "search_type": search_type,
+                "query": f"{search_type} search",
+                "results": results,
+                "total_results": len(results),
+                "searched_at": datetime.utcnow().isoformat() + "Z",
+            }
+            
+            try:
+                self.supabase_client.table("web_search_results").insert(payload).execute()
+                saved += 1
+            except Exception as e:
+                print(f"Failed to save {search_type} search results: {e}")
+        
+        print(f"Saved {saved} web search result sets for analysis {analysis_id}")
 
     @staticmethod
     def _to_int(value: Any, default: int = 0) -> int:

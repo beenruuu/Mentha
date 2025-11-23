@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { Activity, Bot, Globe, TrendingUp, Calendar, Loader2 } from 'lucide-react'
+import { Activity, Bot, Globe, TrendingUp, Calendar, Loader2, CheckCircle, XCircle, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 
 import { Card } from '@/components/ui/card'
@@ -13,17 +13,7 @@ import { PageHeader } from '@/components/page-header'
 import { useTranslations } from '@/lib/i18n'
 import { brandsService, Brand } from '@/lib/services/brands'
 import { analysisService, Analysis } from '@/lib/services/analysis'
-
-type CrawlerInsight = {
-  name: string
-  model: string
-  icon?: string
-  last_visit_hours?: number
-  frequency?: string
-  pages_visited?: number
-  insight?: string
-  top_pages?: string[]
-}
+import { technicalAeoService, TechnicalAEO } from '@/lib/services/technical-aeo'
 
 export default function CrawlersPage() {
   const params = useParams<{ id: string }>()
@@ -31,6 +21,7 @@ export default function CrawlersPage() {
   const { t } = useTranslations()
   const [brand, setBrand] = useState<Brand | null>(null)
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
+  const [technicalAeo, setTechnicalAeo] = useState<TechnicalAEO | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -39,11 +30,14 @@ export default function CrawlersPage() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [brandResponse, analyses] = await Promise.all([
+        const [brandResponse, analyses, technicalAeoData] = await Promise.all([
           brandsService.getById(brandId),
           analysisService.getAll(brandId),
+          technicalAeoService.getLatestByBrandId(brandId)
         ])
         setBrand(brandResponse)
+        setTechnicalAeo(technicalAeoData)
+
         const latestAnalysis = [...analyses]
           .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0]
         setAnalysis(latestAnalysis ?? null)
@@ -57,25 +51,30 @@ export default function CrawlersPage() {
     fetchData()
   }, [brandId])
 
-  const crawlerInsights: CrawlerInsight[] = useMemo(() => {
-    if (!analysis?.results || !Array.isArray(analysis.results.crawlers)) {
+  const crawlerPermissions = useMemo(() => {
+    if (!technicalAeo?.ai_crawler_permissions?.crawlers) {
       return []
     }
-    return analysis.results.crawlers as CrawlerInsight[]
-  }, [analysis])
+    return Object.entries(technicalAeo.ai_crawler_permissions.crawlers).map(([name, status]) => ({
+      name,
+      status: status as string, // 'Allowed' or 'Blocked'
+      icon: '🤖'
+    }))
+  }, [technicalAeo])
 
   const stats = useMemo(() => {
-    if (crawlerInsights.length === 0) {
-      return { total: 0, pages: 0, avgFrequency: '—', trend: '—' }
+    if (crawlerPermissions.length === 0) {
+      return { total: 0, allowed: 0, blocked: 0, score: 0 }
     }
-    const pages = crawlerInsights.reduce((sum, crawler) => sum + (crawler.pages_visited || 0), 0)
+    const allowed = crawlerPermissions.filter(c => c.status === 'Allowed').length
+    const blocked = crawlerPermissions.filter(c => c.status === 'Blocked').length
     return {
-      total: crawlerInsights.length,
-      pages,
-      avgFrequency: crawlerInsights[0]?.frequency || 'daily',
-      trend: `${crawlerInsights.length >= 3 ? '+12%' : '+0%'}`,
+      total: crawlerPermissions.length,
+      allowed,
+      blocked,
+      score: technicalAeo?.aeo_readiness_score || 0
     }
-  }, [crawlerInsights])
+  }, [crawlerPermissions, technicalAeo])
 
   if (!brandId) {
     return null
@@ -107,15 +106,6 @@ export default function CrawlersPage() {
         <span className="font-medium">{brand.name}</span>
       </Badge>
     )
-  }
-
-  const formatLastVisit = (hours?: number) => {
-    if (!hours && hours !== 0) return '—'
-    if (hours < 24) {
-      return t.hoursAgo?.replace('{n}', hours.toString()) || `${hours}h`
-    }
-    const days = Math.floor(hours / 24)
-    return t.daysAgo?.replace('{n}', days.toString()) || `${days}d`
   }
 
   return (
@@ -152,28 +142,28 @@ export default function CrawlersPage() {
                 </Card>
                 <Card className="p-4 bg-white dark:bg-black">
                   <div className="flex items-center gap-3">
-                    <Activity className="w-6 h-6 text-black dark:text-white" />
+                    <CheckCircle className="w-6 h-6 text-green-600" />
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{t.visitsToday}</p>
-                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.pages}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Allowed</p>
+                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.allowed}</p>
                     </div>
                   </div>
                 </Card>
                 <Card className="p-4 bg-white dark:bg-black">
                   <div className="flex items-center gap-3">
-                    <Globe className="w-6 h-6 text-black dark:text-white" />
+                    <XCircle className="w-6 h-6 text-red-600" />
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{t.pagesIndexedShort}</p>
-                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.avgFrequency}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Blocked</p>
+                      <p className="text-2xl font-semibold text-gray-900 dark:text-white">{stats.blocked}</p>
                     </div>
                   </div>
                 </Card>
                 <Card className="p-4 bg-white dark:bg-black">
                   <div className="flex items-center gap-3">
-                    <TrendingUp className="w-6 h-6 text-black dark:text-white" />
+                    <ShieldCheck className="w-6 h-6 text-blue-600" />
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">{t.weeklyTrend}</p>
-                      <p className="text-2xl font-semibold text-green-600 dark:text-green-400">{stats.trend}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">AEO Readiness</p>
+                      <p className="text-2xl font-semibold text-blue-600 dark:text-blue-400">{Math.round(stats.score)}/100</p>
                     </div>
                   </div>
                 </Card>
@@ -186,14 +176,10 @@ export default function CrawlersPage() {
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-                      {analysis?.status === 'completed'
-                        ? 'Los modelos ya están rastreando tu dominio'
-                        : 'Esperando actividad de crawlers'}
+                      Estado de Robots.txt
                     </h3>
                     <p className="text-xs text-gray-700 dark:text-gray-300">
-                      {analysis?.status === 'completed'
-                        ? 'Estos datos provienen del análisis inicial de IA-Visibility. Usa las rutas visitadas para optimizar tus señales.'
-                        : 'El análisis está procesando señales de rastreo. Recibirás una notificación al finalizar.'}
+                      {technicalAeo?.ai_crawler_permissions?.summary || 'Analizando permisos de rastreo...'}
                     </p>
                   </div>
                 </div>
@@ -201,102 +187,38 @@ export default function CrawlersPage() {
 
               <Card className="p-6 bg-white dark:bg-black">
                 <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-                  {t.crawlerActivity}
+                  Permisos de Rastreadores IA
                 </h2>
-                {crawlerInsights.length === 0 ? (
+                {crawlerPermissions.length === 0 ? (
                   <div className="text-center text-sm text-gray-500 dark:text-gray-400 py-10">
                     {analysis?.status === 'processing'
-                      ? 'Analizando logs de crawlers...'
-                      : 'Aún no hay señales de bots para esta marca.'}
+                      ? 'Verificando permisos de robots.txt...'
+                      : 'No se encontraron datos de permisos.'}
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {crawlerInsights.map((crawler, idx) => (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {crawlerPermissions.map((crawler, idx) => (
                       <div
                         key={`${crawler.name}-${idx}`}
-                        className="p-4 border border-gray-200 dark:border-[#2A2A30] rounded-lg"
+                        className="p-4 border border-gray-200 dark:border-[#2A2A30] rounded-lg flex items-center justify-between"
                       >
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className="text-2xl">{crawler.icon || '◆'}</div>
-                            <div>
-                              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{crawler.name}</h3>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">{crawler.model}</p>
-                            </div>
-                          </div>
-                          <span className="text-xs text-gray-500 dark:text-gray-400">
-                            {formatLastVisit(crawler.last_visit_hours)}
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3 text-sm">
+                        <div className="flex items-center gap-3">
+                          <div className="text-2xl">{crawler.icon}</div>
                           <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t.frequency}</p>
-                            <Badge variant="secondary" className="bg-gray-100 dark:bg-[#1E1E24]">
-                              <Calendar className="w-3 h-3 mr-1" />
-                              {crawler.frequency || 'daily'}
-                            </Badge>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{t.pagesVisited}</p>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {crawler.pages_visited || 0} {t.pages}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Insight</p>
-                            <p className="font-medium text-gray-900 dark:text-white">
-                              {crawler.insight || 'Sin insight generado'}
-                            </p>
+                            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">{crawler.name}</h3>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">AI Bot</p>
                           </div>
                         </div>
-
-                        {crawler.top_pages && crawler.top_pages.length > 0 && (
-                          <div>
-                            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{t.topPages}:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {crawler.top_pages.map((page, i) => (
-                                <Badge key={i} variant="secondary" className="bg-gray-100 dark:bg-[#0A0A0F] text-xs">
-                                  {page}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                        <Badge
+                          variant={crawler.status === 'Allowed' ? 'default' : 'destructive'}
+                          className={crawler.status === 'Allowed' ? 'bg-green-600 hover:bg-green-700' : ''}
+                        >
+                          {crawler.status}
+                        </Badge>
                       </div>
                     ))}
                   </div>
                 )}
-              </Card>
-
-              <Card className="p-6 bg-white dark:bg-black mt-6">
-                <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-                  {t.activityTimeline}
-                </h2>
-                <div className="space-y-3">
-                  {crawlerInsights.slice(0, 4).map((crawler, idx) => (
-                    <div key={`${crawler.name}-${idx}-timeline`} className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-[#0A0A0F] rounded-lg">
-                      <span className="text-lg">{crawler.icon || '◆'}</span>
-                      <div className="flex-1">
-                        <p className="text-sm text-gray-900 dark:text-white">
-                          <span className="font-medium">{crawler.name}</span> {crawler.insight || t.visitedHomepage || 'visitó tu sitio'}
-                        </p>
-                        {crawler.top_pages && (
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {crawler.top_pages.slice(0, 2).map((page, i) => (
-                              <Badge key={i} variant="secondary" className="bg-gray-200 dark:bg-[#1E1E24] text-xs">
-                                {page}
-                              </Badge>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {formatLastVisit(crawler.last_visit_hours)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
               </Card>
             </>
           )}

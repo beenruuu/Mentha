@@ -21,7 +21,7 @@ function BrandItem({ id, name, domain }: { id: string; name: string; domain: str
       >
         <div className="flex items-center gap-3">
           <div className="w-4 h-4 rounded-full overflow-hidden bg-white flex items-center justify-center border border-gray-100">
-            <img 
+            <img
               src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
               alt={`${name} logo`}
               className="w-3 h-3 object-contain"
@@ -40,7 +40,7 @@ function BrandItem({ id, name, domain }: { id: string; name: string; domain: str
         </div>
         <ChevronRight className={`w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform ${expanded ? 'rotate-90' : ''}`} />
       </button>
-      
+
       {expanded && (
         <div className="ml-7 mt-1 space-y-1">
           <Link href={`/brand/${id}`}>
@@ -58,6 +58,18 @@ function BrandItem({ id, name, domain }: { id: string; name: string; domain: str
             <button className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded">
               <Bot className="w-3 h-3" />
               {t.aiCrawlers}
+            </button>
+          </Link>
+          <Link href={`/brand/${id}/keywords`}>
+            <button className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded">
+              <TrendingUp className="w-3 h-3" />
+              {t.keywordsAI}
+            </button>
+          </Link>
+          <Link href={`/brand/${id}/competitors`}>
+            <button className="w-full flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded">
+              <Users className="w-3 h-3" />
+              {t.competition}
             </button>
           </Link>
         </div>
@@ -79,10 +91,10 @@ export function AppSidebar() {
       try {
         const data = await brandsService.getAll()
         setBrands(data)
-        
+
         // Onboarding check: If no brands and not on onboarding/creation pages, redirect
         if (data.length === 0 && !pathname.startsWith('/brand/new') && !pathname.startsWith('/onboarding')) {
-             router.push('/onboarding')
+          router.push('/onboarding')
         }
       } catch (error) {
         console.error('Failed to fetch brands:', error)
@@ -97,7 +109,7 @@ export function AppSidebar() {
   const handleLogout = async () => {
     // En modo demo, simplemente redirigir
     const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
-    
+
     if (isDemoMode) {
       router.push('/auth/login')
     } else {
@@ -141,181 +153,172 @@ export function AppSidebar() {
       )}
 
       {/* Sidebar */}
-      <aside className={`${
-        openMobile ? "translate-x-0" : "-translate-x-full"
-      } md:translate-x-0 fixed left-0 top-0 h-screen w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-[#2A2A30] flex flex-col z-50 transition-transform duration-300 ease-in-out`}>
-      {/* Logo and Close Button */}
-      <div className="p-4 flex items-center justify-between">
-        <Link href="/">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer">
-            {/* Mentha logo - color follows text color: black in light, white in dark */}
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" className="w-6 h-6 text-black dark:text-white" aria-hidden="true">
-              <path d="M19.7,26.3l3.2-4.2c1.7-2.6,3.5-5.4,3.9-8.5l-1.8,3.4c-1.3,1.8-2.6,3.8-4.1,5.4s-2.3,2.3-2.7,2.4-.2,0-.2-.2c-1-3.3-1.1-7.5.3-10.7s6.4-8,9.5-10.6,2.5-2.1,2.7-2c2.5,4.1,4.3,9.4,3.1,14.3-1.5,6.1-7.9,10.2-13.9,10.7Z" fill="currentColor"/>
-              <path d="M33.7,20.5v15.1c0,1-1.6,2.5-2.6,2.7-2.4.4-4.2-1-4.4-3.4s-.2-6.1,0-8,0-.4.2-.6,1.7-.9,2.1-1.2c1.8-1.2,3.3-2.7,4.7-4.5Z" fill="currentColor"/>
-              <path d="M16.3,25.4c-.1.1-.9-.6-1.1-.7-1.6-1.5-3.1-3.8-4-5.8-.3,0-.1.3,0,.4.6,2.5,2.6,4.8,4.1,6.9-3.5-.3-7.2-2.6-8.2-6.2s.4-5.7,1.7-8.4c.1,0,1.4,1,1.6,1.1,1.9,1.6,5,4.4,5.8,6.7s.4,4,0,6Z" fill="currentColor"/>
-              <path d="M7.3,24.4c1.9,2,4.3,3.2,7,3.9-.3,2.2.5,6.1-.4,8.1s-3.4,2.6-5.1,1.5-1.5-1.6-1.5-2.2v-11.2Z" fill="currentColor"/>
-              <path d="M23.9,27.5v8.1c0,.4-.8,1.6-1.1,1.9-1.6,1.4-4.4,1.1-5.4-.9s-.5-1.4-.5-1.6v-6.7c2.4,0,4.7-.1,7-.8Z" fill="currentColor"/>
-            </svg>
-          </div>
-        </Link>
-        <button
-          onClick={() => setOpenMobile(false)}
-          className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-[#1E1E24] rounded-lg transition-colors"
-          aria-label={t.closeMenu}
-        >
-          <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-        </button>
-      </div>
+      <aside className={`${openMobile ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0 fixed left-0 top-0 h-screen w-64 bg-white dark:bg-black border-r border-gray-200 dark:border-[#2A2A30] flex flex-col z-50 transition-transform duration-300 ease-in-out`}>
+        {/* Logo and Close Button */}
+        <div className="p-4 flex items-center justify-between">
+          <Link href="/">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer">
+              {/* Mentha logo - color follows text color: black in light, white in dark */}
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" className="w-6 h-6 text-black dark:text-white" aria-hidden="true">
+                <path d="M19.7,26.3l3.2-4.2c1.7-2.6,3.5-5.4,3.9-8.5l-1.8,3.4c-1.3,1.8-2.6,3.8-4.1,5.4s-2.3,2.3-2.7,2.4-.2,0-.2-.2c-1-3.3-1.1-7.5.3-10.7s6.4-8,9.5-10.6,2.5-2.1,2.7-2c2.5,4.1,4.3,9.4,3.1,14.3-1.5,6.1-7.9,10.2-13.9,10.7Z" fill="currentColor" />
+                <path d="M33.7,20.5v15.1c0,1-1.6,2.5-2.6,2.7-2.4.4-4.2-1-4.4-3.4s-.2-6.1,0-8,0-.4.2-.6,1.7-.9,2.1-1.2c1.8-1.2,3.3-2.7,4.7-4.5Z" fill="currentColor" />
+                <path d="M16.3,25.4c-.1.1-.9-.6-1.1-.7-1.6-1.5-3.1-3.8-4-5.8-.3,0-.1.3,0,.4.6,2.5,2.6,4.8,4.1,6.9-3.5-.3-7.2-2.6-8.2-6.2s.4-5.7,1.7-8.4c.1,0,1.4,1,1.6,1.1,1.9,1.6,5,4.4,5.8,6.7s.4,4,0,6Z" fill="currentColor" />
+                <path d="M7.3,24.4c1.9,2,4.3,3.2,7,3.9-.3,2.2.5,6.1-.4,8.1s-3.4,2.6-5.1,1.5-1.5-1.6-1.5-2.2v-11.2Z" fill="currentColor" />
+                <path d="M23.9,27.5v8.1c0,.4-.8,1.6-1.1,1.9-1.6,1.4-4.4,1.1-5.4-.9s-.5-1.4-.5-1.6v-6.7c2.4,0,4.7-.1,7-.8Z" fill="currentColor" />
+              </svg>
+            </div>
+          </Link>
+          <button
+            onClick={() => setOpenMobile(false)}
+            className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-[#1E1E24] rounded-lg transition-colors"
+            aria-label={t.closeMenu}
+          >
+            <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </button>
+        </div>
 
-      {/* Create Brand Button */}
-      <div className="px-4 mb-6">
-        <Link href="/brand/new">
-          <Button className="w-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black rounded-lg">+ {t.createBrand}</Button>
-        </Link>
-      </div>
+        {/* Create Brand Button */}
+        <div className="px-4 mb-6">
+          <Link href="/brand/new">
+            <Button className="w-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black rounded-lg">+ {t.createBrand}</Button>
+          </Link>
+        </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 overflow-y-auto">
-        <Link href="/dashboard">
-          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 justify-between ${
-            pathname === '/dashboard' 
-              ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium' 
+        {/* Navigation */}
+        <nav className="flex-1 px-3 overflow-y-auto">
+          <Link href="/dashboard">
+            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 justify-between ${pathname === '/dashboard'
+              ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium'
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
-          }`}>
-            <div className="flex items-center gap-3">
-              <div className="w-4 h-4 flex items-center justify-center">
-                <div className={`w-3 h-3 border-2 rounded ${
-                  pathname === '/dashboard'
+              }`}>
+              <div className="flex items-center gap-3">
+                <div className="w-4 h-4 flex items-center justify-center">
+                  <div className={`w-3 h-3 border-2 rounded ${pathname === '/dashboard'
                     ? 'border-gray-900 dark:border-white'
                     : 'border-gray-600 dark:border-gray-300'
-                }`}></div>
+                    }`}></div>
+                </div>
+                <span className="text-sm">{t.panel}</span>
               </div>
-              <span className="text-sm">{t.panel}</span>
-            </div>
-            <ChevronRight className="w-4 h-4" />
-          </button>
-        </Link>
-        <Link href="/aeo-analysis">
-          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${
-            pathname === '/aeo-analysis'
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </Link>
+          <Link href="/aeo-analysis">
+            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${pathname === '/aeo-analysis'
               ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium'
               : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
-          }`}>
-            <Sparkles className="w-4 h-4" />
-            <span className="text-sm">{t.aeoAnalysis}</span>
-          </button>
-        </Link>
-        <Link href="/keywords">
-          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${
-            pathname === '/keywords'
+              }`}>
+              <Sparkles className="w-4 h-4" />
+              <span className="text-sm">{t.aeoAnalysis}</span>
+            </button>
+          </Link>
+          <Link href="/keywords">
+            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${pathname === '/keywords'
               ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium'
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
-          }`}>
-            <TrendingUp className="w-4 h-4" />
-            <span className="text-sm">{t.keywordsAI}</span>
-          </button>
-        </Link>
-        <Link href="/competitors">
-          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${
-            pathname === '/competitors'
+              }`}>
+              <TrendingUp className="w-4 h-4" />
+              <span className="text-sm">{t.keywordsAI}</span>
+            </button>
+          </Link>
+          <Link href="/competitors">
+            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${pathname === '/competitors'
               ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium'
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
-          }`}>
-            <Users className="w-4 h-4" />
-            <span className="text-sm">{t.competition}</span>
-          </button>
-        </Link>
-        <Link href="/search">
-          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${
-            pathname === '/search'
+              }`}>
+              <Users className="w-4 h-4" />
+              <span className="text-sm">{t.competition}</span>
+            </button>
+          </Link>
+          <Link href="/search">
+            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${pathname === '/search'
               ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium'
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
-          }`}>
-            <Search className="w-4 h-4" />
-            <span className="text-sm">{t.search}</span>
-          </button>
-        </Link>
-        <Link href="/notifications">
-          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${
-            pathname === '/notifications'
+              }`}>
+              <Search className="w-4 h-4" />
+              <span className="text-sm">{t.search}</span>
+            </button>
+          </Link>
+          <Link href="/notifications">
+            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${pathname === '/notifications'
               ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium'
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
-          }`}>
-            <Bell className="w-4 h-4" />
-            <span className="text-sm">{t.notifications}</span>
-          </button>
-        </Link>
-        <Link href="/settings">
-          <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-6 ${
-            pathname === '/settings'
+              }`}>
+              <Bell className="w-4 h-4" />
+              <span className="text-sm">{t.notifications}</span>
+            </button>
+          </Link>
+          <Link href="/settings">
+            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-6 ${pathname === '/settings'
               ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium'
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
-          }`}>
-            <Settings className="w-4 h-4" />
-            <span className="text-sm">{t.settings}</span>
-          </button>
-        </Link>
+              }`}>
+              <Settings className="w-4 h-4" />
+              <span className="text-sm">{t.settings}</span>
+            </button>
+          </Link>
 
-        {/* Brands Section */}
-        <div className="mb-3">
-          <div className="flex items-center justify-between px-3 mb-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t.brands}</span>
-              <ChevronRight className="w-3 h-3 text-gray-400 dark:text-gray-500 rotate-90" />
+          {/* Brands Section */}
+          <div className="mb-3">
+            <div className="flex items-center justify-between px-3 mb-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t.brands}</span>
+                <ChevronRight className="w-3 h-3 text-gray-400 dark:text-gray-500 rotate-90" />
+              </div>
+              <Link href="/brand/new">
+                <Plus className="w-3 h-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer" />
+              </Link>
             </div>
-            <Link href="/brand/new">
-              <Plus className="w-3 h-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer" />
-            </Link>
+            <div className="space-y-1">
+              {loading ? (
+                <div className="px-3 py-2 text-xs text-gray-400">Loading...</div>
+              ) : brands.length === 0 ? (
+                <div className="px-3 py-2 text-xs text-gray-400">No brands yet</div>
+              ) : (
+                brands.map((brand) => {
+                  return (
+                    <BrandItem
+                      key={brand.id}
+                      id={brand.id}
+                      name={brand.name}
+                      domain={brand.domain}
+                    />
+                  )
+                })
+              )}
+            </div>
           </div>
-          <div className="space-y-1">
-            {loading ? (
-              <div className="px-3 py-2 text-xs text-gray-400">Loading...</div>
-            ) : brands.length === 0 ? (
-              <div className="px-3 py-2 text-xs text-gray-400">No brands yet</div>
-            ) : (
-              brands.map((brand) => {
-                return (
-                  <BrandItem 
-                    key={brand.id}
-                    id={brand.id} 
-                    name={brand.name} 
-                    domain={brand.domain}
-                  />
-                )
-              })
-            )}
-          </div>
-        </div>
-      </nav>
+        </nav>
 
-      {/* Token Usage */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="mb-3">
-          <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">{t.almostReachedLimit}</p>
-          <div className="w-full h-1.5 bg-gray-200 dark:bg-black rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-green-500 to-yellow-500 rounded-full"
-              style={{ width: "0%" }}
-            ></div>
+        {/* Token Usage */}
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mb-3">
+            <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">{t.almostReachedLimit}</p>
+            <div className="w-full h-1.5 bg-gray-200 dark:bg-black rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-green-500 to-yellow-500 rounded-full"
+                style={{ width: "0%" }}
+              ></div>
+            </div>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">0 / 10,000 {t.tokensUsed}</p>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">0 / 10,000 {t.tokensUsed}</p>
-        </div>
 
-        <Link href="/upgrade">
-          <Button variant="outline" className="w-full text-sm bg-transparent mb-2">
-            {t.upgradeToProArrow}
+          <Link href="/upgrade">
+            <Button variant="outline" className="w-full text-sm bg-transparent mb-2">
+              {t.upgradeToProArrow}
+            </Button>
+          </Link>
+
+          <Button
+            variant="ghost"
+            onClick={handleLogout}
+            className="w-full text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 justify-start"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            {t.logoutButton}
           </Button>
-        </Link>
-
-        <Button 
-          variant="ghost" 
-          onClick={handleLogout}
-          className="w-full text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 justify-start"
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          {t.logoutButton}
-        </Button>
-      </div>
+        </div>
       </aside>
     </>
   )

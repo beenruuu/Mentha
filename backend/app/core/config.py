@@ -25,6 +25,13 @@ class Settings(BaseSettings):
     QDRANT_URL: str = ""
     QDRANT_API_KEY: str = ""
     QDRANT_COLLECTION_NAME: str = "default_collection"
+    
+    # Web Search (optional APIs for future paid services)
+    TAVILY_API_KEY: str = ""
+    SERPER_API_KEY: str = ""
+    SERPAPI_KEY: str = ""
+    WEB_SEARCH_ENABLED: bool = True
+    WEB_SEARCH_PROVIDER: str = "duckduckgo"  # or "tavily", "serper", etc.
 
     class Config:
         env_file = ".env"

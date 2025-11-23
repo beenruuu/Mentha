@@ -9,6 +9,21 @@ class UserProfile(BaseModel):
     email: EmailStr
     full_name: Optional[str] = None
     avatar_url: Optional[str] = None
+    country: Optional[str] = None
+    industry: Optional[str] = None
+    role: Optional[str] = None
+    company_name: Optional[str] = None
+    discovery_source: Optional[str] = None
+
+class UserProfileUpdate(BaseModel):
+    """User profile update information."""
+    full_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    country: Optional[str] = None
+    industry: Optional[str] = None
+    role: Optional[str] = None
+    company_name: Optional[str] = None
+    discovery_source: Optional[str] = None
 
 
 class TokenResponse(BaseModel):
