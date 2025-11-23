@@ -94,9 +94,11 @@ Mentha es una plataforma SaaS completa para AI Engine Optimization (AEO) que ayu
 2. Completa todas las variables en `.env.local`:
    ```env
    # Supabase
+   SUPABASE_URL=https://tu-proyecto.supabase.co
    NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
    SUPABASE_SERVICE_ROLE_KEY=tu-service-role-key
+   SUPABASE_SERVICE_KEY=tu-service-role-key  # Backend espera este nombre exacto
 
    # Stripe
    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...

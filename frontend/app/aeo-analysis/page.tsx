@@ -281,9 +281,9 @@ export default function AEOAnalysisPage() {
                           Keywords Sugeridas
                         </h3>
                         <div className="flex flex-wrap gap-2">
-                          {analysis.results.keywords.map((keyword: string, i: number) => (
+                          {analysis.results.keywords.map((item: any, i: number) => (
                             <Badge key={i} variant="secondary">
-                              {keyword}
+                              {typeof item === 'string' ? item : item.keyword}
                             </Badge>
                           ))}
                         </div>

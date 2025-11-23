@@ -13,6 +13,7 @@ import { use, useEffect, useState } from 'react'
 import { brandsService, Brand } from "@/lib/services/brands"
 import { competitorsService, Competitor } from "@/lib/services/competitors"
 import { keywordsService, Keyword } from "@/lib/services/keywords"
+import { analysisService, Analysis } from "@/lib/services/analysis"
 import { useRouter } from "next/navigation"
 import {
   AlertDialog,
@@ -33,20 +34,27 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
   const [brand, setBrand] = useState<Brand | null>(null)
   const [competitors, setCompetitors] = useState<Competitor[]>([])
   const [keywords, setKeywords] = useState<Keyword[]>([])
+  const [analysis, setAnalysis] = useState<Analysis | null>(null)
   const [loading, setLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [brandData, competitorsData, keywordsData] = await Promise.all([
+        const [brandData, competitorsData, keywordsData, analysesData] = await Promise.all([
           brandsService.getById(id),
           competitorsService.getAll(id),
-          keywordsService.getAll(id)
+          keywordsService.getAll(id),
+          analysisService.getAll(id)
         ])
         setBrand(brandData)
         setCompetitors(competitorsData)
         setKeywords(keywordsData)
+        
+        if (analysesData.length > 0) {
+          analysesData.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          setAnalysis(analysesData[0])
+        }
       } catch (error) {
         console.error('Failed to fetch brand data:', error)
       } finally {
@@ -165,17 +173,35 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
             </div>
           </Card>
 
-          {/* Sugerencias Accionables - Placeholder for now */}
+          {/* Sugerencias Accionables */}
           <Card className="p-6 bg-white dark:bg-black mb-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t.actionableInsights}</h2>
               <Badge variant="secondary" className="bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400">
-                {t.pendingActions.replace('{n}', '0')}
+                {t.pendingActions.replace('{n}', analysis?.results?.recommendations?.length?.toString() || '0')}
               </Badge>
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-              No actionable insights yet. Start an analysis to get recommendations.
-            </div>
+            {analysis?.results?.recommendations && analysis.results.recommendations.length > 0 ? (
+              <div className="space-y-3">
+                {analysis.results.recommendations.slice(0, 3).map((rec: any, i: number) => (
+                  <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#1E1E24]">
+                    <div className="w-2 h-2 mt-2 rounded-full bg-emerald-500 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {typeof rec === 'string' ? rec : rec.title || rec.description}
+                      </p>
+                      {typeof rec !== 'string' && rec.description && (
+                        <p className="text-xs text-gray-500 mt-1">{rec.description}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                {analysis ? 'No specific recommendations found.' : 'Start an analysis to get recommendations.'}
+              </div>
+            )}
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -206,7 +232,12 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                     <span className="text-sm font-medium text-gray-900 dark:text-white">{brand.name}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <div className="text-sm text-gray-500">Score pending</div>
+                    <div className={`text-sm font-bold ${
+                      (analysis?.score || 0) >= 70 ? 'text-emerald-600' : 
+                      (analysis?.score || 0) >= 40 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {analysis?.score ? `${Math.round(analysis.score)}/100` : 'Score pending'}
+                    </div>
                   </div>
                 </div>
                 {competitors.length > 0 ? (

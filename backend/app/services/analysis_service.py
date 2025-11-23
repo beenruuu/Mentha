@@ -46,7 +46,8 @@ class AnalysisService:
             model_name = analysis.model_name
             if not model_name:
                 if provider == "openai":
-                    model_name = "gpt-5-nano-2025-08-07"
+                    # Use the latest available model as requested
+                    model_name = "gpt-5-chat-latest" 
                 elif provider == "anthropic":
                     model_name = "claude-3-sonnet-20240229"
                 elif provider == "openrouter":
@@ -56,21 +57,58 @@ class AnalysisService:
             prompt = self._construct_prompt(analysis)
 
             # 4. Call LLM
-            response = await llm_service.generate_text(prompt=prompt, model=model_name)
+            print(f"Sending prompt to LLM for analysis {analysis_id}...")
+            # Increase max_tokens to ensure the large JSON response isn't truncated
+            response = await llm_service.generate_text(prompt=prompt, model=model_name, max_tokens=4000)
+            print(f"LLM Response received: {response.text[:200]}...") # Log first 200 chars
             
             # 5. Parse Results (Expect JSON)
             try:
                 # Try to find JSON in the response if it's wrapped in text
                 content = response.text
+                
+                # Strip markdown code blocks if present
+                if "```json" in content:
+                    content = content.split("```json")[1].split("```")[0].strip()
+                elif "```" in content:
+                    content = content.split("```")[1].split("```")[0].strip()
+                
                 start_idx = content.find('{')
                 end_idx = content.rfind('}') + 1
                 if start_idx != -1 and end_idx != -1:
                     json_str = content[start_idx:end_idx]
-                    results = json.loads(json_str)
+                    # Basic cleanup for common LLM JSON errors
+                    # Remove trailing commas before closing braces/brackets
+                    import re
+                    json_str = re.sub(r',\s*}', '}', json_str)
+                    json_str = re.sub(r',\s*]', ']', json_str)
+                    # Remove comments if any (// ...)
+                    json_str = re.sub(r'//.*', '', json_str)
+                    
+                    try:
+                        results = json.loads(json_str, strict=False)
+                        print("JSON parsed successfully.")
+                    except json.JSONDecodeError:
+                        # If strict=False fails, try aggressive cleanup
+                        print("Standard parse failed, attempting aggressive cleanup...")
+                        # Replace actual newlines with space to salvage the JSON
+                        # We only do this if the initial parse failed
+                        json_str_clean = json_str.replace('\n', ' ').replace('\r', '')
+                        try:
+                            results = json.loads(json_str_clean, strict=False)
+                            print("JSON parsed successfully after aggressive cleanup.")
+                        except json.JSONDecodeError:
+                             # Last resort: try to salvage what we can or return partial error
+                            print("Aggressive cleanup failed. Returning raw text error.")
+                            results = {"raw_text": content, "error": "Failed to parse JSON response even after cleanup"}
+
                 else:
+                    print("Could not find JSON brackets in response.")
                     results = {"raw_text": content}
-            except json.JSONDecodeError:
-                results = {"raw_text": response.text, "error": "Failed to parse JSON response"}
+            except Exception as e:
+                print(f"JSON Parsing Exception: {e}")
+                print(f"Problematic JSON snippet: {content[:500]}...") # Log snippet for debugging
+                results = {"raw_text": response.text, "error": f"Failed to parse JSON response: {str(e)}"}
 
             # Calculate a mock score if not present
             score = results.get("score", 0)
@@ -88,7 +126,9 @@ class AnalysisService:
             })
 
             # 6b. Hydrate downstream tables so dashboards show data
+            print("Starting ingestion of results...")
             await self.ingestion_service.ingest_results(analysis, results)
+            print("Ingestion completed.")
 
             # 7. Generate Recommendations
             if "recommendations" in results and isinstance(results["recommendations"], list):
@@ -130,10 +170,13 @@ AI Visibility Goals: {', '.join(objectives.get('ai_goals', []))}
 """.strip()
 
         schema_instructions = """
-Return ONLY valid JSON (no markdown, no explanations) following this schema:
+Return ONLY valid JSON. Do NOT use markdown code blocks. Do NOT include any text outside the JSON object.
+The JSON must follow this schema:
 {
     "score": number 0-100,
     "summary": string,
+    "strengths": ["strength 1", "strength 2"],
+    "weaknesses": ["weakness 1", "weakness 2"],
     "visibility_findings": {
         "visibility_score": number,
         "models_tracking": ["chatgpt", "claude", "perplexity", "gemini"],
@@ -198,7 +241,11 @@ Return ONLY valid JSON (no markdown, no explanations) following this schema:
     ]
 }
 Lists should include 3-5 high-signal items tailored to the brand context.
-All numeric fields MUST be numbers (not strings) so they can be stored directly in the database.
+All numeric fields MUST be numbers (not strings).
+DO NOT wrap the output in markdown code blocks (like ```json). Just return the raw JSON string.
+DO NOT include trailing commas.
+DO NOT include comments in the JSON.
+IMPORTANT: Do not use unescaped newlines inside string values. Use \\n for line breaks.
 """.strip()
 
         prompt = f"""

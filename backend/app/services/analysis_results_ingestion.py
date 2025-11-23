@@ -20,11 +20,17 @@ class AnalysisResultsIngestionService:
 
     async def ingest_results(self, analysis: Analysis, results: Dict[str, Any]) -> None:
         if not results:
+            print("No results to ingest.")
             return
 
         try:
+            print(f"Ingesting keywords: {len(results.get('keywords', []))} found.")
             await self._ingest_keywords(analysis, results.get("keywords"))
+            
+            print(f"Ingesting competitors: {len(results.get('competitors', []))} found.")
             await self._ingest_competitors(analysis, results.get("competitors"))
+            
+            print(f"Ingesting crawlers: {len(results.get('crawlers', []))} found.")
             await self._ingest_crawlers(analysis, results.get("crawlers"))
         except Exception as ingestion_error:
             print(f"Failed to ingest analysis results: {ingestion_error}")
@@ -137,19 +143,33 @@ class AnalysisResultsIngestionService:
         print(f"Hydrated {created} crawler logs for brand {brand_id}")
 
     @staticmethod
-    def _to_int(value: Any) -> Optional[int]:
+    def _to_int(value: Any, default: int = 0) -> int:
         try:
             if value is None:
-                return None
+                return default
+            if isinstance(value, str):
+                # Handle "1,000" or "1k" roughly if needed, or just strip non-digits
+                import re
+                digits = re.sub(r'[^\d]', '', value)
+                if not digits:
+                    return default
+                return int(digits)
             return int(float(value))
         except (TypeError, ValueError):
-            return None
+            return default
 
     @staticmethod
-    def _to_float(value: Any) -> Optional[float]:
+    def _to_float(value: Any, default: float = 0.0) -> float:
         try:
             if value is None:
-                return None
+                return default
+            if isinstance(value, str):
+                import re
+                # Extract first float-like number
+                match = re.search(r"[-+]?\d*\.\d+|\d+", value)
+                if match:
+                    return float(match.group())
+                return default
             return float(value)
         except (TypeError, ValueError):
-            return None
+            return default

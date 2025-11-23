@@ -10,11 +10,13 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { PageHeader } from '@/components/page-header'
 import { useTranslations } from '@/lib/i18n'
 import { brandsService, Brand } from "@/lib/services/brands"
+import { analysisService, Analysis } from "@/lib/services/analysis"
 import Link from "next/link"
 
 export default function DashboardPage() {
   const { t } = useTranslations()
   const [brands, setBrands] = useState<Brand[]>([])
+  const [analyses, setAnalyses] = useState<Record<string, Analysis>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -23,6 +25,23 @@ export default function DashboardPage() {
       try {
         const data = await brandsService.getAll()
         setBrands(data)
+
+        // Fetch latest analysis for each brand
+        const analysesMap: Record<string, Analysis> = {}
+        await Promise.all(data.map(async (brand) => {
+          try {
+            const brandAnalyses = await analysisService.getAll(brand.id)
+            if (brandAnalyses.length > 0) {
+              // Sort by created_at desc
+              brandAnalyses.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+              analysesMap[brand.id] = brandAnalyses[0]
+            }
+          } catch (e) {
+            console.error(`Failed to fetch analysis for brand ${brand.id}`, e)
+          }
+        }))
+        setAnalyses(analysesMap)
+
       } catch (err) {
         console.error("Failed to fetch brands:", err)
         setError("Failed to load brands. Please try again.")
@@ -114,8 +133,19 @@ export default function DashboardPage() {
                           <span className="text-sm font-medium text-[#0A0A0A] dark:text-white">{brand.name}</span>
                         </div>
                         <div className="flex items-center gap-3">
-                          {/* Placeholder for score until we have real analysis data */}
-                          <div className="text-xs text-gray-400">No data yet</div>
+                          {analyses[brand.id] ? (
+                            <div className="flex flex-col items-end">
+                              <span className={`text-lg font-bold ${
+                                (analyses[brand.id].score || 0) >= 70 ? 'text-emerald-600' : 
+                                (analyses[brand.id].score || 0) >= 40 ? 'text-yellow-600' : 'text-red-600'
+                              }`}>
+                                {analyses[brand.id].score !== undefined ? Math.round(analyses[brand.id].score!) : '-'}
+                              </span>
+                              <span className="text-xs text-gray-400 capitalize">{analyses[brand.id].status}</span>
+                            </div>
+                          ) : (
+                            <div className="text-xs text-gray-400">No data yet</div>
+                          )}
                         </div>
                       </div>
                     ))}
