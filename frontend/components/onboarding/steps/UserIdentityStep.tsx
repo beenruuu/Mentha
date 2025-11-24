@@ -7,14 +7,15 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
 import { useEffect, useState } from 'react'
+import FlagIcon from '@/components/flag-icon'
 
 const COUNTRIES = [
-    { code: 'ES', name: 'Spain', flag: '🇪🇸' },
-    { code: 'US', name: 'United States', flag: '🇺🇸' },
-    { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
-    { code: 'FR', name: 'France', flag: '🇫🇷' },
-    { code: 'DE', name: 'Germany', flag: '🇩🇪' },
-    { code: 'IT', name: 'Italy', flag: '🇮🇹' },
+    { code: 'ES', name: 'Spain' },
+    { code: 'US', name: 'United States' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'FR', name: 'France' },
+    { code: 'DE', name: 'Germany' },
+    { code: 'IT', name: 'Italy' },
 ]
 
 export default function UserIdentityStep() {
@@ -90,7 +91,10 @@ export default function UserIdentityStep() {
                         <SelectContent>
                             {COUNTRIES.map((c) => (
                                 <SelectItem key={c.code} value={c.code}>
-                                    <span className="mr-2">{c.flag}</span> {c.name}
+                                    <span className="mr-2 inline-flex items-center">
+                                        <FlagIcon code={c.code} size={16} title={c.name} />
+                                    </span>
+                                    {c.name}
                                 </SelectItem>
                             ))}
                         </SelectContent>

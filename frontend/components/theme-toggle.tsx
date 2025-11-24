@@ -100,7 +100,7 @@ export function ThemeToggle() {
             : 'border-gray-200 dark:border-[#2A2A30] bg-white dark:bg-black hover:border-gray-300 dark:hover:border-[#3A3A40] text-gray-700 dark:text-gray-300'
         }`}
       >
-        <div className="w-full h-12 bg-white dark:bg-[#0A0A0A] border border-gray-200 dark:border-[#2A2A30] rounded mb-2"></div>
+        <div className="w-full h-12 bg-white border border-gray-200 rounded mb-2" />
         <p className="text-xs font-medium">{t.light}</p>
       </button>
       <button
@@ -112,7 +112,7 @@ export function ThemeToggle() {
             : 'border-gray-200 dark:border-[#2A2A30] bg-white dark:bg-black hover:border-gray-300 dark:hover:border-[#3A3A40] text-gray-700 dark:text-gray-300'
         }`}
       >
-        <div className="w-full h-12 bg-[#0A0A0A] dark:bg-black rounded mb-2"></div>
+        <div className="w-full h-12 bg-[#0A0A0A] border border-[#2A2A30] rounded mb-2" />
         <p className="text-xs font-medium">{t.dark}</p>
       </button>
       <button
@@ -124,7 +124,7 @@ export function ThemeToggle() {
             : 'border-gray-200 dark:border-[#2A2A30] bg-white dark:bg-black hover:border-gray-300 dark:hover:border-[#3A3A40] text-gray-700 dark:text-gray-300'
         }`}
       >
-        <div className="w-full h-12 bg-gradient-to-r from-white via-gray-400 to-[#0A0A0A] dark:from-white dark:via-gray-400 dark:to-[#0A0A0A] rounded mb-2"></div>
+        <div className="w-full h-12 bg-gradient-to-r from-white via-gray-400 to-[#0A0A0A] rounded mb-2" />
         <p className="text-xs font-medium">{t.system}</p>
       </button>
     </div>

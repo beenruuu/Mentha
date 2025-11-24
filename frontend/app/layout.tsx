@@ -10,6 +10,7 @@ import { DemoBanner } from '@/components/demo-banner'
 import { CookieConsent } from '@/components/cookie-consent'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
+import SettingsPanel from '@/components/settings-panel'
 
 export const metadata: Metadata = {
   title: 'Mentha - AI Engine Optimization Platform',
@@ -17,6 +18,28 @@ export const metadata: Metadata = {
   generator: 'Mentha',
   icons: {
     icon: '/favicon.svg',
+  },
+  openGraph: {
+    title: 'Mentha — AI Engine Optimization',
+    description: 'Controla y mejora tu presencia en motores de IA como ChatGPT, Claude y Gemini. Análisis y recomendaciones AEO.',
+    url: 'https://mentha.ai',
+    siteName: 'Mentha',
+    images: [
+      {
+        url: '/og-image.svg',
+        width: 1200,
+        height: 630,
+        alt: 'Mentha — AI Engine Optimization'
+      }
+    ],
+    locale: 'es_ES',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Mentha — AI Engine Optimization',
+    description: 'Optimiza tu visibilidad en motores de IA como ChatGPT y Claude.',
+    images: ['/og-image.svg'],
   },
 }
 
@@ -30,11 +53,12 @@ export default function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className={`min-h-screen bg-black antialiased font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
         <LanguageInit />
         <ThemeInit />
         <DemoBanner />
         <CommandPalette />
+        <SettingsPanel />
         {children}
         <CookieConsent />
         <Toaster position="top-right" expand={true} richColors />

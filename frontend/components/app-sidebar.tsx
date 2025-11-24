@@ -249,15 +249,16 @@ export function AppSidebar() {
               <span className="text-sm">{t.notifications}</span>
             </button>
           </Link>
-          <Link href="/settings">
-            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-6 ${pathname === '/settings'
+          <button
+            onClick={() => window.dispatchEvent(new CustomEvent('open-settings-panel'))}
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-6 ${pathname === '/settings'
               ? 'bg-gray-100 dark:bg-[#1E1E24] text-gray-900 dark:text-white font-medium'
               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1E1E24]'
-              }`}>
-              <Settings className="w-4 h-4" />
-              <span className="text-sm">{t.settings}</span>
-            </button>
-          </Link>
+              }`}
+          >
+            <Settings className="w-4 h-4" />
+            <span className="text-sm">{t.settings}</span>
+          </button>
 
           {/* Brands Section */}
           <div className="mb-3">

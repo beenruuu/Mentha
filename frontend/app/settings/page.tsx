@@ -234,7 +234,7 @@ export default function SettingsPage() {
         </header>
 
         <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
-          <div className="max-w-4xl space-y-6">
+          <div className="w-full space-y-6">
             {/* Profile Settings */}
             <Card className="p-6 bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30] transition-all duration-200 hover:shadow-lg hover:border-emerald-500/20">
               <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-[#1A1A20]">

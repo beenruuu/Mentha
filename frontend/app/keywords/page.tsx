@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { TrendingUp, TrendingDown, Plus, Search } from 'lucide-react'
+import { TrendingUp, Plus, Search } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -24,27 +24,15 @@ import { useToast } from '@/hooks/use-toast'
 import { useTranslations } from '@/lib/i18n'
 import { keywordsService, Keyword } from '@/lib/services/keywords'
 
-// Extended interface for UI display
-interface KeywordDisplay extends Keyword {
-  position: number;
-  mentions: {
-    chatgpt?: boolean;
-    claude?: boolean;
-    perplexity?: boolean;
-    gemini?: boolean;
-  };
-  trend: 'up' | 'down' | 'neutral';
-}
-
 export default function KeywordsPage() {
   const { t } = useTranslations()
-  const [keywords, setKeywords] = useState<KeywordDisplay[]>([])
+  const [keywords, setKeywords] = useState<Keyword[]>([])
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     total: 0,
     avgVisibility: 0,
-    top3: 0,
-    improvements: 0
+    highPotential: 0,
+    lastSync: ''
   })
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [newKeyword, setNewKeyword] = useState('')
@@ -58,24 +46,20 @@ export default function KeywordsPage() {
     try {
       setLoading(true)
       const data = await keywordsService.getAll()
-      // Map backend data to UI format with defaults for missing fields
-      const mappedData: KeywordDisplay[] = data.map(k => ({
-        ...k,
-        position: 0, // Placeholder
-        mentions: {}, // Placeholder
-        trend: 'neutral' // Placeholder
-      }))
-      setKeywords(mappedData)
+      setKeywords(data)
 
-      // Calculate stats
       const total = data.length
       const avgVisibility = total > 0 
         ? Math.round(data.reduce((acc, k) => acc + (k.ai_visibility_score || 0), 0) / total) 
         : 0
-      const top3 = 0 // Placeholder until we have ranking data
-      const improvements = data.filter(k => (k.ai_visibility_score || 0) < 50).length
+      const highPotential = data.filter(k => (k.ai_visibility_score || 0) < 50).length
+      const lastSyncTimestamp = data.reduce((latest: number, keyword) => {
+        const ts = keyword.updated_at ? new Date(keyword.updated_at).getTime() : 0
+        return ts > latest ? ts : latest
+      }, 0)
+      const lastSync = lastSyncTimestamp ? new Date(lastSyncTimestamp).toLocaleString() : '—'
 
-      setStats({ total, avgVisibility, top3, improvements })
+      setStats({ total, avgVisibility, highPotential, lastSync })
     } catch (error) {
       console.error('Failed to load keywords:', error)
       toast({

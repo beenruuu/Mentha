@@ -61,8 +61,8 @@ export function UserAvatarMenu() {
           {t.myAccount}
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-gray-200 dark:bg-[#2A2A30]" />
-        <DropdownMenuItem 
-          onClick={() => router.push('/settings')}
+        <DropdownMenuItem
+          onClick={() => window.dispatchEvent(new CustomEvent('open-settings-panel'))}
           className="cursor-pointer text-gray-700 dark:text-gray-300 focus:bg-gray-100 dark:focus:bg-[#1E1E24]"
         >
           <Settings className="mr-2 h-4 w-4" />

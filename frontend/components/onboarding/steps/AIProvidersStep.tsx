@@ -4,6 +4,7 @@ import { useOnboarding } from '@/lib/context/onboarding-context'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Check, Plus } from 'lucide-react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
 // SVG Icons for providers
@@ -38,11 +39,14 @@ const GrokSVG = (props: React.SVGProps<SVGSVGElement>) => (
 )
 
 const PROVIDER_ICONS: Record<string, any> = {
-    chatgpt: ChatGPTSVG,
-    claude: ClaudeSVG,
-    gemini: GeminiSVG,
-    perplexity: PerplexitySVG,
     grok: GrokSVG
+}
+
+const PROVIDER_LOGOS: Record<string, string> = {
+    chatgpt: '/providers/openai.svg',
+    claude: '/providers/claude-color.svg',
+    gemini: '/providers/gemini-color.svg',
+    perplexity: '/providers/perplexity-color.svg'
 }
 
 const PROVIDER_COLORS: Record<string, string> = {
@@ -107,7 +111,17 @@ export default function AIProvidersStep() {
 
                                 <div className="flex flex-col gap-3">
                                     <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center shadow-inner", colorClass)}>
-                                        <Icon className="w-6 h-6" />
+                                        {PROVIDER_LOGOS[provider.id] ? (
+                                            <Image
+                                                src={PROVIDER_LOGOS[provider.id]}
+                                                alt={`${provider.name} logo`}
+                                                width={28}
+                                                height={28}
+                                                className="object-contain"
+                                            />
+                                        ) : (
+                                            <Icon className="w-6 h-6" />
+                                        )}
                                     </div>
 
                                     <div className="space-y-1">

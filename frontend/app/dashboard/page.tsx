@@ -1,21 +1,16 @@
 'use client'
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import { 
-  LayoutDashboard, 
   Calendar as CalendarIcon, 
   Settings, 
   MoreHorizontal, 
-  CheckCircle2, 
-  Circle, 
-  ArrowRight,
-  Globe,
-  User,
-  MapPin,
-  Languages
+  CheckCircle2
 } from "lucide-react"
-import { Card } from "@/components/ui/card"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 import { useTranslations } from '@/lib/i18n'
@@ -33,6 +28,13 @@ import {
 } from 'recharts'
 import { format } from "date-fns"
 
+const AI_PROVIDER_META = [
+  { id: 'chatgpt', name: 'ChatGPT', icon: '/providers/openai.svg' },
+  { id: 'claude', name: 'Claude', icon: '/providers/claude-color.svg' },
+  { id: 'perplexity', name: 'Perplexity', icon: '/providers/perplexity-color.svg' },
+  { id: 'gemini', name: 'Gemini', icon: '/providers/gemini-color.svg' },
+] as const
+
 export default function DashboardPage() {
   const { t } = useTranslations()
   const [brands, setBrands] = useState<Brand[]>([])
@@ -41,7 +43,6 @@ export default function DashboardPage() {
   const [competitors, setCompetitors] = useState<Competitor[]>([])
   const [chartData, setChartData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'rank' | 'position' | 'inclusion'>('rank')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,15 +63,6 @@ export default function DashboardPage() {
             .map(a => ({
               date: format(new Date(a.created_at), 'MM/dd'),
               rank: a.score ? Math.round(a.score) : 0,
-              // Mock data for position and inclusion since backend doesn't provide history for them yet
-              position: a.score ? (Math.max(1, 10 - (a.score / 10) + (Math.random() * 2 - 1))).toFixed(1) : 0,
-              inclusion: a.score ? Math.min(100, Math.round(a.score * 0.9 + (Math.random() * 10 - 5))) : 0,
-              
-              // Model specific tracking
-              openai: a.results?.visibility_findings?.models_tracking?.includes('chatgpt') ? a.score : null,
-              claude: a.results?.visibility_findings?.models_tracking?.includes('claude') ? a.score : null,
-              gemini: a.results?.visibility_findings?.models_tracking?.includes('gemini') ? a.score : null,
-              perplexity: a.results?.visibility_findings?.models_tracking?.includes('perplexity') ? a.score : null,
             }))
           
           setChartData(processedChartData)
@@ -118,343 +110,250 @@ export default function DashboardPage() {
     return null
   }
 
-  const getCurrentValue = () => {
-    if (!analysis) return '0%'
-    switch (activeTab) {
-      case 'rank': return `${Math.round(analysis.score || 0)}%`
-      case 'position': return '4.2' // Mock current
-      case 'inclusion': return '78%' // Mock current
-    }
-  }
+  const currentRankScore = `${Math.round(analysis?.score || 0)}%`
+  const keywordInsights = Array.isArray(analysis?.results?.keywords) ? analysis.results.keywords : []
+  const crawlerInsights = Array.isArray(analysis?.results?.crawlers) ? analysis.results.crawlers : []
+  const notifications = Array.isArray(analysis?.results?.notifications) ? analysis.results.notifications : []
+  const summaryInsight = typeof analysis?.results?.summary === 'string' ? analysis.results.summary : undefined
+  const visibilityFindings = analysis?.results?.visibility_findings
+  const providerScoreMap = (visibilityFindings?.provider_scores || visibilityFindings?.model_scores || analysis?.results?.provider_scores || analysis?.results?.model_scores) as Record<string, number> | undefined
+  const trackingModels = Array.isArray(visibilityFindings?.models_tracking) ? visibilityFindings.models_tracking : []
+  const aiProviderCoverage = AI_PROVIDER_META.map((provider) => {
+    let providerScore = providerScoreMap?.[provider.id]
 
-  const getTabLabel = () => {
-    switch (activeTab) {
-      case 'rank': return 'CURRENT RANK SCORE'
-      case 'position': return 'AVG. POSITION'
-      case 'inclusion': return 'INCLUSION RATE'
+    if (typeof providerScore !== 'number' && provider.id === 'chatgpt') {
+      const fallbackScore = typeof analysis?.score === 'number'
+        ? analysis.score
+        : typeof visibilityFindings?.visibility_score === 'number'
+          ? Number(visibilityFindings.visibility_score)
+          : undefined
+      providerScore = fallbackScore
     }
+
+    return {
+      ...provider,
+      score: typeof providerScore === 'number' ? Math.round(providerScore) : undefined,
+      isTracking: trackingModels.includes(provider.id) || (provider.id === 'chatgpt' && !!analysis)
+    }
+  })
+
+  const formatHoursAgo = (hours?: number) => {
+    if (typeof hours !== 'number' || Number.isNaN(hours)) return '—'
+    if (hours < 1) return 'within the hour'
+    if (hours < 24) return `${Math.round(hours)}h ago`
+    const days = Math.round(hours / 24)
+    return `${days}d ago`
   }
 
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="bg-white dark:bg-black h-screen overflow-hidden flex flex-col">
+      <SidebarInset className="bg-[#fdfdfc] dark:bg-[#050505] h-screen overflow-hidden flex flex-col">
         {/* Header */}
-        <header className="flex items-center justify-between px-8 py-6 border-b border-gray-100 dark:border-[#2A2A30]">
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Analytics</h1>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" className="h-9 rounded-lg border-gray-200 bg-white dark:bg-black text-gray-600 gap-2 font-normal shadow-sm">
-              <CalendarIcon className="w-4 h-4" />
-              <span>Last 30 Days</span>
-            </Button>
-            <Button variant="outline" size="icon" className="h-9 w-9 rounded-lg border-gray-200 bg-white dark:bg-black text-gray-600 shadow-sm">
-              <Settings className="w-4 h-4" />
-            </Button>
+        <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-[#1f1f23] bg-[#fdfdfc] dark:bg-[#050505]">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Dashboard</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Overview of your brand's AI visibility</p>
           </div>
+          <Button variant="ghost" size="icon">
+             <Settings className="w-5 h-5 text-gray-500" />
+          </Button>
         </header>
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* Main Content */}
-          <main className="flex-1 overflow-y-auto p-8 pt-6 bg-[#F5F5F7] dark:bg-black/20">
-            <div className="max-w-5xl mx-auto space-y-8">
-              
-              {/* Chart Section */}
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-8 border-b border-gray-200 w-full">
-                    <button 
-                      onClick={() => setActiveTab('rank')}
-                      className={`pb-3 text-sm font-medium transition-colors ${activeTab === 'rank' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                      Rank Score
-                    </button>
-                    <button 
-                      onClick={() => setActiveTab('position')}
-                      className={`pb-3 text-sm font-medium transition-colors ${activeTab === 'position' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                      Avg. Position
-                    </button>
-                    <button 
-                      onClick={() => setActiveTab('inclusion')}
-                      className={`pb-3 text-sm font-medium transition-colors ${activeTab === 'inclusion' ? 'border-b-2 border-black dark:border-white text-black dark:text-white' : 'text-gray-400 hover:text-gray-600'}`}
-                    >
-                      Inclusion Rate
-                    </button>
-                  </div>
-                </div>
-
-                <div className="bg-white dark:bg-[#1E1E24] rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">{getTabLabel()}</div>
-                      <div className="text-4xl font-bold text-gray-900 dark:text-white">
-                        {getCurrentValue()}
-                      </div>
-                    </div>
-                    <Button variant="outline" size="sm" className="rounded-full text-xs h-7 gap-1">
-                      Group by <span className="font-semibold">provider</span>
-                      <MoreHorizontal className="w-3 h-3" />
-                    </Button>
-                  </div>
-
-                  <div className="h-[300px] w-full">
-                    {chartData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: -20 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                          <XAxis 
-                            dataKey="date" 
-                            axisLine={false} 
-                            tickLine={false} 
-                            tick={{ fill: '#9ca3af', fontSize: 12 }} 
-                            dy={10}
-                          />
-                          <YAxis 
-                            axisLine={false} 
-                            tickLine={false} 
-                            tick={{ fill: '#9ca3af', fontSize: 12 }} 
-                            tickFormatter={(value) => activeTab === 'position' ? value : `${value}%`}
-                            domain={activeTab === 'position' ? ['dataMin - 1', 'dataMax + 1'] : [0, 100]}
-                          />
-                          <Tooltip content={<CustomTooltip />} />
-                          <Line 
-                            type="monotone" 
-                            dataKey={activeTab} 
-                            stroke="#8b5cf6" 
-                            strokeWidth={2} 
-                            dot={false} 
-                            activeDot={{ r: 4, strokeWidth: 0 }} 
-                            animationDuration={500}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="h-full flex items-center justify-center text-gray-400 text-sm">
-                        No historical data available yet
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Performance Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-12">
-                
-                {/* Competition Performance */}
-                <div>
-                  <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-6">COMPETITION PERFORMANCE</h3>
-                  <div className="space-y-4">
-                    {competitors.length > 0 ? competitors.map((comp) => (
-                      <div key={comp.id} className="flex items-center justify-between group cursor-pointer">
-                        <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600">
-                            {comp.name.charAt(0)}
+        <main className="flex-1 overflow-y-auto p-6 bg-[#fdfdfc] dark:bg-[#050505]">
+          <div className="max-w-8xl mx-auto space-y-6">
+            
+            {/* Top Row: AI Providers */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+               {aiProviderCoverage.map(provider => (
+                 <Card key={provider.id} className="border-gray-200 dark:border-[#27272a] shadow-sm">
+                    <CardContent className="p-4 flex items-center justify-between">
+                       <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-[#27272a] flex items-center justify-center p-2">
+                             <Image src={provider.icon} alt={provider.name} width={24} height={24} />
                           </div>
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{comp.name}</span>
+                          <div>
+                             <p className="font-medium text-sm text-gray-900 dark:text-white">{provider.name}</p>
+                             <p className="text-xs text-gray-500">{provider.isTracking ? 'Tracking' : 'Inactive'}</p>
+                          </div>
+                       </div>
+                       <div className="text-right">
+                          <span className="text-xl font-bold text-gray-900 dark:text-white">
+                             {typeof provider.score === 'number' ? `${provider.score}%` : '—'}
+                          </span>
+                       </div>
+                    </CardContent>
+                 </Card>
+               ))}
+            </div>
+
+            {/* Middle Row: Chart & Recommendations */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+               {/* Chart - Takes 2 cols */}
+               <Card className="lg:col-span-2 border-gray-200 dark:border-[#27272a] shadow-sm">
+                  <CardHeader>
+                     <CardTitle>Visibility Trend</CardTitle>
+                     <CardDescription>Your AI visibility score over time</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pl-0">
+                     <div className="h-[300px] w-full pr-4">
+                        {chartData.length > 0 ? (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                              <XAxis 
+                                dataKey="date" 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{ fill: '#9ca3af', fontSize: 12 }} 
+                                dy={10}
+                              />
+                              <YAxis 
+                                axisLine={false} 
+                                tickLine={false} 
+                                tick={{ fill: '#9ca3af', fontSize: 12 }} 
+                                tickFormatter={(value) => `${value}%`}
+                                domain={[0, 100]}
+                              />
+                              <Tooltip content={<CustomTooltip />} />
+                              <Line 
+                                type="monotone" 
+                                dataKey="rank" 
+                                stroke="#8b5cf6" 
+                                strokeWidth={2} 
+                                dot={false} 
+                                activeDot={{ r: 4, strokeWidth: 0 }} 
+                                animationDuration={500}
+                              />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="h-full flex items-center justify-center text-gray-400 text-sm">
+                            No historical data available yet
+                          </div>
+                        )}
+                     </div>
+                  </CardContent>
+               </Card>
+
+               {/* Recommendations / Actions - Takes 1 col */}
+               <Card className="border-gray-200 dark:border-[#27272a] shadow-sm flex flex-col h-full">
+                  <CardHeader>
+                     <CardTitle>Recommended Actions</CardTitle>
+                     <CardDescription>Improve your standing</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-1 overflow-y-auto pr-2">
+                     <div className="space-y-4">
+                        {analysis?.results?.recommendations && analysis.results.recommendations.length > 0 ? (
+                          analysis.results.recommendations.slice(0, 5).map((rec: any, i: number) => (
+                            <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#27272a]/50">
+                              <div className="mt-0.5">
+                                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                              </div>
+                              <p className="text-sm text-gray-600 dark:text-gray-300 leading-snug">
+                                {typeof rec === 'string' ? rec : rec.title}
+                              </p>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-sm text-gray-500 italic text-center py-8">No actions recommended yet.</div>
+                        )}
+                     </div>
+                  </CardContent>
+               </Card>
+            </div>
+
+            {/* Bottom Row: Details Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+               {/* Competitors */}
+               <Card className="border-gray-200 dark:border-[#27272a] shadow-sm">
+                  <CardHeader>
+                     <CardTitle>Competitors</CardTitle>
+                     <CardDescription>Visibility comparison</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {competitors.length > 0 ? competitors.slice(0, 5).map((comp) => (
+                      <div key={comp.id} className="flex items-center justify-between">
+                        <div className="overflow-hidden">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{comp.name}</p>
+                          <p className="text-xs text-gray-500 truncate">{comp.domain}</p>
                         </div>
-                        <div className="w-8 h-8 rounded-full border border-gray-100 bg-white dark:bg-black flex items-center justify-center text-xs font-medium text-emerald-600">
-                          {Math.round(comp.visibility_score || 0)}
+                        <div className="text-right shrink-0">
+                          <span className="text-sm font-semibold text-emerald-500">{Math.round(comp.visibility_score || 0)}%</span>
                         </div>
                       </div>
                     )) : (
-                      <div className="text-sm text-gray-500 italic">No competitors tracked yet.</div>
+                      <p className="text-sm text-gray-500 italic">No competitors tracked.</p>
                     )}
-                  </div>
-                </div>
+                  </CardContent>
+               </Card>
 
-                {/* Persona Performance */}
-                <div>
-                  <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-6">PERSONA PERFORMANCE</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between group cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-pink-100 flex items-center justify-center">
-                          <User className="w-3 h-3 text-pink-600" />
+               {/* Keywords */}
+               <Card className="border-gray-200 dark:border-[#27272a] shadow-sm">
+                  <CardHeader>
+                     <CardTitle>Top Keywords</CardTitle>
+                     <CardDescription>High opportunity terms</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {keywordInsights.length > 0 ? keywordInsights.slice(0, 5).map((item: any, idx: number) => (
+                      <div key={`${item.keyword}-${idx}`} className="flex items-center justify-between">
+                        <div className="overflow-hidden">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{item.keyword}</p>
+                          <p className="text-xs text-gray-500">{item.search_volume ? `${item.search_volume.toLocaleString()}` : '-'}</p>
                         </div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Head of Marketing</span>
-                      </div>
-                      <div className="w-8 h-8 rounded-full border border-emerald-100 bg-white dark:bg-black text-emerald-600 flex items-center justify-center text-xs font-medium">75</div>
-                    </div>
-                    <div className="flex items-center justify-between group cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-purple-100 flex items-center justify-center">
-                          <User className="w-3 h-3 text-purple-600" />
+                        <div className="text-right shrink-0">
+                          <span className="text-sm font-semibold text-emerald-500">{item.ai_visibility_score ? `${Math.round(item.ai_visibility_score)}%` : '—'}</span>
                         </div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Startup Founder</span>
                       </div>
-                      <div className="w-8 h-8 rounded-full border border-orange-100 bg-white dark:bg-black text-orange-600 flex items-center justify-center text-xs font-medium">64</div>
-                    </div>
-                    <div className="flex items-center justify-between group cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-yellow-100 flex items-center justify-center">
-                          <User className="w-3 h-3 text-yellow-600" />
-                        </div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Growth Leader</span>
-                      </div>
-                      <div className="w-8 h-8 rounded-full border border-orange-100 bg-white dark:bg-black text-orange-600 flex items-center justify-center text-xs font-medium">62</div>
-                    </div>
-                  </div>
-                </div>
+                    )) : (
+                      <p className="text-sm text-gray-500 italic">No keywords found.</p>
+                    )}
+                  </CardContent>
+               </Card>
 
-                {/* Language Performance */}
-                <div>
-                  <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-6">LANGUAGE PERFORMANCE</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between group cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center">
-                          <Languages className="w-3 h-3 text-blue-600" />
+               {/* Recent Activity */}
+               <Card className="border-gray-200 dark:border-[#27272a] shadow-sm">
+                  <CardHeader>
+                     <CardTitle>Recent Activity</CardTitle>
+                     <CardDescription>Crawlers & Alerts</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {crawlerInsights.length > 0 ? crawlerInsights.slice(0, 3).map((crawler: any, idx: number) => (
+                      <div key={`${crawler.name}-${idx}`} className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">{crawler.name}</p>
+                          <p className="text-xs text-gray-500">{formatHoursAgo(crawler.last_visit_hours)}</p>
                         </div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Dutch</span>
+                        <Badge variant="outline" className="text-xs">{crawler.pages_visited || 0} pages</Badge>
                       </div>
-                      <div className="w-8 h-8 rounded-full border border-emerald-100 bg-white dark:bg-black text-emerald-600 flex items-center justify-center text-xs font-medium">75</div>
-                    </div>
-                    <div className="flex items-center justify-between group cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-red-50 flex items-center justify-center">
-                          <Languages className="w-3 h-3 text-red-600" />
-                        </div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">English</span>
+                    )) : (
+                      <p className="text-sm text-gray-500 italic">No recent crawler activity.</p>
+                    )}
+                    
+                    {notifications.length > 0 && (
+                      <div className="pt-4 border-t border-gray-100 dark:border-gray-800 mt-4">
+                        <p className="text-xs font-medium text-gray-500 mb-2 uppercase">Notifications</p>
+                        {notifications.slice(0, 2).map((note: any, idx: number) => (
+                          <div key={`note-${idx}`} className="text-sm text-gray-600 dark:text-gray-300 mb-2 last:mb-0">
+                            {note.title}
+                          </div>
+                        ))}
                       </div>
-                      <div className="w-8 h-8 rounded-full border border-orange-100 bg-white dark:bg-black text-orange-600 flex items-center justify-center text-xs font-medium">64</div>
-                    </div>
-                    <div className="flex items-center justify-between group cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center">
-                          <Languages className="w-3 h-3 text-indigo-600" />
-                        </div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">French</span>
-                      </div>
-                      <div className="w-8 h-8 rounded-full border border-orange-100 bg-white dark:bg-black text-orange-600 flex items-center justify-center text-xs font-medium">62</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Region Performance */}
-                <div>
-                  <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-6">REGION PERFORMANCE</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between group cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-yellow-50 flex items-center justify-center">
-                          <MapPin className="w-3 h-3 text-yellow-600" />
-                        </div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Belgium</span>
-                      </div>
-                      <div className="w-8 h-8 rounded-full border border-emerald-100 bg-white dark:bg-black text-emerald-600 flex items-center justify-center text-xs font-medium">75</div>
-                    </div>
-                    <div className="flex items-center justify-between group cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-orange-50 flex items-center justify-center">
-                          <MapPin className="w-3 h-3 text-orange-600" />
-                        </div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">The Netherlands</span>
-                      </div>
-                      <div className="w-8 h-8 rounded-full border border-orange-100 bg-white dark:bg-black text-orange-600 flex items-center justify-center text-xs font-medium">64</div>
-                    </div>
-                    <div className="flex items-center justify-between group cursor-pointer">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center">
-                          <MapPin className="w-3 h-3 text-blue-600" />
-                        </div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">USA</span>
-                      </div>
-                      <div className="w-8 h-8 rounded-full border border-orange-100 bg-white dark:bg-black text-orange-600 flex items-center justify-center text-xs font-medium">62</div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </main>
-
-          {/* Right Sidebar */}
-          <aside className="w-80 border-l border-gray-200 dark:border-[#2A2A30] p-6 overflow-y-auto hidden xl:block bg-white dark:bg-black">
-            
-            {/* Actions */}
-            <div className="mb-10">
-              <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-6">ACTIONS</h3>
-              <div className="space-y-4">
-                {analysis?.results?.recommendations && analysis.results.recommendations.length > 0 ? (
-                  analysis.results.recommendations.slice(0, 5).map((rec: any, i: number) => (
-                    <div key={i} className="flex items-start gap-3">
-                      <div className="mt-0.5">
-                        <CheckCircle2 className="w-4 h-4 text-gray-300 hover:text-emerald-500 cursor-pointer transition-colors" />
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 leading-snug">
-                        {typeof rec === 'string' ? rec : rec.title}
-                      </p>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-sm text-gray-500 italic">No actions recommended yet.</div>
-                )}
-              </div>
+                    )}
+                  </CardContent>
+               </Card>
             </div>
 
-            {/* Notable Changes */}
-            <div className="mb-10">
-              <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-6">NOTABLE CHANGES</h3>
-              <div className="space-y-6">
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  Dropped from <span className="font-medium text-gray-900 dark:text-white">#2 → #4</span> in <span className="inline-flex items-center gap-1 bg-orange-50 text-orange-700 px-1.5 py-0.5 rounded text-xs font-medium"><div className="w-1.5 h-1.5 rounded-full bg-orange-500"></div>Claude Sonnet</span> this week
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  New competitor detected <span className="inline-flex items-center gap-1 bg-gray-100 text-gray-900 px-1.5 py-0.5 rounded text-xs font-medium"><div className="w-1.5 h-1.5 rounded-full bg-black"></div>Koto</span> in the UK
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  Mentions in <span className="inline-flex items-center gap-1"><span className="text-base">🇩🇪</span> Germany</span> went up with 15%
-                </div>
-                <div className="text-sm text-gray-600 dark:text-gray-300">
-                  Persona <span className="inline-flex items-center gap-1 bg-pink-50 text-pink-700 px-1.5 py-0.5 rounded text-xs font-medium"><div className="w-1.5 h-1.5 rounded-full bg-pink-500"></div>Head of Marketing</span> had the best performance
-                </div>
-              </div>
-            </div>
-
-            {/* Reasoning Layer */}
-            <div>
-              <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-6">REASONING LAYER</h3>
-              
-              {analysis?.results?.strengths && analysis.results.strengths.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-xs text-gray-500 mb-3">Inclusion drivers</p>
-                  <div className="space-y-2">
-                    {analysis.results.strengths.slice(0, 3).map((strength: string, i: number) => (
-                      <div key={i} className="flex items-center justify-between bg-gray-50 dark:bg-[#1E1E24] px-3 py-2 rounded-lg">
-                        <span className="text-xs text-gray-600 dark:text-gray-300">{strength}</span>
-                        <span className="text-xs font-medium text-emerald-600 border border-emerald-100 rounded-full w-6 h-6 flex items-center justify-center bg-white">+</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {analysis?.results?.weaknesses && analysis.results.weaknesses.length > 0 && (
-                <div>
-                  <p className="text-xs text-gray-500 mb-3">Exclusion drivers</p>
-                  <div className="space-y-2">
-                    {analysis.results.weaknesses.slice(0, 3).map((weakness: string, i: number) => (
-                      <div key={i} className="flex items-center justify-between bg-gray-50 dark:bg-[#1E1E24] px-3 py-2 rounded-lg">
-                        <span className="text-xs text-gray-600 dark:text-gray-300">{weakness}</span>
-                        <span className="text-xs font-medium text-red-600 border border-red-100 rounded-full w-6 h-6 flex items-center justify-center bg-white">-</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {(!analysis?.results?.strengths && !analysis?.results?.weaknesses) && (
-                 <div className="text-sm text-gray-500 italic">No reasoning data available.</div>
-              )}
-
-            </div>
-
-          </aside>
-        </div>
+          </div>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   )
 }
+
+
+
+
 
 
 

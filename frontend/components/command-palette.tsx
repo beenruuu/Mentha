@@ -60,7 +60,7 @@ export function CommandPalette() {
     {
       name: "Configuración",
       shortcut: "Ctrl+,",
-      action: () => router.push("/settings"),
+      action: () => window.dispatchEvent(new CustomEvent('open-settings-panel')),
       icon: <Settings className="mr-2 h-4 w-4" />,
       section: "Navegación",
     },

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card'
 import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
+import FlagIcon from '@/components/flag-icon'
 
 const INDUSTRIES = [
     'SaaS', 'E-commerce', 'Agency', 'Finance', 'Healthcare', 'Education', 'Real Estate', 'Other'
@@ -22,12 +23,12 @@ const DISCOVERY_SOURCES = [
 ]
 
 const COUNTRIES = [
-    { code: 'ES', name: 'Spain', flag: '🇪🇸' },
-    { code: 'US', name: 'United States', flag: '🇺🇸' },
-    { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
-    { code: 'FR', name: 'France', flag: '🇫🇷' },
-    { code: 'DE', name: 'Germany', flag: '🇩🇪' },
-    { code: 'IT', name: 'Italy', flag: '🇮🇹' },
+    { code: 'ES', name: 'Spain' },
+    { code: 'US', name: 'United States' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'FR', name: 'France' },
+    { code: 'DE', name: 'Germany' },
+    { code: 'IT', name: 'Italy' },
     // Add more as needed
 ]
 
@@ -107,7 +108,10 @@ export default function UserInfoStep() {
                         <SelectContent>
                             {COUNTRIES.map((c) => (
                                 <SelectItem key={c.code} value={c.code}>
-                                    <span className="mr-2">{c.flag}</span> {c.name}
+                                    <span className="mr-2 inline-flex items-center">
+                                        <FlagIcon code={c.code} size={16} title={c.name} />
+                                    </span>
+                                    {c.name}
                                 </SelectItem>
                             ))}
                         </SelectContent>
