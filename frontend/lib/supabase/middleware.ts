@@ -2,12 +2,8 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function updateSession(request: NextRequest) {
-  // En modo demo, permitir acceso sin autenticación
-  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
-  
-  if (isDemoMode) {
-    return NextResponse.next()
-  }
+  // Nota: se eliminó el bypass de "demo mode" para forzar autenticación.
+  // Si antes se usaba `NEXT_PUBLIC_DEMO_MODE=true`, ahora se ignora.
 
   // Verificar que las variables de entorno estén configuradas
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -48,7 +44,18 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   // Protected routes
-  const protectedPaths = ['/dashboard', '/brand', '/settings', '/aeo-analysis', '/keywords', '/competitors']
+  // Añadir aquí todas las rutas que requieren sesión activa.
+  const protectedPaths = [
+    '/dashboard',
+    '/brand',
+    '/settings',
+    '/aeo-analysis',
+    '/keywords',
+    '/competitors',
+    '/upgrade',
+    '/search',
+    '/notifications',
+  ]
   const isProtectedPath = protectedPaths.some(path => request.nextUrl.pathname.startsWith(path))
 
   if (!user && isProtectedPath) {

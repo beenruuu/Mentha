@@ -1,0 +1,51 @@
+"use client";
+
+import Link from "next/link";
+import Image from "next/image";
+
+const footerLinks = [
+    { href: "/legal/privacy", label: "Privacy Policy" },
+    { href: "/legal/terms", label: "Terms & Conditions" },
+    { href: "/blog", label: "Blog" },
+];
+
+export default function Footer() {
+    return (
+        <section className="py-16">
+            <div className="container max-w-5xl mx-auto px-4">
+                <div className="flex flex-col md:flex-row justify-center md:justify-between items-center gap-6">
+                    <div>
+                        <Link href="/" className="flex items-center gap-2">
+                            <Image
+                                src="/mentha.svg"
+                                alt="Mentha Logo"
+                                width={32}
+                                height={32}
+                                className="h-8 w-8"
+                            />
+                            <span className="text-xl font-semibold text-white">Mentha</span>
+                        </Link>
+                    </div>
+                    <div>
+                        <nav className="flex gap-6">
+                            {footerLinks.map((link) => (
+                                <Link
+                                    key={link.href}
+                                    href={link.href}
+                                    className="text-white/50 text-sm hover:text-white transition-colors"
+                                >
+                                    {link.label}
+                                </Link>
+                            ))}
+                        </nav>
+                    </div>
+                </div>
+                <div className="mt-8 pt-8 border-t border-white/10 text-center">
+                    <p className="text-white/30 text-sm">
+                        © {new Date().getFullYear()} Mentha. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </section>
+    );
+}
