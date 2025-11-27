@@ -270,16 +270,16 @@ export default function KeywordsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          {kw.mentions.chatgpt && (
+                          {kw.mentions?.chatgpt && (
                             <Badge variant="outline" className="text-xs">GPT</Badge>
                           )}
-                          {kw.mentions.claude && (
+                          {kw.mentions?.claude && (
                             <Badge variant="outline" className="text-xs">Claude</Badge>
                           )}
-                          {kw.mentions.perplexity && (
+                          {kw.mentions?.perplexity && (
                             <Badge variant="outline" className="text-xs">Perp</Badge>
                           )}
-                          {kw.mentions.gemini && (
+                          {kw.mentions?.gemini && (
                             <Badge variant="outline" className="text-xs">Gemini</Badge>
                           )}
                         </div>

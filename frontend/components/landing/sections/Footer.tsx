@@ -2,28 +2,24 @@
 
 import Link from "next/link";
 import Image from "next/image";
-
-const footerLinks = [
-    { href: "/legal/privacy", label: "Privacy Policy" },
-    { href: "/legal/terms", label: "Terms & Conditions" },
-    { href: "/blog", label: "Blog" },
-];
+import { useTranslations } from "@/lib/i18n";
 
 export default function Footer() {
+    const { t } = useTranslations();
+    
+    const footerLinks = [
+        { href: "/legal/privacy", label: t.footerPrivacy },
+        { href: "/legal/terms", label: t.footerTerms },
+        { href: "/blog", label: t.footerBlog },
+    ];
+
     return (
         <section className="py-16">
-            <div className="container max-w-5xl mx-auto px-4">
+            <div className="container max-w-5xl mx-auto px-4 relative">
                 <div className="flex flex-col md:flex-row justify-center md:justify-between items-center gap-6">
                     <div>
-                        <Link href="/" className="flex items-center gap-2">
-                            <Image
-                                src="/mentha.svg"
-                                alt="Mentha Logo"
-                                width={32}
-                                height={32}
-                                className="h-8 w-8"
-                            />
-                            <span className="text-xl font-semibold text-white">Mentha</span>
+                        <Link href="/" className="text-xl font-semibold text-white">
+                            Mentha
                         </Link>
                     </div>
                     <div>
@@ -42,7 +38,7 @@ export default function Footer() {
                 </div>
                 <div className="mt-8 pt-8 border-t border-white/10 text-center">
                     <p className="text-white/30 text-sm">
-                        © {new Date().getFullYear()} Mentha. All rights reserved.
+                        © {new Date().getFullYear()} Mentha. {t.footerRights}
                     </p>
                 </div>
             </div>

@@ -5,70 +5,73 @@ import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-
-const plans = [
-    {
-        name: "Starter",
-        price: "Free",
-        description: "For individuals exploring AEO.",
-        features: [
-            "10 Analyses/month",
-            "Basic Brand Tracking",
-            "Community Support",
-            "Single AI Engine",
-        ],
-        cta: "Get Started",
-        href: "/auth/signup",
-        highlight: false,
-    },
-    {
-        name: "Pro",
-        price: "Coming Soon",
-        description: "For growing brands and agencies.",
-        features: [
-            "Unlimited Analyses",
-            "All AI Engines",
-            "Competitor Tracking",
-            "Priority Support",
-            "API Access",
-            "Custom Reports",
-        ],
-        cta: "Coming Soon",
-        href: "#",
-        highlight: true,
-        comingSoon: true,
-    },
-    {
-        name: "Enterprise",
-        price: "Custom",
-        description: "For large organizations.",
-        features: [
-            "Custom AI Models",
-            "Dedicated Account Manager",
-            "SLA Guarantee",
-            "White Label Options",
-            "Advanced Analytics",
-            "SSO & Security",
-        ],
-        cta: "Contact Sales",
-        href: "/contact",
-        highlight: false,
-    },
-];
+import { useTranslations } from "@/lib/i18n";
 
 export default function Pricing() {
+    const { t } = useTranslations();
+    
+    const plans = [
+        {
+            name: t.pricingStarter,
+            price: t.pricingStarterPrice,
+            description: t.pricingStarterDescription,
+            features: [
+                t.pricingStarterFeature1,
+                t.pricingStarterFeature2,
+                t.pricingStarterFeature3,
+                t.pricingStarterFeature4,
+            ],
+            cta: t.pricingStarterCTA,
+            href: "/auth/signup",
+            highlight: false,
+        },
+        {
+            name: t.pricingPro,
+            price: t.pricingProPrice,
+            description: t.pricingProDescription,
+            features: [
+                t.pricingProFeature1,
+                t.pricingProFeature2,
+                t.pricingProFeature3,
+                t.pricingProFeature4,
+                t.pricingProFeature5,
+                t.pricingProFeature6,
+            ],
+            cta: t.pricingProCTA,
+            href: "#",
+            highlight: true,
+            comingSoon: true,
+        },
+        {
+            name: t.pricingEnterprise,
+            price: t.pricingEnterprisePrice,
+            description: t.pricingEnterpriseDescription,
+            features: [
+                t.pricingEnterpriseFeature1,
+                t.pricingEnterpriseFeature2,
+                t.pricingEnterpriseFeature3,
+                t.pricingEnterpriseFeature4,
+                t.pricingEnterpriseFeature5,
+                t.pricingEnterpriseFeature6,
+            ],
+            cta: t.pricingEnterpriseCTA,
+            href: "/contact",
+            highlight: false,
+        },
+    ];
+
     return (
         <section id="pricing" className="py-24">
             <div className="container max-w-5xl mx-auto px-4">
                 <div className="flex justify-center">
-                    <Tag>Pricing</Tag>
+                    <Tag>{t.pricingTag}</Tag>
                 </div>
                 <h2 className="text-6xl font-medium text-center mt-6 max-w-2xl m-auto">
-                    Simple,{" "}
-                    <span className="text-emerald-400">transparent</span> pricing
+                    {t.pricingTitle}{" "}
+                    <span className="text-emerald-400">{t.pricingTitleHighlight}</span>
                 </h2>
                 <p className="text-white/50 text-center mt-4 text-lg max-w-xl mx-auto">
-                    Choose the plan that fits your growth stage. No hidden fees.
+                    {t.pricingDescription}
                 </p>
 
                 <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -88,7 +91,7 @@ export default function Pricing() {
                             {plan.highlight && (
                                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                                     <span className="bg-emerald-500 text-black text-xs font-semibold px-3 py-1 rounded-full">
-                                        Most Popular
+                                        {t.pricingMostPopular}
                                     </span>
                                 </div>
                             )}

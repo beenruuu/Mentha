@@ -257,3 +257,7 @@ Inspired by leading AEO platforms:
 ---
 
 **Built with ❤️ to optimize brand visibility in the AI era**
+
+## Repository cleanup
+
+- Removed example/template folder `nextjs-saas-landing-page-main` from the repository to keep the codebase focused on Mentha's app and avoid shipping unrelated sample templates. If you need the template restored, it can be added back from the original source or attachments.

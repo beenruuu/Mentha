@@ -5,42 +5,44 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
-
-const faqs = [
-    {
-        question: "What is AEO and how is it different from SEO?",
-        answer: "AEO (Answer Engine Optimization) focuses on optimizing your content for AI-powered search engines like ChatGPT, Claude, and Perplexity. Unlike traditional SEO that targets ranking in 10 blue links, AEO aims to make your brand the definitive answer in AI responses.",
-    },
-    {
-        question: "Which AI platforms does Mentha support?",
-        answer: "Mentha currently supports OpenAI (ChatGPT), Anthropic (Claude), Perplexity, and Google Gemini. We continuously add new platforms as they emerge in the AI search landscape.",
-    },
-    {
-        question: "How does brand monitoring work?",
-        answer: "Mentha regularly queries AI platforms about your brand and tracks how you're mentioned, the sentiment of responses, and your visibility compared to competitors. You'll receive alerts when significant changes occur.",
-    },
-    {
-        question: "Can I see how competitors appear in AI responses?",
-        answer: "Yes! Our competitor intelligence feature lets you track how rivals appear in AI-generated answers, compare share of voice, and identify opportunities to improve your positioning.",
-    },
-    {
-        question: "Is there a free trial available?",
-        answer: "Absolutely! Start with our free tier that includes 10 analyses per month. Upgrade to Pro for unlimited analyses and advanced features like competitor tracking and API access.",
-    },
-];
+import { useTranslations } from "@/lib/i18n";
 
 export default function Faqs() {
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const { t } = useTranslations();
+
+    const faqs = [
+        {
+            question: t.faqQuestion1,
+            answer: t.faqAnswer1,
+        },
+        {
+            question: t.faqQuestion2,
+            answer: t.faqAnswer2,
+        },
+        {
+            question: t.faqQuestion3,
+            answer: t.faqAnswer3,
+        },
+        {
+            question: t.faqQuestion4,
+            answer: t.faqAnswer4,
+        },
+        {
+            question: t.faqQuestion5,
+            answer: t.faqAnswer5,
+        },
+    ];
 
     return (
         <section id="faqs" className="py-24">
             <div className="container max-w-5xl mx-auto px-4">
                 <div className="flex justify-center">
-                    <Tag>FAQs</Tag>
+                    <Tag>{t.faqsTag}</Tag>
                 </div>
                 <h2 className="text-6xl font-medium mt-6 text-center max-w-xl mx-auto">
-                    Questions? We&apos;ve got{" "}
-                    <span className="text-emerald-400">answers</span>
+                    {t.faqsTitle}{" "}
+                    <span className="text-emerald-400">{t.faqsTitleHighlight}</span>
                 </h2>
 
                 <div className="mt-12 flex flex-col gap-6 max-w-xl mx-auto">

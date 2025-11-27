@@ -127,7 +127,7 @@ export default function QueriesPage() {
                 <p className="text-gray-600 dark:text-gray-400">
                   {analysis?.status === 'completed' || queries.length > 0
                     ? t.createStrategicQueries
-                    : 'El análisis está en progreso. Te avisaremos cuando existan sugerencias.'}
+                    : t.analysisInProgressNotify}
                 </p>
               </div>
               <Button className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200">

@@ -7,21 +7,39 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import PasswordStrength, { passwordScore } from '@/components/ui/password-strength'
+import { useTranslations } from '@/lib/i18n'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
+  const { t } = useTranslations()
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     setSuccess(false)
+
+    if (password !== confirmPassword) {
+      setError(t.authPasswordsNoMatch)
+      setLoading(false)
+      return
+    }
+
+    const score = passwordScore(password)
+    if (score < 3) {
+      setError(t.authPasswordTooWeak)
+      setLoading(false)
+      return
+    }
 
     try {
       const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
@@ -96,14 +114,14 @@ export default function SignupPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-gray-900 dark:to-gray-800 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-black text-white p-4">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-2xl text-center text-emerald-600">
-              ¡Registro Exitoso!
+              {t.authSignUpSuccess}
             </CardTitle>
             <CardDescription className="text-center">
-              Revisa tu email para confirmar tu cuenta. Serás redirigido al login en unos segundos...
+              {t.authSignUpSuccessMessage}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -112,7 +130,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-black text-white p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
@@ -124,19 +142,19 @@ export default function SignupPage() {
               <path fill="currentColor" d="M23.9,27.5v8.1c0,.4-.8,1.6-1.1,1.9-1.6,1.4-4.4,1.1-5.4-.9s-.5-1.4-.5-1.6v-6.7c2.4,0,4.7-.1,7-.8Z"/>
             </svg>
           </div>
-          <CardTitle className="text-2xl text-center">Crear Cuenta</CardTitle>
+          <CardTitle className="text-2xl text-center">{t.authSignUpTitle}</CardTitle>
           <CardDescription className="text-center">
-            Únete a Mentha AEO y optimiza tu presencia en IA
+            {t.authSignUpDescription}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="fullName">Nombre Completo</Label>
+              <Label htmlFor="fullName">{t.authFullName}</Label>
               <Input
                 id="fullName"
                 type="text"
-                placeholder="Juan Pérez"
+                placeholder={t.authFullNamePlaceholder}
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
@@ -156,15 +174,54 @@ export default function SignupPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="password">{t.authPassword}</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  autoComplete="new-password"
+                  className="pr-10"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder={t.authNewPasswordPlaceholder}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="absolute inset-y-0 right-2 flex items-center bg-transparent text-sm text-muted-foreground p-1 rounded hover:bg-accent/10"
+                >
+                  {showPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12z" />
+                      <circle cx="12" cy="12" r="2.5" strokeWidth="1.5" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <PasswordStrength password={password} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">{t.authConfirmPassword}</Label>
               <Input
-                id="password"
-                type="password"
-                placeholder="Mínimo 6 caracteres"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                id="confirmPassword"
+                name="confirmPassword"
+                autoComplete="new-password"
+                className="pr-10"
+                type={showPassword ? 'text' : 'password'}
+                placeholder={t.authNewPasswordPlaceholder}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                minLength={6}
+                minLength={8}
                 disabled={loading}
               />
             </div>
@@ -174,7 +231,7 @@ export default function SignupPage() {
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Creando cuenta...' : 'Crear Cuenta'}
+              {loading ? t.authCreatingAccount : t.authCreateAccount}
             </Button>
           </form>
 
@@ -183,7 +240,7 @@ export default function SignupPage() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">O continúa con</span>
+              <span className="bg-background px-2 text-muted-foreground">{t.authOrContinueWith}</span>
             </div>
           </div>
 
@@ -217,9 +274,9 @@ export default function SignupPage() {
         </CardContent>
         <CardFooter>
           <div className="text-sm text-center w-full text-muted-foreground">
-            ¿Ya tienes cuenta?{' '}
+            {t.authHaveAccount}{' '}
             <Link href="/auth/login" className="text-emerald-600 hover:underline">
-              Inicia sesión
+              {t.authSignIn}
             </Link>
           </div>
         </CardFooter>

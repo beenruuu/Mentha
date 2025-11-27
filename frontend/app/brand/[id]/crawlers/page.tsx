@@ -176,10 +176,10 @@ export default function CrawlersPage() {
                   </div>
                   <div>
                     <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
-                      Estado de Robots.txt
+                      {t.robotsTxtStatus}
                     </h3>
                     <p className="text-xs text-gray-700 dark:text-gray-300">
-                      {technicalAeo?.ai_crawler_permissions?.summary || 'Analizando permisos de rastreo...'}
+                      {technicalAeo?.ai_crawler_permissions?.summary || t.analyzingCrawlPermissions}
                     </p>
                   </div>
                 </div>
@@ -187,13 +187,13 @@ export default function CrawlersPage() {
 
               <Card className="p-6 bg-white dark:bg-black">
                 <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-                  Permisos de Rastreadores IA
+                  {t.aiCrawlerPermissions}
                 </h2>
                 {crawlerPermissions.length === 0 ? (
                   <div className="text-center text-sm text-gray-500 dark:text-gray-400 py-10">
                     {analysis?.status === 'processing'
-                      ? 'Verificando permisos de robots.txt...'
-                      : 'No se encontraron datos de permisos.'}
+                      ? t.verifyingRobotsPermissions
+                      : t.noPermissionsDataFound}
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

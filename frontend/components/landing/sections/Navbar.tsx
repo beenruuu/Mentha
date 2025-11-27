@@ -6,33 +6,36 @@ import { Menu, X } from "lucide-react";
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-
-const navLinks = [
-    { label: "Features", href: "#features" },
-    { label: "AI Engines", href: "#integrations" },
-    { label: "Pricing", href: "#pricing" },
-    { label: "FAQs", href: "#faqs" },
-];
+import { useTranslations } from "@/lib/i18n";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
+    const { t } = useTranslations();
+
+    const navLinks = [
+        { label: t.navFeatures, href: "#features" },
+        { label: t.navAIEngines, href: "#integrations" },
+        { label: t.navPricing, href: "#pricing" },
+        { label: t.navFAQs, href: "#faqs" },
+    ];
 
     return (
         <>
             <section className="py-4 lg:py-8 fixed w-full top-0 z-50">
                 <div className="container max-w-5xl mx-auto px-4">
-                    <div className="border border-white/15 rounded-[27px] lg:rounded-full bg-zinc-950/70 backdrop-blur">
-                        <figure className="grid grid-cols-2 lg:grid-cols-3 py-2 lg:px-2 px-4 items-center">
-                            <div>
-                                <Link href="/" className="flex items-center gap-2">
+                    <div className="relative border border-white/15 rounded-[27px] lg:rounded-full bg-zinc-950/70 backdrop-blur">
+                        {/* SVG absolute removed: logo will be placed inline in the first column */}
+
+                        <figure className="grid grid-cols-[auto_1fr_auto] py-2 lg:px-2 px-4 items-center">
+                            <div className="flex justify-end pr-2 lg:pr-6 pl-8 lg:pl-12">
+                                <Link href="/" className="flex items-center gap-2" aria-label="Mentha logo">
                                     <Image
                                         src="/mentha.svg"
                                         alt="Mentha Logo"
-                                        width={32}
-                                        height={32}
-                                        className="h-8 w-8"
+                                        width={28}
+                                        height={28}
+                                        className="h-7 w-7"
                                     />
-                                    <span className="text-xl font-semibold text-white">Mentha</span>
                                 </Link>
                             </div>
                             <div className="hidden lg:flex justify-center items-center">
@@ -87,12 +90,12 @@ export default function Navbar() {
                                         variant="outline"
                                         className="hidden lg:inline-flex items-center border-white/20 bg-transparent text-white hover:bg-white/10 rounded-full"
                                     >
-                                        Login
+                                        {t.navLogin}
                                     </Button>
                                 </Link>
                                 <Link href="/auth/signup">
                                     <Button className="hidden lg:inline-flex items-center bg-emerald-500 text-black hover:bg-emerald-400 rounded-full">
-                                        Sign Up
+                                        {t.navSignUp}
                                     </Button>
                                 </Link>
                             </div>
@@ -122,12 +125,12 @@ export default function Navbar() {
                                                 className="w-full"
                                                 variant="outline"
                                             >
-                                                Log In
+                                                {t.navLogin}
                                             </Button>
                                         </Link>
                                         <Link href="/auth/signup" className="w-3/4">
                                             <Button className="w-full bg-emerald-500 text-black hover:bg-emerald-400">
-                                                Sign Up
+                                                {t.navSignUp}
                                             </Button>
                                         </Link>
                                     </div>

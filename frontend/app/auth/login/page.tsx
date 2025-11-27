@@ -7,13 +7,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { useTranslations } from '@/lib/i18n'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
+  const { t } = useTranslations()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -81,7 +84,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-black text-white p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex justify-center mb-4">
@@ -93,19 +96,19 @@ export default function LoginPage() {
               <path fill="currentColor" d="M23.9,27.5v8.1c0,.4-.8,1.6-1.1,1.9-1.6,1.4-4.4,1.1-5.4-.9s-.5-1.4-.5-1.6v-6.7c2.4,0,4.7-.1,7-.8Z"/>
             </svg>
           </div>
-          <CardTitle className="text-2xl text-center">Iniciar Sesión</CardTitle>
+          <CardTitle className="text-2xl text-center">{t.authLogin}</CardTitle>
           <CardDescription className="text-center">
-            Accede a tu cuenta de Mentha AEO
+            {t.authLoginDescription}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t.authEmail}</Label>
               <Input
                 id="email"
                 type="email"
-                placeholder="tu@email.com"
+                placeholder={t.authEmailPlaceholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -113,15 +116,38 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Contraseña</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <Label htmlFor="password">{t.authPassword}</Label>
+              <div className="relative">
+                <Input
+                    id="password"
+                    name="password"
+                    autoComplete="current-password"
+                    className="pr-10"
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder={t.authPasswordPlaceholder}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={loading}
+                />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    onClick={() => setShowPassword((s) => !s)}
+                    className="absolute inset-y-0 right-2 flex items-center bg-transparent text-sm text-muted-foreground p-1 rounded hover:bg-accent/10"
+                  >
+                  {showPassword ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12z" />
+                      <circle cx="12" cy="12" r="2.5" strokeWidth="1.5" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
             {error && (
               <div className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded">
@@ -129,7 +155,7 @@ export default function LoginPage() {
               </div>
             )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+              {loading ? t.authLoggingIn : t.authLoginButton}
             </Button>
           </form>
 
@@ -138,10 +164,14 @@ export default function LoginPage() {
               <span className="w-full border-t" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">O continúa con</span>
+              <span className="bg-background px-2 text-muted-foreground">{t.authOrContinueWith}</span>
             </div>
           </div>
-
+          <div className="text-sm text-right mt-2">
+            <Link href="/auth/forgot" className="text-emerald-600 hover:underline">
+              {t.authForgotPassword}
+            </Link>
+          </div>
           <Button
             type="button"
             variant="outline"
@@ -167,14 +197,14 @@ export default function LoginPage() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            Google
+            {t.authGoogle}
           </Button>
         </CardContent>
         <CardFooter>
           <div className="text-sm text-center w-full text-muted-foreground">
-            ¿No tienes cuenta?{' '}
+            {t.authNoAccount}{' '}
             <Link href="/auth/signup" className="text-emerald-600 hover:underline">
-              Regístrate
+              {t.authSignUp}
             </Link>
           </div>
         </CardFooter>

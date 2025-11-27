@@ -4,10 +4,12 @@ import { AnimationPlaybackControls, motion, useAnimate } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import Link from "next/link";
+import { useTranslations } from "@/lib/i18n";
 
 export default function CallToAction() {
     const animation = useRef<AnimationPlaybackControls | null>(null);
     const [scope, animate] = useAnimate();
+    const { t } = useTranslations();
 
     const [slowDownAnimation, setSlowDownAnimation] = useState(false);
 
@@ -50,7 +52,7 @@ export default function CallToAction() {
                                         slowDownAnimation && "text-emerald-400"
                                     )}
                                 >
-                                    Start for free
+                                    {t.ctaText}
                                 </span>
                             </div>
                         ))}

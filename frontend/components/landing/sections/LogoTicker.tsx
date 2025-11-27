@@ -28,7 +28,7 @@ export default function LogoTicker() {
                             ease: "linear",
                             repeat: Infinity,
                         }}
-                        className="flex gap-24 pr-24"
+                        className="flex gap-8 pr-24"
                     >
                         {Array.from({ length: 4 }).map((_, i) => (
                             <React.Fragment key={i}>

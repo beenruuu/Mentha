@@ -5,10 +5,12 @@ import { Button } from "@/components/ui/button";
 import { motion, useAnimate } from "framer-motion";
 import { useEffect } from "react";
 import { ArrowRight } from "lucide-react";
+import { useTranslations } from "@/lib/i18n";
 
 export default function Hero() {
     const [leftScope, leftAnimate] = useAnimate();
     const [rightScope, rightAnimate] = useAnimate();
+    const { t } = useTranslations();
 
     useEffect(() => {
         leftAnimate([
@@ -44,15 +46,15 @@ export default function Hero() {
 
                 <div className="flex justify-center">
                     <div className="inline-flex py-1 px-3 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full text-black font-semibold">
-                        ✨ The Future of SEO is Here
+                        {t.heroTagline}
                     </div>
                 </div>
                 <h1 className="text-6xl md:text-7xl lg:text-8xl font-medium text-center mt-6">
-                    Dominate the{" "}
-                    <span className="text-emerald-500">AI Search</span> Landscape
+                    {t.heroTitle}{" "}
+                    <span className="text-emerald-500">{t.heroTitleHighlight}</span> Landscape
                 </h1>
                 <p className="text-center text-xl text-white/50 mt-8 max-w-2xl mx-auto">
-                    Traditional SEO is fading. Mentha helps B2B brands optimize for the new era of search engines—ChatGPT, Claude, Perplexity, and Gemini.
+                    {t.heroDescription}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10 max-w-md mx-auto">
                     <Link href="/auth/signup" className="flex-1">
@@ -60,7 +62,7 @@ export default function Hero() {
                             size="lg"
                             className="w-full bg-emerald-500 text-black hover:bg-emerald-400 rounded-full h-12 text-base"
                         >
-                            Start Free Trial
+                            {t.heroStartTrial}
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     </Link>
@@ -70,7 +72,7 @@ export default function Hero() {
                             variant="outline"
                             className="w-full border-white/20 bg-white/5 hover:bg-white/10 text-white rounded-full h-12 text-base"
                         >
-                            Analyze Your Site
+                            {t.heroAnalyzeSite}
                         </Button>
                     </Link>
                 </div>

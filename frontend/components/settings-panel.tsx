@@ -152,7 +152,7 @@ export default function SettingsPanel() {
 
       <div className="relative w-[900px] max-w-[96%] h-[640px] max-h-[90vh] bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded-xl shadow-2xl overflow-hidden">
         <button
-          aria-label="Cerrar configuración"
+          aria-label={t.closeSettings}
           onClick={() => setOpen(false)}
           className="absolute top-3 right-3 z-50 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-[#131316]"
         >
@@ -186,7 +186,7 @@ export default function SettingsPanel() {
           <div className="flex-1 p-6 overflow-auto">
             <header className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">{sections.find((x) => x.key === active)?.label}</h2>
-              <div className="text-sm text-gray-500">{active === 'general' ? 'Ajustes rápidos' : ''}</div>
+              <div className="text-sm text-gray-500">{active === 'general' ? t.quickSettings : ''}</div>
             </header>
 
             <div className="space-y-6">
@@ -194,7 +194,7 @@ export default function SettingsPanel() {
                 <div className="grid grid-cols-1 gap-4">
                   <div className="p-4 bg-white dark:bg-black border border-gray-100 dark:border-[#1A1A20] rounded-lg">
                     <p className="text-sm font-medium">{t.theme}</p>
-                    <p className="text-xs text-gray-500 mb-3">Cambiar el tema de la aplicación</p>
+                    <p className="text-xs text-gray-500 mb-3">{t.changeAppTheme}</p>
                     <ThemeToggle />
                   </div>
 
@@ -229,7 +229,7 @@ export default function SettingsPanel() {
                       <label className="text-xs font-medium mt-2 block">{t.lastName}</label>
                       <input value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full mt-1 p-2 border rounded bg-white dark:bg-black" />
                       <div className="mt-3 flex gap-2">
-                        <Button onClick={handleSaveProfile} disabled={isSavingProfile}>{isSavingProfile ? 'Guardando...' : t.saveChanges}</Button>
+                        <Button onClick={handleSaveProfile} disabled={isSavingProfile}>{isSavingProfile ? t.saving : t.saveChanges}</Button>
                       </div>
                     </div>
                   </div>
@@ -286,7 +286,7 @@ export default function SettingsPanel() {
                       <label className="text-xs font-medium mt-2 block">{t.confirmPassword}</label>
                       <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full mt-1 p-2 border rounded bg-white dark:bg-black" />
                       <div className="mt-3 flex gap-2">
-                        <Button onClick={handleUpdatePassword} disabled={isUpdatingPassword}>{isUpdatingPassword ? 'Actualizando...' : t.updatePassword}</Button>
+                        <Button onClick={handleUpdatePassword} disabled={isUpdatingPassword}>{isUpdatingPassword ? t.updating : t.updatePassword}</Button>
                       </div>
                     </div>
                   </div>
@@ -309,13 +309,13 @@ export default function SettingsPanel() {
               {active === 'appearance' && (
                 <div className="p-4 bg-white dark:bg-black border border-gray-100 dark:border-[#1A1A20] rounded-lg">
                   <p className="text-sm font-medium">{t.appearance}</p>
-                  <p className="text-xs text-gray-500">Ajustes de apariencia avanzados.</p>
+                  <p className="text-xs text-gray-500">{t.advancedAppearance}</p>
                 </div>
               )}
 
               <div className="flex justify-end gap-2">
-                <Button variant="ghost" onClick={() => setOpen(false)}>Cerrar</Button>
-                <Button onClick={() => { setOpen(false); router.push('/settings') }}>Abrir configuración completa</Button>
+                <Button variant="ghost" onClick={() => setOpen(false)}>{t.close}</Button>
+                <Button onClick={() => { setOpen(false); router.push('/settings') }}>{t.openFullSettings}</Button>
               </div>
             </div>
           </div>

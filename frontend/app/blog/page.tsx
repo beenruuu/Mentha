@@ -1,22 +1,26 @@
+'use client'
+
 import Link from "next/link";
 import { getAllPosts } from "@/lib/blog-data";
 import { ArrowRight } from "lucide-react";
-import SiteHeader from '@/components/site-header'
-import SiteFooter from '@/components/site-footer'
+import Navbar from '@/components/landing/sections/Navbar'
+import Footer from '@/components/landing/sections/Footer'
+import { useTranslations } from "@/lib/i18n";
 
 export default function BlogIndexPage() {
   const posts = getAllPosts();
+  const { t } = useTranslations();
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-emerald-500/30">
-      <SiteHeader />
+    <div className="min-h-screen bg-black text-white selection:bg-emerald-500/30">
+      <Navbar />
       <main className="pt-32 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <div className="text-center mb-16">
           <h1 className="text-4xl sm:text-5xl font-bold text-white tracking-tight mb-6">
-            The Mentha Blog
+            {t.blogTitle}
           </h1>
           <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-            Insights, strategies, and guides for the new era of Answer Engine Optimization.
+            {t.blogDescription}
           </p>
         </div>
 
@@ -53,7 +57,7 @@ export default function BlogIndexPage() {
                 </p>
                 
                 <div className="flex items-center gap-2 text-sm font-medium text-emerald-500">
-                  Read Article
+                  {t.blogReadArticle}
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                 </div>
               </div>
@@ -62,7 +66,7 @@ export default function BlogIndexPage() {
         </div>
       </main>
       
-      <SiteFooter />
+      <Footer />
     </div>
   );
 }

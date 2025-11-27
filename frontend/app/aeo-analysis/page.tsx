@@ -18,10 +18,12 @@ import { Progress } from '@/components/ui/progress'
 import { Loader2, Sparkles, TrendingUp, AlertCircle, CheckCircle2, Brain, Target } from 'lucide-react'
 import { analysisService, Analysis } from '@/lib/services/analysis'
 import { useToast } from '@/hooks/use-toast'
+import { useTranslations } from '@/lib/i18n'
 
 export default function AEOAnalysisPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const { t } = useTranslations()
   const [loading, setLoading] = useState(false)
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
   const [recentAnalyses, setRecentAnalyses] = useState<Analysis[]>([])
@@ -68,7 +70,7 @@ export default function AEOAnalysisPage() {
 
   const handleAnalyze = async () => {
     if (!domain || !content) {
-      setError('Por favor completa el dominio y el contenido')
+      setError(t.aeoFillAllFields)
       return
     }
 
@@ -90,7 +92,7 @@ export default function AEOAnalysisPage() {
       pollAnalysis(newAnalysis.id)
       
     } catch (err: any) {
-      setError(err.message || 'Error al iniciar el análisis')
+      setError(err.message || 'Error')
       setLoading(false)
     }
   }
@@ -111,7 +113,7 @@ export default function AEOAnalysisPage() {
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-emerald-600" />
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Análisis AEO</h1>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t.aeoTitle}</h1>
           </div>
           <div className="flex-1" />
           <UserAvatarMenu />
@@ -122,55 +124,55 @@ export default function AEOAnalysisPage() {
             {/* Input Section */}
             <Card className="w-full">
               <CardHeader>
-                <CardTitle>Nueva Análisis</CardTitle>
+                <CardTitle>{t.aeoNewAnalysis}</CardTitle>
                 <CardDescription>
-                  Analiza contenido para optimizar tu visibilidad en motores de IA
+                  {t.aeoDescription}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="domain">Dominio</Label>
+                  <Label htmlFor="domain">{t.aeoDomain}</Label>
                   <Input
                     id="domain"
-                    placeholder="ejemplo.com"
+                    placeholder={t.aeoDomainPlaceholder}
                     value={domain}
                     onChange={(e) => setDomain(e.target.value)}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="analysisType">Tipo de Análisis</Label>
+                  <Label htmlFor="analysisType">{t.aeoAnalysisType}</Label>
                   <Select value={analysisType} onValueChange={setAnalysisType}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="content">Contenido</SelectItem>
-                      <SelectItem value="domain">Dominio Completo</SelectItem>
-                      <SelectItem value="keyword">Keywords</SelectItem>
-                      <SelectItem value="competitor">Competencia</SelectItem>
+                      <SelectItem value="content">{t.aeoContent}</SelectItem>
+                      <SelectItem value="domain">{t.aeoFullDomain}</SelectItem>
+                      <SelectItem value="keyword">{t.aeoKeywords}</SelectItem>
+                      <SelectItem value="competitor">{t.aeoCompetition}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="aiModel">Modelo de IA</Label>
+                  <Label htmlFor="aiModel">{t.aeoAIModel}</Label>
                   <Select value={aiModel} onValueChange={setAiModel}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="chatgpt">ChatGPT (GPT-4)</SelectItem>
+                      <SelectItem value="chatgpt">ChatGPT (GPT-4o)</SelectItem>
                       <SelectItem value="claude">Claude (Sonnet)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="content">Contenido a Analizar</Label>
+                  <Label htmlFor="content">{t.aeoContentToAnalyze}</Label>
                   <Textarea
                     id="content"
-                    placeholder="Pega aquí el contenido de tu página, artículo o descripción..."
+                    placeholder={t.aeoContentPlaceholder}
                     value={content}
                     onChange={(e) => setContent(e.target.value)}
                     rows={8}
@@ -188,12 +190,12 @@ export default function AEOAnalysisPage() {
                   {loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Analizando...
+                      {t.aeoAnalyzing}
                     </>
                   ) : (
                     <>
                       <Brain className="mr-2 h-4 w-4" />
-                      Analizar con IA
+                      {t.aeoAnalyzeWithAI}
                     </>
                   )}
                 </Button>
@@ -203,9 +205,9 @@ export default function AEOAnalysisPage() {
             {/* Results Section */}
             <Card className="w-full">
               <CardHeader>
-                <CardTitle>Resultados del Análisis</CardTitle>
+                <CardTitle>{t.aeoResults}</CardTitle>
                 <CardDescription>
-                  {analysis ? 'Tu puntuación AEO y recomendaciones' : 'Los resultados aparecerán aquí'}
+                  {analysis ? t.aeoResultsDescription : t.aeoResultsPlaceholder}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -213,7 +215,7 @@ export default function AEOAnalysisPage() {
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <Brain className="h-12 w-12 text-muted-foreground mb-4" />
                     <p className="text-muted-foreground">
-                      Completa el formulario y haz clic en "Analizar con IA" para obtener tu puntuación AEO
+                      {t.aeoInstructions}
                     </p>
                   </div>
                 )}
@@ -222,7 +224,7 @@ export default function AEOAnalysisPage() {
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <Loader2 className="h-12 w-12 text-emerald-600 animate-spin mb-4" />
                     <p className="text-muted-foreground">
-                      Analizando tu contenido con {aiModel === 'chatgpt' ? 'GPT-4' : 'Claude'}...
+                      {t.aeoAnalyzing}...
                     </p>
                   </div>
                 )}
@@ -234,15 +236,15 @@ export default function AEOAnalysisPage() {
                       <div className={`text-5xl font-bold mb-2 ${getScoreColor(analysis.results?.score || 0)}`}>
                         {analysis.results?.score || 0}
                       </div>
-                      <p className="text-sm text-muted-foreground mb-4">Puntuación AEO</p>
+                      <p className="text-sm text-muted-foreground mb-4">{t.aeoScore}</p>
                       <Progress value={analysis.results?.score || 0} className="h-2" />
                     </div>
 
                     <Tabs defaultValue="strengths">
                       <TabsList className="grid w-full grid-cols-3">
-                        <TabsTrigger value="strengths">Fortalezas</TabsTrigger>
-                        <TabsTrigger value="weaknesses">Debilidades</TabsTrigger>
-                        <TabsTrigger value="recommendations">Acciones</TabsTrigger>
+                        <TabsTrigger value="strengths">{t.aeoStrengths}</TabsTrigger>
+                        <TabsTrigger value="weaknesses">{t.aeoWeaknesses}</TabsTrigger>
+                        <TabsTrigger value="recommendations">{t.aeoActions}</TabsTrigger>
                       </TabsList>
                       
                       <TabsContent value="strengths" className="space-y-2 mt-4">
@@ -278,7 +280,7 @@ export default function AEOAnalysisPage() {
                       <div>
                         <h3 className="font-semibold mb-3 flex items-center gap-2">
                           <TrendingUp className="h-4 w-4" />
-                          Keywords Sugeridas
+                          {t.aeoSuggestedKeywords}
                         </h3>
                         <div className="flex flex-wrap gap-2">
                           {analysis.results.keywords.map((item: any, i: number) => (
@@ -298,22 +300,22 @@ export default function AEOAnalysisPage() {
           {/* Recent Analyses */}
           <Card className="w-full">
             <CardHeader>
-              <CardTitle>Análisis Recientes</CardTitle>
+              <CardTitle>{t.aeoRecentAnalyses}</CardTitle>
               <CardDescription>
-                Historial de análisis realizados
+                {t.aeoHistoryDescription}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {recentAnalyses.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">
-                  No hay análisis previos. Realiza tu primer análisis AEO arriba.
+                  {t.aeoNoHistory}
                 </p>
               ) : (
                 <div className="space-y-4">
                   {recentAnalyses.map((item) => (
                     <div key={item.id} className="flex items-center justify-between border-b pb-4 last:border-0 last:pb-0">
                       <div>
-                        <p className="font-medium">{item.input_data?.domain || 'Dominio desconocido'}</p>
+                        <p className="font-medium">{item.input_data?.domain || t.aeoUnknownDomain}</p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(item.created_at).toLocaleDateString()} - {item.ai_model}
                         </p>
@@ -328,7 +330,7 @@ export default function AEOAnalysisPage() {
                           </span>
                         )}
                         <Button variant="ghost" size="sm" onClick={() => setAnalysis(item)}>
-                          Ver
+                          {t.aeoView}
                         </Button>
                       </div>
                     </div>

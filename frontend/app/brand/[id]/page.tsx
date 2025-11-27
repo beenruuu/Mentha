@@ -210,7 +210,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
             {/* Brand Overview */}
             <Card className="lg:col-span-2 p-6 bg-white dark:bg-black">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">Resumen de Marca</h2>
+                <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">{t.brandSummary}</h2>
               </div>
               <div className="space-y-4">
                 <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-[#2A2A30]">
@@ -265,7 +265,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
             {/* Potential Competitors - Placeholder */}
             <Card className="p-6 bg-white dark:bg-black">
               <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
-                Competidores Potenciales
+                {t.potentialCompetitors}
               </h2>
               <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
                 Analysis required to identify potential competitors.
