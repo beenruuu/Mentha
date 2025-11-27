@@ -51,7 +51,7 @@ export default function Hero() {
                 </div>
                 <h1 className="text-6xl md:text-7xl lg:text-8xl font-medium text-center mt-6">
                     {t.heroTitle}{" "}
-                    <span className="text-emerald-500">{t.heroTitleHighlight}</span> Landscape
+                    <span className="text-emerald-500">{t.heroTitleHighlight}</span>{t.heroTitleEnd ? ` ${t.heroTitleEnd}` : ''}
                 </h1>
                 <p className="text-center text-xl text-white/50 mt-8 max-w-2xl mx-auto">
                     {t.heroDescription}

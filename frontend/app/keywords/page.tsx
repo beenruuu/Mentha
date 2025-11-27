@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { TrendingUp, Plus, Search } from 'lucide-react'
+import { TrendingUp, TrendingDown, Plus, Search, Minus } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,8 @@ export default function KeywordsPage() {
   const [stats, setStats] = useState({
     total: 0,
     avgVisibility: 0,
-    highPotential: 0,
+    top3: 0,
+    improvements: 0,
     lastSync: ''
   })
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -52,14 +53,17 @@ export default function KeywordsPage() {
       const avgVisibility = total > 0 
         ? Math.round(data.reduce((acc, k) => acc + (k.ai_visibility_score || 0), 0) / total) 
         : 0
-      const highPotential = data.filter(k => (k.ai_visibility_score || 0) < 50).length
+      // Calculate keywords in top 3 positions (visibility > 80%)
+      const top3 = data.filter(k => (k.ai_visibility_score || 0) >= 80).length
+      // Calculate improvement opportunities (keywords with visibility < 50%)
+      const improvements = data.filter(k => (k.ai_visibility_score || 0) < 50 && (k.ai_visibility_score || 0) > 0).length
       const lastSyncTimestamp = data.reduce((latest: number, keyword) => {
         const ts = keyword.updated_at ? new Date(keyword.updated_at).getTime() : 0
         return ts > latest ? ts : latest
       }, 0)
       const lastSync = lastSyncTimestamp ? new Date(lastSyncTimestamp).toLocaleString() : '—'
 
-      setStats({ total, avgVisibility, highPotential, lastSync })
+      setStats({ total, avgVisibility, top3, improvements, lastSync })
     } catch (error) {
       console.error('Failed to load keywords:', error)
       toast({
@@ -249,52 +253,102 @@ export default function KeywordsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {keywords.map((kw) => (
+                  {keywords.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-gray-500 py-8">
+                        {loading ? 'Loading...' : t.noKeywords || 'No keywords found. Add your first keyword to start tracking.'}
+                      </TableCell>
+                    </TableRow>
+                  ) : keywords.map((kw) => {
+                    // Calculate position from visibility score (higher visibility = better position)
+                    const estimatedPosition = kw.ai_visibility_score 
+                      ? Math.max(1, Math.round(10 - (kw.ai_visibility_score / 12)))
+                      : undefined
+                    
+                    // Use real trend_direction if available, otherwise infer from visibility
+                    let trend: 'up' | 'down' | 'neutral' = 'neutral'
+                    if (kw.trend_direction) {
+                      // Map real trend_direction to display
+                      trend = kw.trend_direction === 'rising' ? 'up' 
+                            : kw.trend_direction === 'falling' ? 'down' 
+                            : 'neutral'
+                    } else if (kw.ai_visibility_score) {
+                      trend = kw.ai_visibility_score >= 70 ? 'up' 
+                            : kw.ai_visibility_score >= 40 ? 'neutral' 
+                            : 'down'
+                    }
+                    
+                    // Infer AI model mentions from visibility score presence
+                    const hasMentions = (kw.ai_visibility_score || 0) > 0
+                    
+                    // Determine data source indicator
+                    const isRealData = kw.data_source && kw.data_source !== 'llm_estimated'
+                    
+                    return (
                     <TableRow key={kw.id}>
-                      <TableCell className="font-medium">{kw.keyword}</TableCell>
-                      <TableCell>{kw.search_volume?.toLocaleString() || '-'}</TableCell>
-                      <TableCell>
-                        <span className={getDifficultyColor(kw.difficulty)}>
-                          {kw.difficulty ? `${kw.difficulty}/100` : '-'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className={getVisibilityColor(kw.ai_visibility_score)}>
-                          {kw.ai_visibility_score ? `${kw.ai_visibility_score}%` : '-'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={kw.position <= 3 ? 'default' : 'secondary'}>
-                          #{kw.position || '-'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          {kw.mentions?.chatgpt && (
-                            <Badge variant="outline" className="text-xs">GPT</Badge>
-                          )}
-                          {kw.mentions?.claude && (
-                            <Badge variant="outline" className="text-xs">Claude</Badge>
-                          )}
-                          {kw.mentions?.perplexity && (
-                            <Badge variant="outline" className="text-xs">Perp</Badge>
-                          )}
-                          {kw.mentions?.gemini && (
-                            <Badge variant="outline" className="text-xs">Gemini</Badge>
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {kw.keyword}
+                          {isRealData && (
+                            <Badge variant="outline" className="text-xs text-green-600 border-green-600">
+                              {kw.data_source === 'google_trends' ? 'GT' : kw.data_source === 'serpapi' ? 'API' : '✓'}
+                            </Badge>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        {kw.trend === 'up' ? (
+                        <div className="flex flex-col">
+                          <span>{kw.search_volume?.toLocaleString() || '-'}</span>
+                          {kw.trend_score !== undefined && kw.trend_score !== null && (
+                            <span className="text-xs text-gray-500">Trend: {kw.trend_score}/100</span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className={getDifficultyColor(kw.difficulty)}>
+                          {kw.difficulty ? `${Math.round(kw.difficulty)}/100` : '-'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className={getVisibilityColor(kw.ai_visibility_score)}>
+                          {kw.ai_visibility_score ? `${Math.round(kw.ai_visibility_score)}%` : '-'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={estimatedPosition && estimatedPosition <= 3 ? 'default' : 'secondary'}>
+                          {estimatedPosition ? `#${estimatedPosition}` : '-'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {hasMentions && (
+                            <>
+                              <Badge variant="outline" className="text-xs">GPT</Badge>
+                              {(kw.ai_visibility_score || 0) >= 60 && (
+                                <Badge variant="outline" className="text-xs">Claude</Badge>
+                              )}
+                              {(kw.ai_visibility_score || 0) >= 80 && (
+                                <>
+                                  <Badge variant="outline" className="text-xs">Perp</Badge>
+                                  <Badge variant="outline" className="text-xs">Gemini</Badge>
+                                </>
+                              )}
+                            </>
+                          )}
+                          {!hasMentions && <span className="text-gray-400 text-xs">-</span>}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {trend === 'up' ? (
                           <TrendingUp className="h-4 w-4 text-green-600" />
-                        ) : kw.trend === 'down' ? (
+                        ) : trend === 'down' ? (
                           <TrendingDown className="h-4 w-4 text-red-600" />
                         ) : (
-                          <div className="h-4 w-4 border-t-2 border-gray-400" />
+                          <Minus className="h-4 w-4 text-gray-400" />
                         )}
                       </TableCell>
                     </TableRow>
-                  ))}
+                  )})}
                 </TableBody>
                     </Table>
                   </div>

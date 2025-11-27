@@ -61,33 +61,48 @@ export default function DiscoveryPromptsStep() {
                 })
             })
 
-            // 2. Create Brand
+            // 2. Create Brand - this triggers an initial analysis automatically
+            // The brand creation endpoint handles this via background_tasks
             const brand = await fetchAPI<{ id: string }>('/brands/', {
                 method: 'POST',
                 body: JSON.stringify({
-                    domain: brandInfo.url,
-                    name: brandInfo.title || brandInfo.domain,
-                    industry: userInfo.industry, // Use user industry as fallback
-                    description: brandInfo.description
+                    domain: brandInfo.url || brandInfo.domain,
+                    name: brandInfo.title || brandInfo.domain || userInfo.companyName,
+                    industry: brandInfo.industry || userInfo.industry,
+                    description: brandInfo.description || `${userInfo.companyName} - ${userInfo.industry}`
                 })
             })
 
-            // 3. Create Analysis
+            // 3. Create a follow-up analysis with the discovery prompts
+            // This provides more specific context for AI optimization
             const selectedProviders = aiProviders.filter(p => p.selected).map(p => p.id)
             const selectedPrompts = discoveryPrompts.filter(p => p.selected).map(p => p.text)
 
-            await fetchAPI('/analysis/', {
-                method: 'POST',
-                body: JSON.stringify({
-                    brand_id: brand.id,
-                    analysis_type: 'domain', // Default type
-                    input_data: {
-                        url: brandInfo.url,
-                        providers: selectedProviders,
-                        prompts: selectedPrompts
-                    }
+            if (selectedPrompts.length > 0) {
+                await fetchAPI('/analysis/', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        brand_id: brand.id,
+                        analysis_type: 'content',
+                        input_data: {
+                            brand: {
+                                name: brandInfo.title || brandInfo.domain || userInfo.companyName,
+                                domain: brandInfo.url || brandInfo.domain,
+                                industry: brandInfo.industry || userInfo.industry,
+                                description: brandInfo.description
+                            },
+                            objectives: {
+                                target_audience: 'B2B and B2C customers',
+                                ai_goals: ['Visibility', 'Authority', 'Engagement'],
+                                key_terms: selectedPrompts.join(', ')
+                            },
+                            providers: selectedProviders,
+                            prompts: selectedPrompts,
+                            source: 'onboarding'
+                        }
+                    })
                 })
-            })
+            }
 
             toast({
                 title: "Setup complete!",

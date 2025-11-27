@@ -1,7 +1,7 @@
 import json
 from uuid import UUID
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 from app.models.analysis import Analysis, AnalysisStatus, AnalysisType, AIModel
 from app.models.notification import Notification, NotificationType, NotificationStatus
@@ -11,6 +11,9 @@ from app.services.supabase.database import SupabaseDatabaseService
 from app.services.llm.llm_service import LLMServiceFactory, LLMService
 from app.services.web_search_service import WebSearchService
 from app.services.technical_aeo_service import TechnicalAEOService
+from app.services.keyword_metrics_service import KeywordMetricsService
+from app.services.ai_visibility_service import AIVisibilityService
+from app.core.config import settings
 
 class AnalysisService:
     def __init__(self):
@@ -20,6 +23,8 @@ class AnalysisService:
         self.ingestion_service = AnalysisResultsIngestionService()
         self.web_search_service = WebSearchService()
         self.technical_aeo_service = TechnicalAEOService()
+        self.keyword_metrics_service = KeywordMetricsService()
+        self.ai_visibility_service = AIVisibilityService()
 
     async def run_analysis(self, analysis_id: UUID):
         """
@@ -62,6 +67,12 @@ class AnalysisService:
             
             # 3b. Perform Technical AEO Audit
             technical_aeo_data = await self._perform_technical_aeo_audit(analysis)
+            
+            # 3c. Gather REAL Keyword Metrics (Google Trends, SerpAPI, etc.)
+            keyword_metrics = await self._gather_keyword_metrics(analysis, search_context)
+            
+            # 3d. Measure REAL AI Visibility (if enabled - costs API calls)
+            ai_visibility_data = await self._measure_ai_visibility(analysis)
 
             # COST SAVING CHECK: If both search and audit failed/skipped, DO NOT call LLM
             if not search_context.get("enabled") and not technical_aeo_data.get("enabled"):
@@ -75,8 +86,14 @@ class AnalysisService:
                 })
                 return
 
-            # 4. Construct Prompt with Real Data
-            prompt = self._construct_prompt(analysis, search_context, technical_aeo_data)
+            # 4. Construct Prompt with Real Data (including real keyword metrics)
+            prompt = self._construct_prompt(
+                analysis, 
+                search_context, 
+                technical_aeo_data, 
+                keyword_metrics,
+                ai_visibility_data
+            )
 
             # 5. Call LLM
             print(f"Sending prompt to LLM for analysis {analysis_id}...")
@@ -172,7 +189,7 @@ class AnalysisService:
                     "raw_text": response.text[:1000]
                 }
 
-            # Calculate a mock score if not present
+            # Extract score from LLM results (default to 0 if not present)
             score = results.get("score", 0)
             if isinstance(score, (int, float)):
                 score = float(score)
@@ -187,9 +204,9 @@ class AnalysisService:
                 "completed_at": f"{datetime.utcnow().isoformat()}Z"
             })
 
-            # 7. Ingest Structured Results into DB
+            # 7. Ingest Structured Results into DB (with real keyword metrics)
             print(f"Ingesting results into database for analysis {analysis_id}...")
-            await self.ingestion_service.ingest_results(analysis, results)
+            await self.ingestion_service.ingest_results(analysis, results, keyword_metrics)
             
             # 7b. Ingest Technical AEO Data
             await self.ingestion_service.ingest_technical_aeo(analysis, technical_aeo_data)
@@ -218,7 +235,9 @@ class AnalysisService:
         self, 
         analysis: Analysis, 
         search_context: Dict[str, Any] = None,
-        technical_aeo: Dict[str, Any] = None
+        technical_aeo: Dict[str, Any] = None,
+        keyword_metrics: Dict[str, Any] = None,
+        ai_visibility: Dict[str, Any] = None
     ) -> str:
         """Construct a rich prompt with real search data so the LLM can provide accurate analysis."""
         data = analysis.input_data or {}
@@ -233,6 +252,10 @@ class AnalysisService:
             search_context = {"enabled": False}
         if technical_aeo is None:
             technical_aeo = {"enabled": False}
+        if keyword_metrics is None:
+            keyword_metrics = {"enabled": False}
+        if ai_visibility is None:
+            ai_visibility = {"enabled": False}
 
         brand_profile = f"""
 Brand Name: {brand.get('name', '')}
@@ -300,11 +323,14 @@ IMPORTANT: Use this technical audit data to provide specific, actionable recomme
         
         # Analysis instructions based on data availability
         analysis_instruction = ""
-        if search_context.get("enabled") or technical_aeo.get("enabled"):
+        if search_context.get("enabled") or technical_aeo.get("enabled") or keyword_metrics.get("enabled"):
             analysis_instruction = """You are an AEO (AI Engine Optimization) strategist. I have gathered REAL data about this brand.
 Your job is to ANALYZE this real data and provide insights, NOT to generate fictional data.
 
-For keywords: Extract actual keywords and topics mentioned in the search results. Do not invent search volumes.
+CRITICAL: For keywords, I am providing REAL metrics from Google Trends and other sources. 
+USE these exact values for search_volume, difficulty, and trend_score in your response.
+Do NOT invent or modify the keyword metrics I provide.
+
 For competitors: Use the actual competitors found in the search results.
 For insights: Base your analysis on the real search snippets and technical audit provided.
 
@@ -314,6 +340,62 @@ Use the real data provided above to craft an accurate visibility audit."""
 Since real web search data is not available, use the brand information below to craft
 a reasonable first visibility audit so Mentha can populate dashboards, keyword trackers, queries, crawler activity,
 recommendations, and notifications."""
+
+        # Add REAL keyword metrics section
+        keyword_metrics_section = ""
+        if keyword_metrics.get("enabled"):
+            kw_list = keyword_metrics.get("keywords", [])
+            keyword_metrics_section = f"""
+
+=== REAL KEYWORD METRICS (FROM GOOGLE TRENDS & APIS) ===
+The following keyword data is REAL, gathered from actual APIs. Use these EXACT values in your response:
+
+"""
+            for kw in kw_list[:10]:
+                keyword_metrics_section += f"""- Keyword: "{kw.get('keyword', '')}"
+  Search Volume: {kw.get('search_volume', 0)}
+  Difficulty: {kw.get('difficulty', 50)}
+  Trend Score: {kw.get('trend_score', 0)}/100
+  Trend Direction: {kw.get('trend_direction', 'stable')}
+  Data Source: {kw.get('data_source', 'estimated')}
+
+"""
+            keyword_metrics_section += """IMPORTANT: Copy the search_volume and difficulty values EXACTLY as shown above.
+These are real data points, not estimates. Do not modify or "round" these numbers."""
+
+        # Add REAL AI visibility data if measured
+        ai_visibility_section = ""
+        if ai_visibility.get("enabled"):
+            overall_score = ai_visibility.get("overall_score", 0)
+            mention_count = ai_visibility.get("mention_count", 0)
+            sentiment = ai_visibility.get("sentiment", "neutral")
+            models = ai_visibility.get("models", {})
+            
+            ai_visibility_section = f"""
+
+=== REAL AI VISIBILITY MEASUREMENT ===
+The following visibility data was measured by ACTUALLY querying AI models:
+
+Overall AI Visibility Score: {overall_score}/100 (REAL - measured from actual AI responses)
+Total Brand Mentions Found: {mention_count}
+Overall Sentiment: {sentiment}
+
+Model-by-Model Results:
+"""
+            for model_name, model_data in models.items():
+                if model_data.get("enabled"):
+                    score = model_data.get("visibility_score", 0)
+                    mentions = model_data.get("mention_count", 0)
+                    ai_visibility_section += f"""- {model_name.upper()}: {score}% visibility ({mentions} mentions)
+"""
+                    # Include context snippets if available
+                    snippets = model_data.get("context_snippets", [])
+                    if snippets:
+                        ai_visibility_section += f"  Context: \"{snippets[0][:100]}...\"\n"
+            
+            ai_visibility_section += """
+IMPORTANT: Use the EXACT visibility_score values above for the visibility_findings section.
+These are real measurements from actual AI model responses, not estimates."""
 
         schema_instructions = """
 Return ONLY valid JSON. Do NOT use markdown code blocks. Do NOT include any text outside the JSON object.
@@ -400,6 +482,8 @@ IMPORTANT: Do not use unescaped newlines inside string values. Use \\n for line 
 {brand_profile}
 {real_data_section}
 {technical_aeo_section}
+{keyword_metrics_section}
+{ai_visibility_section}
 
 {schema_instructions}
 """.strip()
@@ -461,6 +545,129 @@ IMPORTANT: Do not use unescaped newlines inside string values. Use \\n for line 
             }
         except Exception as e:
             print(f"Error in technical AEO audit: {e}")
+            return {"enabled": False, "error": str(e)}
+    
+    async def _gather_keyword_metrics(
+        self, 
+        analysis: Analysis, 
+        search_context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Gather REAL keyword metrics from Google Trends and other sources."""
+        data = analysis.input_data or {}
+        brand = data.get("brand", {})
+        objectives = data.get("objectives", {})
+        
+        brand_name = brand.get('name', '')
+        industry = brand.get('industry', '')
+        key_terms = objectives.get('key_terms', '')
+        
+        # Extract keywords from multiple sources
+        keywords_to_analyze = set()
+        
+        # From key_terms input
+        if key_terms:
+            terms = [t.strip() for t in key_terms.replace(',', '\n').split('\n') if t.strip()]
+            keywords_to_analyze.update(terms)
+        
+        # From brand name + industry combinations
+        if brand_name:
+            keywords_to_analyze.add(brand_name)
+            if industry:
+                keywords_to_analyze.add(f"{brand_name} {industry}")
+                keywords_to_analyze.add(f"best {industry}")
+        
+        # Extract keywords from search results
+        if search_context.get("enabled"):
+            # Extract topics from search result titles
+            for result in search_context.get('keyword_results', [])[:5]:
+                title = result.get('title', '')
+                # Extract relevant words (simple extraction)
+                words = title.lower().split()
+                for word in words:
+                    if len(word) > 4 and word not in ['para', 'with', 'from', 'about', 'this', 'that', 'what', 'como']:
+                        keywords_to_analyze.add(word)
+        
+        # Limit to most relevant keywords
+        keywords_list = list(keywords_to_analyze)[:15]
+        
+        if not keywords_list:
+            print("No keywords to analyze for metrics")
+            return {"enabled": False, "keywords": []}
+        
+        try:
+            print(f"Fetching REAL metrics for {len(keywords_list)} keywords...")
+            
+            # Get enriched keyword data with real metrics
+            enriched_keywords = await self.keyword_metrics_service.enrich_keywords(
+                keywords=keywords_list,
+                geo=brand.get('country', 'US')
+            )
+            
+            # Get related keywords for expansion
+            if brand_name:
+                related = await self.keyword_metrics_service.get_related_keywords(
+                    seed_keyword=f"{brand_name} {industry}" if industry else brand_name,
+                    geo=brand.get('country', 'US')
+                )
+                # Add some related keywords
+                enriched_keywords.extend(related[:5])
+            
+            return {
+                "enabled": True,
+                "keywords": enriched_keywords,
+                "source": "google_trends",
+                "data_freshness": "real_time"
+            }
+        except Exception as e:
+            print(f"Error gathering keyword metrics: {e}")
+            return {"enabled": False, "keywords": [], "error": str(e)}
+    
+    async def _measure_ai_visibility(self, analysis: Analysis) -> Dict[str, Any]:
+        """
+        Measure REAL AI visibility by querying AI models.
+        
+        WARNING: This makes actual API calls that cost money.
+        Only runs if AI_VISIBILITY_ENABLED=true in environment.
+        """
+        # Check if AI visibility measurement is enabled
+        if not getattr(settings, 'AI_VISIBILITY_ENABLED', False):
+            print("AI visibility measurement is disabled (set AI_VISIBILITY_ENABLED=true to enable)")
+            return {"enabled": False, "reason": "disabled_in_config"}
+        
+        data = analysis.input_data or {}
+        brand = data.get("brand", {})
+        objectives = data.get("objectives", {})
+        
+        brand_name = brand.get('name', '')
+        domain = brand.get('domain', '')
+        industry = brand.get('industry', '')
+        key_terms = objectives.get('key_terms', '')
+        
+        if not brand_name:
+            print("No brand name for AI visibility measurement - skipping")
+            return {"enabled": False, "reason": "no_brand_name"}
+        
+        try:
+            print(f"Measuring REAL AI visibility for: {brand_name}")
+            
+            # Get related keywords for query context
+            keywords = []
+            if key_terms:
+                keywords = [t.strip() for t in key_terms.replace(',', '\n').split('\n') if t.strip()][:5]
+            
+            # Measure visibility across AI models
+            visibility_results = await self.ai_visibility_service.measure_visibility(
+                brand_name=brand_name,
+                domain=domain,
+                industry=industry,
+                keywords=keywords,
+                num_queries=3  # Limit queries to control costs
+            )
+            
+            return visibility_results
+            
+        except Exception as e:
+            print(f"Error measuring AI visibility: {e}")
             return {"enabled": False, "error": str(e)}
     
     def _format_search_results(self, results: list, max_items: int = 5) -> str:

@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     SERPAPI_KEY: str = ""
     WEB_SEARCH_ENABLED: bool = True
     WEB_SEARCH_PROVIDER: str = "duckduckgo"  # or "tavily", "serper", etc.
+    
+    # AI Visibility Measurement
+    AI_VISIBILITY_ENABLED: bool = False  # Disabled by default - makes real API calls that cost money
+    PERPLEXITY_API_KEY: str = ""  # Optional: for Perplexity visibility checks
 
     class Config:
         env_file = ".env"

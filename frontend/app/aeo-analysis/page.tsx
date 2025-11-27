@@ -79,12 +79,33 @@ export default function AEOAnalysisPage() {
     setAnalysis(null)
 
     try {
+      // Extract domain name from URL if full URL provided
+      let cleanDomain = domain
+      try {
+        const url = new URL(domain.startsWith('http') ? domain : `https://${domain}`)
+        cleanDomain = url.hostname
+      } catch {
+        cleanDomain = domain
+      }
+
       const newAnalysis = await analysisService.create({
         analysis_type: analysisType,
         ai_model: aiModel,
         input_data: {
           domain,
-          content
+          content,
+          // Include brand structure for proper analysis
+          brand: {
+            name: cleanDomain.replace('www.', '').split('.')[0],
+            domain: cleanDomain,
+            industry: 'General', // Could be enhanced with a form field
+            description: content.substring(0, 200)
+          },
+          objectives: {
+            target_audience: 'General',
+            ai_goals: ['Visibility', 'Authority'],
+            key_terms: content.split(' ').slice(0, 10).join(' ')
+          }
         }
       })
       

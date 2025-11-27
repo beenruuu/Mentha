@@ -20,14 +20,14 @@ class AnalysisResultsIngestionService:
         # New tables for GEO/AEO data
         self.supabase_client = self.keyword_db.supabase  # Reuse supabase client
 
-    async def ingest_results(self, analysis: Analysis, results: Dict[str, Any]) -> None:
+    async def ingest_results(self, analysis: Analysis, results: Dict[str, Any], real_keyword_metrics: Optional[Dict[str, Any]] = None) -> None:
         if not results:
             print("No results to ingest.")
             return
 
         try:
             print(f"Ingesting keywords: {len(results.get('keywords', []))} found.")
-            await self._ingest_keywords(analysis, results.get("keywords"))
+            await self._ingest_keywords(analysis, results.get("keywords"), real_keyword_metrics)
             
             print(f"Ingesting competitors: {len(results.get('competitors', []))} found.")
             await self._ingest_competitors(analysis, results.get("competitors"))
@@ -41,7 +41,7 @@ class AnalysisResultsIngestionService:
         except Exception as ingestion_error:
             print(f"Failed to ingest analysis results: {ingestion_error}")
 
-    async def _ingest_keywords(self, analysis: Analysis, keywords: Optional[List[Dict[str, Any]]]) -> None:
+    async def _ingest_keywords(self, analysis: Analysis, keywords: Optional[List[Dict[str, Any]]], real_metrics: Optional[Dict[str, Any]] = None) -> None:
         if not keywords:
             return
 
@@ -56,27 +56,56 @@ class AnalysisResultsIngestionService:
         except Exception as delete_error:
             print(f"Failed to clean previous keywords: {delete_error}")
 
+        # Build a lookup map from real metrics if available
+        real_metrics_map: Dict[str, Dict[str, Any]] = {}
+        if real_metrics and real_metrics.get("enabled"):
+            for kw_data in real_metrics.get("keywords", []):
+                kw_name = (kw_data.get("keyword") or "").strip().lower()
+                if kw_name:
+                    real_metrics_map[kw_name] = kw_data
+
         created = 0
         for item in keywords:
             keyword_text = (item.get("keyword") or "").strip()
             if not keyword_text:
                 continue
 
+            # Prefer real metrics over LLM-generated values
+            real_data = real_metrics_map.get(keyword_text.lower(), {})
+            
+            # Use real data if available, otherwise fallback to LLM values
+            search_volume = real_data.get("search_volume") if real_data else None
+            if search_volume is None:
+                search_volume = self._to_int(item.get("search_volume"))
+            
+            difficulty = real_data.get("difficulty") if real_data else None
+            if difficulty is None:
+                difficulty = self._to_float(item.get("difficulty"))
+            
+            # Determine data source
+            data_source = "llm_estimated"
+            if real_data:
+                data_source = real_data.get("data_source", "google_trends")
+
             payload = {
                 "user_id": user_id,
                 "brand_id": brand_id,
                 "keyword": keyword_text,
-                "search_volume": self._to_int(item.get("search_volume")),
-                "difficulty": self._to_float(item.get("difficulty")),
+                "search_volume": search_volume,
+                "difficulty": difficulty,
                 "ai_visibility_score": self._to_float(item.get("ai_visibility_score")),
                 "tracked": item.get("tracked", True),
+                # Additional real metrics fields
+                "trend_score": real_data.get("trend_score"),
+                "trend_direction": real_data.get("trend_direction"),
+                "data_source": data_source,
                 "created_at": datetime.utcnow().isoformat() + "Z",
                 "updated_at": datetime.utcnow().isoformat() + "Z",
             }
             await self.keyword_db.create(payload)
             created += 1
 
-        print(f"Hydrated {created} keywords for user {user_id}")
+        print(f"Hydrated {created} keywords for user {user_id} (real metrics: {len(real_metrics_map)} keywords)")
 
     async def _ingest_competitors(self, analysis: Analysis, competitors: Optional[List[Dict[str, Any]]]) -> None:
         if not competitors or not analysis.brand_id:
@@ -155,6 +184,7 @@ class AnalysisResultsIngestionService:
 
         user_id = str(analysis.user_id)
         brand_id = str(analysis.brand_id)
+        analysis_id = str(analysis.id)
 
         # Delete previous queries for this brand
         try:
@@ -169,12 +199,32 @@ class AnalysisResultsIngestionService:
             if not title or not question:
                 continue
 
+            # Map category to valid values
+            category = (query.get("category") or "general").lower()
+            valid_categories = ["comparison", "definition", "recommendation", "tutorial", "top_x", "review", "general"]
+            if category not in valid_categories:
+                category = "general"
+            
+            # Map priority to valid values
+            priority = (query.get("priority") or "medium").lower()
+            if priority not in ["low", "medium", "high"]:
+                priority = "medium"
+            
+            # Map frequency to valid values
+            frequency = (query.get("frequency") or "monthly").lower()
+            if frequency not in ["daily", "weekly", "monthly"]:
+                frequency = "monthly"
+
             payload = {
                 "user_id": user_id,
                 "brand_id": brand_id,
+                "analysis_id": analysis_id,
                 "title": title,
                 "question": question,
                 "answer": query.get("answer"),
+                "category": category,
+                "priority": priority,
+                "frequency": frequency,
                 "estimated_volume": self._to_int(query.get("estimated_volume")),
                 "ai_models": query.get("ai_models", []),
                 "tracked": query.get("tracked", True),

@@ -23,8 +23,9 @@ const translations = {
     
     // Hero
     heroTagline: '✨ El Futuro del SEO está Aquí',
-    heroTitle: 'Domina el panorama de',
-    heroTitleHighlight: 'Búsqueda IA',
+    heroTitle: 'Domina el',
+    heroTitleHighlight: 'Panorama de Búsqueda IA',
+    heroTitleEnd: '',
     heroDescription: 'El SEO tradicional está desapareciendo. Mentha ayuda a las marcas B2B a optimizar para la nueva era de motores de búsqueda: ChatGPT, Claude, Perplexity y Gemini.',
     heroStartTrial: 'Prueba Gratis',
     heroAnalyzeSite: 'Analiza tu Sitio',
@@ -745,6 +746,7 @@ const translations = {
     heroTagline: '✨ The Future of SEO is Here',
     heroTitle: 'Dominate the',
     heroTitleHighlight: 'AI Search',
+    heroTitleEnd: 'Landscape',
     heroDescription: 'Traditional SEO is fading. Mentha helps B2B brands optimize for the new era of search engines—ChatGPT, Claude, Perplexity, and Gemini.',
     heroStartTrial: 'Start Free Trial',
     heroAnalyzeSite: 'Analyze Your Site',

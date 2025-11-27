@@ -1,5 +1,8 @@
 import { fetchAPI } from '@/lib/api-client';
 
+export type TrendDirection = 'rising' | 'stable' | 'falling';
+export type DataSource = 'google_trends' | 'serpapi' | 'estimated' | 'llm_estimated' | 'manual';
+
 export interface Keyword {
   id: string;
   keyword: string;
@@ -7,7 +10,19 @@ export interface Keyword {
   search_volume?: number;
   difficulty?: number;
   ai_visibility_score?: number;
+  position?: number;
+  trend?: 'up' | 'down' | 'neutral';
+  mentions?: {
+    chatgpt?: boolean;
+    claude?: boolean;
+    perplexity?: boolean;
+    gemini?: boolean;
+  };
   tracked: boolean;
+  // New real metrics fields
+  trend_score?: number;
+  trend_direction?: TrendDirection;
+  data_source?: DataSource;
   created_at: string;
   updated_at: string;
 }

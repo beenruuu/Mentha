@@ -7,6 +7,7 @@
 
 @layer base {
   :root {
+    --mentha: #2DD4BF;
     --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
@@ -30,6 +31,7 @@
   }
 
   .dark {
+    --mentha: #16a085;
     --background: 0 0% 3.9%;
     --foreground: 0 0% 98%;
     --card: 0 0% 3.9%;
@@ -76,8 +78,8 @@ html, body {
 @layer utilities {
   /* Webkit browsers (Chrome, Safari, Edge) */
   *::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
   }
 
   *::-webkit-scrollbar-track {
@@ -85,36 +87,36 @@ html, body {
   }
 
   *::-webkit-scrollbar-thumb {
-    background: rgb(156, 163, 175);
-    border-radius: 5px;
-    border: 2px solid transparent;
+    background: var(--mentha);
+    border-radius: 9999px;
+    border: 3px solid transparent;
     background-clip: padding-box;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: rgb(107, 114, 128);
+    filter: brightness(0.9);
     background-clip: padding-box;
   }
 
   /* Dark mode scrollbar */
   .dark *::-webkit-scrollbar-thumb {
-    background: rgb(75, 85, 99);
+    background: var(--mentha);
     background-clip: padding-box;
   }
 
   .dark *::-webkit-scrollbar-thumb:hover {
-    background: rgb(107, 114, 128);
+    filter: brightness(0.85);
     background-clip: padding-box;
   }
 
   /* Firefox */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgb(156, 163, 175) transparent;
+    scrollbar-color: var(--mentha) transparent;
   }
 
   .dark * {
-    scrollbar-color: rgb(75, 85, 99) transparent;
+    scrollbar-color: var(--mentha) transparent;
   }
 
   /* orbit animations removed (reverted) */

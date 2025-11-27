@@ -152,8 +152,8 @@ export default function DashboardPage() {
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-[#1f1f23] bg-[#fdfdfc] dark:bg-[#050505]">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t.dashboardTitle}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t.dashboardDescription}</p>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Dashboard</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Overview of your brand's AI visibility</p>
           </div>
           <Button variant="ghost" size="icon">
              <Settings className="w-5 h-5 text-gray-500" />
@@ -174,7 +174,7 @@ export default function DashboardPage() {
                           </div>
                           <div>
                              <p className="font-medium text-sm text-gray-900 dark:text-white">{provider.name}</p>
-                             <p className="text-xs text-gray-500">{provider.isTracking ? t.dashboardTracking : t.dashboardInactive}</p>
+                             <p className="text-xs text-gray-500">{provider.isTracking ? 'Tracking' : 'Inactive'}</p>
                           </div>
                        </div>
                        <div className="text-right">
@@ -192,8 +192,8 @@ export default function DashboardPage() {
                {/* Chart - Takes 2 cols */}
                <Card className="lg:col-span-2 border-gray-200 dark:border-[#27272a] shadow-sm">
                   <CardHeader>
-                     <CardTitle>{t.dashboardVisibilityTrend}</CardTitle>
-                     <CardDescription>{t.dashboardVisibilityTrendDescription}</CardDescription>
+                     <CardTitle>Visibility Trend</CardTitle>
+                     <CardDescription>Your AI visibility score over time</CardDescription>
                   </CardHeader>
                   <CardContent className="pl-0">
                      <div className="h-[300px] w-full pr-4">
@@ -229,7 +229,7 @@ export default function DashboardPage() {
                           </ResponsiveContainer>
                         ) : (
                           <div className="h-full flex items-center justify-center text-gray-400 text-sm">
-                            {t.dashboardNoHistoricalData}
+                            No historical data available yet
                           </div>
                         )}
                      </div>
@@ -239,8 +239,8 @@ export default function DashboardPage() {
                {/* Recommendations / Actions - Takes 1 col */}
                <Card className="border-gray-200 dark:border-[#27272a] shadow-sm flex flex-col h-full">
                   <CardHeader>
-                     <CardTitle>{t.dashboardRecommendedActions}</CardTitle>
-                     <CardDescription>{t.dashboardImproveStanding}</CardDescription>
+                     <CardTitle>Recommended Actions</CardTitle>
+                     <CardDescription>Improve your standing</CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1 overflow-y-auto pr-2">
                      <div className="space-y-4">
@@ -256,7 +256,7 @@ export default function DashboardPage() {
                             </div>
                           ))
                         ) : (
-                          <div className="text-sm text-gray-500 italic text-center py-8">{t.dashboardNoActionsYet}</div>
+                          <div className="text-sm text-gray-500 italic text-center py-8">No actions recommended yet.</div>
                         )}
                      </div>
                   </CardContent>
@@ -268,8 +268,8 @@ export default function DashboardPage() {
                {/* Competitors */}
                <Card className="border-gray-200 dark:border-[#27272a] shadow-sm">
                   <CardHeader>
-                     <CardTitle>{t.dashboardCompetitors}</CardTitle>
-                     <CardDescription>{t.dashboardCompetitorsDescription}</CardDescription>
+                     <CardTitle>Competitors</CardTitle>
+                     <CardDescription>Visibility comparison</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {competitors.length > 0 ? competitors.slice(0, 5).map((comp) => (
@@ -283,7 +283,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     )) : (
-                      <p className="text-sm text-gray-500 italic">{t.dashboardNoCompetitors}</p>
+                      <p className="text-sm text-gray-500 italic">No competitors tracked.</p>
                     )}
                   </CardContent>
                </Card>
@@ -291,8 +291,8 @@ export default function DashboardPage() {
                {/* Keywords */}
                <Card className="border-gray-200 dark:border-[#27272a] shadow-sm">
                   <CardHeader>
-                     <CardTitle>{t.dashboardTopKeywords}</CardTitle>
-                     <CardDescription>{t.dashboardHighOpportunity}</CardDescription>
+                     <CardTitle>Top Keywords</CardTitle>
+                     <CardDescription>High opportunity terms</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {keywordInsights.length > 0 ? keywordInsights.slice(0, 5).map((item: any, idx: number) => (
@@ -306,7 +306,7 @@ export default function DashboardPage() {
                         </div>
                       </div>
                     )) : (
-                      <p className="text-sm text-gray-500 italic">{t.dashboardNoKeywords}</p>
+                      <p className="text-sm text-gray-500 italic">No keywords found.</p>
                     )}
                   </CardContent>
                </Card>
@@ -314,8 +314,8 @@ export default function DashboardPage() {
                {/* Recent Activity */}
                <Card className="border-gray-200 dark:border-[#27272a] shadow-sm">
                   <CardHeader>
-                     <CardTitle>{t.dashboardRecentActivity}</CardTitle>
-                     <CardDescription>{t.dashboardRecentActivityDescription}</CardDescription>
+                     <CardTitle>Recent Activity</CardTitle>
+                     <CardDescription>Crawlers & Alerts</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {crawlerInsights.length > 0 ? crawlerInsights.slice(0, 3).map((crawler: any, idx: number) => (
@@ -327,12 +327,12 @@ export default function DashboardPage() {
                         <Badge variant="outline" className="text-xs">{crawler.pages_visited || 0} pages</Badge>
                       </div>
                     )) : (
-                      <p className="text-sm text-gray-500 italic">{t.dashboardNoCrawlerActivity}</p>
+                      <p className="text-sm text-gray-500 italic">No recent crawler activity.</p>
                     )}
                     
                     {notifications.length > 0 && (
                       <div className="pt-4 border-t border-gray-100 dark:border-gray-800 mt-4">
-                        <p className="text-xs font-medium text-gray-500 mb-2 uppercase">{t.dashboardNotifications}</p>
+                        <p className="text-xs font-medium text-gray-500 mb-2 uppercase">Notifications</p>
                         {notifications.slice(0, 2).map((note: any, idx: number) => (
                           <div key={`note-${idx}`} className="text-sm text-gray-600 dark:text-gray-300 mb-2 last:mb-0">
                             {note.title}

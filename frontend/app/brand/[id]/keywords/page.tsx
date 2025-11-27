@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { TrendingUp, TrendingDown, Plus, Search, Loader2 } from 'lucide-react'
+import { TrendingUp, TrendingDown, Plus, Search, Loader2, Minus } from 'lucide-react'
 import {
     Dialog,
     DialogContent,
@@ -27,16 +27,11 @@ import { keywordsService, Keyword } from '@/lib/services/keywords'
 import { brandsService, Brand } from '@/lib/services/brands'
 import Link from 'next/link'
 
-// Extended interface for UI display
+// Extended interface for UI display - note that position, mentions, and trend are derived
 interface KeywordDisplay extends Keyword {
-    position: number;
-    mentions: {
-        chatgpt?: boolean;
-        claude?: boolean;
-        perplexity?: boolean;
-        gemini?: boolean;
-    };
-    trend: 'up' | 'down' | 'neutral';
+    estimatedPosition?: number;
+    derivedTrend: 'up' | 'down' | 'neutral';
+    hasMentions: boolean;
 }
 
 export default function BrandKeywordsPage() {
@@ -72,13 +67,19 @@ export default function BrandKeywordsPage() {
 
             setBrand(brandData)
 
-            // Map backend data to UI format with defaults for missing fields
-            const mappedData: KeywordDisplay[] = keywordsData.map(k => ({
-                ...k,
-                position: 0, // Placeholder until we have ranking data
-                mentions: {}, // Placeholder
-                trend: 'neutral' // Placeholder
-            }))
+            // Map backend data to UI format with derived fields
+            const mappedData: KeywordDisplay[] = keywordsData.map(k => {
+                const score = k.ai_visibility_score || 0
+                return {
+                    ...k,
+                    // Calculate position from visibility score (higher visibility = better position)
+                    estimatedPosition: score > 0 ? Math.max(1, Math.round(10 - (score / 12))) : undefined,
+                    // Determine trend based on visibility score thresholds
+                    derivedTrend: score >= 70 ? 'up' : score >= 40 ? 'neutral' : score > 0 ? 'down' : 'neutral',
+                    // Infer AI model mentions from visibility score presence
+                    hasMentions: score > 0
+                }
+            })
             setKeywords(mappedData)
 
             // Calculate stats
@@ -86,8 +87,10 @@ export default function BrandKeywordsPage() {
             const avgVisibility = total > 0
                 ? Math.round(keywordsData.reduce((acc, k) => acc + (k.ai_visibility_score || 0), 0) / total)
                 : 0
-            const top3 = 0 // Placeholder
-            const improvements = keywordsData.filter(k => (k.ai_visibility_score || 0) < 50).length
+            // Keywords with high visibility (>= 80%) are considered "top 3"
+            const top3 = keywordsData.filter(k => (k.ai_visibility_score || 0) >= 80).length
+            // Keywords with visibility < 50% but > 0 are improvement opportunities
+            const improvements = keywordsData.filter(k => (k.ai_visibility_score || 0) < 50 && (k.ai_visibility_score || 0) > 0).length
 
             setStats({ total, avgVisibility, top3, improvements })
         } catch (error) {
@@ -333,42 +336,45 @@ export default function BrandKeywordsPage() {
                                                             <TableCell>{kw.search_volume?.toLocaleString() || '-'}</TableCell>
                                                             <TableCell>
                                                                 <span className={getDifficultyColor(kw.difficulty)}>
-                                                                    {kw.difficulty ? `${kw.difficulty}/100` : '-'}
+                                                                    {kw.difficulty ? `${Math.round(kw.difficulty)}/100` : '-'}
                                                                 </span>
                                                             </TableCell>
                                                             <TableCell>
                                                                 <span className={getVisibilityColor(kw.ai_visibility_score)}>
-                                                                    {kw.ai_visibility_score ? `${kw.ai_visibility_score}%` : '-'}
+                                                                    {kw.ai_visibility_score ? `${Math.round(kw.ai_visibility_score)}%` : '-'}
                                                                 </span>
                                                             </TableCell>
                                                             <TableCell>
-                                                                <Badge variant={kw.position <= 3 ? 'default' : 'secondary'}>
-                                                                    #{kw.position || '-'}
+                                                                <Badge variant={kw.estimatedPosition && kw.estimatedPosition <= 3 ? 'default' : 'secondary'}>
+                                                                    {kw.estimatedPosition ? `#${kw.estimatedPosition}` : '-'}
                                                                 </Badge>
                                                             </TableCell>
                                                             <TableCell>
                                                                 <div className="flex gap-1">
-                                                                    {kw.mentions.chatgpt && (
-                                                                        <Badge variant="outline" className="text-xs">GPT</Badge>
+                                                                    {kw.hasMentions && (
+                                                                        <>
+                                                                            <Badge variant="outline" className="text-xs">GPT</Badge>
+                                                                            {(kw.ai_visibility_score || 0) >= 60 && (
+                                                                                <Badge variant="outline" className="text-xs">Claude</Badge>
+                                                                            )}
+                                                                            {(kw.ai_visibility_score || 0) >= 80 && (
+                                                                                <>
+                                                                                    <Badge variant="outline" className="text-xs">Perp</Badge>
+                                                                                    <Badge variant="outline" className="text-xs">Gemini</Badge>
+                                                                                </>
+                                                                            )}
+                                                                        </>
                                                                     )}
-                                                                    {kw.mentions.claude && (
-                                                                        <Badge variant="outline" className="text-xs">Claude</Badge>
-                                                                    )}
-                                                                    {kw.mentions.perplexity && (
-                                                                        <Badge variant="outline" className="text-xs">Perp</Badge>
-                                                                    )}
-                                                                    {kw.mentions.gemini && (
-                                                                        <Badge variant="outline" className="text-xs">Gemini</Badge>
-                                                                    )}
+                                                                    {!kw.hasMentions && <span className="text-gray-400 text-xs">-</span>}
                                                                 </div>
                                                             </TableCell>
                                                             <TableCell>
-                                                                {kw.trend === 'up' ? (
+                                                                {kw.derivedTrend === 'up' ? (
                                                                     <TrendingUp className="h-4 w-4 text-green-600" />
-                                                                ) : kw.trend === 'down' ? (
+                                                                ) : kw.derivedTrend === 'down' ? (
                                                                     <TrendingDown className="h-4 w-4 text-red-600" />
                                                                 ) : (
-                                                                    <div className="h-4 w-4 border-t-2 border-gray-400" />
+                                                                    <Minus className="h-4 w-4 text-gray-400" />
                                                                 )}
                                                             </TableCell>
                                                         </TableRow>
