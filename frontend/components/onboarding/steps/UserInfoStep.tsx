@@ -6,9 +6,10 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Card } from '@/components/ui/card'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import FlagIcon from '@/components/flag-icon'
+import { setLanguage } from '@/lib/i18n'
 
 const INDUSTRIES = [
     'SaaS', 'E-commerce', 'Agency', 'Finance', 'Healthcare', 'Education', 'Real Estate', 'Other'
@@ -32,18 +33,35 @@ const COUNTRIES = [
     // Add more as needed
 ]
 
+// Map country codes to preferred languages
+const COUNTRY_LANG_MAP: Record<string, 'en' | 'es' | 'fr' | 'de' | 'it'> = {
+    'ES': 'es',
+    'US': 'en',
+    'GB': 'en',
+    'FR': 'fr',
+    'DE': 'de',
+    'IT': 'it'
+}
+
 export default function UserInfoStep() {
     const { userInfo, setUserInfo, nextStep } = useOnboarding()
-    const [lang, setLang] = useState<'en' | 'es'>('en')
 
+    // Derive language from country selection and sync to userInfo + UI i18n
     useEffect(() => {
-        // Simple language detection logic based on country
-        if (userInfo.country === 'ES') {
-            setLang('es')
-        } else {
-            setLang('en')
+        if (!userInfo.country) return
+        
+        const newLang = COUNTRY_LANG_MAP[userInfo.country] || 'en'
+        if (userInfo.preferredLanguage !== newLang) {
+            // Update onboarding context
+            setUserInfo({ ...userInfo, preferredLanguage: newLang })
+            // Sync UI language (localStorage + DOM)
+            // Only set es or en for UI, as i18n only supports those
+            const uiLang = newLang === 'es' ? 'es' : 'en'
+            setLanguage(uiLang)
         }
-    }, [userInfo.country])
+    }, [userInfo.country]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    const lang = userInfo.preferredLanguage || 'en'
 
     const t = {
         title: lang === 'es' ? 'Cuéntanos sobre ti' : 'Tell us about yourself',

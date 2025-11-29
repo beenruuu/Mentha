@@ -27,7 +27,8 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             industry=profile_data.get("industry"),
             role=profile_data.get("role"),
             company_name=profile_data.get("company_name"),
-            discovery_source=profile_data.get("discovery_source")
+            discovery_source=profile_data.get("discovery_source"),
+            preferred_language=profile_data.get("preferred_language", "en")
         )
     except Exception as e:
         raise HTTPException(
@@ -64,7 +65,8 @@ async def update_current_user(
             industry=profile_data.get("industry"),
             role=profile_data.get("role"),
             company_name=profile_data.get("company_name"),
-            discovery_source=profile_data.get("discovery_source")
+            discovery_source=profile_data.get("discovery_source"),
+            preferred_language=profile_data.get("preferred_language", "en")
         )
     except Exception as e:
         raise HTTPException(

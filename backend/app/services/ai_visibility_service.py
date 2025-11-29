@@ -33,16 +33,54 @@ class AIVisibilityService:
     3. Calculates real visibility scores based on actual mention frequency
     """
     
-    # Test query templates for measuring brand visibility
-    VISIBILITY_QUERIES = [
-        "What are the best {industry} companies?",
-        "Can you recommend a good {industry} service?",
-        "Who are the top players in {industry}?",
-        "What is {brand_name}?",
-        "Tell me about {brand_name} in {industry}",
-        "Compare {brand_name} with competitors",
-        "Is {brand_name} a good choice for {industry}?",
-    ]
+    # Test query templates for measuring brand visibility (by language)
+    VISIBILITY_QUERIES = {
+        "en": [
+            "What are the best {industry} companies?",
+            "Can you recommend a good {industry} service?",
+            "Who are the top players in {industry}?",
+            "What is {brand_name}?",
+            "Tell me about {brand_name} in {industry}",
+            "Compare {brand_name} with competitors",
+            "Is {brand_name} a good choice for {industry}?",
+        ],
+        "es": [
+            "¿Cuáles son las mejores empresas de {industry}?",
+            "¿Puedes recomendar un buen servicio de {industry}?",
+            "¿Quiénes son los principales actores en {industry}?",
+            "¿Qué es {brand_name}?",
+            "Háblame sobre {brand_name} en {industry}",
+            "Compara {brand_name} con sus competidores",
+            "¿Es {brand_name} una buena opción para {industry}?",
+        ],
+        "fr": [
+            "Quelles sont les meilleures entreprises de {industry}?",
+            "Pouvez-vous recommander un bon service de {industry}?",
+            "Qui sont les principaux acteurs dans {industry}?",
+            "Qu'est-ce que {brand_name}?",
+            "Parlez-moi de {brand_name} dans {industry}",
+            "Comparez {brand_name} avec ses concurrents",
+            "Est-ce que {brand_name} est un bon choix pour {industry}?",
+        ],
+        "de": [
+            "Was sind die besten {industry} Unternehmen?",
+            "Können Sie einen guten {industry} Service empfehlen?",
+            "Wer sind die Top-Player in {industry}?",
+            "Was ist {brand_name}?",
+            "Erzählen Sie mir über {brand_name} in {industry}",
+            "Vergleichen Sie {brand_name} mit Wettbewerbern",
+            "Ist {brand_name} eine gute Wahl für {industry}?",
+        ],
+        "it": [
+            "Quali sono le migliori aziende di {industry}?",
+            "Puoi raccomandare un buon servizio di {industry}?",
+            "Chi sono i principali attori in {industry}?",
+            "Cos'è {brand_name}?",
+            "Parlami di {brand_name} in {industry}",
+            "Confronta {brand_name} con i concorrenti",
+            "È {brand_name} una buona scelta per {industry}?",
+        ]
+    }
     
     # Weight for each AI model in the overall score
     MODEL_WEIGHTS = {
@@ -63,7 +101,8 @@ class AIVisibilityService:
         domain: str = "",
         industry: str = "",
         keywords: List[str] = None,
-        num_queries: int = 3
+        num_queries: int = 3,
+        language: str = "en"
     ) -> Dict[str, Any]:
         """
         Measure actual AI visibility for a brand across multiple models.
@@ -82,6 +121,7 @@ class AIVisibilityService:
             "brand_name": brand_name,
             "domain": domain,
             "industry": industry,
+            "language": language,
             "measured_at": datetime.utcnow().isoformat() + "Z",
             "models": {},
             "overall_score": 0,
@@ -90,8 +130,8 @@ class AIVisibilityService:
             "enabled": True
         }
         
-        # Generate test queries
-        test_queries = self._generate_test_queries(brand_name, industry, keywords, num_queries)
+        # Generate test queries in the user's preferred language
+        test_queries = self._generate_test_queries(brand_name, industry, keywords, num_queries, language)
         
         # Query each available model
         tasks = []
@@ -158,22 +198,44 @@ class AIVisibilityService:
         brand_name: str,
         industry: str,
         keywords: List[str] = None,
-        num_queries: int = 3
+        num_queries: int = 3,
+        language: str = "en"
     ) -> List[str]:
-        """Generate test queries for visibility measurement."""
+        """Generate test queries for visibility measurement in the user's language."""
         queries = []
         
-        for template in self.VISIBILITY_QUERIES[:num_queries]:
+        # Get templates for the selected language, fallback to English
+        templates = self.VISIBILITY_QUERIES.get(language, self.VISIBILITY_QUERIES.get("en", []))
+        
+        # Default industry translation for common languages
+        default_industry = {
+            "en": "technology",
+            "es": "tecnología",
+            "fr": "technologie",
+            "de": "Technologie",
+            "it": "tecnologia"
+        }.get(language, "technology")
+        
+        for template in templates[:num_queries]:
             query = template.format(
                 brand_name=brand_name,
-                industry=industry or "technology"
+                industry=industry or default_industry
             )
             queries.append(query)
         
-        # Add keyword-based queries if provided
+        # Add keyword-based queries if provided (in the appropriate language)
+        keyword_templates = {
+            "en": "What is the best solution for {kw}?",
+            "es": "¿Cuál es la mejor solución para {kw}?",
+            "fr": "Quelle est la meilleure solution pour {kw}?",
+            "de": "Was ist die beste Lösung für {kw}?",
+            "it": "Qual è la migliore soluzione per {kw}?"
+        }
+        kw_template = keyword_templates.get(language, keyword_templates["en"])
+        
         if keywords:
             for kw in keywords[:2]:
-                queries.append(f"What is the best solution for {kw}?")
+                queries.append(kw_template.format(kw=kw))
         
         return queries
     

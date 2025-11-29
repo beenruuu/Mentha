@@ -8,9 +8,9 @@ export type OnboardingStep =
     | 'user-company'
     | 'user-discovery'
     | 'brand-input'
-    | 'analysis-wizard'
     | 'ai-providers'
     | 'discovery-prompts'
+    | 'analysis-progress'
     | 'completion'
 
 export interface UserInfo {
@@ -21,6 +21,7 @@ export interface UserInfo {
     role: string
     companyName: string
     discoverySource: string
+    preferredLanguage: 'en' | 'es' | 'fr' | 'de' | 'it'
 }
 
 export interface BrandInfo {
@@ -34,6 +35,8 @@ export interface BrandInfo {
     location?: string
     founded?: string
     businessModel?: string
+    services?: string[]  // Services inferred from the website
+    id?: string  // Brand ID after creation
 }
 
 export interface AIProvider {
@@ -78,7 +81,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         industry: '',
         role: '',
         companyName: '',
-        discoverySource: ''
+        discoverySource: '',
+        preferredLanguage: 'en'
     })
 
     const [brandInfo, setBrandInfo] = useState<BrandInfo>({
@@ -94,11 +98,8 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         { id: 'grok', name: 'Grok', model: 'Grok 4', status: 'connect', selected: false },
     ])
 
-    const [discoveryPrompts, setDiscoveryPrompts] = useState<DiscoveryPrompt[]>([
-        { id: '1', text: 'Best facility management services for B2B companies in Spain', selected: true },
-        { id: '2', text: 'How to choose a facility management provider for efficient operations', selected: true },
-        { id: '3', text: 'Which companies offer comprehensive facility management solutions in Europe', selected: true },
-    ])
+    // Discovery prompts will be generated dynamically based on brand info
+    const [discoveryPrompts, setDiscoveryPrompts] = useState<DiscoveryPrompt[]>([])
 
     const steps: OnboardingStep[] = [
         'user-identity',
@@ -106,9 +107,9 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         'user-company',
         'user-discovery',
         'brand-input',
-        'analysis-wizard',
         'ai-providers',
         'discovery-prompts',
+        'analysis-progress',
         'completion'
     ]
 
@@ -122,14 +123,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     const prevStep = () => {
         const currentIndex = steps.indexOf(currentStep)
         if (currentIndex > 0) {
-            let newIndex = currentIndex - 1
-            // Skip analysis-wizard when going backwards
-            if (steps[newIndex] === 'analysis-wizard') {
-                newIndex = newIndex - 1
-            }
-            if (newIndex >= 0) {
-                setCurrentStep(steps[newIndex])
-            }
+            setCurrentStep(steps[currentIndex - 1])
         }
     }
 

@@ -67,30 +67,39 @@ export default function BrandKeywordsPage() {
 
             setBrand(brandData)
 
-            // Map backend data to UI format with derived fields
+            // Map backend data to UI format
+            // Note: We only show real data. Fields with 0 indicate "no data available"
             const mappedData: KeywordDisplay[] = keywordsData.map(k => {
-                const score = k.ai_visibility_score || 0
+                // Only consider visibility scores > 0 as having real data
+                const hasRealVisibilityData = (k.ai_visibility_score || 0) > 0
+                const hasRealVolumeData = (k.search_volume || 0) > 0
+                
                 return {
                     ...k,
-                    // Calculate position from visibility score (higher visibility = better position)
-                    estimatedPosition: score > 0 ? Math.max(1, Math.round(10 - (score / 12))) : undefined,
-                    // Determine trend based on visibility score thresholds
-                    derivedTrend: score >= 70 ? 'up' : score >= 40 ? 'neutral' : score > 0 ? 'down' : 'neutral',
-                    // Infer AI model mentions from visibility score presence
-                    hasMentions: score > 0
+                    // Don't estimate positions - only show if we have real ranking data
+                    estimatedPosition: undefined, // TODO: Get real SERP position data
+                    // Trend requires historical data comparison
+                    derivedTrend: 'neutral' as const, // TODO: Calculate from real historical data
+                    // Only mark as having mentions if we actually measured it
+                    hasMentions: hasRealVisibilityData
                 }
             })
             setKeywords(mappedData)
 
-            // Calculate stats
+            // Calculate stats - only counting keywords with REAL data
             const total = keywordsData.length
-            const avgVisibility = total > 0
-                ? Math.round(keywordsData.reduce((acc, k) => acc + (k.ai_visibility_score || 0), 0) / total)
+            // Only count visibility if we have real measurements
+            const keywordsWithVisibility = keywordsData.filter(k => (k.ai_visibility_score || 0) > 0)
+            const avgVisibility = keywordsWithVisibility.length > 0
+                ? Math.round(keywordsWithVisibility.reduce((acc, k) => acc + (k.ai_visibility_score || 0), 0) / keywordsWithVisibility.length)
                 : 0
-            // Keywords with high visibility (>= 80%) are considered "top 3"
-            const top3 = keywordsData.filter(k => (k.ai_visibility_score || 0) >= 80).length
-            // Keywords with visibility < 50% but > 0 are improvement opportunities
-            const improvements = keywordsData.filter(k => (k.ai_visibility_score || 0) < 50 && (k.ai_visibility_score || 0) > 0).length
+            // We can't determine "top 3" without real ranking data
+            const top3 = 0 // TODO: Requires SERP tracking integration
+            // Improvement opportunities based on real low visibility scores
+            const improvements = keywordsData.filter(k => {
+                const score = k.ai_visibility_score || 0
+                return score > 0 && score < 50
+            }).length
 
             setStats({ total, avgVisibility, top3, improvements })
         } catch (error) {
@@ -212,40 +221,44 @@ export default function BrandKeywordsPage() {
                             </CardHeader>
                             <CardContent>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    0 {t.sinceLastMonth}
+                                    {t.trackedKeywords || 'Keywords tracked'}
                                 </p>
                             </CardContent>
                         </Card>
                         <Card className="bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
                             <CardHeader className="pb-2">
                                 <CardDescription className="text-gray-500 dark:text-gray-400">{t.averageVisibility}</CardDescription>
-                                <CardTitle className="text-3xl text-emerald-600">{stats.avgVisibility}%</CardTitle>
+                                <CardTitle className="text-3xl text-emerald-600">
+                                    {stats.avgVisibility > 0 ? `${stats.avgVisibility}%` : '—'}
+                                </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    0% {t.thisMonth}
+                                    {stats.avgVisibility > 0 ? 'Based on AI visibility checks' : 'Requires AI visibility measurement'}
                                 </p>
                             </CardContent>
                         </Card>
                         <Card className="bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
                             <CardHeader className="pb-2">
                                 <CardDescription className="text-gray-500 dark:text-gray-400">{t.top3Positions}</CardDescription>
-                                <CardTitle className="text-3xl text-gray-900 dark:text-white">{stats.top3}</CardTitle>
+                                <CardTitle className="text-3xl text-gray-400">—</CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    0% {t.ofYourKeywords}
+                                    Requires SERP tracking integration
                                 </p>
                             </CardContent>
                         </Card>
                         <Card className="bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
                             <CardHeader className="pb-2">
                                 <CardDescription className="text-gray-500 dark:text-gray-400">{t.potentialImprovements}</CardDescription>
-                                <CardTitle className="text-3xl text-gray-900 dark:text-white">{stats.improvements}</CardTitle>
+                                <CardTitle className="text-3xl text-gray-900 dark:text-white">
+                                    {stats.improvements > 0 ? stats.improvements : '—'}
+                                </CardTitle>
                             </CardHeader>
                             <CardContent>
                                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    {t.opportunitiesIdentified}
+                                    {stats.improvements > 0 ? t.opportunitiesIdentified : 'Based on visibility analysis'}
                                 </p>
                             </CardContent>
                         </Card>

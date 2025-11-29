@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card } from '@/components/ui/card'
 import { useEffect, useState } from 'react'
 import FlagIcon from '@/components/flag-icon'
+import { setLanguage } from '@/lib/i18n'
 
 const COUNTRIES = [
     { code: 'ES', name: 'Spain' },
@@ -18,17 +19,39 @@ const COUNTRIES = [
     { code: 'IT', name: 'Italy' },
 ]
 
+// Map country codes to preferred languages for backend content generation
+const COUNTRY_LANG_MAP: Record<string, 'en' | 'es' | 'fr' | 'de' | 'it'> = {
+    'ES': 'es',
+    'US': 'en',
+    'GB': 'en',
+    'FR': 'fr',
+    'DE': 'de',
+    'IT': 'it'
+}
+
 export default function UserIdentityStep() {
     const { userInfo, setUserInfo, nextStep } = useOnboarding()
     const [lang, setLang] = useState<'en' | 'es'>('en')
 
+    // Update both UI language and userInfo.preferredLanguage when country changes
     useEffect(() => {
-        if (userInfo.country === 'ES') {
-            setLang('es')
-        } else {
-            setLang('en')
+        if (!userInfo.country) return
+        
+        // Determine preferred language from country
+        const preferredLang = COUNTRY_LANG_MAP[userInfo.country] || 'en'
+        
+        // UI language (only supports en/es)
+        const uiLang = preferredLang === 'es' ? 'es' : 'en'
+        setLang(uiLang)
+        
+        // Sync UI language globally
+        setLanguage(uiLang)
+        
+        // Update userInfo.preferredLanguage for backend
+        if (userInfo.preferredLanguage !== preferredLang) {
+            setUserInfo({ ...userInfo, preferredLanguage: preferredLang })
         }
-    }, [userInfo.country])
+    }, [userInfo.country]) // eslint-disable-line react-hooks/exhaustive-deps
 
     const t = {
         title: lang === 'es' ? 'Empecemos por lo básico' : 'Let\'s start with the basics',

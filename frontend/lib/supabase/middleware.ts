@@ -49,7 +49,6 @@ export async function updateSession(request: NextRequest) {
     '/dashboard',
     '/brand',
     '/settings',
-    '/aeo-analysis',
     '/keywords',
     '/competitors',
     '/upgrade',

@@ -6,11 +6,12 @@ import UserProfessionalStep from '@/components/onboarding/steps/UserProfessional
 import UserCompanyStep from '@/components/onboarding/steps/UserCompanyStep'
 import UserDiscoveryStep from '@/components/onboarding/steps/UserDiscoveryStep'
 import BrandInputStep from '@/components/onboarding/steps/BrandInputStep'
-import AnalysisWizardStep from '@/components/onboarding/steps/AnalysisWizardStep'
 import AIProvidersStep from '@/components/onboarding/steps/AIProvidersStep'
 import DiscoveryPromptsStep from '@/components/onboarding/steps/DiscoveryPromptsStep'
+import AnalysisProgressStep from '@/components/onboarding/steps/AnalysisProgressStep'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
+import { useTranslations } from '@/lib/i18n'
 
 export default function OnboardingPage() {
   const { currentStep } = useOnboarding()
@@ -27,16 +28,18 @@ export default function OnboardingPage() {
         return <UserDiscoveryStep />
       case 'brand-input':
         return <BrandInputStep />
-      case 'analysis-wizard':
-        return <AnalysisWizardStep />
       case 'ai-providers':
         return <AIProvidersStep />
       case 'discovery-prompts':
         return <DiscoveryPromptsStep />
+      case 'analysis-progress':
+        return <AnalysisProgressStep />
       default:
         return null
     }
   }
+
+  const { t } = useTranslations()
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden grid lg:grid-cols-2">
@@ -72,11 +75,9 @@ export default function OnboardingPage() {
             <Sparkles className="w-12 h-12 text-primary" />
           </div>
           <h2 className="text-4xl font-bold tracking-tight">
-            Optimize your brand for the <span className="text-primary">Generative Engine Era</span>
+            {t.onboardingTitle} <span className="text-primary">{t.onboardingTitleHighlight}</span>
           </h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            Join thousands of forward-thinking companies mastering their presence on ChatGPT, Claude, Gemini, and more.
-          </p>
+          <p className="text-lg text-muted-foreground leading-relaxed">{t.onboardingDescription}</p>
         </div>
 
         {/* Decorative Grid/Pattern */}

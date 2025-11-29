@@ -34,8 +34,11 @@ class Settings(BaseSettings):
     WEB_SEARCH_PROVIDER: str = "duckduckgo"  # or "tavily", "serper", etc.
     
     # AI Visibility Measurement
-    AI_VISIBILITY_ENABLED: bool = False  # Disabled by default - makes real API calls that cost money
+    AI_VISIBILITY_ENABLED: bool = True  # Enabled by default - uses available API keys for real visibility measurement
     PERPLEXITY_API_KEY: str = ""  # Optional: for Perplexity visibility checks
+    
+    # Demo mode (set in backend/.env)
+    DEMO_MODE: bool = False
 
     class Config:
         env_file = ".env"

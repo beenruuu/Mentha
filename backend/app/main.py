@@ -1,3 +1,11 @@
+import warnings
+
+# Suppress noisy deprecation warnings from third-party libraries
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="supabase")
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="pytrends")
+warnings.filterwarnings("ignore", category=FutureWarning, module="pytrends")
+warnings.filterwarnings("ignore", category=ResourceWarning)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

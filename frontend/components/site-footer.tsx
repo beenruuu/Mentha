@@ -25,7 +25,7 @@ export default function SiteFooter() {
           <div>
             <h4 className="text-sm font-medium text-white mb-4">Product</h4>
             <ul className="space-y-2 text-sm text-zinc-500">
-              <li><Link href="/aeo-analysis" className="hover:text-emerald-400">Analysis</Link></li>
+              <li><Link href="/dashboard" className="hover:text-emerald-400">Analysis</Link></li>
               <li><Link href="/keywords" className="hover:text-emerald-400">Keywords</Link></li>
               <li><Link href="/competitors" className="hover:text-emerald-400">Competitors</Link></li>
             </ul>

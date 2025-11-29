@@ -58,34 +58,23 @@ export default function CompetitorsPage() {
       setLoading(true)
       const data = await competitorsService.getAll()
       
-      // Map backend data to UI format with derived fields
-      const mappedData: CompetitorDisplay[] = data.map(c => {
-        const score = c.visibility_score || 0
-        return {
-          ...c,
-          mentions: score > 0 ? Math.ceil(score / 20).toString() : "0", // Derive from visibility
-          avgPosition: score >= 80 ? "#1" : score >= 60 ? "#2-3" : score >= 40 ? "#4-5" : "-",
-          trend: score >= 70 ? 'up' : score >= 40 ? 'neutral' : score > 0 ? 'down' : 'neutral',
-          change: score >= 70 ? "+5%" : score >= 40 ? "0%" : score > 0 ? "-3%" : "0%",
-          strengths: score >= 80 ? ['Content Quality', 'AI Optimization'] : 
-                     score >= 50 ? ['Brand Recognition'] : []
-        }
-      })
+      // Map backend data to UI format - only show real data, no derived/fake values
+      const mappedData: CompetitorDisplay[] = data.map(c => ({
+        ...c,
+        mentions: '—', // Real mentions require AI search integration
+        avgPosition: '—', // Real position requires SERP tracking
+        trend: 'neutral', // Real trend requires historical data
+        change: '—', // Real change requires historical tracking
+        strengths: [] // Real strengths require competitive analysis
+      }))
       setCompetitors(mappedData)
 
-      // Calculate real stats from data
-      const avgScore = data.length > 0 
-        ? Math.round(data.reduce((acc, c) => acc + (c.visibility_score || 0), 0) / data.length)
-        : 0
-      const highestScore = data.length > 0 
-        ? Math.max(...data.map(c => c.visibility_score || 0))
-        : 0
-      
+      // Only show real stats - count of tracked competitors
       setStats({
         total: data.length,
-        yourPosition: data.length > 0 ? `#${Math.max(1, data.length)}` : '-',
-        visibilityGap: highestScore > 0 ? `${highestScore - avgScore}%` : '0%',
-        opportunities: data.filter(c => (c.visibility_score || 0) > 50).length
+        yourPosition: '—', // Requires real competitive analysis
+        visibilityGap: '—', // Requires real visibility measurement
+        opportunities: 0 // Requires real keyword analysis
       })
     } catch (error) {
       console.error('Failed to load competitors:', error)
@@ -171,19 +160,19 @@ export default function CompetitorsPage() {
                 <CardTitle className="text-3xl text-gray-900 dark:text-white">{stats.yourPosition}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-xs text-emerald-600">
-                  0 {t.movedUpPositions}
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  —
                 </p>
               </CardContent>
             </Card>
             <Card className="bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
               <CardHeader className="pb-2">
                 <CardDescription className="text-gray-500 dark:text-gray-400">{t.visibilityGap}</CardDescription>
-                <CardTitle className="text-3xl text-orange-600">{stats.visibilityGap}</CardTitle>
+                <CardTitle className="text-3xl text-gray-900 dark:text-white">{stats.visibilityGap}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {t.vsIndustryLeader}
+                  —
                 </p>
               </CardContent>
             </Card>
@@ -357,33 +346,27 @@ export default function CompetitorsPage() {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">{t.contentQuality}</span>
-                    <span className="text-sm text-muted-foreground">{t.them}: 0% | {t.you}: 0%</span>
+                    <span className="text-sm text-muted-foreground">—</span>
                   </div>
-                  <div className="flex gap-2">
-                    <Progress value={0} className="h-2 flex-1" />
-                    <Progress value={0} className="h-2 flex-1 opacity-50" />
-                  </div>
+                  <Progress value={0} className="h-2" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">{t.domainAuthority}</span>
-                    <span className="text-sm text-muted-foreground">{t.them}: 0% | {t.you}: 0%</span>
+                    <span className="text-sm text-muted-foreground">—</span>
                   </div>
-                  <div className="flex gap-2">
-                    <Progress value={0} className="h-2 flex-1" />
-                    <Progress value={0} className="h-2 flex-1 opacity-50" />
-                  </div>
+                  <Progress value={0} className="h-2" />
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium">{t.keywordCoverage}</span>
-                    <span className="text-sm text-muted-foreground">{t.them}: 0% | {t.you}: 0%</span>
+                    <span className="text-sm text-muted-foreground">—</span>
                   </div>
-                  <div className="flex gap-2">
-                    <Progress value={0} className="h-2 flex-1" />
-                    <Progress value={0} className="h-2 flex-1 opacity-50" />
-                  </div>
+                  <Progress value={0} className="h-2" />
                 </div>
+                <p className="text-xs text-muted-foreground text-center mt-4">
+                  {t.analysisRequired}
+                </p>
               </div>
             </CardContent>
           </Card>

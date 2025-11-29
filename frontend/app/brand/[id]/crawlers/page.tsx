@@ -55,19 +55,42 @@ export default function CrawlersPage() {
     if (!technicalAeo?.ai_crawler_permissions?.crawlers) {
       return []
     }
-    return Object.entries(technicalAeo.ai_crawler_permissions.crawlers).map(([name, status]) => ({
-      name,
-      status: status as string, // 'Allowed' or 'Blocked'
-      icon: '🤖'
-    }))
+    return Object.entries(technicalAeo.ai_crawler_permissions.crawlers).map(([name, status]) => {
+      // Map backend status to user-friendly display
+      const statusStr = status as string
+      let displayStatus: string
+      let statusType: 'allowed' | 'blocked' | 'unknown'
+      
+      if (statusStr === 'allowed' || statusStr === 'Allowed') {
+        displayStatus = 'Allowed'
+        statusType = 'allowed'
+      } else if (statusStr === 'disallowed' || statusStr === 'Disallowed' || statusStr === 'blocked' || statusStr === 'Blocked') {
+        displayStatus = 'Blocked'
+        statusType = 'blocked'
+      } else if (statusStr === 'not_specified') {
+        // not_specified means no explicit rule - defaults to allowed
+        displayStatus = 'No Rule (Allowed)'
+        statusType = 'allowed'
+      } else {
+        displayStatus = 'Unknown'
+        statusType = 'unknown'
+      }
+      
+      return {
+        name,
+        status: displayStatus,
+        statusType,
+        icon: '🤖'
+      }
+    })
   }, [technicalAeo])
 
   const stats = useMemo(() => {
     if (crawlerPermissions.length === 0) {
       return { total: 0, allowed: 0, blocked: 0, score: 0 }
     }
-    const allowed = crawlerPermissions.filter(c => c.status === 'Allowed').length
-    const blocked = crawlerPermissions.filter(c => c.status === 'Blocked').length
+    const allowed = crawlerPermissions.filter(c => c.statusType === 'allowed').length
+    const blocked = crawlerPermissions.filter(c => c.statusType === 'blocked').length
     return {
       total: crawlerPermissions.length,
       allowed,
@@ -185,6 +208,22 @@ export default function CrawlersPage() {
                 </div>
               </Card>
 
+              <Card className="p-4 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-900 mb-6">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 bg-amber-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Globe className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                      Sobre estos datos
+                    </h3>
+                    <p className="text-xs text-gray-700 dark:text-gray-300">
+                      Esta información se basa en el análisis de tu archivo robots.txt. Muestra qué bots de IA tienen <strong>permiso</strong> para rastrear tu sitio, no datos reales de visitas. "No Rule (Allowed)" significa que no hay regla específica, por lo que el crawler puede acceder por defecto.
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
               <Card className="p-6 bg-white dark:bg-black">
                 <h2 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-4">
                   {t.aiCrawlerPermissions}
@@ -210,8 +249,8 @@ export default function CrawlersPage() {
                           </div>
                         </div>
                         <Badge
-                          variant={crawler.status === 'Allowed' ? 'default' : 'destructive'}
-                          className={crawler.status === 'Allowed' ? 'bg-green-600 hover:bg-green-700' : ''}
+                          variant={crawler.statusType === 'blocked' ? 'destructive' : 'default'}
+                          className={crawler.statusType === 'allowed' ? 'bg-green-600 hover:bg-green-700' : crawler.statusType === 'unknown' ? 'bg-gray-500' : ''}
                         >
                           {crawler.status}
                         </Badge>

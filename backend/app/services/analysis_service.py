@@ -188,6 +188,15 @@ class AnalysisService:
                     "error": str(e),
                     "raw_text": response.text[:1000]
                 }
+            
+            # Post-process to filter out irrelevant keywords and competitors
+            # This is outside the try/except so 'data' is accessible
+            try:
+                input_data = analysis.input_data or {}
+                preferred_language = input_data.get("preferred_language", "en")
+                results = self._post_process_results(results, preferred_language)
+            except Exception as post_err:
+                print(f"Post-processing warning (non-fatal): {post_err}")
 
             # Extract score from LLM results (default to 0 if not present)
             score = results.get("score", 0)
@@ -248,6 +257,20 @@ class AnalysisService:
         if not isinstance(objectives, dict):
             objectives = {}
         
+        # Get user's preferred language for keyword/content generation
+        preferred_language = data.get("preferred_language", "en")
+        user_country = data.get("user_country", "")
+        
+        # Map language codes to full names for clarity
+        language_names = {
+            "en": "English",
+            "es": "Spanish (Español)",
+            "fr": "French (Français)",
+            "de": "German (Deutsch)", 
+            "it": "Italian (Italiano)"
+        }
+        language_name = language_names.get(preferred_language, "English")
+        
         if search_context is None:
             search_context = {"enabled": False}
         if technical_aeo is None:
@@ -268,6 +291,8 @@ Competitors Mentioned: {objectives.get('competitors', '')}
 Unique Value Proposition: {objectives.get('unique_value', '')}
 Content Strategy: {objectives.get('content_strategy', '')}
 AI Visibility Goals: {', '.join(objectives.get('ai_goals', []))}
+User Country: {user_country}
+Preferred Language: {language_name}
 """.strip()
         
         # Add real search data context if available
@@ -399,34 +424,40 @@ These are real measurements from actual AI model responses, not estimates."""
 
         schema_instructions = """
 Return ONLY valid JSON. Do NOT use markdown code blocks. Do NOT include any text outside the JSON object.
+
+IMPORTANT DATA INTEGRITY RULES:
+- For keywords: ONLY include search_volume and difficulty if you have REAL data from the metrics provided above.
+- If no real metrics are provided, set search_volume to 0 and difficulty to 0 (we will mark as "no data").
+- For competitors: set visibility_score to 0 unless we have real measurement data.
+- DO NOT INVENT OR ESTIMATE numeric metrics. Use 0 to indicate "no data available".
+- The summary, recommendations, and insights CAN be your analysis, but numeric metrics MUST be real or 0.
+
 The JSON must follow this schema:
 {
-    "score": number 0-100,
+    "score": number 0-100 (based on technical audit data if available, otherwise 0),
     "summary": string,
     "strengths": ["strength 1", "strength 2"],
     "weaknesses": ["weakness 1", "weakness 2"],
     "visibility_findings": {
-        "visibility_score": number,
+        "visibility_score": number (from real AI visibility measurement, or 0 if not measured),
         "models_tracking": ["chatgpt", "claude", "perplexity", "gemini"],
         "keywords_tracked": number,
-        "crawler_activity": string
+        "crawler_activity": string (describe robots.txt permissions, not visit activity)
     },
     "keywords": [
         {
-            "keyword": string,
-            "search_volume": number,
-            "difficulty": number,
-            "ai_visibility_score": number,
-            "opportunity": "low"|"medium"|"high"
+            "keyword": string (MUST be industry-relevant keywords in user's language),
+            "search_volume": number (ONLY from real metrics above, otherwise 0),
+            "difficulty": number (ONLY from real metrics above, otherwise 0),
+            "opportunity": "low"|"medium"|"high" (your assessment)
         }
     ],
     "competitors": [
         {
-            "name": string,
-            "domain": string,
-            "visibility_score": number,
+            "name": string (company name, NOT news sites, directories, or blogs),
+            "domain": string (corporate website domain only),
             "tracked": boolean,
-            "insight": string
+            "insight": string (your analysis of why they are a direct competitor)
         }
     ],
     "queries": [
@@ -434,19 +465,7 @@ The JSON must follow this schema:
             "title": string,
             "question": string,
             "category": "comparison"|"definition"|"recommendation"|"tutorial"|"top_x"|"review",
-            "frequency": "daily"|"weekly"|"monthly",
             "priority": "low"|"medium"|"high"
-        }
-    ],
-    "crawlers": [
-        {
-            "name": string,
-            "model": string,
-            "last_visit_hours": number,
-            "frequency": string,
-            "pages_visited": number,
-            "insight": string,
-            "top_pages": ["/path-a", "/path-b"]
         }
     ],
     "recommendations": [
@@ -468,6 +487,19 @@ The JSON must follow this schema:
         }
     ]
 }
+
+CRITICAL FILTERING RULES:
+1. KEYWORDS: Only include keywords that are DIRECTLY relevant to the brand's industry/services.
+   - NEVER include generic tech keywords like "whatsapp", "google", "windows", "download", "app", "store"
+   - NEVER include keywords in languages other than the user's preferred language
+   - Keywords should be specific industry terms, brand+service combinations, or comparison queries
+   
+2. COMPETITORS: Only include ACTUAL business competitors.
+   - NEVER include news sites, blogs, press portals, directories, job boards
+   - NEVER include Wikipedia, social media platforms, or generic platforms
+   - Only include companies that offer SIMILAR services/products in the SAME market
+   - Each competitor must have a corporate website domain (not a media/news domain)
+
 Lists should include 3-5 high-signal items tailored to the brand context.
 All numeric fields MUST be numbers (not strings).
 DO NOT wrap the output in markdown code blocks (like ```json). Just return the raw JSON string.
@@ -476,8 +508,24 @@ DO NOT include comments in the JSON.
 IMPORTANT: Do not use unescaped newlines inside string values. Use \\n for line breaks.
 """.strip()
 
+        # Add language-specific instructions
+        language_instruction = ""
+        if preferred_language != "en":
+            language_instruction = f"""
+
+=== LANGUAGE REQUIREMENTS ===
+CRITICAL: The user's preferred language is {language_name}.
+ALL keywords MUST be in {language_name} (not English).
+ALL recommendations, summaries, and insights MUST be in {language_name}.
+ALL query questions MUST be in {language_name}.
+Generate keywords that are relevant to the {user_country or 'target'} market.
+For example, if the language is Spanish, generate keywords like "gestión de instalaciones", "mantenimiento industrial", etc.
+DO NOT generate English keywords for non-English speaking users.
+"""
+
         prompt = f"""
 {analysis_instruction}
+{language_instruction}
 
 {brand_profile}
 {real_data_section}
@@ -511,6 +559,8 @@ IMPORTANT: Do not use unescaped newlines inside string values. Use \\n for line 
         domain = brand.get('domain', '')
         industry = brand.get('industry', '')
         key_terms = objectives.get('key_terms', '')
+        description = brand.get('description', '')
+        services = brand.get('services', '')
         
         # Only perform search if we have minimum required info
         if not brand_name or not industry:
@@ -521,7 +571,9 @@ IMPORTANT: Do not use unescaped newlines inside string values. Use \\n for line 
             brand_name=brand_name,
             domain=domain,
             industry=industry,
-            key_terms=key_terms
+            key_terms=key_terms,
+            description=description,
+            services=services
         )
     
     async def _perform_technical_aeo_audit(self, analysis: Analysis) -> Dict[str, Any]:
@@ -547,6 +599,119 @@ IMPORTANT: Do not use unescaped newlines inside string values. Use \\n for line 
             print(f"Error in technical AEO audit: {e}")
             return {"enabled": False, "error": str(e)}
     
+    def _is_valid_keyword(self, keyword: str, preferred_language: str = "en") -> bool:
+        """Check if a keyword is valid (no foreign scripts, no generic words)."""
+        import re
+        
+        # Skip if empty or too short
+        if not keyword or len(keyword) < 3:
+            return False
+        
+        # Skip if contains non-Latin characters (Cyrillic, Chinese, Arabic, etc.)
+        # This prevents keywords like "скачайте", "установите", etc.
+        if re.search(r'[^\u0000-\u007F\u00C0-\u00FF\u0100-\u017F]', keyword):
+            return False
+        
+        # Skip common generic words that are never useful keywords
+        generic_words = {
+            # English
+            'whatsapp', 'google', 'facebook', 'twitter', 'instagram', 'youtube',
+            'windows', 'android', 'iphone', 'apple', 'microsoft', 'download',
+            'free', 'store', 'app', 'messenger', 'telegram', 'wikipedia',
+            'login', 'sign', 'account', 'password', 'email', 'home', 'page',
+            # Spanish
+            'descargar', 'gratis', 'inicio', 'pagina', 'cuenta', 'correo',
+            # Russian/Cyrillic transliterations that might slip through
+            'skachat', 'besplatno', 'ustanovit',
+        }
+        
+        if keyword.lower() in generic_words:
+            return False
+        
+        return True
+    
+    def _is_valid_competitor(self, competitor: Dict[str, Any]) -> bool:
+        """Check if a competitor entry is valid (not a news site, directory, etc.)."""
+        name = (competitor.get('name') or '').lower()
+        domain = (competitor.get('domain') or '').lower()
+        
+        if not name or not domain:
+            return False
+        
+        # Domains that are NEVER competitors
+        invalid_domains = {
+            'guiadeprensa', 'eleconomista', 'cincodias', 'expansion',
+            'larazon', 'abc', 'elmundo', 'elpais', 'europapress',
+            'lavanguardia', 'elconfidencial', 'eldiario', '20minutos',
+            'wikipedia', 'linkedin', 'facebook', 'twitter', 'instagram',
+            'youtube', 'reddit', 'quora', 'tiktok', 'pinterest',
+            'amazon', 'ebay', 'aliexpress', 'google', 'bing', 'yahoo',
+            'indeed', 'infojobs', 'glassdoor', 'jobatus', 'monster',
+            'empresite', 'einforma', 'axesor', 'infocif', 'paginasamarillas',
+            'cylex', 'europages', 'kompass', 'whatsapp', 'microsoft',
+            'windows', 'apple', 'telegram', 'messenger'
+        }
+        
+        # Check domain
+        domain_base = domain.split('.')[0]
+        if domain_base in invalid_domains:
+            return False
+        
+        # Check for news/press patterns in domain
+        invalid_patterns = ['prensa', 'noticias', 'news', 'blog', 'press', 
+                           'directorio', 'directory', 'ranking', 'listado',
+                           'guia', 'guide', 'wikipedia', 'empleo', 'trabajo']
+        for pattern in invalid_patterns:
+            if pattern in domain:
+                return False
+        
+        # Check for invalid name patterns
+        invalid_name_patterns = ['wikipedia', 'linkedin', 'facebook', 'google',
+                                  'whatsapp', 'telegram', 'news', 'noticias',
+                                  'directorio', 'directory', 'guia', 'guide']
+        for pattern in invalid_name_patterns:
+            if pattern in name:
+                return False
+        
+        return True
+    
+    def _post_process_results(self, results: Dict[str, Any], preferred_language: str = "en") -> Dict[str, Any]:
+        """Post-process LLM results to filter out irrelevant keywords and competitors."""
+        
+        # Filter keywords
+        if 'keywords' in results and isinstance(results['keywords'], list):
+            filtered_keywords = []
+            for kw in results['keywords']:
+                keyword = kw.get('keyword', '')
+                if self._is_valid_keyword(keyword, preferred_language):
+                    filtered_keywords.append(kw)
+            results['keywords'] = filtered_keywords
+            print(f"Filtered keywords: {len(results['keywords'])} valid out of original list")
+        
+        # Filter competitors
+        if 'competitors' in results and isinstance(results['competitors'], list):
+            filtered_competitors = []
+            for comp in results['competitors']:
+                if self._is_valid_competitor(comp):
+                    filtered_competitors.append(comp)
+            results['competitors'] = filtered_competitors
+            print(f"Filtered competitors: {len(results['competitors'])} valid out of original list")
+        
+        # Filter queries (remove those with non-Latin characters)
+        if 'queries' in results and isinstance(results['queries'], list):
+            import re
+            filtered_queries = []
+            for query in results['queries']:
+                title = query.get('title', '')
+                question = query.get('question', '')
+                # Skip if contains non-Latin characters
+                if not re.search(r'[^\u0000-\u007F\u00C0-\u00FF\u0100-\u017F]', title + question):
+                    filtered_queries.append(query)
+            results['queries'] = filtered_queries
+            print(f"Filtered queries: {len(results['queries'])} valid")
+        
+        return results
+    
     async def _gather_keyword_metrics(
         self, 
         analysis: Analysis, 
@@ -561,31 +726,57 @@ IMPORTANT: Do not use unescaped newlines inside string values. Use \\n for line 
         industry = brand.get('industry', '')
         key_terms = objectives.get('key_terms', '')
         
+        # Get user's preferred language
+        preferred_language = data.get("preferred_language", "en")
+        
+        # Language-specific "best" keyword prefix
+        best_prefix = {
+            "en": "best",
+            "es": "mejor", 
+            "fr": "meilleur",
+            "de": "beste",
+            "it": "migliore"
+        }.get(preferred_language, "best")
+        
         # Extract keywords from multiple sources
         keywords_to_analyze = set()
         
-        # From key_terms input
+        # From key_terms input (user-provided, already in their language)
         if key_terms:
             terms = [t.strip() for t in key_terms.replace(',', '\n').split('\n') if t.strip()]
-            keywords_to_analyze.update(terms)
+            for term in terms:
+                if self._is_valid_keyword(term, preferred_language):
+                    keywords_to_analyze.add(term)
         
-        # From brand name + industry combinations
-        if brand_name:
+        # From brand name + industry combinations (in user's language)
+        if brand_name and self._is_valid_keyword(brand_name, preferred_language):
             keywords_to_analyze.add(brand_name)
-            if industry:
+            if industry and self._is_valid_keyword(industry, preferred_language):
                 keywords_to_analyze.add(f"{brand_name} {industry}")
-                keywords_to_analyze.add(f"best {industry}")
+                keywords_to_analyze.add(f"{best_prefix} {industry}")
         
-        # Extract keywords from search results
+        # Extract keywords from search results - BE MORE SELECTIVE
         if search_context.get("enabled"):
-            # Extract topics from search result titles
+            # Extract topics from search result titles - only meaningful phrases
             for result in search_context.get('keyword_results', [])[:5]:
                 title = result.get('title', '')
-                # Extract relevant words (simple extraction)
+                # Skip titles with non-Latin characters
+                import re
+                if re.search(r'[^\u0000-\u007F\u00C0-\u00FF\u0100-\u017F]', title):
+                    continue
+                    
+                # Extract multi-word phrases instead of single words
                 words = title.lower().split()
-                for word in words:
-                    if len(word) > 4 and word not in ['para', 'with', 'from', 'about', 'this', 'that', 'what', 'como']:
-                        keywords_to_analyze.add(word)
+                # Look for relevant 2-3 word phrases
+                for i in range(len(words) - 1):
+                    phrase = ' '.join(words[i:i+2])
+                    if len(phrase) > 8 and self._is_valid_keyword(phrase, preferred_language):
+                        # Only add if it seems related to the industry
+                        if industry and industry.lower() in phrase:
+                            keywords_to_analyze.add(phrase)
+        
+        # Filter all keywords one more time
+        keywords_to_analyze = {kw for kw in keywords_to_analyze if self._is_valid_keyword(kw, preferred_language)}
         
         # Limit to most relevant keywords
         keywords_list = list(keywords_to_analyze)[:15]
@@ -595,19 +786,21 @@ IMPORTANT: Do not use unescaped newlines inside string values. Use \\n for line 
             return {"enabled": False, "keywords": []}
         
         try:
-            print(f"Fetching REAL metrics for {len(keywords_list)} keywords...")
+            print(f"Fetching REAL metrics for {len(keywords_list)} keywords (language: {preferred_language})...")
             
-            # Get enriched keyword data with real metrics
+            # Get enriched keyword data with real metrics (in user's language)
             enriched_keywords = await self.keyword_metrics_service.enrich_keywords(
                 keywords=keywords_list,
-                geo=brand.get('country', 'US')
+                geo=brand.get('country', 'US'),
+                language=preferred_language
             )
             
             # Get related keywords for expansion
             if brand_name:
                 related = await self.keyword_metrics_service.get_related_keywords(
                     seed_keyword=f"{brand_name} {industry}" if industry else brand_name,
-                    geo=brand.get('country', 'US')
+                    geo=brand.get('country', 'US'),
+                    language=preferred_language
                 )
                 # Add some related keywords
                 enriched_keywords.extend(related[:5])
@@ -616,6 +809,7 @@ IMPORTANT: Do not use unescaped newlines inside string values. Use \\n for line 
                 "enabled": True,
                 "keywords": enriched_keywords,
                 "source": "google_trends",
+                "language": preferred_language,
                 "data_freshness": "real_time"
             }
         except Exception as e:
@@ -643,25 +837,29 @@ IMPORTANT: Do not use unescaped newlines inside string values. Use \\n for line 
         industry = brand.get('industry', '')
         key_terms = objectives.get('key_terms', '')
         
+        # Get user's preferred language
+        preferred_language = data.get("preferred_language", "en")
+        
         if not brand_name:
             print("No brand name for AI visibility measurement - skipping")
             return {"enabled": False, "reason": "no_brand_name"}
         
         try:
-            print(f"Measuring REAL AI visibility for: {brand_name}")
+            print(f"Measuring REAL AI visibility for: {brand_name} (language: {preferred_language})")
             
             # Get related keywords for query context
             keywords = []
             if key_terms:
                 keywords = [t.strip() for t in key_terms.replace(',', '\n').split('\n') if t.strip()][:5]
             
-            # Measure visibility across AI models
+            # Measure visibility across AI models (in user's preferred language)
             visibility_results = await self.ai_visibility_service.measure_visibility(
                 brand_name=brand_name,
                 domain=domain,
                 industry=industry,
                 keywords=keywords,
-                num_queries=3  # Limit queries to control costs
+                num_queries=3,  # Limit queries to control costs
+                language=preferred_language
             )
             
             return visibility_results

@@ -29,6 +29,10 @@ const translations = {
     heroDescription: 'El SEO tradicional está desapareciendo. Mentha ayuda a las marcas B2B a optimizar para la nueva era de motores de búsqueda: ChatGPT, Claude, Perplexity y Gemini.',
     heroStartTrial: 'Prueba Gratis',
     heroAnalyzeSite: 'Analiza tu Sitio',
+    // Onboarding
+    onboardingTitle: 'Optimiza tu marca para la',
+    onboardingTitleHighlight: 'Era de Motores Generativos',
+    onboardingDescription: 'Únete a miles de empresas vanguardistas que dominan su presencia en ChatGPT, Claude, Gemini y más.',
     
     // Introduction
     introTag: 'El Cambio de Paradigma',
@@ -750,6 +754,10 @@ const translations = {
     heroDescription: 'Traditional SEO is fading. Mentha helps B2B brands optimize for the new era of search engines—ChatGPT, Claude, Perplexity, and Gemini.',
     heroStartTrial: 'Start Free Trial',
     heroAnalyzeSite: 'Analyze Your Site',
+    // Onboarding
+    onboardingTitle: 'Optimize your brand for the',
+    onboardingTitleHighlight: 'Generative Engine Era',
+    onboardingDescription: 'Join thousands of forward-thinking companies mastering their presence on ChatGPT, Claude, Gemini, and more.',
     
     // Introduction
     introTag: 'The Paradigm Shift',

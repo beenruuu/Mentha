@@ -7,9 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Plus, Loader2, Sparkles, MessageSquare } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { fetchAPI } from '@/lib/api-client'
-import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
 import { cn } from '@/lib/utils'
 
@@ -19,13 +18,30 @@ export default function DiscoveryPromptsStep() {
         setDiscoveryPrompts,
         userInfo,
         brandInfo,
+        setBrandInfo,
         aiProviders,
-        prevStep
+        prevStep,
+        nextStep
     } = useOnboarding()
     const [customPrompt, setCustomPrompt] = useState('')
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const router = useRouter()
     const { toast } = useToast()
+
+    const lang = userInfo.preferredLanguage === 'es' ? 'es' : 'en'
+    const t = {
+        title: lang === 'es' ? 'Elige prompts de descubrimiento' : 'Choose discovery prompts',
+        subtitle: lang === 'es' 
+            ? 'Estas son preguntas que la gente hace en herramientas de IA donde tu marca podría aparecer.'
+            : 'These are questions people ask in AI tools where your brand might show up.',
+        addPlaceholder: lang === 'es' ? 'Añade tu propio prompt personalizado...' : 'Add your own custom prompt...',
+        add: lang === 'es' ? 'Añadir' : 'Add',
+        back: lang === 'es' ? 'Atrás' : 'Back',
+        selected: lang === 'es' ? 'seleccionados' : 'selected',
+        startAnalysis: lang === 'es' ? 'Iniciar Análisis' : 'Start Analysis',
+        saving: lang === 'es' ? 'Creando marca...' : 'Creating brand...',
+        customPrompt: lang === 'es' ? 'Prompt personalizado' : 'Custom prompt',
+        suggested: lang === 'es' ? 'Sugerido' : 'Suggested',
+    }
 
     const togglePrompt = (id: string) => {
         setDiscoveryPrompts(discoveryPrompts.map(p =>
@@ -47,8 +63,9 @@ export default function DiscoveryPromptsStep() {
 
     const handleFinish = async () => {
         setIsSubmitting(true)
+        
         try {
-            // 1. Update User Profile
+            // 1. Update User Profile - include preferred language
             await fetchAPI('/auth/me', {
                 method: 'PUT',
                 body: JSON.stringify({
@@ -57,66 +74,42 @@ export default function DiscoveryPromptsStep() {
                     industry: userInfo.industry,
                     role: userInfo.role,
                     company_name: userInfo.companyName,
-                    discovery_source: userInfo.discoverySource
+                    discovery_source: userInfo.discoverySource,
+                    preferred_language: userInfo.preferredLanguage || 'en'
                 })
             })
 
-            // 2. Create Brand - this triggers an initial analysis automatically
-            // The brand creation endpoint handles this via background_tasks
+            // Get selected providers and prompts for the analysis
+            const selectedProviders = aiProviders.filter(p => p.selected).map(p => p.id)
+            const selectedPrompts = discoveryPrompts.filter(p => p.selected).map(p => p.text)
+
+            // 2. Create Brand - this triggers the initial analysis with all data
             const brand = await fetchAPI<{ id: string }>('/brands/', {
                 method: 'POST',
                 body: JSON.stringify({
                     domain: brandInfo.url || brandInfo.domain,
                     name: brandInfo.title || brandInfo.domain || userInfo.companyName,
                     industry: brandInfo.industry || userInfo.industry,
-                    description: brandInfo.description || `${userInfo.companyName} - ${userInfo.industry}`
+                    description: brandInfo.description || `${userInfo.companyName} - ${userInfo.industry}`,
+                    discovery_prompts: selectedPrompts,
+                    ai_providers: selectedProviders,
+                    services: brandInfo.services || []
                 })
             })
 
-            // 3. Create a follow-up analysis with the discovery prompts
-            // This provides more specific context for AI optimization
-            const selectedProviders = aiProviders.filter(p => p.selected).map(p => p.id)
-            const selectedPrompts = discoveryPrompts.filter(p => p.selected).map(p => p.text)
+            // Store brand ID in context for the progress step
+            setBrandInfo({ ...brandInfo, id: brand.id })
 
-            if (selectedPrompts.length > 0) {
-                await fetchAPI('/analysis/', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        brand_id: brand.id,
-                        analysis_type: 'content',
-                        input_data: {
-                            brand: {
-                                name: brandInfo.title || brandInfo.domain || userInfo.companyName,
-                                domain: brandInfo.url || brandInfo.domain,
-                                industry: brandInfo.industry || userInfo.industry,
-                                description: brandInfo.description
-                            },
-                            objectives: {
-                                target_audience: 'B2B and B2C customers',
-                                ai_goals: ['Visibility', 'Authority', 'Engagement'],
-                                key_terms: selectedPrompts.join(', ')
-                            },
-                            providers: selectedProviders,
-                            prompts: selectedPrompts,
-                            source: 'onboarding'
-                        }
-                    })
-                })
-            }
-
-            toast({
-                title: "Setup complete!",
-                description: "Redirecting to your dashboard...",
-            })
-
-            // Redirect to dashboard
-            router.push(`/brand/${brand.id}`)
+            // Move to analysis progress step
+            nextStep()
 
         } catch (error) {
             console.error('Onboarding failed:', error)
             toast({
-                title: "Something went wrong",
-                description: "Failed to save your setup. Please try again.",
+                title: lang === 'es' ? 'Algo salió mal' : 'Something went wrong',
+                description: lang === 'es' 
+                    ? 'No se pudo crear tu marca. Por favor, intenta de nuevo.'
+                    : 'Failed to create your brand. Please try again.',
                 variant: "destructive"
             })
             setIsSubmitting(false)
@@ -130,9 +123,9 @@ export default function DiscoveryPromptsStep() {
             <Card className="w-full max-w-3xl p-10 space-y-8 shadow-2xl border-white/10 bg-black/40 backdrop-blur-xl">
                 <div className="space-y-2 text-left">
                     <h1 className="text-3xl font-bold tracking-tight text-white">
-                        Choose discovery prompts
+                        {t.title}
                     </h1>
-                    <p className="text-muted-foreground">These are questions people ask in AI tools where your brand might show up.</p>
+                    <p className="text-muted-foreground">{t.subtitle}</p>
                 </div>
 
                 <div className="grid gap-3">
@@ -163,11 +156,11 @@ export default function DiscoveryPromptsStep() {
                                 <div className="flex items-center gap-2">
                                     {prompt.isCustom ? (
                                         <span className="text-[10px] text-primary flex items-center gap-1">
-                                            <Sparkles className="w-3 h-3" /> Custom prompt
+                                            <Sparkles className="w-3 h-3" /> {t.customPrompt}
                                         </span>
                                     ) : (
                                         <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                                            <MessageSquare className="w-3 h-3" /> Suggested
+                                            <MessageSquare className="w-3 h-3" /> {t.suggested}
                                         </span>
                                     )}
                                 </div>
@@ -178,7 +171,7 @@ export default function DiscoveryPromptsStep() {
 
                 <div className="flex gap-3 pt-4 border-t border-white/10">
                     <Input
-                        placeholder="Add your own custom prompt..."
+                        placeholder={t.addPlaceholder}
                         value={customPrompt}
                         onChange={(e) => setCustomPrompt(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && addCustomPrompt()}
@@ -189,7 +182,7 @@ export default function DiscoveryPromptsStep() {
                         onClick={addCustomPrompt}
                         className="h-11 px-6"
                     >
-                        <Plus className="w-4 h-4 mr-2" /> Add
+                        <Plus className="w-4 h-4 mr-2" /> {t.add}
                     </Button>
                 </div>
 
@@ -199,12 +192,12 @@ export default function DiscoveryPromptsStep() {
                         onClick={prevStep}
                         className="text-muted-foreground hover:text-white"
                     >
-                        Back
+                        {t.back}
                     </Button>
                     
                     <div className="flex items-center gap-4">
                         <span className="text-sm text-muted-foreground">
-                            <span className="text-primary font-bold">{selectedCount}</span> selected
+                            <span className="text-primary font-bold">{selectedCount}</span> {t.selected}
                         </span>
                         <Button
                             onClick={handleFinish}
@@ -213,9 +206,9 @@ export default function DiscoveryPromptsStep() {
                         >
                             {isSubmitting ? (
                                 <>
-                                    <Loader2 className="w-4 h-4 animate-spin mr-2" /> Saving...
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2" /> {t.saving}
                                 </>
-                            ) : "Start Analysis"}
+                            ) : t.startAnalysis}
                         </Button>
                     </div>
                 </div>

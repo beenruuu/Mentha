@@ -5,21 +5,93 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { fetchAPI } from '@/lib/api-client'
 import { Loader2, Globe, Building2, MapPin, Calendar } from 'lucide-react'
 
 export default function BrandInputStep() {
-    const { brandInfo, setBrandInfo, nextStep, prevStep, userInfo } = useOnboarding()
+    const { brandInfo, setBrandInfo, setDiscoveryPrompts, nextStep, prevStep, userInfo } = useOnboarding()
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
 
     // Initialize brand title with company name if available and title is empty
-    useState(() => {
+    useEffect(() => {
         if (!brandInfo.title && userInfo.companyName) {
             setBrandInfo({ ...brandInfo, title: userInfo.companyName })
         }
-    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []) // Only run once on mount
+
+    // Generate discovery prompts based on brand info
+    const generateDiscoveryPrompts = (brandName: string, industry: string, services: string[], location: string) => {
+        const prompts = []
+        const lang = userInfo.preferredLanguage === 'es' ? 'es' : 'en'
+        
+        // Generate prompts based on services
+        if (services && services.length > 0) {
+            services.slice(0, 2).forEach((service, index) => {
+                if (lang === 'es') {
+                    prompts.push({
+                        id: `service-${index}`,
+                        text: `Mejores empresas de ${service.toLowerCase()} en ${location || 'España'}`,
+                        selected: true
+                    })
+                } else {
+                    prompts.push({
+                        id: `service-${index}`,
+                        text: `Best ${service.toLowerCase()} companies in ${location || 'Spain'}`,
+                        selected: true
+                    })
+                }
+            })
+        }
+        
+        // Add industry-based prompts
+        if (industry) {
+            if (lang === 'es') {
+                prompts.push({
+                    id: 'industry-1',
+                    text: `¿Cuáles son las mejores empresas de ${industry.toLowerCase()} en ${location || 'España'}?`,
+                    selected: true
+                })
+                prompts.push({
+                    id: 'industry-2',
+                    text: `¿Cómo elegir un proveedor de ${industry.toLowerCase()} para mi empresa?`,
+                    selected: true
+                })
+            } else {
+                prompts.push({
+                    id: 'industry-1',
+                    text: `What are the best ${industry.toLowerCase()} companies in ${location || 'Spain'}?`,
+                    selected: true
+                })
+                prompts.push({
+                    id: 'industry-2',
+                    text: `How to choose a ${industry.toLowerCase()} provider for my business?`,
+                    selected: true
+                })
+            }
+        }
+        
+        // Add brand-specific prompt
+        if (brandName) {
+            if (lang === 'es') {
+                prompts.push({
+                    id: 'brand-1',
+                    text: `¿Qué opiniones hay sobre ${brandName}?`,
+                    selected: true
+                })
+            } else {
+                prompts.push({
+                    id: 'brand-1',
+                    text: `What are the reviews of ${brandName}?`,
+                    selected: true
+                })
+            }
+        }
+        
+        return prompts
+    }
 
     const handleUrlBlur = async () => {
         if (!brandInfo.url) return
@@ -27,6 +99,7 @@ export default function BrandInputStep() {
         setLoading(true)
         setError('')
         try {
+            // Use new brand-info endpoint that includes AI-inferred business data
             const data = await fetchAPI<{
                 url: string
                 domain: string
@@ -34,23 +107,41 @@ export default function BrandInputStep() {
                 description: string
                 favicon: string
                 image: string
-            }>(`/utils/metadata?url=${encodeURIComponent(brandInfo.url)}`)
+                industry: string
+                location: string
+                services: string[]
+                businessModel: string
+            }>(`/utils/brand-info?url=${encodeURIComponent(brandInfo.url)}`)
+
+            const brandTitle = brandInfo.title && brandInfo.title !== brandInfo.domain 
+                ? brandInfo.title 
+                : (data.title || userInfo.companyName || data.domain)
 
             setBrandInfo({
                 ...brandInfo,
                 url: data.url,
                 domain: data.domain,
-                // Only update title if it's empty or looks like a URL/Domain, otherwise keep user's input
-                title: brandInfo.title && brandInfo.title !== brandInfo.domain ? brandInfo.title : (data.title || userInfo.companyName || data.domain),
+                title: brandTitle,
                 description: data.description,
                 favicon: data.favicon,
                 logo: data.image,
-                // Mocked data for the "Mini-Window" specs that can't be easily scraped
-                industry: '',
-                location: '',
-                founded: '',
-                businessModel: ''
+                // AI-inferred business information
+                industry: data.industry || '',
+                location: data.location || '',
+                founded: '', // Cannot be inferred automatically
+                businessModel: data.businessModel || '',
+                services: data.services || []
             })
+            
+            // Generate discovery prompts based on the brand info
+            const prompts = generateDiscoveryPrompts(
+                brandTitle,
+                data.industry || '',
+                data.services || [],
+                data.location || ''
+            )
+            setDiscoveryPrompts(prompts)
+            
         } catch (err) {
             console.error(err)
             setError('Failed to fetch brand details. Please check the URL.')

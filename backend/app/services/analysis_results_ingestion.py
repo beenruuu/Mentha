@@ -20,20 +20,33 @@ class AnalysisResultsIngestionService:
         # New tables for GEO/AEO data
         self.supabase_client = self.keyword_db.supabase  # Reuse supabase client
 
-    async def ingest_results(self, analysis: Analysis, results: Dict[str, Any], real_keyword_metrics: Optional[Dict[str, Any]] = None) -> None:
+    async def ingest_results(
+        self, 
+        analysis: Analysis, 
+        results: Dict[str, Any],
+        keyword_metrics: Optional[Dict[str, Any]] = None
+    ) -> None:
         if not results:
             print("No results to ingest.")
             return
 
         try:
-            print(f"Ingesting keywords: {len(results.get('keywords', []))} found.")
-            await self._ingest_keywords(analysis, results.get("keywords"), real_keyword_metrics)
+            # Merge real keyword metrics if provided
+            keywords_data = results.get("keywords", [])
+            if keyword_metrics and keyword_metrics.get("enabled") and keyword_metrics.get("keywords"):
+                # Use real metrics from Google Trends/SerpAPI instead of LLM estimates
+                real_keywords = keyword_metrics.get("keywords", [])
+                keywords_data = self._merge_keyword_metrics(keywords_data, real_keywords)
+            
+            print(f"Ingesting keywords: {len(keywords_data)} found.")
+            await self._ingest_keywords(analysis, keywords_data)
             
             print(f"Ingesting competitors: {len(results.get('competitors', []))} found.")
             await self._ingest_competitors(analysis, results.get("competitors"))
             
-            print(f"Ingesting crawlers: {len(results.get('crawlers', []))} found.")
-            await self._ingest_crawlers(analysis, results.get("crawlers"))
+            # Note: Crawler activity data is NOT ingested from LLM results
+            # Real crawler data should come from server logs or analytics integrations
+            # The LLM only provides robots.txt permission analysis, not actual visit data
             
             print(f"Ingesting queries: {len(results.get('queries', []))} found.")
             await self._ingest_queries(analysis, results.get("queries"))
@@ -41,7 +54,69 @@ class AnalysisResultsIngestionService:
         except Exception as ingestion_error:
             print(f"Failed to ingest analysis results: {ingestion_error}")
 
-    async def _ingest_keywords(self, analysis: Analysis, keywords: Optional[List[Dict[str, Any]]], real_metrics: Optional[Dict[str, Any]] = None) -> None:
+    def _merge_keyword_metrics(
+        self,
+        llm_keywords: List[Dict[str, Any]],
+        real_keywords: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """
+        Merge LLM-generated keywords with real metrics from Google Trends/SerpAPI.
+        Real metrics take precedence over LLM estimates.
+        """
+        # Create lookup for real metrics by keyword
+        real_metrics_map = {}
+        for kw in real_keywords:
+            keyword_text = (kw.get("keyword") or "").strip().lower()
+            if keyword_text:
+                real_metrics_map[keyword_text] = kw
+        
+        merged = []
+        seen_keywords = set()
+        
+        # Update LLM keywords with real metrics where available
+        for kw in llm_keywords:
+            keyword_text = (kw.get("keyword") or "").strip()
+            keyword_lower = keyword_text.lower()
+            
+            if keyword_lower in seen_keywords:
+                continue
+            seen_keywords.add(keyword_lower)
+            
+            if keyword_lower in real_metrics_map:
+                # Use real metrics
+                real_data = real_metrics_map[keyword_lower]
+                merged.append({
+                    "keyword": keyword_text,
+                    "search_volume": real_data.get("search_volume", 0),
+                    "difficulty": real_data.get("difficulty", 50),
+                    "ai_visibility_score": real_data.get("ai_visibility_score", 0),
+                    "trend_score": real_data.get("trend_score", 0),
+                    "data_source": real_data.get("data_source", "google_trends"),
+                    "tracked": True
+                })
+            else:
+                merged.append(kw)
+        
+        # Add any real keywords not in LLM results
+        for kw in real_keywords:
+            keyword_text = (kw.get("keyword") or "").strip()
+            keyword_lower = keyword_text.lower()
+            
+            if keyword_lower not in seen_keywords:
+                seen_keywords.add(keyword_lower)
+                merged.append({
+                    "keyword": keyword_text,
+                    "search_volume": kw.get("search_volume", 0),
+                    "difficulty": kw.get("difficulty", 50),
+                    "ai_visibility_score": kw.get("ai_visibility_score", 0),
+                    "trend_score": kw.get("trend_score", 0),
+                    "data_source": kw.get("data_source", "google_trends"),
+                    "tracked": True
+                })
+        
+        return merged
+
+    async def _ingest_keywords(self, analysis: Analysis, keywords: Optional[List[Dict[str, Any]]]) -> None:
         if not keywords:
             return
 
@@ -56,56 +131,27 @@ class AnalysisResultsIngestionService:
         except Exception as delete_error:
             print(f"Failed to clean previous keywords: {delete_error}")
 
-        # Build a lookup map from real metrics if available
-        real_metrics_map: Dict[str, Dict[str, Any]] = {}
-        if real_metrics and real_metrics.get("enabled"):
-            for kw_data in real_metrics.get("keywords", []):
-                kw_name = (kw_data.get("keyword") or "").strip().lower()
-                if kw_name:
-                    real_metrics_map[kw_name] = kw_data
-
         created = 0
         for item in keywords:
             keyword_text = (item.get("keyword") or "").strip()
             if not keyword_text:
                 continue
 
-            # Prefer real metrics over LLM-generated values
-            real_data = real_metrics_map.get(keyword_text.lower(), {})
-            
-            # Use real data if available, otherwise fallback to LLM values
-            search_volume = real_data.get("search_volume") if real_data else None
-            if search_volume is None:
-                search_volume = self._to_int(item.get("search_volume"))
-            
-            difficulty = real_data.get("difficulty") if real_data else None
-            if difficulty is None:
-                difficulty = self._to_float(item.get("difficulty"))
-            
-            # Determine data source
-            data_source = "llm_estimated"
-            if real_data:
-                data_source = real_data.get("data_source", "google_trends")
-
             payload = {
                 "user_id": user_id,
                 "brand_id": brand_id,
                 "keyword": keyword_text,
-                "search_volume": search_volume,
-                "difficulty": difficulty,
+                "search_volume": self._to_int(item.get("search_volume")),
+                "difficulty": self._to_float(item.get("difficulty")),
                 "ai_visibility_score": self._to_float(item.get("ai_visibility_score")),
                 "tracked": item.get("tracked", True),
-                # Additional real metrics fields
-                "trend_score": real_data.get("trend_score"),
-                "trend_direction": real_data.get("trend_direction"),
-                "data_source": data_source,
                 "created_at": datetime.utcnow().isoformat() + "Z",
                 "updated_at": datetime.utcnow().isoformat() + "Z",
             }
             await self.keyword_db.create(payload)
             created += 1
 
-        print(f"Hydrated {created} keywords for user {user_id} (real metrics: {len(real_metrics_map)} keywords)")
+        print(f"Hydrated {created} keywords for user {user_id}")
 
     async def _ingest_competitors(self, analysis: Analysis, competitors: Optional[List[Dict[str, Any]]]) -> None:
         if not competitors or not analysis.brand_id:
@@ -126,6 +172,17 @@ class AnalysisResultsIngestionService:
             if not name or not domain:
                 continue
 
+            # Generate favicon URL if not provided
+            favicon = item.get("favicon") or ""
+            if not favicon and domain:
+                clean_domain = domain.lower().strip()
+                if clean_domain.startswith('http'):
+                    from urllib.parse import urlparse
+                    clean_domain = urlparse(clean_domain).netloc
+                if clean_domain.startswith('www.'):
+                    clean_domain = clean_domain[4:]
+                favicon = f"https://www.google.com/s2/favicons?domain={clean_domain}&sz=64"
+
             payload = {
                 "user_id": user_id,
                 "brand_id": brand_id,
@@ -133,6 +190,8 @@ class AnalysisResultsIngestionService:
                 "domain": domain,
                 "visibility_score": self._to_float(item.get("visibility_score")),
                 "tracked": item.get("tracked", True),
+                "favicon": favicon,
+                "insight": (item.get("insight") or "")[:500],  # Limit insight length
                 "created_at": datetime.utcnow().isoformat() + "Z",
                 "updated_at": datetime.utcnow().isoformat() + "Z",
             }

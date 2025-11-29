@@ -22,7 +22,7 @@ export default function SiteHeader() {
           </Link>
           
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-zinc-400">
-            <Link className="hover:text-white transition-colors" href="/aeo-analysis">Product</Link>
+            <Link className="hover:text-white transition-colors" href="/dashboard">Dashboard</Link>
             <Link className="hover:text-white transition-colors" href="/competitors">Solutions</Link>
             <Link className="hover:text-white transition-colors" href="/upgrade">Pricing</Link>
             <Link className="hover:text-white transition-colors" href="/blog">Resources</Link>

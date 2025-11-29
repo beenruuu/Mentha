@@ -66,7 +66,7 @@ export default function Hero() {
                             <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     </Link>
-                    <Link href="/aeo-analysis" className="flex-1">
+                    <Link href="/dashboard" className="flex-1">
                         <Button
                             size="lg"
                             variant="outline"

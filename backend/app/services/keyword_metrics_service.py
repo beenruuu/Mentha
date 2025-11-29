@@ -27,14 +27,40 @@ from app.core.config import settings
 class KeywordMetricsService:
     """Service for obtaining real keyword metrics from various sources."""
     
+    # Language code to Google Trends HL mapping
+    LANGUAGE_HL_MAP = {
+        "en": "en-US",
+        "es": "es-ES",
+        "fr": "fr-FR",
+        "de": "de-DE",
+        "it": "it-IT",
+        "pt": "pt-BR",
+        "nl": "nl-NL",
+        "ja": "ja-JP",
+        "ko": "ko-KR",
+        "zh": "zh-CN"
+    }
+    
+    # Country code to Google Trends geo mapping
+    COUNTRY_GEO_MAP = {
+        "US": "US",
+        "ES": "ES",
+        "MX": "MX",
+        "AR": "AR",
+        "FR": "FR",
+        "DE": "DE",
+        "IT": "IT",
+        "UK": "GB",
+        "GB": "GB",
+        "BR": "BR",
+        "JP": "JP",
+        "KR": "KR",
+        "CN": "CN"
+    }
+    
     def __init__(self):
         """Initialize the keyword metrics service."""
-        self.pytrends = None
-        if PYTRENDS_AVAILABLE:
-            try:
-                self.pytrends = TrendReq(hl='en-US', tz=360)
-            except Exception as e:
-                print(f"Failed to initialize pytrends: {e}")
+        self.pytrends_instances = {}  # Cache by language
         
         self.http_client = httpx.AsyncClient(timeout=30.0)
         
@@ -42,10 +68,26 @@ class KeywordMetricsService:
         self.serpapi_key = settings.SERPAPI_KEY
         self.serper_key = settings.SERPER_API_KEY
     
+    def _get_pytrends(self, language: str = "en") -> Optional['TrendReq']:
+        """Get or create a pytrends instance for the specified language."""
+        if not PYTRENDS_AVAILABLE:
+            return None
+        
+        if language not in self.pytrends_instances:
+            try:
+                hl = self.LANGUAGE_HL_MAP.get(language, "en-US")
+                self.pytrends_instances[language] = TrendReq(hl=hl, tz=360)
+            except Exception as e:
+                print(f"Failed to initialize pytrends for {language}: {e}")
+                return None
+        
+        return self.pytrends_instances.get(language)
+    
     async def get_keyword_metrics(
         self, 
         keywords: List[str],
-        country: str = "US"
+        country: str = "US",
+        language: str = "en"
     ) -> Dict[str, Dict[str, Any]]:
         """
         Get metrics for a list of keywords from real sources.
@@ -53,17 +95,18 @@ class KeywordMetricsService:
         Args:
             keywords: List of keywords to analyze
             country: Country code for localization
+            language: Language code for Google Trends (en, es, fr, etc.)
             
         Returns:
             Dictionary mapping keywords to their metrics
         """
         results = {}
         
-        # Get Google Trends data (relative popularity)
-        trends_data = await self._get_google_trends(keywords)
+        # Get Google Trends data (relative popularity) with language support
+        trends_data = await self._get_google_trends(keywords, language, country)
         
-        # Get related keywords from DuckDuckGo
-        related_data = await self._get_related_keywords(keywords)
+        # Get related keywords from DuckDuckGo (uses detected language)
+        related_data = await self._get_related_keywords(keywords, language)
         
         # If paid API available, get actual search volumes
         volume_data = {}
@@ -96,14 +139,23 @@ class KeywordMetricsService:
         
         return results
     
-    async def _get_google_trends(self, keywords: List[str]) -> Dict[str, int]:
+    async def _get_google_trends(
+        self, 
+        keywords: List[str],
+        language: str = "en",
+        country: str = "US"
+    ) -> Dict[str, int]:
         """
         Get Google Trends interest data for keywords.
         
         Returns relative search interest (0-100).
         """
-        if not self.pytrends or not keywords:
+        pytrends = self._get_pytrends(language)
+        if not pytrends or not keywords:
             return {}
+        
+        # Get geo code for Google Trends
+        geo = self.COUNTRY_GEO_MAP.get(country.upper(), country.upper())
         
         try:
             # Google Trends only accepts 5 keywords at a time
@@ -117,7 +169,9 @@ class KeywordMetricsService:
                 trend_data = await loop.run_in_executor(
                     None,
                     self._fetch_trends_sync,
-                    batch
+                    batch,
+                    pytrends,
+                    geo
                 )
                 results.update(trend_data)
             
@@ -127,11 +181,16 @@ class KeywordMetricsService:
             print(f"Google Trends error: {e}")
             return {}
     
-    def _fetch_trends_sync(self, keywords: List[str]) -> Dict[str, int]:
+    def _fetch_trends_sync(
+        self, 
+        keywords: List[str], 
+        pytrends: 'TrendReq',
+        geo: str = ""
+    ) -> Dict[str, int]:
         """Synchronous function to fetch Google Trends data."""
         try:
-            self.pytrends.build_payload(keywords, timeframe='today 3-m')
-            interest = self.pytrends.interest_over_time()
+            pytrends.build_payload(keywords, timeframe='today 3-m', geo=geo)
+            interest = pytrends.interest_over_time()
             
             if interest.empty:
                 return {kw: 0 for kw in keywords}
@@ -150,13 +209,28 @@ class KeywordMetricsService:
             print(f"Trends fetch error: {e}")
             return {kw: 0 for kw in keywords}
     
-    async def _get_related_keywords(self, keywords: List[str]) -> Dict[str, List[str]]:
+    async def _get_related_keywords(
+        self, 
+        keywords: List[str],
+        language: str = "en"
+    ) -> Dict[str, List[str]]:
         """Get related keywords using DuckDuckGo Instant Answers."""
         results = {}
         
+        # DuckDuckGo region parameter for localized results
+        region_map = {
+            "en": "us-en",
+            "es": "es-es",
+            "fr": "fr-fr",
+            "de": "de-de",
+            "it": "it-it",
+            "pt": "br-pt",
+        }
+        region = region_map.get(language, "wt-wt")  # wt-wt = no region filter
+        
         for keyword in keywords[:5]:  # Limit to avoid rate limiting
             try:
-                url = f"https://api.duckduckgo.com/?q={keyword}&format=json"
+                url = f"https://api.duckduckgo.com/?q={keyword}&format=json&kl={region}"
                 response = await self.http_client.get(url)
                 
                 if response.status_code == 200:
@@ -311,6 +385,93 @@ class KeywordMetricsService:
         else:
             return "stable"
     
+    async def enrich_keywords(
+        self,
+        keywords: List[str],
+        geo: str = "US",
+        language: str = "en"
+    ) -> List[Dict[str, Any]]:
+        """
+        Enrich a list of keywords with real metrics.
+        
+        Args:
+            keywords: List of keyword strings to enrich
+            geo: Geographic location code (e.g., 'US', 'ES')
+            language: Language code for keyword metrics (e.g., 'en', 'es')
+            
+        Returns:
+            List of keyword dictionaries with metrics
+        """
+        if not keywords:
+            return []
+        
+        try:
+            # Get metrics for all keywords (with language support)
+            metrics = await self.get_keyword_metrics(keywords, country=geo, language=language)
+            
+            # Convert to list format expected by analysis service
+            enriched = []
+            for keyword in keywords:
+                if keyword in metrics:
+                    kw_data = metrics[keyword]
+                    enriched.append({
+                        'keyword': keyword,
+                        'search_volume': kw_data.get('search_volume', 0),
+                        'difficulty': kw_data.get('difficulty', 50),
+                        'trend_score': kw_data.get('trend_score', 0),
+                        'trend_direction': kw_data.get('trend_direction', 'stable'),
+                        'data_source': kw_data.get('data_source', 'estimated'),
+                        'ai_visibility_score': 0  # Real AI visibility requires actual AI API queries - not available without AI Search Simulator
+                    })
+                else:
+                    # Return basic entry for keywords without metrics
+                    enriched.append({
+                        'keyword': keyword,
+                        'search_volume': 0,
+                        'difficulty': 50,
+                        'trend_score': 0,
+                        'trend_direction': 'stable',
+                        'data_source': 'none',
+                        'ai_visibility_score': 0
+                    })
+            
+            return enriched
+            
+        except Exception as e:
+            print(f"Error enriching keywords: {e}")
+            # Return basic entries on error
+            return [{'keyword': kw, 'search_volume': 0, 'difficulty': 50, 'ai_visibility_score': 0} for kw in keywords]
+    
+    async def get_related_keywords(
+        self,
+        seed_keyword: str,
+        geo: str = "US",
+        limit: int = 10,
+        language: str = "en"
+    ) -> List[Dict[str, Any]]:
+        """
+        Get related keywords for a seed keyword.
+        
+        Args:
+            seed_keyword: Base keyword to find related terms for
+            geo: Geographic location code
+            limit: Maximum number of related keywords to return
+            language: Language code for keyword discovery
+            
+        Returns:
+            List of related keyword dictionaries
+        """
+        try:
+            related = await self._get_related_keywords([seed_keyword], language=language)
+            related_list = related.get(seed_keyword, [])[:limit]
+            
+            # Return as enriched format
+            return [{'keyword': kw, 'search_volume': 0, 'difficulty': 50, 'data_source': 'related'} for kw in related_list]
+            
+        except Exception as e:
+            print(f"Error getting related keywords: {e}")
+            return []
+
     async def get_ai_visibility_score(
         self,
         brand_name: str,

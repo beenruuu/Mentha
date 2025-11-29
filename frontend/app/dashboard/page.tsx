@@ -130,10 +130,14 @@ export default function DashboardPage() {
       providerScore = fallbackScore
     }
 
+    // Only show as "Tracking" if we have actual score data
+    const hasRealData = typeof providerScore === 'number' && providerScore > 0
+    const isInTrackingList = trackingModels.includes(provider.id)
+    
     return {
       ...provider,
       score: typeof providerScore === 'number' ? Math.round(providerScore) : undefined,
-      isTracking: trackingModels.includes(provider.id) || (provider.id === 'chatgpt' && !!analysis)
+      isTracking: hasRealData || isInTrackingList
     }
   })
 
@@ -152,8 +156,8 @@ export default function DashboardPage() {
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-[#1f1f23] bg-[#fdfdfc] dark:bg-[#050505]">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">Dashboard</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">Overview of your brand's AI visibility</p>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t.dashboardTitle}</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t.dashboardDescription}</p>
           </div>
           <Button variant="ghost" size="icon">
              <Settings className="w-5 h-5 text-gray-500" />
@@ -174,7 +178,7 @@ export default function DashboardPage() {
                           </div>
                           <div>
                              <p className="font-medium text-sm text-gray-900 dark:text-white">{provider.name}</p>
-                             <p className="text-xs text-gray-500">{provider.isTracking ? 'Tracking' : 'Inactive'}</p>
+                             <p className="text-xs text-gray-500">{provider.isTracking ? t.dashboardTracking : t.dashboardInactive}</p>
                           </div>
                        </div>
                        <div className="text-right">
@@ -192,8 +196,8 @@ export default function DashboardPage() {
                {/* Chart - Takes 2 cols */}
                <Card className="lg:col-span-2 border-gray-200 dark:border-[#27272a] shadow-sm">
                   <CardHeader>
-                     <CardTitle>Visibility Trend</CardTitle>
-                     <CardDescription>Your AI visibility score over time</CardDescription>
+                     <CardTitle>{t.dashboardVisibilityTrend}</CardTitle>
+                     <CardDescription>{t.dashboardVisibilityTrendDescription}</CardDescription>
                   </CardHeader>
                   <CardContent className="pl-0">
                      <div className="h-[300px] w-full pr-4">
@@ -229,7 +233,7 @@ export default function DashboardPage() {
                           </ResponsiveContainer>
                         ) : (
                           <div className="h-full flex items-center justify-center text-gray-400 text-sm">
-                            No historical data available yet
+                            {t.dashboardNoHistoricalData}
                           </div>
                         )}
                      </div>
@@ -239,8 +243,8 @@ export default function DashboardPage() {
                {/* Recommendations / Actions - Takes 1 col */}
                <Card className="border-gray-200 dark:border-[#27272a] shadow-sm flex flex-col h-full">
                   <CardHeader>
-                     <CardTitle>Recommended Actions</CardTitle>
-                     <CardDescription>Improve your standing</CardDescription>
+                     <CardTitle>{t.dashboardRecommendedActions}</CardTitle>
+                     <CardDescription>{t.dashboardImproveStanding}</CardDescription>
                   </CardHeader>
                   <CardContent className="flex-1 overflow-y-auto pr-2">
                      <div className="space-y-4">
@@ -256,7 +260,7 @@ export default function DashboardPage() {
                             </div>
                           ))
                         ) : (
-                          <div className="text-sm text-gray-500 italic text-center py-8">No actions recommended yet.</div>
+                          <div className="text-sm text-gray-500 italic text-center py-8">{t.dashboardNoActionsYet}</div>
                         )}
                      </div>
                   </CardContent>
@@ -268,8 +272,8 @@ export default function DashboardPage() {
                {/* Competitors */}
                <Card className="border-gray-200 dark:border-[#27272a] shadow-sm">
                   <CardHeader>
-                     <CardTitle>Competitors</CardTitle>
-                     <CardDescription>Visibility comparison</CardDescription>
+                     <CardTitle>{t.dashboardCompetitors}</CardTitle>
+                     <CardDescription>{t.dashboardCompetitorsDescription}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {competitors.length > 0 ? competitors.slice(0, 5).map((comp) => (
@@ -279,11 +283,13 @@ export default function DashboardPage() {
                           <p className="text-xs text-gray-500 truncate">{comp.domain}</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className="text-sm font-semibold text-emerald-500">{Math.round(comp.visibility_score || 0)}%</span>
+                          <span className="text-sm font-semibold text-gray-500">
+                            {comp.visibility_score && comp.visibility_score > 0 ? `${Math.round(comp.visibility_score)}%` : '—'}
+                          </span>
                         </div>
                       </div>
                     )) : (
-                      <p className="text-sm text-gray-500 italic">No competitors tracked.</p>
+                      <p className="text-sm text-gray-500 italic">{t.dashboardNoCompetitors}</p>
                     )}
                   </CardContent>
                </Card>
@@ -291,54 +297,49 @@ export default function DashboardPage() {
                {/* Keywords */}
                <Card className="border-gray-200 dark:border-[#27272a] shadow-sm">
                   <CardHeader>
-                     <CardTitle>Top Keywords</CardTitle>
-                     <CardDescription>High opportunity terms</CardDescription>
+                     <CardTitle>{t.dashboardTopKeywords}</CardTitle>
+                     <CardDescription>{t.dashboardHighOpportunity}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     {keywordInsights.length > 0 ? keywordInsights.slice(0, 5).map((item: any, idx: number) => (
                       <div key={`${item.keyword}-${idx}`} className="flex items-center justify-between">
                         <div className="overflow-hidden">
                           <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{item.keyword}</p>
-                          <p className="text-xs text-gray-500">{item.search_volume ? `${item.search_volume.toLocaleString()}` : '-'}</p>
+                          <p className="text-xs text-gray-500">{item.search_volume && item.search_volume > 0 ? `${item.search_volume.toLocaleString()}` : '—'}</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <span className="text-sm font-semibold text-emerald-500">{item.ai_visibility_score ? `${Math.round(item.ai_visibility_score)}%` : '—'}</span>
+                          <span className="text-sm font-semibold text-gray-500">{item.ai_visibility_score && item.ai_visibility_score > 0 ? `${Math.round(item.ai_visibility_score)}%` : '—'}</span>
                         </div>
                       </div>
                     )) : (
-                      <p className="text-sm text-gray-500 italic">No keywords found.</p>
+                      <p className="text-sm text-gray-500 italic">{t.dashboardNoKeywords}</p>
                     )}
                   </CardContent>
                </Card>
 
-               {/* Recent Activity */}
+{/* Recent Activity - Only shows real notifications, not fake crawler data */}
                <Card className="border-gray-200 dark:border-[#27272a] shadow-sm">
                   <CardHeader>
-                     <CardTitle>Recent Activity</CardTitle>
-                     <CardDescription>Crawlers & Alerts</CardDescription>
+                     <CardTitle>{t.dashboardRecentActivity}</CardTitle>
+                     <CardDescription>{t.dashboardNotifications}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {crawlerInsights.length > 0 ? crawlerInsights.slice(0, 3).map((crawler: any, idx: number) => (
-                      <div key={`${crawler.name}-${idx}`} className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">{crawler.name}</p>
-                          <p className="text-xs text-gray-500">{formatHoursAgo(crawler.last_visit_hours)}</p>
-                        </div>
-                        <Badge variant="outline" className="text-xs">{crawler.pages_visited || 0} pages</Badge>
-                      </div>
-                    )) : (
-                      <p className="text-sm text-gray-500 italic">No recent crawler activity.</p>
-                    )}
-                    
-                    {notifications.length > 0 && (
-                      <div className="pt-4 border-t border-gray-100 dark:border-gray-800 mt-4">
-                        <p className="text-xs font-medium text-gray-500 mb-2 uppercase">Notifications</p>
-                        {notifications.slice(0, 2).map((note: any, idx: number) => (
-                          <div key={`note-${idx}`} className="text-sm text-gray-600 dark:text-gray-300 mb-2 last:mb-0">
-                            {note.title}
+                    {notifications.length > 0 ? (
+                      <div>
+                        {notifications.slice(0, 4).map((note: any, idx: number) => (
+                          <div key={`note-${idx}`} className="flex items-start gap-3 py-2 border-b border-gray-100 dark:border-gray-800 last:border-0">
+                            <div className="w-2 h-2 mt-2 rounded-full bg-primary flex-shrink-0" />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">{note.title}</p>
+                              {note.message && (
+                                <p className="text-xs text-gray-500 mt-0.5">{note.message}</p>
+                              )}
+                            </div>
                           </div>
                         ))}
                       </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">{t.dashboardNoCrawlerActivity}</p>
                     )}
                   </CardContent>
                </Card>

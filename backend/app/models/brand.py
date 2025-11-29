@@ -1,5 +1,5 @@
 from pydantic import BaseModel, HttpUrl
-from typing import Optional
+from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
 
@@ -11,7 +11,10 @@ class BrandBase(BaseModel):
     industry: Optional[str] = None
 
 class BrandCreate(BrandBase):
-    pass
+    # Additional fields for onboarding analysis
+    discovery_prompts: Optional[List[str]] = None
+    ai_providers: Optional[List[str]] = None
+    services: Optional[List[str]] = None
 
 class BrandUpdate(BaseModel):
     name: Optional[str] = None

@@ -12,7 +12,12 @@ from app.api.endpoints import (
     queries,
     keywords,
     competitors,
-    utils
+    utils,
+    page_analysis,
+    geo_analysis,
+    citations,
+    knowledge_graph,
+    eeat
 )
 
 api_router = APIRouter()
@@ -30,3 +35,8 @@ api_router.include_router(recommendations.router, prefix="/recommendations", tag
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(technical_aeo.router, prefix="/technical-aeo", tags=["Technical AEO"])
 api_router.include_router(queries.router, prefix="/queries", tags=["Queries"])
+api_router.include_router(page_analysis.router, tags=["Page Analysis"])
+api_router.include_router(geo_analysis.router, tags=["GEO Analysis"])
+api_router.include_router(citations.router, tags=["Citations"])
+api_router.include_router(knowledge_graph.router, tags=["Knowledge Graph"])
+api_router.include_router(eeat.router, tags=["E-E-A-T"])

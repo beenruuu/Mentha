@@ -14,6 +14,7 @@ class UserProfile(BaseModel):
     role: Optional[str] = None
     company_name: Optional[str] = None
     discovery_source: Optional[str] = None
+    preferred_language: Optional[str] = "en"
 
 class UserProfileUpdate(BaseModel):
     """User profile update information."""
@@ -24,6 +25,7 @@ class UserProfileUpdate(BaseModel):
     role: Optional[str] = None
     company_name: Optional[str] = None
     discovery_source: Optional[str] = None
+    preferred_language: Optional[str] = None
 
 
 class TokenResponse(BaseModel):

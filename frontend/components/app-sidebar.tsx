@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, Bell, Settings, ChevronRight, X, Bot, Search as SearchIcon, Sparkles, TrendingUp, Users, LogOut, Plus } from "lucide-react"
+import { Search, Bell, Settings, ChevronRight, X, Bot, Search as SearchIcon, TrendingUp, Users, LogOut, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState, useEffect } from "react"
@@ -8,18 +8,43 @@ import { useRouter, usePathname } from "next/navigation"
 import { useSidebar } from "@/components/ui/sidebar"
 import { useTranslations } from "@/lib/i18n"
 import { brandsService, Brand } from "@/lib/services/brands"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
-function BrandItem({ id, name, domain }: { id: string; name: string; domain: string }) {
+function BrandItem({ id, name, domain, onDeleted }: { id: string; name: string; domain: string; onDeleted?: () => void }) {
   const [expanded, setExpanded] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
   const { t } = useTranslations()
+  const router = useRouter()
+
+  const handleDeleteBrand = async () => {
+    setIsDeleting(true)
+    try {
+      await brandsService.delete(id)
+      onDeleted?.()
+      router.push('/dashboard')
+    } catch (error) {
+      console.error('Failed to delete brand:', error)
+      setIsDeleting(false)
+    }
+  }
 
   return (
     <div>
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg"
-      >
-        <div className="flex items-center gap-3">
+      <div className="w-full flex items-center justify-between px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1E1E24] rounded-lg group">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex-1 flex items-center gap-3"
+        >
           <div className="w-4 h-4 rounded-full overflow-hidden bg-white flex items-center justify-center border border-gray-100">
             <img
               src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
@@ -36,10 +61,38 @@ function BrandItem({ id, name, domain }: { id: string; name: string; domain: str
               </span>
             </div>
           </div>
-          <span className="text-sm truncate max-w-[120px]">{name}</span>
+          <span className="text-sm truncate max-w-[100px]">{name}</span>
+        </button>
+        <div className="flex items-center gap-1">
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-opacity"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-500 dark:text-red-400" />
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t.areYouSure}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t.deleteWarning.replace('{name}', name)}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteBrand} className="bg-red-600 hover:bg-red-700">
+                  {isDeleting ? t.deleting : t.delete}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          <button onClick={() => setExpanded(!expanded)}>
+            <ChevronRight className={`w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform ${expanded ? 'rotate-90' : ''}`} />
+          </button>
         </div>
-        <ChevronRight className={`w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform ${expanded ? 'rotate-90' : ''}`} />
-      </button>
+      </div>
 
       {expanded && (
         <div className="ml-7 mt-1 space-y-1">
@@ -93,7 +146,7 @@ export function AppSidebar() {
         setBrands(data)
 
         // Onboarding check: If no brands and not on onboarding/creation pages, redirect
-        if (data.length === 0 && !pathname.startsWith('/brand/new') && !pathname.startsWith('/onboarding')) {
+        if (data.length === 0 && !pathname.startsWith('/brands/new') && !pathname.startsWith('/onboarding')) {
           router.push('/onboarding')
         }
       } catch (error) {
@@ -180,7 +233,7 @@ export function AppSidebar() {
 
         {/* Create Brand Button */}
         <div className="px-4 mb-6">
-          <Link href="/brand/new">
+          <Link href="/brands/new">
             <Button className="w-full bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black rounded-lg">+ {t.createBrand}</Button>
           </Link>
         </div>
@@ -202,15 +255,6 @@ export function AppSidebar() {
                 <span className="text-sm">{t.panel}</span>
               </div>
               <ChevronRight className="w-4 h-4" />
-            </button>
-          </Link>
-          <Link href="/aeo-analysis">
-            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg mb-1 ${pathname === '/aeo-analysis'
-              ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-medium'
-              : 'text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
-              }`}>
-              <Sparkles className="w-4 h-4" />
-              <span className="text-sm">{t.aeoAnalysis}</span>
             </button>
           </Link>
           <Link href="/keywords">
@@ -267,7 +311,7 @@ export function AppSidebar() {
                 <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">{t.brands}</span>
                 <ChevronRight className="w-3 h-3 text-gray-400 dark:text-gray-500 rotate-90" />
               </div>
-              <Link href="/brand/new">
+              <Link href="/brands/new">
                 <Plus className="w-3 h-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer" />
               </Link>
             </div>
@@ -284,6 +328,7 @@ export function AppSidebar() {
                       id={brand.id}
                       name={brand.name}
                       domain={brand.domain}
+                      onDeleted={() => setBrands(brands.filter(b => b.id !== brand.id))}
                     />
                   )
                 })

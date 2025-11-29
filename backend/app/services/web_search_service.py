@@ -1,10 +1,12 @@
 """
 Web Search Service for gathering real-world data about brands, keywords, and competitors.
 Uses DuckDuckGo Search API (free, no API key required).
+Uses AI to filter and validate competitor results.
 """
 
 from typing import List, Dict, Any, Optional, Set
 import asyncio
+import json
 from datetime import datetime
 from urllib.parse import urlparse
 
@@ -15,37 +17,230 @@ except ImportError:
     print("Warning: ddgs not installed. Web search will be disabled.")
 
 
-# Domains to exclude from competitor results (news, directories, etc.)
+# Comprehensive exclusion list - sites that are never competitors
 EXCLUDED_DOMAINS = {
-    # News sites
-    'elmundofinanciero.com', 'elmundo.es', 'elpais.com', 'abc.es', 'lavanguardia.com',
-    'expansion.com', 'cincodias.com', 'eleconomista.es', 'forbes.com', 'bloomberg.com',
-    'reuters.com', 'bbc.com', 'cnn.com', 'nytimes.com', 'theguardian.com',
-    # Directories and aggregators  
+    # Social media and user-generated content
     'wikipedia.org', 'linkedin.com', 'facebook.com', 'twitter.com', 'instagram.com',
-    'youtube.com', 'reddit.com', 'quora.com', 'trustpilot.com', 'glassdoor.com',
-    'indeed.com', 'crunchbase.com', 'paginasamarillas.es', 'yelp.com',
-    # Generic sites
-    'google.com', 'amazon.com', 'ebay.com', 'aliexpress.com',
+    'youtube.com', 'reddit.com', 'quora.com', 'tiktok.com', 'pinterest.com',
+    # Search engines
+    'google.com', 'bing.com', 'duckduckgo.com', 'yahoo.com', 'yandex.ru',
+    # E-commerce giants
+    'amazon.com', 'amazon.es', 'ebay.com', 'ebay.es', 'aliexpress.com',
+    # Job boards
+    'indeed.com', 'infojobs.net', 'glassdoor.com', 'jobatus.es', 'monster.es',
+    # News and press portals (NOT competitors)
+    'guiadeprensa.com', 'eleconomista.es', 'cincodias.com', 'expansion.com',
+    'larazon.es', 'abc.es', 'elmundo.es', 'elpais.com', 'europapress.es',
+    'lavanguardia.com', 'elconfidencial.com', 'eldiario.es', '20minutos.es',
+    # Business directories (NOT competitors)
+    'empresite.eleconomista.es', 'einforma.com', 'axesor.es', 'infocif.es',
+    'paginasamarillas.es', 'cylex.es', 'europages.es', 'kompass.com',
+    # Generic platforms
+    'whatsapp.com', 'play.google.com', 'apps.apple.com', 'microsoft.com',
+    'windows.com', 'store.steampowered.com', 'telegram.org',
 }
-
-# Keywords that indicate a result is NOT a competitor
-NON_COMPETITOR_INDICATORS = [
-    'noticias', 'news', 'periódico', 'newspaper', 'medio', 'media',
-    'blog', 'artículo', 'article', 'opinion', 'editorial',
-    'directorio', 'directory', 'listado', 'ranking', 'comparativa',
-]
 
 
 class WebSearchService:
     """Service for performing web searches to gather real market data."""
     
-    def __init__(self):
+    def __init__(self, llm_service=None):
         """Initialize the web search service."""
         self.enabled = DDGS is not None
+        self.llm_service = llm_service
         if not self.enabled:
             print("Web search is disabled. Install duckduckgo-search to enable.")
     
+    def set_llm_service(self, llm_service):
+        """Set the LLM service for AI-powered filtering."""
+        self.llm_service = llm_service
+    
+    async def _get_llm_service(self):
+        """Get or create the LLM service."""
+        if self.llm_service:
+            return self.llm_service
+        
+        try:
+            from app.services.llm.llm_service import OpenAIService
+            from app.core.config import settings
+            
+            if settings.OPENAI_API_KEY:
+                self.llm_service = OpenAIService(api_key=settings.OPENAI_API_KEY)
+                return self.llm_service
+        except Exception as e:
+            print(f"Could not initialize LLM service: {e}")
+        
+        return None
+    
+    async def infer_business_info_from_page(
+        self,
+        url: str,
+        page_title: str = "",
+        page_description: str = "",
+        page_content: str = ""
+    ) -> Dict[str, Any]:
+        """
+        Use AI to infer business information from page content.
+        
+        Args:
+            url: The page URL
+            page_title: Page title
+            page_description: Meta description
+            page_content: Main text content (first 2000 chars)
+            
+        Returns:
+            Dictionary with inferred business info:
+            - industry: Main industry/sector
+            - services: List of services offered
+            - company_type: Type of company (B2B, B2C, etc.)
+            - target_market: Geographic/demographic target
+        """
+        llm = await self._get_llm_service()
+        if not llm:
+            return {
+                "industry": "Services",
+                "services": [],
+                "company_type": "unknown",
+                "target_market": "unknown"
+            }
+        
+        # Truncate content to avoid token limits
+        content_preview = page_content[:2000] if page_content else ""
+        
+        prompt = f"""Analiza esta página web y extrae información del negocio.
+
+URL: {url}
+Título: {page_title}
+Descripción: {page_description}
+Contenido: {content_preview}
+
+Responde SOLO con un JSON válido con esta estructura exacta:
+{{
+    "industry": "industria principal específica (ej: 'Servicios de Limpieza Industrial', 'Facility Management', 'Consultoría IT')",
+    "services": ["servicio1", "servicio2", "servicio3"],
+    "company_type": "B2B|B2C|B2B2C",
+    "target_market": "mercado objetivo (ej: 'España', 'Europa', 'Empresas industriales')"
+}}
+
+IMPORTANTE:
+- La industria debe ser ESPECÍFICA, no genérica
+- Lista los servicios REALES que ofrece la empresa
+- Si es una empresa multiservicios, indica todos los sectores"""
+
+        try:
+            response = await llm.generate_text(
+                prompt=prompt,
+                model="gpt-4o-mini",
+                max_tokens=300,
+                temperature=0
+            )
+            
+            # Parse JSON response
+            import re
+            response_text = response.text.strip()
+            # Find JSON in response
+            json_match = re.search(r'\{[^{}]*\}', response_text, re.DOTALL)
+            if json_match:
+                return json.loads(json_match.group())
+            
+        except Exception as e:
+            print(f"Error inferring business info: {e}")
+        
+        return {
+            "industry": "Services",
+            "services": [],
+            "company_type": "unknown",
+            "target_market": "unknown"
+        }
+
+    async def _filter_competitors_with_ai(
+        self,
+        candidates: List[Dict[str, Any]],
+        brand_name: str,
+        industry: str,
+        description: str = ""
+    ) -> List[Dict[str, Any]]:
+        """
+        Use AI to filter search results and identify real competitors.
+        
+        Args:
+            candidates: List of potential competitor results from search
+            brand_name: Name of the brand we're finding competitors for
+            industry: Industry/sector
+            description: Brand description for context
+            
+        Returns:
+            Filtered list of actual competitors
+        """
+        if not candidates:
+            return []
+        
+        llm = await self._get_llm_service()
+        if not llm:
+            return candidates[:5]  # Fallback without AI
+        
+        # Build prompt for AI filtering
+        candidates_text = "\n".join([
+            f"{i+1}. {c.get('name', 'Unknown')} ({c.get('domain', 'N/A')}): {c.get('snippet', '')[:150]}"
+            for i, c in enumerate(candidates[:15])  # Limit to 15 for token efficiency
+        ])
+        
+        prompt = f"""Eres un experto en análisis competitivo. Analiza estos resultados de búsqueda.
+
+EMPRESA A ANALIZAR:
+- Nombre: {brand_name}
+- Industria: {industry}
+- Descripción: {description or 'No disponible'}
+
+RESULTADOS DE BÚSQUEDA:
+{candidates_text}
+
+TAREA: Identifica SOLO las empresas que son COMPETIDORES DIRECTOS.
+
+INCLUIR (competidores válidos):
+✓ Empresas que ofrecen los MISMOS servicios/productos
+✓ Empresas en la MISMA industria y mercado geográfico
+✓ Sitios web corporativos de empresas comerciales
+
+EXCLUIR (NO son competidores):
+✗ Periódicos, medios de comunicación, portales de noticias
+✗ Blogs, artículos informativos, guías
+✗ Directorios de empresas, listados, rankings
+✗ Diccionarios, definiciones, Wikipedia
+✗ Asociaciones, federaciones, gremios del sector
+✗ Informes de mercado, estudios, análisis sectoriales
+✗ Sitios de empleo, ofertas de trabajo
+✗ Redes sociales, plataformas genéricas
+
+Responde ÚNICAMENTE con un JSON array de números.
+Ejemplo: [1, 4, 7]
+Si ninguno es competidor real: []"""
+
+        try:
+            response = await llm.generate_text(
+                prompt=prompt,
+                model="gpt-4o-mini",
+                max_tokens=100,
+                temperature=0
+            )
+            
+            # Parse response
+            response_text = response.text.strip()
+            # Extract JSON array from response
+            import re
+            match = re.search(r'\[[\d,\s]*\]', response_text)
+            if match:
+                indices = json.loads(match.group())
+                filtered = [candidates[i-1] for i in indices if 0 < i <= len(candidates)]
+                print(f"AI filtered {len(candidates)} candidates to {len(filtered)} competitors")
+                return filtered
+            
+            return candidates[:5]  # Fallback
+            
+        except Exception as e:
+            print(f"AI filtering failed: {e}, returning unfiltered results")
+            return candidates[:5]
+
     async def search_keywords(
         self, 
         brand_name: str, 
@@ -85,16 +280,20 @@ class WebSearchService:
         brand_name: str, 
         industry: str,
         domain: str = "",
+        description: str = "",
+        services: str = "",
         max_results: int = 5
     ) -> List[Dict[str, Any]]:
         """
         Search for REAL competitors in the same industry.
-        Uses multiple search strategies and filters out news/directories.
+        Uses AI to filter and validate results.
         
         Args:
             brand_name: Name of the brand
             industry: Industry/sector
             domain: Brand's own domain (to exclude from results)
+            description: Brand description for context
+            services: Services offered by the brand (comma-separated or list)
             max_results: Maximum number of competitors to find
             
         Returns:
@@ -106,15 +305,42 @@ class WebSearchService:
         try:
             loop = asyncio.get_event_loop()
             
-            # Multiple search queries for better results
-            queries = [
-                f"empresas {industry} España principales",  # Spanish companies in industry
-                f"competidores directos {industry}",  # Direct competitors
-                f"mejores empresas {industry} alternativas",  # Best alternatives
-                f"{industry} companies Spain top",  # English variant
-            ]
+            # Parse services if it's a string
+            service_list = []
+            if isinstance(services, str) and services:
+                service_list = [s.strip() for s in services.split(',') if s.strip()]
+            elif isinstance(services, list):
+                service_list = services
             
-            all_results = []
+            # Build intelligent search queries
+            queries = []
+            
+            # If we have specific services, search by each service
+            if service_list:
+                for service in service_list[:3]:  # Top 3 services
+                    queries.append(f'empresas "{service}" España')
+            
+            # Add industry-based query
+            if industry and industry.lower() not in ['other', 'otros', 'services', 'unknown']:
+                queries.append(f'empresas "{industry}" España competidores')
+            
+            # Add description-based query if industry is generic
+            if description and (not industry or industry.lower() in ['other', 'otros', 'services']):
+                # Extract key terms from description
+                key_words = [w for w in description.split()[:5] if len(w) > 4]
+                if key_words:
+                    queries.append(f'empresas {" ".join(key_words[:3])} España')
+            
+            # Fallback queries
+            if not queries:
+                queries = [
+                    f'{brand_name} competidores España',
+                    f'empresas similares a {brand_name}'
+                ]
+            
+            print(f"Competitor search queries: {queries}")
+            
+            all_candidates = []
             seen_domains: Set[str] = set()
             
             # Add own domain to exclusion
@@ -122,7 +348,6 @@ class WebSearchService:
                 own_domain = self._normalize_domain(domain)
                 seen_domains.add(own_domain)
             
-            # Also exclude the brand name variations
             brand_lower = brand_name.lower().replace(' ', '')
             
             for query in queries:
@@ -130,7 +355,7 @@ class WebSearchService:
                     None,
                     self._search_sync,
                     query,
-                    10  # Get more to filter
+                    15  # Get more to filter with AI
                 )
                 
                 for result in results:
@@ -138,11 +363,11 @@ class WebSearchService:
                     extracted_domain = self._extract_domain(link)
                     normalized = self._normalize_domain(extracted_domain)
                     
-                    # Skip if already seen
+                    # Basic deduplication
                     if normalized in seen_domains:
                         continue
                     
-                    # Skip excluded domains (news, directories, etc.)
+                    # Skip obvious exclusions (social media, search engines)
                     if self._is_excluded_domain(normalized):
                         continue
                     
@@ -150,63 +375,102 @@ class WebSearchService:
                     if brand_lower in normalized.replace('.', '').replace('-', ''):
                         continue
                     
-                    # Skip if title/snippet indicates it's not a competitor
-                    title = result.get('title', '').lower()
-                    snippet = result.get('body', '').lower()
-                    if self._is_non_competitor_content(title, snippet):
-                        continue
-                    
-                    # Extract clean company name from title
                     company_name = self._extract_company_name(result.get('title', ''), extracted_domain)
                     
                     if company_name and extracted_domain:
                         seen_domains.add(normalized)
-                        all_results.append({
+                        # Get favicon for the competitor
+                        favicon_url = self._get_favicon_url(extracted_domain)
+                        all_candidates.append({
                             'name': company_name,
                             'domain': extracted_domain,
                             'snippet': result.get('body', '')[:200],
+                            'favicon': favicon_url,
                             'source': 'web_search',
                             'confidence': 'medium'
                         })
-                    
-                    if len(all_results) >= max_results:
-                        break
                 
-                if len(all_results) >= max_results:
+                if len(all_candidates) >= 15:
                     break
             
-            return all_results[:max_results]
+            # Use AI to filter candidates
+            filtered = await self._filter_competitors_with_ai(
+                all_candidates,
+                brand_name,
+                industry,
+                description
+            )
+            
+            return filtered[:max_results]
+            
         except Exception as e:
             print(f"Error in competitor search: {e}")
             return []
+    
+    def _get_favicon_url(self, domain: str) -> str:
+        """Get favicon URL for a domain using Google's favicon service."""
+        if not domain:
+            return ""
+        # Clean domain
+        clean_domain = domain.lower().strip()
+        if clean_domain.startswith('http'):
+            from urllib.parse import urlparse
+            clean_domain = urlparse(clean_domain).netloc
+        if clean_domain.startswith('www.'):
+            clean_domain = clean_domain[4:]
+        
+        # Use Google's favicon service (reliable and fast)
+        return f"https://www.google.com/s2/favicons?domain={clean_domain}&sz=64"
     
     def _normalize_domain(self, domain: str) -> str:
         """Normalize domain for comparison."""
         if not domain:
             return ""
         domain = domain.lower().strip()
+        
+        # Remove www. prefix
         if domain.startswith('www.'):
             domain = domain[4:]
-        # Remove common TLDs variations for comparison
+        
+        # Handle country/language subdomains (es.domain.com -> domain.com)
+        parts = domain.split('.')
+        if len(parts) >= 3:
+            # Check if first part is a country/language code (2 letters)
+            if len(parts[0]) == 2 and parts[0].isalpha():
+                # Move to next part which should be the brand name
+                domain = '.'.join(parts[1:])
+                parts = domain.split('.')
+        
+        # Extract base domain name for comparison (sodexo from sodexo.es)
+        # Return the first meaningful part (not just 2 letters like .es, .com)
+        if parts:
+            base_name = parts[0]
+            return base_name
+        
         return domain
     
     def _is_excluded_domain(self, domain: str) -> bool:
-        """Check if domain should be excluded (news, directories, etc.)."""
+        """Check if domain should be excluded (obvious non-business sites)."""
         domain_lower = domain.lower()
         
-        # Check against exclusion list
+        # Check against comprehensive exclusion list
         for excluded in EXCLUDED_DOMAINS:
-            if excluded in domain_lower:
+            excluded_base = excluded.split('.')[0]
+            if excluded_base == domain_lower:
+                return True
+            # Also check full domain match
+            if excluded in domain_lower or domain_lower in excluded:
                 return True
         
-        return False
-    
-    def _is_non_competitor_content(self, title: str, snippet: str) -> bool:
-        """Check if content indicates this is NOT a competitor (news article, directory, etc.)."""
-        combined = f"{title} {snippet}".lower()
-        
-        for indicator in NON_COMPETITOR_INDICATORS:
-            if indicator in combined:
+        # Exclude common patterns that indicate non-competitor sites
+        excluded_patterns = [
+            'prensa', 'noticias', 'news', 'blog.', 'wikipedia',
+            'press', 'directorio', 'directory', 'ranking', 'listado',
+            'guia', 'guide', '.gov', '.edu', '.org', 'asociacion',
+            'federacion', 'gobierno', 'ministerio', 'empleo', 'trabajo'
+        ]
+        for pattern in excluded_patterns:
+            if pattern in domain_lower:
                 return True
         
         return False
@@ -229,13 +493,12 @@ class WebSearchService:
         
         # If name is too long or looks like a sentence, try to use domain
         if len(name) > 50 or ' es ' in name.lower() or ' the ' in name.lower():
-            # Derive from domain
             domain_name = domain.split('.')[0] if domain else ""
             if domain_name and len(domain_name) > 2:
                 return domain_name.replace('-', ' ').title()
         
         return name if len(name) > 1 else ""
-    
+
     async def search_brand_mentions(
         self, 
         brand_name: str, 
@@ -345,7 +608,9 @@ class WebSearchService:
         brand_name: str,
         domain: str,
         industry: str,
-        key_terms: Optional[str] = None
+        key_terms: Optional[str] = None,
+        description: str = "",
+        services: str = ""
     ) -> Dict[str, Any]:
         """
         Gather comprehensive search context for a brand analysis.
@@ -356,6 +621,8 @@ class WebSearchService:
             domain: Brand's domain
             industry: Industry/sector
             key_terms: Optional additional key terms
+            description: Brand description for context
+            services: Services offered by the brand
             
         Returns:
             Dictionary with all search context data
@@ -372,7 +639,7 @@ class WebSearchService:
         # Perform searches in parallel
         keyword_results, competitor_results, mention_results, industry_results = await asyncio.gather(
             self.search_keywords(brand_name, industry, max_results=10),
-            self.search_competitors(brand_name, industry, domain=domain, max_results=5),
+            self.search_competitors(brand_name, industry, domain=domain, description=description, services=services, max_results=5),
             self.search_brand_mentions(brand_name, domain, max_results=8),
             self.search_industry_terms(industry, max_results=10),
             return_exceptions=True

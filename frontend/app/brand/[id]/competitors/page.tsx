@@ -302,7 +302,18 @@ export default function BrandCompetitorsPage() {
                                                 <TableRow key={comp.id}>
                                                     <TableCell className="font-medium">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-[#1E1E24] flex items-center justify-center text-xs font-bold">
+                                                            {comp.favicon || comp.domain ? (
+                                                                <img 
+                                                                    src={comp.favicon || `https://www.google.com/s2/favicons?domain=${comp.domain}&sz=64`}
+                                                                    alt={`${comp.name} logo`}
+                                                                    className="w-8 h-8 rounded-lg object-contain bg-gray-100 dark:bg-[#1E1E24] p-1"
+                                                                    onError={(e) => {
+                                                                        (e.target as HTMLImageElement).style.display = 'none';
+                                                                        (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                                                                    }}
+                                                                />
+                                                            ) : null}
+                                                            <div className={`w-8 h-8 rounded-lg bg-gray-100 dark:bg-[#1E1E24] flex items-center justify-center text-xs font-bold ${comp.favicon || comp.domain ? 'hidden' : ''}`}>
                                                                 {comp.name.charAt(0).toUpperCase()}
                                                             </div>
                                                             {comp.name}
@@ -315,12 +326,14 @@ export default function BrandCompetitorsPage() {
                                                         </a>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Badge variant={comp.visibility_score && comp.visibility_score >= 50 ? 'default' : 'secondary'}>
-                                                            {comp.visibility_score || 0}%
+                                                        <Badge variant="secondary" className="text-gray-500">
+                                                            {comp.visibility_score && comp.visibility_score > 0 
+                                                                ? `${comp.visibility_score}%` 
+                                                                : '—'}
                                                         </Badge>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <Badge variant="outline">High</Badge>
+                                                        <Badge variant="outline" className="text-gray-400">—</Badge>
                                                     </TableCell>
                                                     <TableCell className="text-right">
                                                         <AlertDialog>
