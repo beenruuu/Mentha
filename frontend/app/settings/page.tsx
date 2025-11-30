@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from "react"
-import { Search, Bell, User, Lock, CreditCard, Palette, Settings, Languages, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from "lucide-react"
+import { Search, Bell, User, Lock, CreditCard, Palette, Settings, Languages, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff, Shield, Zap, Globe } from "lucide-react"
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { createClient } from '@/lib/supabase/client'
 import { Switch } from "@/components/ui/switch"
@@ -12,11 +12,12 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { Separator } from "@/components/ui/separator"
 import { UserAvatarMenu } from "@/components/layout/user-avatar-menu"
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface NotificationPreferences {
   rankingChanges: boolean
@@ -66,7 +67,6 @@ export default function SettingsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         setUser(user)
-        // Load name from user metadata
         const fullName = user.user_metadata?.full_name || ''
         const nameParts = fullName.split(' ')
         setFirstName(nameParts[0] || '')
@@ -119,7 +119,6 @@ export default function SettingsPage() {
     setIsSavingProfile(true)
     try {
       const fullName = `${firstName.trim()} ${lastName.trim()}`.trim()
-
       const { error } = await supabase.auth.updateUser({
         data: { full_name: fullName }
       })
@@ -129,8 +128,6 @@ export default function SettingsPage() {
       toast.success('Perfil actualizado correctamente', {
         description: 'Tus cambios han sido guardados'
       })
-
-      // Reload user to get updated data
       await loadUser()
     } catch (error: any) {
       console.error('Failed to update profile:', error)
@@ -143,17 +140,14 @@ export default function SettingsPage() {
   }
 
   const handleUpdatePassword = async () => {
-    // Validation
     if (!newPassword || !confirmPassword) {
       toast.error('Por favor completa todos los campos de contraseña')
       return
     }
-
     if (newPassword.length < 6) {
       toast.error('La contraseña debe tener al menos 6 caracteres')
       return
     }
-
     if (newPassword !== confirmPassword) {
       toast.error('Las contraseñas no coinciden')
       return
@@ -167,11 +161,7 @@ export default function SettingsPage() {
 
       if (error) throw error
 
-      toast.success('Contraseña actualizada correctamente', {
-        description: 'Tu contraseña ha sido cambiada exitosamente'
-      })
-
-      // Clear password fields
+      toast.success('Contraseña actualizada correctamente')
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
@@ -199,20 +189,8 @@ export default function SettingsPage() {
     return (
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <div className="flex items-center gap-2">
-              <Settings className="h-5 w-5 text-emerald-600" />
-              <h1 className="text-xl font-semibold">{t.configuration}</h1>
-            </div>
-            <div className="flex-1" />
-            <UserAvatarMenu />
-          </header>
-          <div className="flex items-center justify-center h-96">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-          </div>
+        <SidebarInset className="flex items-center justify-center h-screen bg-[#fdfdfc] dark:bg-[#050505]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </SidebarInset>
       </SidebarProvider>
     )
@@ -221,312 +199,285 @@ export default function SettingsPage() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-gradient-to-r from-white to-emerald-50/30 dark:from-black dark:to-emerald-950/10">
-          <SidebarTrigger className="-ml-1" />
-          <Separator orientation="vertical" className="mr-2 h-4" />
-          <div className="flex items-center gap-2">
-            <Settings className="h-5 w-5 text-emerald-600" />
-            <h1 className="text-xl font-semibold">{t.configuration}</h1>
+      <SidebarInset className="bg-[#fdfdfc] dark:bg-[#050505] h-screen overflow-hidden flex flex-col">
+        <header className="flex items-center justify-between px-8 py-6 bg-[#fdfdfc] dark:bg-[#050505] border-b border-border/40">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{t.configuration}</h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your account and preferences</p>
           </div>
-          <div className="flex-1" />
           <UserAvatarMenu />
         </header>
 
-        <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8">
-          <div className="w-full space-y-6">
-            {/* Profile Settings */}
-            <Card className="p-6 bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30] transition-all duration-200 hover:shadow-lg hover:border-emerald-500/20">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-[#1A1A20]">
-                <div className="p-2 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg">
-                  <User className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t.profile}</h2>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <Avatar className="w-20 h-20 ring-4 ring-emerald-500/10 transition-all hover:ring-emerald-500/30">
-                    <AvatarImage src={user?.user_metadata?.avatar_url || ""} alt={user?.email || t.user} />
-                    <AvatarFallback className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white text-xl font-medium">
-                      {user?.email?.substring(0, 2).toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">{firstName} {lastName}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {t.firstName}
-                    </Label>
-                    <Input
-                      id="firstName"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      className="transition-all focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      {t.lastName}
-                    </Label>
-                    <Input
-                      id="lastName"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      className="transition-all focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {t.email}
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="email"
-                      type="email"
-                      value={user?.email || ""}
-                      className="pr-10"
-                      disabled
-                    />
-                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-600" />
-                  </div>
-                </div>
-                <Button
-                  onClick={handleSaveProfile}
-                  disabled={isSavingProfile}
-                  className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white transition-all duration-200 hover:shadow-lg disabled:opacity-50"
-                >
-                  {isSavingProfile ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Guardando...
-                    </>
-                  ) : (
-                    t.saveChanges
-                  )}
-                </Button>
-              </div>
-            </Card>
+        <main className="flex-1 overflow-y-auto p-8 bg-[#fdfdfc] dark:bg-[#050505]">
+          <div className="max-w-4xl mx-auto">
+            <Tabs defaultValue="profile" className="space-y-8">
+              <TabsList className="bg-secondary/50 p-1 rounded-xl border border-border/40">
+                <TabsTrigger value="profile" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-[#1E1E24] data-[state=active]:shadow-sm">
+                  <User className="w-4 h-4 mr-2" />
+                  {t.profile}
+                </TabsTrigger>
+                <TabsTrigger value="security" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-[#1E1E24] data-[state=active]:shadow-sm">
+                  <Shield className="w-4 h-4 mr-2" />
+                  {t.security}
+                </TabsTrigger>
+                <TabsTrigger value="notifications" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-[#1E1E24] data-[state=active]:shadow-sm">
+                  <Bell className="w-4 h-4 mr-2" />
+                  {t.notifications}
+                </TabsTrigger>
+                <TabsTrigger value="billing" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-[#1E1E24] data-[state=active]:shadow-sm">
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  {t.billing}
+                </TabsTrigger>
+                <TabsTrigger value="appearance" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-[#1E1E24] data-[state=active]:shadow-sm">
+                  <Palette className="w-4 h-4 mr-2" />
+                  {t.appearance}
+                </TabsTrigger>
+              </TabsList>
 
-            {/* Security Settings */}
-            <Card className="p-6 bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30] transition-all duration-200 hover:shadow-lg hover:border-emerald-500/20">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-[#1A1A20]">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
-                  <Lock className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t.security}</h2>
-              </div>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {t.currentPassword}
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="currentPassword"
-                      type={showCurrentPassword ? "text" : "password"}
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      className="pr-10 transition-all focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                    >
-                      {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {t.newPassword}
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="newPassword"
-                      type={showNewPassword ? "text" : "password"}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      className="pr-10 transition-all focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                    >
-                      {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    {t.confirmPassword}
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="pr-10 transition-all focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                    >
-                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                    </button>
-                  </div>
-                </div>
-                <Button
-                  onClick={handleUpdatePassword}
-                  disabled={isUpdatingPassword}
-                  className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white transition-all duration-200 hover:shadow-lg disabled:opacity-50"
-                >
-                  {isUpdatingPassword ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Actualizando...
-                    </>
-                  ) : (
-                    t.updatePassword
-                  )}
-                </Button>
-              </div>
-            </Card>
+              {/* Profile Content */}
+              <TabsContent value="profile" className="space-y-6">
+                <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle>Personal Information</CardTitle>
+                    <CardDescription>Update your personal details and public profile.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="flex items-center gap-6">
+                      <Avatar className="w-24 h-24 ring-4 ring-secondary/50">
+                        <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
+                        <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                          {user?.email?.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <Button variant="outline" className="border-border/40">Change Avatar</Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName">{t.firstName}</Label>
+                        <Input id="firstName" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="lastName">{t.lastName}</Label>
+                        <Input id="lastName" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="email">{t.email}</Label>
+                      <Input id="email" value={user?.email || ""} disabled className="bg-secondary/50" />
+                    </div>
+                    <div className="flex justify-end">
+                      <Button onClick={handleSaveProfile} disabled={isSavingProfile}>
+                        {isSavingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {t.saveChanges}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-            {/* Notifications Settings */}
-            <Card className="p-6 bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30] transition-all duration-200 hover:shadow-lg hover:border-emerald-500/20">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-[#1A1A20]">
-                <div className="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg">
-                  <Bell className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t.notifications}</h2>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-gray-50 to-transparent dark:from-[#0A0A0A] dark:to-transparent transition-all hover:from-purple-50 dark:hover:from-purple-950/20">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{t.rankingChanges}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{t.receiveAlertsWhenBrandsChange}</p>
-                  </div>
-                  <Switch
-                    checked={notifications.rankingChanges}
-                    onCheckedChange={() => handleNotificationToggle('rankingChanges')}
-                    className="data-[state=checked]:bg-emerald-600"
-                  />
-                </div>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-gray-50 to-transparent dark:from-[#0A0A0A] dark:to-transparent transition-all hover:from-purple-50 dark:hover:from-purple-950/20">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{t.newMentions}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{t.notificationsWhenNewMentions}</p>
-                  </div>
-                  <Switch
-                    checked={notifications.newMentions}
-                    onCheckedChange={() => handleNotificationToggle('newMentions')}
-                    className="data-[state=checked]:bg-emerald-600"
-                  />
-                </div>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-gray-50 to-transparent dark:from-[#0A0A0A] dark:to-transparent transition-all hover:from-purple-50 dark:hover:from-purple-950/20">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{t.weeklyReports}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{t.weeklyPerformanceSummary}</p>
-                  </div>
-                  <Switch
-                    checked={notifications.weeklyReports}
-                    onCheckedChange={() => handleNotificationToggle('weeklyReports')}
-                    className="data-[state=checked]:bg-emerald-600"
-                  />
-                </div>
-                <div className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-gray-50 to-transparent dark:from-[#0A0A0A] dark:to-transparent transition-all hover:from-purple-50 dark:hover:from-purple-950/20">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">{t.productUpdates}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">{t.newsAboutFeatures}</p>
-                  </div>
-                  <Switch
-                    checked={notifications.productUpdates}
-                    onCheckedChange={() => handleNotificationToggle('productUpdates')}
-                    className="data-[state=checked]:bg-emerald-600"
-                  />
-                </div>
-              </div>
-            </Card>
+              {/* Security Content */}
+              <TabsContent value="security" className="space-y-6">
+                <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle>Password & Security</CardTitle>
+                    <CardDescription>Manage your password and security settings.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="currentPassword">{t.currentPassword}</Label>
+                      <div className="relative">
+                        <Input
+                          id="currentPassword"
+                          type={showCurrentPassword ? "text" : "password"}
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="newPassword">{t.newPassword}</Label>
+                        <div className="relative">
+                          <Input
+                            id="newPassword"
+                            type={showNewPassword ? "text" : "password"}
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirmPassword">{t.confirmPassword}</Label>
+                        <div className="relative">
+                          <Input
+                            id="confirmPassword"
+                            type={showConfirmPassword ? "text" : "password"}
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button onClick={handleUpdatePassword} disabled={isUpdatingPassword}>
+                        {isUpdatingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        {t.updatePassword}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-            {/* Billing Settings */}
-            <Card className="p-6 bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30] transition-all duration-200 hover:shadow-lg hover:border-emerald-500/20">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-[#1A1A20]">
-                <div className="p-2 bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg">
-                  <CreditCard className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t.billing}</h2>
-              </div>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-6 bg-gradient-to-br from-emerald-50 to-transparent dark:from-emerald-950/20 dark:to-transparent rounded-xl border-2 border-emerald-200 dark:border-emerald-900/30 transition-all hover:border-emerald-300 dark:hover:border-emerald-800/50">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-2">
-                      {t.freePlan}
-                      <span className="px-2 py-0.5 bg-emerald-600 text-white text-xs rounded-full">Activo</span>
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.tokensUsedThisMonth}</p>
-                  </div>
-                  <Button className="bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white transition-all duration-200 hover:shadow-lg">
-                    {t.upgradeToPro}
-                  </Button>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">{t.billingHistory}</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{t.noInvoicesAvailable}</p>
-                </div>
-              </div>
-            </Card>
+              {/* Notifications Content */}
+              <TabsContent value="notifications" className="space-y-6">
+                <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle>Email Notifications</CardTitle>
+                    <CardDescription>Choose what updates you want to receive.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">{t.rankingChanges}</Label>
+                        <p className="text-sm text-muted-foreground">{t.receiveAlertsWhenBrandsChange}</p>
+                      </div>
+                      <Switch
+                        checked={notifications.rankingChanges}
+                        onCheckedChange={() => handleNotificationToggle('rankingChanges')}
+                      />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">{t.newMentions}</Label>
+                        <p className="text-sm text-muted-foreground">{t.notificationsWhenNewMentions}</p>
+                      </div>
+                      <Switch
+                        checked={notifications.newMentions}
+                        onCheckedChange={() => handleNotificationToggle('newMentions')}
+                      />
+                    </div>
+                    <Separator />
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <Label className="text-base">{t.weeklyReports}</Label>
+                        <p className="text-sm text-muted-foreground">{t.weeklyPerformanceSummary}</p>
+                      </div>
+                      <Switch
+                        checked={notifications.weeklyReports}
+                        onCheckedChange={() => handleNotificationToggle('weeklyReports')}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-            {/* Appearance Settings */}
-            <Card className="p-6 bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30] transition-all duration-200 hover:shadow-lg hover:border-emerald-500/20">
-              <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100 dark:border-[#1A1A20]">
-                <div className="p-2 bg-gradient-to-br from-pink-500 to-pink-600 rounded-lg">
-                  <Palette className="w-5 h-5 text-white" />
-                </div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t.appearance}</h2>
-              </div>
-              <div className="space-y-6">
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">{t.theme}</Label>
-                  <ThemeToggle />
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 block">{t.language}</Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => handleLanguageChange('es')}
-                      className={`p-4 border-2 rounded-xl transition-all duration-200 ${lang === 'es'
-                        ? 'border-emerald-600 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-950/30 text-emerald-900 dark:text-emerald-100 shadow-lg scale-105'
-                        : 'border-gray-200 dark:border-[#2A2A30] bg-white dark:bg-black hover:border-emerald-300 dark:hover:border-emerald-800 text-gray-700 dark:text-gray-300 hover:scale-102'
-                        }`}
-                    >
-                      <Languages className="w-5 h-5 mx-auto mb-2" />
-                      <p className="text-xs font-medium">{t.spanish}</p>
-                    </button>
-                    <button
-                      onClick={() => handleLanguageChange('en')}
-                      className={`p-4 border-2 rounded-xl transition-all duration-200 ${lang === 'en'
-                        ? 'border-emerald-600 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-950/30 text-emerald-900 dark:text-emerald-100 shadow-lg scale-105'
-                        : 'border-gray-200 dark:border-[#2A2A30] bg-white dark:bg-black hover:border-emerald-300 dark:hover:border-emerald-800 text-gray-700 dark:text-gray-300 hover:scale-102'
-                        }`}
-                    >
-                      <Languages className="w-5 h-5 mx-auto mb-2" />
-                      <p className="text-xs font-medium">{t.english}</p>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </Card>
+              {/* Billing Content */}
+              <TabsContent value="billing" className="space-y-6">
+                <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle>Current Plan</CardTitle>
+                    <CardDescription>Manage your subscription and billing details.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="p-6 rounded-xl bg-gradient-to-br from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-lg">{t.freePlan}</h3>
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium border border-emerald-500/20">Active</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">Basic features for personal use</p>
+                      </div>
+                      <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                        <Zap className="w-4 h-4 mr-2" />
+                        {t.upgradeToPro}
+                      </Button>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium mb-4">{t.billingHistory}</h4>
+                      <div className="text-center py-8 border-2 border-dashed border-border/40 rounded-lg">
+                        <p className="text-sm text-muted-foreground">{t.noInvoicesAvailable}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Appearance Content */}
+              <TabsContent value="appearance" className="space-y-6">
+                <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle>Appearance</CardTitle>
+                    <CardDescription>Customize the look and feel of the application.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-8">
+                    <div className="space-y-4">
+                      <Label className="text-base">{t.theme}</Label>
+                      <ThemeToggle />
+                    </div>
+                    <Separator />
+                    <div className="space-y-4">
+                      <Label className="text-base">{t.language}</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div
+                          onClick={() => handleLanguageChange('es')}
+                          className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${lang === 'es'
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border/40 hover:border-border/80'
+                            }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm text-lg">🇪🇸</div>
+                            <div>
+                              <p className="font-medium">{t.spanish}</p>
+                              <p className="text-xs text-muted-foreground">Español</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div
+                          onClick={() => handleLanguageChange('en')}
+                          className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${lang === 'en'
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border/40 hover:border-border/80'
+                            }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm text-lg">🇺🇸</div>
+                            <div>
+                              <p className="font-medium">{t.english}</p>
+                              <p className="text-xs text-muted-foreground">English</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
           </div>
-        </div>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   )

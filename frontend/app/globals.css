@@ -8,49 +8,58 @@
 @layer base {
   :root {
     --mentha: #2DD4BF;
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --mentha-rgb: 45 212 191;
+    --background: 0 0% 98%;
+    /* Zinc 50 */
+    --foreground: 240 10% 3.9%;
+    /* Zinc 950 */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    /* Zinc 900 */
     --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
+    --secondary: 240 4.8% 95.9%;
+    /* Zinc 100 */
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --radius: 0.5rem;
+    --border: 240 5.9% 90%;
+    /* Zinc 200 */
+    --input: 240 5.9% 90%;
+    --ring: 240 5% 64.9%;
+    --radius: 0.75rem;
   }
 
   .dark {
     --mentha: #16a085;
-    --background: 0 0% 3.9%;
+    --mentha-rgb: 22 160 133;
+    --background: 240 10% 3.9%;
+    /* Zinc 950 */
     --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
+    --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
+    --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
     --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    /* Zinc 800 */
     --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
   }
 }
 
@@ -58,66 +67,59 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
-/* Ensure the app and html fill the viewport and use a solid black background */
-html, body, #__next {
+html,
+body,
+#__next {
   height: 100%;
-  background-color: #000;
 }
 
-/* Prevent unwanted horizontal scrolling caused by large absolute backgrounds */
-html, body {
+html,
+body {
   overflow-x: hidden;
 }
 
-/* Custom Scrollbar */
 @layer utilities {
+
   /* Webkit browsers (Chrome, Safari, Edge) */
   *::-webkit-scrollbar {
-    width: 12px;
-    height: 12px;
+    width: 8px;
+    height: 8px;
   }
 
   *::-webkit-scrollbar-track {
-    background: transparent;
+    background: rgba(var(--mentha-rgb), 0.06);
+    border-radius: 9999px;
   }
 
   *::-webkit-scrollbar-thumb {
-    background: var(--mentha);
+    background: linear-gradient(180deg, var(--mentha), rgba(var(--mentha-rgb), 0.95));
     border-radius: 9999px;
-    border: 3px solid transparent;
+    border: 2px solid transparent;
     background-clip: padding-box;
+    box-shadow: 0 1px 2px rgba(16,24,40,0.06), 0 6px 12px rgba(var(--mentha-rgb), 0.06);
+    transition: background 120ms ease, box-shadow 120ms ease, transform 120ms ease;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    filter: brightness(0.9);
-    background-clip: padding-box;
+    background: rgba(var(--mentha-rgb), 0.9);
+    box-shadow: 0 4px 10px rgba(var(--mentha-rgb), 0.12);
+    transform: translateY(-1px);
   }
 
-  /* Dark mode scrollbar */
-  .dark *::-webkit-scrollbar-thumb {
-    background: var(--mentha);
-    background-clip: padding-box;
-  }
-
-  .dark *::-webkit-scrollbar-thumb:hover {
-    filter: brightness(0.85);
-    background-clip: padding-box;
+  *::-webkit-scrollbar-thumb:active {
+    background: rgba(var(--mentha-rgb), 0.98);
+    box-shadow: 0 6px 18px rgba(var(--mentha-rgb), 0.16);
   }
 
   /* Firefox */
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--mentha) transparent;
+    scrollbar-color: var(--mentha) rgba(var(--mentha-rgb), 0.06);
   }
-
-  .dark * {
-    scrollbar-color: var(--mentha) transparent;
-  }
-
-  /* orbit animations removed (reverted) */
 }

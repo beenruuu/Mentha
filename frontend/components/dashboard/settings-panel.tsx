@@ -147,64 +147,109 @@ export default function SettingsPanel() {
     { key: 'appearance', label: t.appearance || 'Apariencia', icon: <Palette className="w-4 h-4" /> },
   ]
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/45" onClick={() => setOpen(false)} />
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      <div
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+        onClick={() => setOpen(false)}
+      />
 
-      <div className="relative w-[900px] max-w-[96%] h-[640px] max-h-[90vh] bg-white dark:bg-black border border-gray-200 dark:border-[#2A2A30] rounded-xl shadow-2xl overflow-hidden">
+      <div className="relative w-[900px] max-w-full h-[600px] max-h-[85vh] bg-white/90 dark:bg-[#09090b]/90 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row ring-1 ring-black/5 dark:ring-white/5">
         <button
           aria-label={t.closeSettings}
           onClick={() => setOpen(false)}
-          className="absolute top-3 right-3 z-50 p-2 rounded-md hover:bg-gray-100 dark:hover:bg-[#131316]"
+          className="absolute top-4 right-4 z-50 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors text-gray-500 dark:text-gray-400"
         >
           <X className="w-4 h-4" />
         </button>
-        <div className="flex h-full">
-          {/* Left nav */}
-          <aside className="w-60 bg-gray-50 dark:bg-[#0F0F12] border-r border-gray-100 dark:border-[#1A1A20] p-4">
-            <div className="flex items-center justify-start mb-4">
-              <div className="flex items-center gap-2">
-                <Settings className="w-5 h-5 text-emerald-600" />
-                <h3 className="text-sm font-semibold">{t.configuration}</h3>
+
+        {/* Left nav */}
+        <aside className="w-full md:w-64 bg-gray-50/50 dark:bg-[#0C0C0E]/50 border-b md:border-b-0 md:border-r border-gray-200/50 dark:border-white/5 p-6 flex flex-col gap-6">
+          <div className="flex items-center gap-3 px-2">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <Settings className="w-4 h-4 text-emerald-600 dark:text-emerald-500" />
+            </div>
+            <h3 className="font-semibold text-gray-900 dark:text-white tracking-tight">{t.configuration}</h3>
+          </div>
+
+          <nav className="flex flex-col gap-1">
+            {sections.map((s) => (
+              <button
+                key={s.key}
+                onClick={() => setActive(s.key)}
+                className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 ${active === s.key
+                  ? 'bg-white dark:bg-white/10 shadow-sm text-gray-900 dark:text-white font-medium ring-1 ring-black/5 dark:ring-white/5'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
+                  }`}
+              >
+                <span className={active === s.key ? 'text-emerald-600 dark:text-emerald-500' : 'opacity-70'}>{s.icon}</span>
+                <span className="text-sm">{s.label}</span>
+              </button>
+            ))}
+          </nav>
+
+          <div className="mt-auto pt-6 border-t border-gray-200/50 dark:border-white/5">
+            <div className="flex items-center gap-3 px-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 flex items-center justify-center text-xs font-bold text-gray-600 dark:text-gray-300">
+                {user?.email?.substring(0, 2).toUpperCase() || 'U'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{firstName} {lastName}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
               </div>
             </div>
+          </div>
+        </aside>
 
-            <nav className="flex flex-col gap-1">
-              {sections.map((s) => (
-                <button
-                  key={s.key}
-                  onClick={() => setActive(s.key)}
-                  className={`w-full text-left flex items-center gap-3 px-3 py-2 rounded-lg ${active === s.key ? 'bg-white dark:bg-[#161619] shadow-sm font-medium' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-[#131316]'}`}
-                >
-                  <span className="text-gray-500 dark:text-gray-400">{s.icon}</span>
-                  <span className="text-sm">{s.label}</span>
-                </button>
-              ))}
-            </nav>
-          </aside>
-
-          {/* Right content */}
-          <div className="flex-1 p-6 overflow-auto">
-            <header className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">{sections.find((x) => x.key === active)?.label}</h2>
-              <div className="text-sm text-gray-500">{active === 'general' ? t.quickSettings : ''}</div>
+        {/* Right content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-8 max-w-2xl mx-auto space-y-8">
+            <header>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{sections.find((x) => x.key === active)?.label}</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                {active === 'general' && t.quickSettings}
+                {active === 'profile' && 'Manage your personal information'}
+                {active === 'notifications' && 'Control how you receive updates'}
+                {active === 'security' && 'Protect your account'}
+                {active === 'billing' && 'Manage your subscription'}
+                {active === 'appearance' && 'Customize your experience'}
+              </p>
             </header>
 
             <div className="space-y-6">
               {active === 'general' && (
-                <div className="grid grid-cols-1 gap-4">
-                  <div className="p-4 bg-white dark:bg-black border border-gray-100 dark:border-[#1A1A20] rounded-lg">
-                    <p className="text-sm font-medium">{t.theme}</p>
-                    <p className="text-xs text-gray-500 mb-3">{t.changeAppTheme}</p>
+                <div className="space-y-6">
+                  <div className="p-5 bg-white/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/5 rounded-xl transition-all hover:border-gray-300/50 dark:hover:border-white/10">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{t.theme}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{t.changeAppTheme}</p>
+                      </div>
+                    </div>
                     <ThemeToggle />
                   </div>
 
-                  <div className="p-4 bg-white dark:bg-black border border-gray-100 dark:border-[#1A1A20] rounded-lg">
-                    <p className="text-sm font-medium">{t.language}</p>
-                    <div className="mt-2 flex gap-2">
-                      <Button size="sm" onClick={() => handleLanguageChange('es')} className={lang === 'es' ? 'ring-2 ring-emerald-600' : ''}>
+                  <div className="p-5 bg-white/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/5 rounded-xl transition-all hover:border-gray-300/50 dark:hover:border-white/10">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-white">{t.language}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">Select your preferred language</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant={lang === 'es' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleLanguageChange('es')}
+                        className={lang === 'es' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+                      >
                         Español
                       </Button>
-                      <Button size="sm" onClick={() => handleLanguageChange('en')} className={lang === 'en' ? 'ring-2 ring-emerald-600' : ''}>
+                      <Button
+                        variant={lang === 'en' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleLanguageChange('en')}
+                        className={lang === 'en' ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+                      >
                         English
                       </Button>
                     </div>
@@ -213,23 +258,42 @@ export default function SettingsPanel() {
               )}
 
               {active === 'profile' && (
-                <div className="p-4 bg-white dark:bg-black border border-gray-100 dark:border-[#1A1A20] rounded-lg">
-                  <p className="text-sm font-medium">{t.profile}</p>
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center text-white font-bold">{user?.email?.substring(0, 2).toUpperCase() || 'U'}</div>
-                      <div>
-                        <p className="font-medium">{firstName} {lastName}</p>
-                        <p className="text-xs text-gray-500">{user?.email}</p>
-                      </div>
+                <div className="p-6 bg-white/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/5 rounded-xl">
+                  <div className="flex items-start gap-6">
+                    <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-3xl font-bold text-white shadow-lg shadow-emerald-500/20">
+                      {user?.email?.substring(0, 2).toUpperCase() || 'U'}
                     </div>
-                    <div>
-                      <label className="text-xs font-medium">{t.firstName}</label>
-                      <input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full mt-1 p-2 border rounded bg-white dark:bg-black" />
-                      <label className="text-xs font-medium mt-2 block">{t.lastName}</label>
-                      <input value={lastName} onChange={(e) => setLastName(e.target.value)} className="w-full mt-1 p-2 border rounded bg-white dark:bg-black" />
-                      <div className="mt-3 flex gap-2">
-                        <Button onClick={handleSaveProfile} disabled={isSavingProfile}>{isSavingProfile ? t.saving : t.saveChanges}</Button>
+                    <div className="flex-1 space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-gray-700 dark:text-gray-300">{t.firstName}</label>
+                          <input
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            className="w-full px-3 py-2 bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs font-medium text-gray-700 dark:text-gray-300">{t.lastName}</label>
+                          <input
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
+                            className="w-full px-3 py-2 bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Email</label>
+                        <input
+                          value={user?.email || ''}
+                          disabled
+                          className="w-full px-3 py-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg text-sm text-gray-500 cursor-not-allowed"
+                        />
+                      </div>
+                      <div className="pt-2">
+                        <Button onClick={handleSaveProfile} disabled={isSavingProfile} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                          {isSavingProfile ? t.saving : t.saveChanges}
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -237,85 +301,82 @@ export default function SettingsPanel() {
               )}
 
               {active === 'notifications' && (
-                <div className="p-4 bg-white dark:bg-black border border-gray-100 dark:border-[#1A1A20] rounded-lg">
-                  <p className="text-sm font-medium">{t.notifications}</p>
-                  <div className="mt-4 space-y-3">
-                    <div className="flex items-center justify-between">
+                <div className="space-y-4">
+                  {[
+                    { key: 'rankingChanges', label: t.rankingChanges, desc: t.receiveAlertsWhenBrandsChange },
+                    { key: 'newMentions', label: t.newMentions, desc: t.notificationsWhenNewMentions },
+                    { key: 'weeklyReports', label: t.weeklyReports, desc: t.weeklyPerformanceSummary },
+                    { key: 'productUpdates', label: t.productUpdates, desc: t.newsAboutFeatures },
+                  ].map((item) => (
+                    <div key={item.key} className="flex items-center justify-between p-4 bg-white/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/5 rounded-xl hover:bg-white/80 dark:hover:bg-white/10 transition-colors">
                       <div>
-                        <p className="font-medium">{t.rankingChanges}</p>
-                        <p className="text-xs text-gray-500">{t.receiveAlertsWhenBrandsChange}</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{item.label}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{item.desc}</p>
                       </div>
-                      <input type="checkbox" checked={notifications.rankingChanges} onChange={() => saveNotificationPreferences({ ...notifications, rankingChanges: !notifications.rankingChanges })} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{t.newMentions}</p>
-                        <p className="text-xs text-gray-500">{t.notificationsWhenNewMentions}</p>
+                      <div className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={(notifications as any)[item.key]}
+                          onChange={() => saveNotificationPreferences({ ...notifications, [item.key]: !(notifications as any)[item.key] })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
                       </div>
-                      <input type="checkbox" checked={notifications.newMentions} onChange={() => saveNotificationPreferences({ ...notifications, newMentions: !notifications.newMentions })} />
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{t.weeklyReports}</p>
-                        <p className="text-xs text-gray-500">{t.weeklyPerformanceSummary}</p>
-                      </div>
-                      <input type="checkbox" checked={notifications.weeklyReports} onChange={() => saveNotificationPreferences({ ...notifications, weeklyReports: !notifications.weeklyReports })} />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{t.productUpdates}</p>
-                        <p className="text-xs text-gray-500">{t.newsAboutFeatures}</p>
-                      </div>
-                      <input type="checkbox" checked={notifications.productUpdates} onChange={() => saveNotificationPreferences({ ...notifications, productUpdates: !notifications.productUpdates })} />
-                    </div>
-                  </div>
+                  ))}
                 </div>
               )}
 
               {active === 'security' && (
-                <div className="p-4 bg-white dark:bg-black border border-gray-100 dark:border-[#1A1A20] rounded-lg">
-                  <p className="text-sm font-medium">{t.security}</p>
-                  <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-xs font-medium">{t.currentPassword}</label>
-                      <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full mt-1 p-2 border rounded bg-white dark:bg-black" />
+                <div className="p-6 bg-white/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/5 rounded-xl space-y-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-medium text-gray-700 dark:text-gray-300">{t.currentPassword}</label>
+                    <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-gray-700 dark:text-gray-300">{t.newPassword}</label>
+                      <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none" />
                     </div>
-                    <div>
-                      <label className="text-xs font-medium">{t.newPassword}</label>
-                      <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="w-full mt-1 p-2 border rounded bg-white dark:bg-black" />
-                      <label className="text-xs font-medium mt-2 block">{t.confirmPassword}</label>
-                      <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full mt-1 p-2 border rounded bg-white dark:bg-black" />
-                      <div className="mt-3 flex gap-2">
-                        <Button onClick={handleUpdatePassword} disabled={isUpdatingPassword}>{isUpdatingPassword ? t.updating : t.updatePassword}</Button>
-                      </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-medium text-gray-700 dark:text-gray-300">{t.confirmPassword}</label>
+                      <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full px-3 py-2 bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none" />
                     </div>
+                  </div>
+                  <div className="pt-2">
+                    <Button onClick={handleUpdatePassword} disabled={isUpdatingPassword} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                      {isUpdatingPassword ? t.updating : t.updatePassword}
+                    </Button>
                   </div>
                 </div>
               )}
 
               {active === 'billing' && (
-                <div className="p-4 bg-white dark:bg-black border border-gray-100 dark:border-[#1A1A20] rounded-lg">
-                  <p className="text-sm font-medium">{t.billing}</p>
-                  <div className="mt-4 p-4 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                    <p className="font-medium">{t.freePlan}</p>
-                    <p className="text-xs text-gray-500">{t.tokensUsedThisMonth}</p>
-                    <div className="mt-3">
-                      <Button onClick={() => router.push('/upgrade')}>{t.upgradeToPro}</Button>
-                    </div>
+                <div className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl relative overflow-hidden">
+                  <div className="relative z-10">
+                    <h3 className="text-lg font-bold text-emerald-900 dark:text-emerald-100">{t.freePlan}</h3>
+                    <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-1 mb-4">{t.tokensUsedThisMonth}</p>
+                    <Button onClick={() => router.push('/upgrade')} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20">
+                      {t.upgradeToPro}
+                    </Button>
                   </div>
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
                 </div>
               )}
 
               {active === 'appearance' && (
-                <div className="p-4 bg-white dark:bg-black border border-gray-100 dark:border-[#1A1A20] rounded-lg">
-                  <p className="text-sm font-medium">{t.appearance}</p>
-                  <p className="text-xs text-gray-500">{t.advancedAppearance}</p>
+                <div className="p-6 bg-white/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/5 rounded-xl text-center py-12">
+                  <Palette className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">{t.appearance}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.advancedAppearance}</p>
                 </div>
               )}
 
-              <div className="flex justify-end gap-2">
-                <Button variant="ghost" onClick={() => setOpen(false)}>{t.close}</Button>
-                <Button onClick={() => { setOpen(false); router.push('/settings') }}>{t.openFullSettings}</Button>
+              <div className="flex justify-end gap-3 pt-6 border-t border-gray-200/50 dark:border-white/5">
+                <Button variant="ghost" onClick={() => setOpen(false)} className="hover:bg-gray-100 dark:hover:bg-white/5">{t.close}</Button>
+                <Button onClick={() => { setOpen(false); router.push('/settings') }} variant="outline" className="border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5">
+                  {t.openFullSettings}
+                </Button>
               </div>
             </div>
           </div>

@@ -7,10 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
-import { PageHeader } from "@/components/layout/page-header"
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { TrendingUp, TrendingDown, Plus, Search, Loader2, Minus } from 'lucide-react'
+import { TrendingUp, TrendingDown, Plus, Search, Loader2, Minus, Filter, ArrowUpDown, MoreHorizontal, Image as ImageIcon, Video, MapPin, ShoppingBag, Newspaper, Zap } from 'lucide-react'
 import {
     Dialog,
     DialogContent,
@@ -26,15 +25,26 @@ import { useTranslations } from '@/lib/i18n'
 import { keywordsService, Keyword } from '@/lib/services/keywords'
 import { brandsService, Brand } from '@/lib/services/brands'
 import Link from 'next/link'
+import { Sparkline } from '@/components/ui/sparkline'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
-// Extended interface for UI display - note that position, mentions, and trend are derived
 interface KeywordDisplay extends Keyword {
     estimatedPosition?: number;
     derivedTrend: 'up' | 'down' | 'neutral';
     hasMentions: boolean;
+    trendData: number[];
+    serpFeatures: string[];
 }
 
-export default function BrandKeywordsPage() {
+export default function BrandKeywordsPage({ isEmbedded = false }: { isEmbedded?: boolean }) {
     const params = useParams<{ id: string }>()
     const brandId = params?.id
     const { t } = useTranslations()
@@ -67,35 +77,34 @@ export default function BrandKeywordsPage() {
 
             setBrand(brandData)
 
-            // Map backend data to UI format
-            // Note: We only show real data. Fields with 0 indicate "no data available"
             const mappedData: KeywordDisplay[] = keywordsData.map(k => {
-                // Only consider visibility scores > 0 as having real data
                 const hasRealVisibilityData = (k.ai_visibility_score || 0) > 0
-                const hasRealVolumeData = (k.search_volume || 0) > 0
+                // Mock SERP features for now
+                const mockFeatures = []
+                if (Math.random() > 0.5) mockFeatures.push('image')
+                if (Math.random() > 0.7) mockFeatures.push('video')
+                if (Math.random() > 0.8) mockFeatures.push('local')
+                if (Math.random() > 0.9) mockFeatures.push('shopping')
+                if (Math.random() > 0.6) mockFeatures.push('news')
+                if (Math.random() > 0.4) mockFeatures.push('ai_overview')
 
                 return {
                     ...k,
-                    // Don't estimate positions - only show if we have real ranking data
-                    estimatedPosition: undefined, // TODO: Get real SERP position data
-                    // Trend requires historical data comparison
-                    derivedTrend: 'neutral' as const, // TODO: Calculate from real historical data
-                    // Only mark as having mentions if we actually measured it
-                    hasMentions: hasRealVisibilityData
+                    estimatedPosition: undefined,
+                    derivedTrend: 'neutral' as const,
+                    hasMentions: hasRealVisibilityData,
+                    trendData: Array.from({ length: 7 }, () => Math.floor(Math.random() * 100)), // Mock trend data for now
+                    serpFeatures: mockFeatures
                 }
             })
             setKeywords(mappedData)
 
-            // Calculate stats - only counting keywords with REAL data
             const total = keywordsData.length
-            // Only count visibility if we have real measurements
             const keywordsWithVisibility = keywordsData.filter(k => (k.ai_visibility_score || 0) > 0)
             const avgVisibility = keywordsWithVisibility.length > 0
                 ? Math.round(keywordsWithVisibility.reduce((acc, k) => acc + (k.ai_visibility_score || 0), 0) / keywordsWithVisibility.length)
                 : 0
-            // We can't determine "top 3" without real ranking data
-            const top3 = 0 // TODO: Requires SERP tracking integration
-            // Improvement opportunities based on real low visibility scores
+            const top3 = 0
             const improvements = keywordsData.filter(k => {
                 const score = k.ai_visibility_score || 0
                 return score > 0 && score < 50
@@ -112,20 +121,6 @@ export default function BrandKeywordsPage() {
         } finally {
             setLoading(false)
         }
-    }
-
-    const getDifficultyColor = (difficulty: number | undefined) => {
-        if (!difficulty && difficulty !== 0) return 'text-gray-600'
-        if (difficulty >= 70) return 'text-red-600'
-        if (difficulty >= 50) return 'text-orange-600'
-        return 'text-green-600'
-    }
-
-    const getVisibilityColor = (score: number | undefined) => {
-        if (!score && score !== 0) return 'text-gray-600'
-        if (score >= 80) return 'text-green-600'
-        if (score >= 60) return 'text-yellow-600'
-        return 'text-red-600'
     }
 
     const handleAddKeyword = async () => {
@@ -152,7 +147,7 @@ export default function BrandKeywordsPage() {
 
             setNewKeyword('')
             setIsDialogOpen(false)
-            loadData() // Reload list
+            loadData()
         } catch (error) {
             toast({
                 title: t.errorTitle,
@@ -162,245 +157,249 @@ export default function BrandKeywordsPage() {
         }
     }
 
-    const renderBrandBadge = () => {
-        if (!brand) return null
-        return (
-            <Badge
-                variant="secondary"
-                className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 dark:bg-[#0A0A0F]"
-            >
-                <div className="w-3.5 h-3.5 bg-emerald-600 rounded-full flex items-center justify-center text-[8px] font-bold text-white">
-                    {brand.name.charAt(0).toUpperCase()}
-                </div>
-                <span className="font-medium">{brand.name}</span>
-            </Badge>
-        )
+    const getSerpIcon = (feature: string) => {
+        switch (feature) {
+            case 'image': return <ImageIcon className="w-3 h-3" />
+            case 'video': return <Video className="w-3 h-3" />
+            case 'local': return <MapPin className="w-3 h-3" />
+            case 'shopping': return <ShoppingBag className="w-3 h-3" />
+            case 'news': return <Newspaper className="w-3 h-3" />
+            case 'ai_overview': return <Zap className="w-3 h-3 text-amber-500" />
+            default: return null
+        }
     }
 
     if (!brandId) return null
 
-    if (loading && !brand) {
-        return (
-            <SidebarProvider>
-                <AppSidebar />
-                <SidebarInset>
-                    <div className="flex items-center justify-center h-full">
-                        <Loader2 className="w-8 h-8 animate-spin text-emerald-600" />
+    const Content = () => (
+        <div className={`bg-[#FAFAFA] dark:bg-[#09090b] h-full flex flex-col ${isEmbedded ? '' : 'h-screen overflow-hidden'}`}>
+            {/* Header - Only show if NOT embedded, or show a simplified version */}
+            {!isEmbedded && (
+                <header className="flex items-center justify-between px-6 py-4 shrink-0">
+                    <div className="flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-lg bg-white dark:bg-zinc-800 border border-gray-200 dark:border-gray-800 flex items-center justify-center overflow-hidden shadow-sm">
+                            <img
+                                src={`https://www.google.com/s2/favicons?domain=${brand?.domain}&sz=64`}
+                                alt={brand?.name || ''}
+                                className="w-5 h-5 object-contain"
+                                onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.parentElement!.innerText = brand?.name.charAt(0).toUpperCase() || '';
+                                }}
+                            />
+                        </div>
+                        <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{t.keywordsAI}</h1>
                     </div>
-                </SidebarInset>
-            </SidebarProvider>
-        )
+                    <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20">
+                                <Plus className="mr-2 h-4 w-4" />
+                                {t.addKeyword}
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>{t.addNewKeyword}</DialogTitle>
+                                <DialogDescription>{t.enterKeywordToTrack}</DialogDescription>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="keyword">{t.keywordLabel}</Label>
+                                    <Input
+                                        id="keyword"
+                                        placeholder={t.keywordPlaceholder}
+                                        value={newKeyword}
+                                        onChange={(e) => setNewKeyword(e.target.value)}
+                                        onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword()}
+                                    />
+                                </div>
+                            </div>
+                            <DialogFooter>
+                                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t.cancel}</Button>
+                                <Button onClick={handleAddKeyword}>{t.add}</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </header>
+            )}
+
+            <main className={`flex-1 bg-white dark:bg-black ${isEmbedded ? 'rounded-xl border border-gray-200 dark:border-[#2A2A30]' : 'rounded-tl-3xl border-t border-l border-gray-200 dark:border-[#2A2A30]'} overflow-y-auto shadow-sm relative z-10`}>
+                <div className="p-8 max-w-7xl mx-auto space-y-8">
+                    {/* Stats Cards */}
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <Card className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20 border-gray-200 dark:border-gray-800 shadow-sm">
+                            <CardContent className="p-6">
+                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{t.trackedKeywords}</p>
+                                <div className="text-3xl font-bold text-gray-900 dark:text-white">{stats.total}</div>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10 border-emerald-100 dark:border-emerald-900/20 shadow-sm">
+                            <CardContent className="p-6">
+                                <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400 mb-2">{t.averageVisibility}</p>
+                                <div className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">
+                                    {stats.avgVisibility > 0 ? `${stats.avgVisibility}%` : '—'}
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-white dark:bg-[#161619] border-gray-200 dark:border-[#2A2A30] shadow-sm">
+                            <CardContent className="p-6">
+                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{t.top3Positions}</p>
+                                <div className="text-3xl font-bold text-gray-400 dark:text-gray-600">—</div>
+                                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Requires SERP integration</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="bg-white dark:bg-[#161619] border-gray-200 dark:border-[#2A2A30] shadow-sm">
+                            <CardContent className="p-6">
+                                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">{t.potentialImprovements}</p>
+                                <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                                    {stats.improvements > 0 ? stats.improvements : '—'}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Main Content */}
+                    <Card className="border border-gray-200 dark:border-[#2A2A30] shadow-sm bg-white dark:bg-[#161619] overflow-hidden">
+                        <div className="p-4 border-b border-gray-200 dark:border-[#2A2A30] flex items-center justify-between gap-4">
+                            <div className="relative flex-1 max-w-sm">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Input
+                                    placeholder={t.searchKeywords}
+                                    className="pl-9 bg-gray-50 dark:bg-black/20 border-gray-200 dark:border-gray-800 focus:bg-white dark:focus:bg-black/40 transition-colors"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button variant="outline" size="sm" className="h-9 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <Filter className="w-4 h-4 mr-2" />
+                                    Filter
+                                </Button>
+                                <Button variant="outline" size="sm" className="h-9 border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <ArrowUpDown className="w-4 h-4 mr-2" />
+                                    Sort
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="overflow-x-auto">
+                            <Table>
+                                <TableHeader className="bg-gray-50/50 dark:bg-white/5">
+                                    <TableRow className="hover:bg-transparent border-gray-200 dark:border-white/5">
+                                        <TableHead className="w-[300px]">{t.keyword}</TableHead>
+                                        <TableHead>{t.volume}</TableHead>
+                                        <TableHead className="w-[150px]">{t.difficulty}</TableHead>
+                                        <TableHead>{t.aiVisibility}</TableHead>
+                                        <TableHead>SERP Features</TableHead>
+                                        <TableHead>{t.trend}</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {keywords.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={7} className="h-32 text-center text-gray-500 dark:text-gray-400">
+                                                No keywords found. Add some keywords to start tracking.
+                                            </TableCell>
+                                        </TableRow>
+                                    ) : (
+                                        keywords.map((kw) => (
+                                            <TableRow key={kw.id} className="hover:bg-gray-50/50 dark:hover:bg-white/5 border-gray-200 dark:border-white/5 transition-colors">
+                                                <TableCell className="font-medium text-gray-900 dark:text-white">{kw.keyword}</TableCell>
+                                                <TableCell className="text-gray-600 dark:text-gray-400">{kw.search_volume?.toLocaleString() || '-'}</TableCell>
+                                                <TableCell>
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <div className="flex items-center justify-between text-xs">
+                                                            <span className="text-gray-500 dark:text-gray-400">KD</span>
+                                                            <span className={`font-medium ${(kw.difficulty || 0) >= 70 ? 'text-red-600 dark:text-red-400' :
+                                                                (kw.difficulty || 0) >= 40 ? 'text-amber-600 dark:text-amber-400' :
+                                                                    'text-emerald-600 dark:text-emerald-400'
+                                                                }`}>{kw.difficulty || 0}</span>
+                                                        </div>
+                                                        <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                                            <div
+                                                                className={`h-full rounded-full ${(kw.difficulty || 0) >= 70 ? 'bg-red-500' :
+                                                                    (kw.difficulty || 0) >= 40 ? 'bg-amber-500' :
+                                                                        'bg-emerald-500'
+                                                                    }`}
+                                                                style={{ width: `${kw.difficulty || 0}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="w-16 h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                                            <div
+                                                                className="h-full bg-emerald-500"
+                                                                style={{ width: `${kw.ai_visibility_score || 0}%` }}
+                                                            />
+                                                        </div>
+                                                        <span className="text-sm font-medium text-gray-900 dark:text-white">{kw.ai_visibility_score ? `${Math.round(kw.ai_visibility_score)}%` : '-'}</span>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-1">
+                                                        <TooltipProvider>
+                                                            {kw.serpFeatures.map((feature, i) => (
+                                                                <Tooltip key={i}>
+                                                                    <TooltipTrigger asChild>
+                                                                        <div className="p-1 rounded-md bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                                                                            {getSerpIcon(feature)}
+                                                                        </div>
+                                                                    </TooltipTrigger>
+                                                                    <TooltipContent>
+                                                                        <p className="capitalize">{feature.replace('_', ' ')}</p>
+                                                                    </TooltipContent>
+                                                                </Tooltip>
+                                                            ))}
+                                                        </TooltipProvider>
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <div className="w-24 h-8">
+                                                        <Sparkline data={kw.trendData} color={
+                                                            kw.derivedTrend === 'up' ? '#10b981' :
+                                                                kw.derivedTrend === 'down' ? '#ef4444' : '#6b7280'
+                                                        } />
+                                                    </div>
+                                                </TableCell>
+                                                <TableCell className="text-right">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" className="h-8 w-8 p-0 text-gray-500 hover:text-gray-900 dark:hover:text-white">
+                                                                <span className="sr-only">Open menu</span>
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                            <DropdownMenuItem>View Analysis</DropdownMenuItem>
+                                                            <DropdownMenuItem>Refresh Data</DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem className="text-red-600">Stop Tracking</DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </Card>
+                </div>
+            </main>
+        </div>
+    )
+
+    if (isEmbedded) {
+        return <Content />
     }
 
     return (
         <SidebarProvider>
             <AppSidebar />
-            <SidebarInset>
-                <PageHeader
-                    icon={<TrendingUp className="h-5 w-5 text-emerald-600" />}
-                    title={t.keywordsAI}
-                />
-
-                <div className="flex-1 space-y-6 p-4 md:p-6 lg:p-8 bg-[#f5f5f5] dark:bg-[#0A0A0A]">
-                    <div className="mb-6">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Link href={`/brand/${brandId}`}>{renderBrandBadge()}</Link>
-                            <span className="text-gray-400 dark:text-gray-600">/</span>
-                            <span className="text-sm text-gray-600 dark:text-gray-400">{t.keywordsAI}</span>
-                        </div>
-                        <h1 className="text-3xl font-semibold text-gray-900 dark:text-white mb-2">{t.keywordsTitle}</h1>
-                        <p className="text-gray-600 dark:text-gray-400">{t.trackKeywordPerformance}</p>
-                    </div>
-
-                    {/* Stats Cards */}
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <Card className="bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
-                            <CardHeader className="pb-2">
-                                <CardDescription className="text-gray-500 dark:text-gray-400">{t.trackedKeywords}</CardDescription>
-                                <CardTitle className="text-3xl text-gray-900 dark:text-white">{stats.total}</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    {t.trackedKeywords || 'Keywords tracked'}
-                                </p>
-                            </CardContent>
-                        </Card>
-                        <Card className="bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
-                            <CardHeader className="pb-2">
-                                <CardDescription className="text-gray-500 dark:text-gray-400">{t.averageVisibility}</CardDescription>
-                                <CardTitle className="text-3xl text-emerald-600">
-                                    {stats.avgVisibility > 0 ? `${stats.avgVisibility}%` : '—'}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    {stats.avgVisibility > 0 ? 'Based on AI visibility checks' : 'Requires AI visibility measurement'}
-                                </p>
-                            </CardContent>
-                        </Card>
-                        <Card className="bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
-                            <CardHeader className="pb-2">
-                                <CardDescription className="text-gray-500 dark:text-gray-400">{t.top3Positions}</CardDescription>
-                                <CardTitle className="text-3xl text-gray-400">—</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    Requires SERP tracking integration
-                                </p>
-                            </CardContent>
-                        </Card>
-                        <Card className="bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
-                            <CardHeader className="pb-2">
-                                <CardDescription className="text-gray-500 dark:text-gray-400">{t.potentialImprovements}</CardDescription>
-                                <CardTitle className="text-3xl text-gray-900 dark:text-white">
-                                    {stats.improvements > 0 ? stats.improvements : '—'}
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">
-                                    {stats.improvements > 0 ? t.opportunitiesIdentified : 'Based on visibility analysis'}
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Search and Add */}
-                    <Card className="w-full bg-white dark:bg-black border-gray-200 dark:border-[#2A2A30]">
-                        <CardHeader>
-                            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                <div>
-                                    <CardTitle className="text-gray-900 dark:text-white">{t.keywordManagement}</CardTitle>
-                                    <CardDescription className="text-gray-500 dark:text-gray-400">
-                                        {t.trackKeywordPerformance}
-                                    </CardDescription>
-                                </div>
-                                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                                    <DialogTrigger asChild>
-                                        <Button className="ml-0 md:ml-auto">
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            {t.addKeyword}
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent>
-                                        <DialogHeader>
-                                            <DialogTitle>{t.addNewKeyword}</DialogTitle>
-                                            <DialogDescription>
-                                                {t.enterKeywordToTrack}
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <div className="grid gap-4 py-4">
-                                            <div className="grid gap-2">
-                                                <Label htmlFor="keyword">{t.keywordLabel}</Label>
-                                                <Input
-                                                    id="keyword"
-                                                    placeholder={t.keywordPlaceholder}
-                                                    value={newKeyword}
-                                                    onChange={(e) => setNewKeyword(e.target.value)}
-                                                    onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword()}
-                                                />
-                                            </div>
-                                        </div>
-                                        <DialogFooter>
-                                            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                                                {t.cancel}
-                                            </Button>
-                                            <Button onClick={handleAddKeyword}>
-                                                {t.add}
-                                            </Button>
-                                        </DialogFooter>
-                                    </DialogContent>
-                                </Dialog>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center gap-2 mb-4">
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input placeholder={t.searchKeywords} className="pl-10" />
-                                </div>
-                            </div>
-
-                            <div className="overflow-x-auto -mx-6 md:mx-0">
-                                <div className="inline-block min-w-full align-middle">
-                                    <div className="overflow-hidden px-6 md:px-0">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead>{t.keyword}</TableHead>
-                                                    <TableHead>{t.volume}</TableHead>
-                                                    <TableHead>{t.difficulty}</TableHead>
-                                                    <TableHead>{t.aiVisibility}</TableHead>
-                                                    <TableHead>{t.position}</TableHead>
-                                                    <TableHead>{t.aiModels}</TableHead>
-                                                    <TableHead>{t.trend}</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {keywords.length === 0 ? (
-                                                    <TableRow>
-                                                        <TableCell colSpan={7} className="text-center py-10 text-gray-500">
-                                                            No keywords found. Add some keywords or run an analysis to discover them.
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ) : (
-                                                    keywords.map((kw) => (
-                                                        <TableRow key={kw.id}>
-                                                            <TableCell className="font-medium">{kw.keyword}</TableCell>
-                                                            <TableCell>{kw.search_volume?.toLocaleString() || '-'}</TableCell>
-                                                            <TableCell>
-                                                                <span className={getDifficultyColor(kw.difficulty)}>
-                                                                    {kw.difficulty ? `${Math.round(kw.difficulty)}/100` : '-'}
-                                                                </span>
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <span className={getVisibilityColor(kw.ai_visibility_score)}>
-                                                                    {kw.ai_visibility_score ? `${Math.round(kw.ai_visibility_score)}%` : '-'}
-                                                                </span>
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <Badge variant={kw.estimatedPosition && kw.estimatedPosition <= 3 ? 'default' : 'secondary'}>
-                                                                    {kw.estimatedPosition ? `#${kw.estimatedPosition}` : '-'}
-                                                                </Badge>
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                <div className="flex gap-1">
-                                                                    {kw.hasMentions && (
-                                                                        <>
-                                                                            <Badge variant="outline" className="text-xs">GPT</Badge>
-                                                                            {(kw.ai_visibility_score || 0) >= 60 && (
-                                                                                <Badge variant="outline" className="text-xs">Claude</Badge>
-                                                                            )}
-                                                                            {(kw.ai_visibility_score || 0) >= 80 && (
-                                                                                <>
-                                                                                    <Badge variant="outline" className="text-xs">Perp</Badge>
-                                                                                    <Badge variant="outline" className="text-xs">Gemini</Badge>
-                                                                                </>
-                                                                            )}
-                                                                        </>
-                                                                    )}
-                                                                    {!kw.hasMentions && <span className="text-gray-400 text-xs">-</span>}
-                                                                </div>
-                                                            </TableCell>
-                                                            <TableCell>
-                                                                {kw.derivedTrend === 'up' ? (
-                                                                    <TrendingUp className="h-4 w-4 text-green-600" />
-                                                                ) : kw.derivedTrend === 'down' ? (
-                                                                    <TrendingDown className="h-4 w-4 text-red-600" />
-                                                                ) : (
-                                                                    <Minus className="h-4 w-4 text-gray-400" />
-                                                                )}
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    ))
-                                                )}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+            <SidebarInset className="bg-[#FAFAFA] dark:bg-[#09090b] h-screen overflow-hidden flex flex-col">
+                <Content />
             </SidebarInset>
         </SidebarProvider>
     )

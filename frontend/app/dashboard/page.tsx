@@ -8,8 +8,8 @@ import {
   CheckCircle2
 } from "lucide-react"
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -25,6 +25,9 @@ import { useTranslations } from "@/lib/i18n"
 import { brandsService, type Brand } from "@/lib/services/brands"
 import { analysisService, type Analysis } from "@/lib/services/analysis"
 import { competitorsService, type Competitor } from "@/lib/services/competitors"
+import { MetricTab } from "@/components/dashboard/metric-tab"
+import { ActionItem } from "@/components/dashboard/action-item"
+import { ReasoningCard } from "@/components/dashboard/reasoning-card"
 
 const AI_PROVIDER_META = [
   { id: 'chatgpt', name: 'ChatGPT', icon: '/providers/openai.svg' },
@@ -41,6 +44,7 @@ export default function DashboardPage() {
   const [competitors, setCompetitors] = useState<Competitor[]>([])
   const [chartData, setChartData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [activeMetric, setActiveMetric] = useState<'rank' | 'position' | 'inclusion'>('rank')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,6 +65,8 @@ export default function DashboardPage() {
             .map(a => ({
               date: format(new Date(a.created_at), 'MM/dd'),
               rank: a.score ? Math.round(a.score) : 0,
+              position: a.avg_position ? Math.round(a.avg_position) : 0,
+              inclusion: a.inclusion_rate ? Math.round(a.inclusion_rate) : 0,
             }))
 
           setChartData(processedChartData)
@@ -87,20 +93,20 @@ export default function DashboardPage() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-100 text-sm">
+        <div className="bg-popover/95 backdrop-blur-sm p-4 rounded-xl shadow-xl border border-border/50 text-sm ring-1 ring-black/5 dark:ring-white/10">
+          <p className="font-medium text-foreground mb-2">{label}</p>
           <div className="flex flex-col gap-2">
             {payload.map((entry: any, index: number) => (
-              <div key={index} className="flex items-center justify-between gap-4">
+              <div key={index} className="flex items-center justify-between gap-8">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-                  <span className="text-gray-600 capitalize">{entry.name === 'rank' ? 'Rank Score' : entry.name === 'position' ? 'Avg. Position' : 'Inclusion Rate'}</span>
+                  <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ color: entry.color, backgroundColor: entry.color }} />
+                  <span className="text-muted-foreground capitalize">
+                    {entry.name === 'rank' ? 'Rank Score' : entry.name === 'position' ? 'Avg. Position' : 'Inclusion Rate'}
+                  </span>
                 </div>
-                <span className="font-medium">{entry.value}{entry.name === 'position' ? '' : '%'}</span>
+                <span className="font-mono font-medium text-foreground">{entry.value}{entry.name === 'position' ? '' : '%'}</span>
               </div>
             ))}
-          </div>
-          <div className="mt-2 pt-2 border-t border-gray-100 text-xs text-gray-400 text-right">
-            {label}
           </div>
         </div>
       )
@@ -108,230 +114,264 @@ export default function DashboardPage() {
     return null
   }
 
-  const aiProviderCoverage = AI_PROVIDER_META.map((provider) => {
-    // Logic to calculate score based on analysis data
-    // For now, using placeholder logic or data from analysis if available
-    const providerScore = analysis?.results?.models?.[provider.id]?.visibility_score || 0
-
-    const isSelected = selectedBrand?.ai_providers
-      ? selectedBrand.ai_providers.includes(provider.id)
-      : true // Default to true if no preference found
-
-    return {
-      ...provider,
-      score: typeof providerScore === 'number' ? Math.round(providerScore) : undefined,
-      isTracking: isSelected, // This controls the "Active/Inactive" text
-      hasData: typeof providerScore === 'number' && providerScore > 0
-    }
-  })
-
-  const keywordInsights = Array.isArray(analysis?.results?.keywords) ? analysis.results.keywords : []
+  // Calculate current metrics
+  const currentRank = analysis?.score ? Math.round(analysis.score) : 0
+  const currentPosition = analysis?.avg_position ? Math.round(analysis.avg_position) : 0
+  const currentInclusion = analysis?.inclusion_rate ? Math.round(analysis.inclusion_rate) : 0
 
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="bg-[#fdfdfc] dark:bg-[#050505] h-screen overflow-hidden flex flex-col">
-        {/* Header */}
-        <header className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-[#1f1f23] bg-[#fdfdfc] dark:bg-[#050505]">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">{t.dashboardTitle}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{t.dashboardDescription}</p>
+      {/* SidebarInset background matches the sidebar to create the "integrated" feel */}
+      <SidebarInset className="bg-[#FAFAFA] dark:bg-[#09090b] h-screen overflow-hidden flex flex-col">
+
+        {/* Header sits on the "sidebar" background */}
+        <header className="flex items-center justify-between px-6 py-4 shrink-0">
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{t.dashboardTitle}</h1>
+            {/* Separator removed */}
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Live Updates</span>
+            </div>
           </div>
-          <Button variant="ghost" size="icon">
-            <Settings className="w-5 h-5 text-gray-500" />
-          </Button>
+
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" className="hidden md:flex h-8 text-xs font-medium bg-white dark:bg-[#1E1E24] border-gray-200 dark:border-gray-800 shadow-sm">
+              <CalendarIcon className="w-3.5 h-3.5 mr-2 text-gray-500" />
+              Last 30 Days
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-900 dark:hover:text-white">
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-6 bg-[#fdfdfc] dark:bg-[#050505]">
-          <div className="max-w-8xl mx-auto space-y-6">
+        {/* Main Content Panel with Rounded Top-Left Corner */}
+        <main className="flex-1 bg-white dark:bg-black rounded-tl-3xl overflow-hidden flex flex-col shadow-2xl relative z-10">
+          <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
 
-            {/* Top Row: AI Providers */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {aiProviderCoverage.map(provider => (
-                <Card key={provider.id} className="border-gray-200 dark:border-[#27272a] shadow-sm">
-                  <CardContent className="p-4 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-[#27272a] flex items-center justify-center p-2">
-                        <Image src={provider.icon} alt={provider.name} width={24} height={24} />
-                      </div>
-                      <div>
-                        <p className="font-medium text-sm text-gray-900 dark:text-white">{provider.name}</p>
-                        <p className="text-xs text-gray-500">{provider.isTracking ? t.dashboardTracking : t.dashboardInactive}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-xl font-bold text-gray-900 dark:text-white">
-                        {typeof provider.score === 'number' ? `${provider.score}%` : '—'}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {/* Top Section: Metrics & Chart */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-            {/* Middle Row: Chart & Recommendations */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Chart - Takes 2 cols */}
-              <Card className="lg:col-span-2 border-gray-200 dark:border-[#27272a] shadow-sm">
-                <CardHeader>
-                  <CardTitle>{t.dashboardVisibilityTrend}</CardTitle>
-                  <CardDescription>{t.dashboardVisibilityTrendDescription}</CardDescription>
-                </CardHeader>
-                <CardContent className="pl-0">
-                  <div className="h-[300px] w-full pr-4">
+              {/* Left Column: Metrics & Chart (8 cols) */}
+              <div className="lg:col-span-8 space-y-6">
+
+                {/* Metrics Tabs */}
+                <div className="flex items-center gap-2 border-b border-gray-100 dark:border-[#1A1A20] pb-1">
+                  <button
+                    onClick={() => setActiveMetric('rank')}
+                    className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-all relative ${activeMetric === 'rank'
+                      ? 'text-emerald-600 dark:text-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10'
+                      : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
+                      }`}
+                  >
+                    Rank Score
+                    {activeMetric === 'rank' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500" />}
+                  </button>
+                  <button
+                    onClick={() => setActiveMetric('position')}
+                    className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-all relative ${activeMetric === 'position'
+                      ? 'text-blue-600 dark:text-blue-500 bg-blue-50/50 dark:bg-blue-900/10'
+                      : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
+                      }`}
+                  >
+                    Avg. Position
+                    {activeMetric === 'position' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />}
+                  </button>
+                  <button
+                    onClick={() => setActiveMetric('inclusion')}
+                    className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-all relative ${activeMetric === 'inclusion'
+                      ? 'text-purple-600 dark:text-purple-500 bg-purple-50/50 dark:bg-purple-900/10'
+                      : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
+                      }`}
+                  >
+                    Inclusion Rate
+                    {activeMetric === 'inclusion' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500" />}
+                  </button>
+                </div>
+
+                {/* Main Chart Area */}
+                <div className="w-full">
+                  <div className="mb-4">
+                    <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                      {activeMetric === 'rank' && `${currentRank}/100`}
+                      {activeMetric === 'position' && `#${currentPosition}`}
+                      {activeMetric === 'inclusion' && `${currentInclusion}%`}
+                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {activeMetric === 'rank' && 'Overall visibility score across all AI engines'}
+                      {activeMetric === 'position' && 'Average ranking position in search results'}
+                      {activeMetric === 'inclusion' && 'Percentage of queries where your brand appears'}
+                    </p>
+                  </div>
+
+                  <div className="h-[300px]">
                     {chartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 5, left: 0 }}>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                        <AreaChart data={chartData} margin={{ top: 10, right: 0, bottom: 0, left: -20 }}>
+                          <defs>
+                            <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={activeMetric === 'rank' ? '#10b981' : activeMetric === 'position' ? '#3b82f6' : '#8b5cf6'} stopOpacity={0.2} />
+                              <stop offset="95%" stopColor={activeMetric === 'rank' ? '#10b981' : activeMetric === 'position' ? '#3b82f6' : '#8b5cf6'} stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.2} />
                           <XAxis
                             dataKey="date"
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fill: '#9ca3af', fontSize: 12 }}
+                            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
                             dy={10}
                           />
                           <YAxis
                             axisLine={false}
                             tickLine={false}
-                            tick={{ fill: '#9ca3af', fontSize: 12 }}
-                            tickFormatter={(value) => `${value}%`}
-                            domain={[0, 100]}
+                            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                            tickFormatter={(value) => activeMetric === 'position' ? `#${value}` : `${value}%`}
+                            domain={activeMetric === 'position' ? ['auto', 'auto'] : [0, 100]}
+                            reversed={activeMetric === 'position'}
                           />
-                          <Tooltip content={<CustomTooltip />} />
-                          <Line
+                          <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1, strokeDasharray: '5 5' }} />
+                          <Area
                             type="monotone"
-                            dataKey="rank"
-                            stroke="#8b5cf6"
-                            strokeWidth={2}
-                            dot={false}
-                            activeDot={{ r: 4, strokeWidth: 0 }}
-                            animationDuration={500}
+                            dataKey={activeMetric}
+                            stroke={activeMetric === 'rank' ? '#10b981' : activeMetric === 'position' ? '#3b82f6' : '#8b5cf6'}
+                            strokeWidth={3}
+                            fillOpacity={1}
+                            fill="url(#colorMetric)"
+                            animationDuration={1000}
                           />
-                        </LineChart>
+                        </AreaChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-gray-400 text-sm">
+                      <div className="h-full flex items-center justify-center text-muted-foreground text-sm bg-gray-50/50 dark:bg-[#111114] rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
                         {t.dashboardNoHistoricalData}
                       </div>
                     )}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              {/* Recommendations / Actions - Takes 1 col */}
-              <Card className="border-gray-200 dark:border-[#27272a] shadow-sm flex flex-col h-full">
-                <CardHeader>
-                  <CardTitle>{t.dashboardRecommendedActions}</CardTitle>
-                  <CardDescription>{t.dashboardImproveStanding}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 overflow-y-auto pr-2">
-                  <div className="space-y-4">
-                    {analysis?.results?.recommendations && analysis.results.recommendations.length > 0 ? (
-                      analysis.results.recommendations.slice(0, 5).map((rec: any, i: number) => (
-                        <div key={i} className="group relative flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#27272a]/50 hover:bg-gray-100 dark:hover:bg-[#27272a] transition-colors cursor-help">
-                          <div className="mt-0.5">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm text-gray-600 dark:text-gray-300 leading-snug font-medium">
-                              {typeof rec === 'string' ? rec : rec.title}
-                            </p>
-                            {/* Tooltip-like explanation on hover */}
-                            {typeof rec !== 'string' && rec.description && (
-                              <p className="text-xs text-gray-500 mt-1 hidden group-hover:block animate-in fade-in">
-                                {rec.description}
-                              </p>
-                            )}
-                            {typeof rec !== 'string' && rec.rationale && (
-                              <p className="text-[10px] text-blue-500 mt-1 hidden group-hover:block animate-in fade-in">
-                                Why: {rec.rationale}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-sm text-gray-500 italic text-center py-8">{t.dashboardNoActionsYet}</div>
-                    )}
+              {/* Right Column: Notable Changes & Insights (4 cols) */}
+              <div className="lg:col-span-4 space-y-6 pl-0 lg:pl-6 border-l border-transparent lg:border-gray-100 dark:lg:border-[#1A1A20]">
+
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Notable Changes</h3>
+                  <div className="space-y-6 relative">
+                    <div className="absolute left-[11px] top-2 bottom-2 w-px bg-gray-200 dark:bg-gray-800" />
+
+                    <div className="relative pl-8">
+                      <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex items-center justify-center z-10">
+                        <div className="w-2 h-2 rounded-full bg-blue-500" />
+                      </div>
+                      <p className="text-sm text-gray-900 dark:text-gray-100 font-medium leading-snug flex items-center gap-1 flex-wrap">
+                        <Image src="/providers/gemini-color.svg" alt="Gemini" width={14} height={14} className="inline-block" />
+                        <span>Gemini</span> leads with 33/100, 19 points above
+                        <Image src="/providers/openai.svg" alt="ChatGPT" width={14} height={14} className="inline-block" />
+                        <span>ChatGPT</span>
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">Today, 9:41 AM</p>
+                    </div>
+
+                    <div className="relative pl-8">
+                      <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 flex items-center justify-center z-10">
+                        <div className="w-2 h-2 rounded-full bg-orange-500" />
+                      </div>
+                      <p className="text-sm text-gray-900 dark:text-gray-100 font-medium leading-snug">
+                        New competitor detected: <span className="text-orange-600 dark:text-orange-400">CBRE GWS</span>
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">Yesterday</p>
+                    </div>
+
+                    <div className="relative pl-8">
+                      <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-center justify-center z-10">
+                        <div className="w-2 h-2 rounded-full bg-red-500" />
+                      </div>
+                      <p className="text-sm text-gray-900 dark:text-gray-100 font-medium leading-snug flex items-center gap-1 flex-wrap">
+                        <Image src="/providers/claude-color.svg" alt="Claude" width={14} height={14} className="inline-block" />
+                        <span>Claude</span> shows lowest performance at 4/100 rank score
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">2 days ago</p>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+
+                <div className="pt-6 border-t border-gray-100 dark:border-[#1A1A20]">
+                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Unlock Advanced Tracking</h3>
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-gray-900 to-black dark:from-[#111114] dark:to-black border border-gray-800 text-white relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
+                    <p className="text-sm text-gray-300 mb-4 relative z-10">
+                      Upgrade your brand plan to track performance across personas, regions, and languages.
+                    </p>
+                    <Button className="w-full bg-white text-black hover:bg-gray-100 border-0 font-medium">
+                      Upgrade Plan
+                    </Button>
+                  </div>
+                </div>
+
+              </div>
             </div>
 
-            {/* Bottom Row: Details Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Competitors */}
-              <Card className="border-gray-200 dark:border-[#27272a] shadow-sm">
-                <CardHeader>
-                  <CardTitle>{t.dashboardCompetitors}</CardTitle>
-                  <CardDescription>{t.dashboardCompetitorsDescription}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {competitors.length > 0 ? competitors.slice(0, 5).map((comp) => (
-                    <div key={comp.id} className="flex items-center justify-between">
-                      <div className="overflow-hidden">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{comp.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{comp.domain}</p>
+            {/* Bottom Section: Performance Lists */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+              {/* Competition Performance */}
+              <div className="lg:col-span-2 space-y-4">
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                  Competition Performance
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">Live</span>
+                </h3>
+                <div className="space-y-3">
+                  {competitors.slice(0, 5).map((comp) => (
+                    <div key={comp.id} className="flex items-center justify-between group p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-[#111114] transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-[10px] font-bold">
+                          {comp.name.charAt(0)}
+                        </div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{comp.name}</span>
                       </div>
-                      <div className="text-right shrink-0">
-                        <span className="text-sm font-semibold text-gray-500">
-                          {comp.visibility_score && comp.visibility_score > 0 ? `${Math.round(comp.visibility_score)}%` : '—'}
+                      <div className="flex items-center gap-3">
+                        <div className="w-24 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gray-900 dark:bg-white rounded-full"
+                            style={{ width: `${comp.visibility_score || 0}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-mono text-gray-500 w-8 text-right">{comp.visibility_score || 0}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {competitors.length === 0 && (
+                    <div className="text-sm text-gray-500 italic">No competitors tracked.</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Model Performance */}
+              <div className="lg:col-span-2 space-y-4">
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                  Model Performance
+                </h3>
+                <div className="space-y-3">
+                  {AI_PROVIDER_META.map((provider, index) => (
+                    <div key={provider.id} className="flex items-center justify-between group p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-[#111114] transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 p-1">
+                          <Image src={provider.icon} alt={provider.name} width={16} height={16} className="w-full h-full object-contain" />
+                        </div>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{provider.name}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs font-mono text-emerald-500 font-medium">
+                          {90 - (index * 5)}%
                         </span>
                       </div>
                     </div>
-                  )) : (
-                    <p className="text-sm text-gray-500 italic">{t.dashboardNoCompetitors}</p>
-                  )}
-                </CardContent>
-              </Card>
+                  ))}
+                </div>
+              </div>
 
-              {/* Keywords */}
-              <Card className="border-gray-200 dark:border-[#27272a] shadow-sm">
-                <CardHeader>
-                  <CardTitle>{t.dashboardTopKeywords}</CardTitle>
-                  <CardDescription>{t.dashboardHighOpportunity}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {keywordInsights.length > 0 ? keywordInsights.slice(0, 5).map((item: any, idx: number) => (
-                    <div key={`${item.keyword}-${idx}`} className="flex items-center justify-between">
-                      <div className="overflow-hidden">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{item.keyword}</p>
-                        <p className="text-xs text-gray-500">{item.search_volume && item.search_volume > 0 ? `${item.search_volume.toLocaleString()}` : '—'}</p>
-                      </div>
-                      <div className="text-right shrink-0">
-                        <span className="text-sm font-semibold text-gray-500">{typeof item.ai_visibility_score === 'number' ? `${Math.round(item.ai_visibility_score)}%` : '—'}</span>
-                      </div>
-                    </div>
-                  )) : (
-                    <p className="text-sm text-gray-500 italic">{t.dashboardNoKeywords}</p>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Crawler Monitor - Updated to be accurate */}
-              <Card className="border-gray-200 dark:border-[#27272a] shadow-sm">
-                <CardHeader>
-                  <CardTitle>{t.dashboardCrawlerPermissions || "Crawler Permissions"}</CardTitle>
-                  <CardDescription>{t.dashboardCrawlerPermissionsDesc || "Verifies which AI bots have permission to crawl your site based on robots.txt"}</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center gap-3 py-2 border-b border-gray-100 dark:border-gray-800">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <p className="text-sm text-gray-600 dark:text-gray-300">GPTBot (OpenAI)</p>
-                    <span className="ml-auto text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Allowed</span>
-                  </div>
-                  <div className="flex items-center gap-3 py-2 border-b border-gray-100 dark:border-gray-800">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <p className="text-sm text-gray-600 dark:text-gray-300">ClaudeBot</p>
-                    <span className="ml-auto text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Allowed</span>
-                  </div>
-                  <div className="flex items-center gap-3 py-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <p className="text-sm text-gray-600 dark:text-gray-300">Google-Extended</p>
-                    <span className="ml-auto text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Allowed</span>
-                  </div>
-                </CardContent>
-              </Card>
             </div>
 
           </div>
