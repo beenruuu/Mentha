@@ -96,13 +96,13 @@ export default function Features() {
                 <div className="my-8 flex items-center justify-center flex-wrap gap-2 max-w-3xl m-auto">
                     {features.map((feature) => (
                         <div
-                            className="bg-zinc-900 border border-white/10 inline-flex px-3 md:px-5 md:py-2 py-1.5 rounded-2xl gap-3 items-center hover:scale-105 transition duration-500 group"
+                            className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 inline-flex px-3 md:px-5 md:py-2 py-1.5 rounded-2xl gap-3 items-center hover:scale-105 transition duration-500 group shadow-sm dark:shadow-none"
                             key={feature}
                         >
-                            <span className="bg-emerald-500 text-black size-5 rounded-full inline-flex items-center justify-center text-xl group-hover:rotate-45 transition duration-500">
+                            <span className="bg-emerald-500 text-white size-5 rounded-full inline-flex items-center justify-center text-xl group-hover:rotate-45 transition duration-500">
                                 &#10038;
                             </span>
-                            <span className="font-medium md:text-lg">
+                            <span className="font-medium md:text-lg text-gray-900 dark:text-white">
                                 {feature}
                             </span>
                         </div>

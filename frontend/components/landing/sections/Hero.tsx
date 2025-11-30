@@ -53,14 +53,14 @@ export default function Hero() {
                     {t.heroTitle}{" "}
                     <span className="text-emerald-500">{t.heroTitleHighlight}</span>{t.heroTitleEnd ? ` ${t.heroTitleEnd}` : ''}
                 </h1>
-                <p className="text-center text-xl text-white/50 mt-8 max-w-2xl mx-auto">
+                <p className="text-center text-xl text-gray-500 dark:text-white/50 mt-8 max-w-2xl mx-auto">
                     {t.heroDescription}
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10 max-w-md mx-auto">
                     <Link href="/auth/signup" className="flex-1">
                         <Button
                             size="lg"
-                            className="w-full bg-emerald-500 text-black hover:bg-emerald-400 rounded-full h-12 text-base"
+                            className="w-full bg-emerald-500 text-white hover:bg-emerald-600 rounded-full h-12 text-base"
                         >
                             {t.heroStartTrial}
                             <ArrowRight className="ml-2 h-4 w-4" />
@@ -70,7 +70,7 @@ export default function Hero() {
                         <Button
                             size="lg"
                             variant="outline"
-                            className="w-full border-white/20 bg-white/5 hover:bg-white/10 text-white rounded-full h-12 text-base"
+                            className="w-full border-gray-300 dark:border-white/20 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-900 dark:text-white rounded-full h-12 text-base"
                         >
                             {t.heroAnalyzeSite}
                         </Button>

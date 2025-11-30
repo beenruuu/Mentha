@@ -18,7 +18,7 @@ export default function Footer() {
             <div className="container max-w-5xl mx-auto px-4 relative">
                 <div className="flex flex-col md:flex-row justify-center md:justify-between items-center gap-6">
                     <div>
-                        <Link href="/" className="text-xl font-semibold text-white">
+                        <Link href="/" className="text-xl font-semibold text-gray-900 dark:text-white">
                             Mentha
                         </Link>
                     </div>
@@ -28,7 +28,7 @@ export default function Footer() {
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className="text-white/50 text-sm hover:text-white transition-colors"
+                                    className="text-gray-500 dark:text-white/50 text-sm hover:text-gray-900 dark:hover:text-white transition-colors"
                                 >
                                     {link.label}
                                 </Link>
@@ -36,8 +36,8 @@ export default function Footer() {
                         </nav>
                     </div>
                 </div>
-                <div className="mt-8 pt-8 border-t border-white/10 text-center">
-                    <p className="text-white/30 text-sm">
+                <div className="mt-8 pt-8 border-t border-gray-200 dark:border-white/10 text-center">
+                    <p className="text-gray-400 dark:text-white/30 text-sm">
                         © {new Date().getFullYear()} Mentha. {t.footerRights}
                     </p>
                 </div>

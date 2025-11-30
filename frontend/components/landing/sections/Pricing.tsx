@@ -70,7 +70,7 @@ export default function Pricing() {
                     {t.pricingTitle}{" "}
                     <span className="text-emerald-400">{t.pricingTitleHighlight}</span>
                 </h2>
-                <p className="text-white/50 text-center mt-4 text-lg max-w-xl mx-auto">
+                <p className="text-gray-500 dark:text-white/50 text-center mt-4 text-lg max-w-xl mx-auto">
                     {t.pricingDescription}
                 </p>
 
@@ -84,31 +84,31 @@ export default function Pricing() {
                             viewport={{ once: true, amount: 0.2 }}
                             className={`flex flex-col p-8 rounded-3xl border ${
                                 plan.highlight
-                                    ? "border-emerald-500/50 bg-emerald-950/20 relative"
-                                    : "border-white/10 bg-zinc-900/50"
-                            } hover:border-emerald-500/30 transition-all duration-300`}
+                                    ? "border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/20 relative"
+                                    : "border-gray-200 dark:border-white/10 bg-white dark:bg-zinc-900/50 shadow-sm dark:shadow-none"
+                            } hover:border-emerald-500/50 dark:hover:border-emerald-500/30 transition-all duration-300`}
                         >
                             {plan.highlight && (
                                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                                    <span className="bg-emerald-500 text-black text-xs font-semibold px-3 py-1 rounded-full">
+                                    <span className="bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
                                         {t.pricingMostPopular}
                                     </span>
                                 </div>
                             )}
-                            <h3 className="text-xl font-medium text-white mb-2">
+                            <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
                                 {plan.name}
                             </h3>
-                            <div className="text-4xl font-bold text-white mb-2">
+                            <div className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
                                 {plan.price}
                             </div>
-                            <p className="text-sm text-white/50 mb-8">
+                            <p className="text-sm text-gray-500 dark:text-white/50 mb-8">
                                 {plan.description}
                             </p>
                             <ul className="space-y-4 mb-8 flex-1">
                                 {plan.features.map((feature) => (
                                     <li
                                         key={feature}
-                                        className="flex items-center text-sm text-zinc-300"
+                                        className="flex items-center text-sm text-gray-600 dark:text-zinc-300"
                                     >
                                         <Check className="h-4 w-4 text-emerald-500 mr-3 flex-shrink-0" />
                                         {feature}
@@ -118,7 +118,7 @@ export default function Pricing() {
                             {plan.comingSoon ? (
                                 <Button
                                     disabled
-                                    className="w-full bg-white/10 text-white/50 cursor-not-allowed"
+                                    className="w-full bg-gray-200 dark:bg-white/10 text-gray-400 dark:text-white/50 cursor-not-allowed"
                                 >
                                     {plan.cta}
                                 </Button>
@@ -127,8 +127,8 @@ export default function Pricing() {
                                     <Button
                                         className={`w-full ${
                                             plan.highlight
-                                                ? "bg-emerald-500 text-black hover:bg-emerald-400"
-                                                : "bg-white/10 text-white hover:bg-white/20"
+                                                ? "bg-emerald-500 text-white hover:bg-emerald-600"
+                                                : "bg-gray-100 dark:bg-white/10 text-gray-900 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20"
                                         }`}
                                     >
                                         {plan.cta}

@@ -50,10 +50,10 @@ export default function Faqs() {
                         <div
                             key={faq.question}
                             onClick={() => setSelectedIndex(faqIndex)}
-                            className="bg-zinc-900/50 rounded-2xl border border-white/10 p-6 cursor-pointer hover:border-emerald-500/30 transition-all duration-300"
+                            className="bg-white dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6 cursor-pointer hover:border-emerald-500/50 dark:hover:border-emerald-500/30 transition-all duration-300 shadow-sm dark:shadow-none"
                         >
                             <div className="flex justify-between items-start">
-                                <h3 className="font-medium m-0">
+                                <h3 className="font-medium m-0 text-gray-900 dark:text-white">
                                     {faq.question}
                                 </h3>
                                 <Plus
@@ -83,7 +83,7 @@ export default function Faqs() {
                                         }}
                                         className="overflow-hidden"
                                     >
-                                        <p className="text-white/50">
+                                        <p className="text-gray-500 dark:text-white/50">
                                             {faq.answer}
                                         </p>
                                     </motion.div>

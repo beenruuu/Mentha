@@ -19,7 +19,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#050505] text-gray-900 dark:text-white selection:bg-emerald-500/30 transition-colors">
       <Navbar />
       <main className="pt-32 max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
         <BlogPostContent post={post} />

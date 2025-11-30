@@ -37,7 +37,7 @@ const IntegrationColumn = (props: {
                     {integrations.map((integration) => (
                         <div
                             key={integration.name}
-                            className="bg-zinc-900/50 border border-white/10 rounded-3xl p-6 hover:border-emerald-500/30 transition-all duration-300"
+                            className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-3xl p-6 hover:border-emerald-500/50 dark:hover:border-emerald-500/30 transition-all duration-300 shadow-sm dark:shadow-none"
                         >
                             <div className="flex justify-center">
                                 <Image
@@ -48,10 +48,10 @@ const IntegrationColumn = (props: {
                                     height={96}
                                 />
                             </div>
-                            <h3 className="text-3xl text-center mt-6">
+                            <h3 className="text-3xl text-center mt-6 text-gray-900 dark:text-white">
                                 {integration.name}
                             </h3>
-                            <p className="text-center text-white/50 mt-2">
+                            <p className="text-center text-gray-500 dark:text-white/50 mt-2">
                                 {integration.description}
                             </p>
                         </div>

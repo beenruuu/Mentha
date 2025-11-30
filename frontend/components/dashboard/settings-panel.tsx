@@ -55,6 +55,18 @@ export default function SettingsPanel() {
     }
   }, [])
 
+  // Agregar/quitar clase al body cuando el panel se abre/cierra para aplicar blur al main
+  useEffect(() => {
+    if (open) {
+      document.body.setAttribute('data-settings-open', 'true')
+    } else {
+      document.body.removeAttribute('data-settings-open')
+    }
+    return () => {
+      document.body.removeAttribute('data-settings-open')
+    }
+  }, [open])
+
   const loadUser = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
@@ -148,12 +160,13 @@ export default function SettingsPanel() {
   ]
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+      {/* Overlay transparente para cerrar al hacer click fuera */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
+        className="absolute inset-0"
         onClick={() => setOpen(false)}
       />
 
-      <div className="relative w-[900px] max-w-full h-[600px] max-h-[85vh] bg-white/90 dark:bg-[#09090b]/90 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row ring-1 ring-black/5 dark:ring-white/5">
+      <div className="relative w-[900px] max-w-full h-[600px] max-h-[85vh] bg-[#FAFAFA] dark:bg-[#09090b] border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col md:flex-row ring-1 ring-black/5 dark:ring-white/5">
         <button
           aria-label={t.closeSettings}
           onClick={() => setOpen(false)}

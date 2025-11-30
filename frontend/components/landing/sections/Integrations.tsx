@@ -41,7 +41,7 @@ export default function Integrations() {
                             <span className="text-emerald-400">{t.integrationsTitleHighlight}</span> {t.integrationsTitleSuffix}
                         </h2>
 
-                        <p className="text-white/50 mt-4 text-lg">
+                        <p className="text-gray-500 dark:text-white/50 mt-4 text-lg">
                             {t.integrationsDescription}
                         </p>
                     </div>

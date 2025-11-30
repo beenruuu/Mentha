@@ -17,7 +17,7 @@ export default function LandingPage() {
 
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-emerald-500/30">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#050505] text-gray-900 dark:text-white selection:bg-emerald-500/30 transition-colors">
       <Navbar />
       <Hero />
       <LogoTicker />

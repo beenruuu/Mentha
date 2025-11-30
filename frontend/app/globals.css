@@ -123,3 +123,10 @@ body {
     scrollbar-color: var(--mentha) rgba(var(--mentha-rgb), 0.06);
   }
 }
+
+/* Settings panel blur effect - only blur main content area (the rounded container) */
+body[data-settings-open="true"] main.dashboard-main {
+  filter: blur(2px) brightness(0.85);
+  transition: filter 0.2s ease;
+  pointer-events: none;
+}

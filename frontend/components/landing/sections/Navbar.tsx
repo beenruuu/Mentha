@@ -7,6 +7,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "@/lib/i18n";
+import { ThemeToggleSimple } from "@/components/shared/theme-toggle-simple";
 
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -23,7 +24,7 @@ export default function Navbar() {
         <>
             <section className="py-4 lg:py-8 fixed w-full top-0 z-50">
                 <div className="container max-w-5xl mx-auto px-4">
-                    <div className="relative border border-white/15 rounded-[27px] lg:rounded-full bg-zinc-950/70 backdrop-blur">
+                    <div className="relative border border-gray-200 dark:border-white/15 rounded-[27px] lg:rounded-full bg-white/80 dark:bg-zinc-950/70 backdrop-blur shadow-sm dark:shadow-none">
                         {/* SVG absolute removed: logo will be placed inline in the first column */}
 
                         <figure className="grid grid-cols-[auto_1fr_auto] py-2 lg:px-2 px-4 items-center">
@@ -44,7 +45,7 @@ export default function Navbar() {
                                         <a
                                             href={each.href}
                                             key={each.href}
-                                            className="text-white/70 hover:text-white transition-colors"
+                                            className="text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors"
                                         >
                                             {each.label}
                                         </a>
@@ -66,7 +67,7 @@ export default function Navbar() {
                                             transition={{ duration: 0.3 }}
                                         >
                                             <Menu
-                                                className="text-white"
+                                                className="text-gray-900 dark:text-white"
                                                 size={30}
                                             />
                                         </motion.div>
@@ -79,22 +80,23 @@ export default function Navbar() {
                                             transition={{ duration: 0.3 }}
                                         >
                                             <X
-                                                className="text-white"
+                                                className="text-gray-900 dark:text-white"
                                                 size={30}
                                             />
                                         </motion.div>
                                     )}
                                 </button>
+                                <ThemeToggleSimple className="hidden lg:flex" />
                                 <Link href="/auth/login">
                                     <Button
                                         variant="outline"
-                                        className="hidden lg:inline-flex items-center border-white/20 bg-transparent text-white hover:bg-white/10 rounded-full"
+                                        className="hidden lg:inline-flex items-center border-gray-300 dark:border-white/20 bg-transparent text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-white/10 rounded-full"
                                     >
                                         {t.navLogin}
                                     </Button>
                                 </Link>
                                 <Link href="/auth/signup">
-                                    <Button className="hidden lg:inline-flex items-center bg-emerald-500 text-black hover:bg-emerald-400 rounded-full">
+                                    <Button className="hidden lg:inline-flex items-center bg-emerald-500 text-white hover:bg-emerald-600 rounded-full">
                                         {t.navSignUp}
                                     </Button>
                                 </Link>
@@ -114,7 +116,7 @@ export default function Navbar() {
                                             <a
                                                 key={link.href}
                                                 href={link.href}
-                                                className="text-white/70 hover:text-white transition-colors"
+                                                className="text-gray-600 dark:text-white/70 hover:text-gray-900 dark:hover:text-white transition-colors"
                                                 onClick={() => setIsOpen(false)}
                                             >
                                                 {link.label}
@@ -129,7 +131,7 @@ export default function Navbar() {
                                             </Button>
                                         </Link>
                                         <Link href="/auth/signup" className="w-3/4">
-                                            <Button className="w-full bg-emerald-500 text-black hover:bg-emerald-400">
+                                            <Button className="w-full bg-emerald-500 text-white hover:bg-emerald-600">
                                                 {t.navSignUp}
                                             </Button>
                                         </Link>

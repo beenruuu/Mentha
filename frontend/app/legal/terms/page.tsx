@@ -2,40 +2,66 @@
 
 import React from 'react'
 import { useTranslations } from '@/lib/i18n'
+import Navbar from '@/components/landing/sections/Navbar'
+import Footer from '@/components/landing/sections/Footer'
 
 export default function TermsPage() {
   const { t } = useTranslations()
   
   return (
-    <div className="container mx-auto py-12 px-4 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-8">{t.termsAndConditions}</h1>
-      <div className="prose prose-slate dark:prose-invert max-w-none">
-        <p className="text-sm text-muted-foreground mb-6">{t.termsLastUpdated} {new Date().toLocaleDateString()}</p>
-        
-        <h2>{t.termsSection1Title}</h2>
-        <p>{t.termsSection1Text}</p>
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#050505] text-gray-900 dark:text-white selection:bg-emerald-500/30 transition-colors">
+      <Navbar />
+      <main className="pt-32 pb-24">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">{t.termsAndConditions}</h1>
+          <div className="prose prose-gray dark:prose-invert max-w-none">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{t.termsLastUpdated} {new Date().toLocaleDateString()}</p>
+            
+            <div className="space-y-8">
+              <section className="bg-white dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6 shadow-sm dark:shadow-none">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t.termsSection1Title}</h2>
+                <p className="text-gray-600 dark:text-gray-300">{t.termsSection1Text}</p>
+              </section>
 
-        <h2>{t.termsSection2Title}</h2>
-        <p>{t.termsSection2Text}</p>
+              <section className="bg-white dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6 shadow-sm dark:shadow-none">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t.termsSection2Title}</h2>
+                <p className="text-gray-600 dark:text-gray-300">{t.termsSection2Text}</p>
+              </section>
 
-        <h2>{t.termsSection3Title}</h2>
-        <p>{t.termsSection3Text}</p>
+              <section className="bg-white dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6 shadow-sm dark:shadow-none">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t.termsSection3Title}</h2>
+                <p className="text-gray-600 dark:text-gray-300">{t.termsSection3Text}</p>
+              </section>
 
-        <h2>{t.termsSection4Title}</h2>
-        <p>{t.termsSection4Text}</p>
+              <section className="bg-white dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6 shadow-sm dark:shadow-none">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t.termsSection4Title}</h2>
+                <p className="text-gray-600 dark:text-gray-300">{t.termsSection4Text}</p>
+              </section>
 
-        <h2>{t.termsSection5Title}</h2>
-        <p>{t.termsSection5Text}</p>
+              <section className="bg-white dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6 shadow-sm dark:shadow-none">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t.termsSection5Title}</h2>
+                <p className="text-gray-600 dark:text-gray-300">{t.termsSection5Text}</p>
+              </section>
 
-        <h2>{t.termsSection6Title}</h2>
-        <p>{t.termsSection6Text}</p>
+              <section className="bg-white dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6 shadow-sm dark:shadow-none">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t.termsSection6Title}</h2>
+                <p className="text-gray-600 dark:text-gray-300">{t.termsSection6Text}</p>
+              </section>
 
-        <h2>{t.termsSection7Title}</h2>
-        <p>{t.termsSection7Text}</p>
+              <section className="bg-white dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6 shadow-sm dark:shadow-none">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t.termsSection7Title}</h2>
+                <p className="text-gray-600 dark:text-gray-300">{t.termsSection7Text}</p>
+              </section>
 
-        <h2>{t.termsSection8Title}</h2>
-        <p>{t.termsSection8Text}</p>
-      </div>
+              <section className="bg-white dark:bg-zinc-900/50 rounded-2xl border border-gray-200 dark:border-white/10 p-6 shadow-sm dark:shadow-none">
+                <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{t.termsSection8Title}</h2>
+                <p className="text-gray-600 dark:text-gray-300">{t.termsSection8Text}</p>
+              </section>
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
     </div>
   )
 }

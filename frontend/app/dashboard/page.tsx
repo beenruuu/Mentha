@@ -148,7 +148,7 @@ export default function DashboardPage() {
         </header>
 
         {/* Main Content Panel with Rounded Top-Left Corner */}
-        <main className="flex-1 bg-white dark:bg-black rounded-tl-3xl overflow-hidden flex flex-col shadow-2xl relative z-10">
+        <main className="dashboard-main flex-1 bg-white dark:bg-black rounded-tl-3xl overflow-hidden flex flex-col shadow-2xl relative z-10">
           <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
 
             {/* Top Section: Metrics & Chart */}
@@ -357,7 +357,7 @@ export default function DashboardPage() {
                   {AI_PROVIDER_META.map((provider, index) => (
                     <div key={provider.id} className="flex items-center justify-between group p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-[#111114] transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 p-1">
+                        <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 p-1 text-gray-900 dark:text-white">
                           <Image src={provider.icon} alt={provider.name} width={16} height={16} className="w-full h-full object-contain" />
                         </div>
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{provider.name}</span>

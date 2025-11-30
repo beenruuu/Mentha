@@ -48,8 +48,8 @@ export default function CallToAction() {
                                 </span>
                                 <span
                                     className={twMerge(
-                                        "transition-colors duration-300",
-                                        slowDownAnimation && "text-emerald-400"
+                                        "text-gray-900 dark:text-white transition-colors duration-300",
+                                        slowDownAnimation && "text-emerald-500 dark:text-emerald-400"
                                     )}
                                 >
                                     {t.ctaText}
