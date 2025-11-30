@@ -4,9 +4,10 @@ Provides single page analysis and website crawling capabilities.
 """
 
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from uuid import UUID, uuid4
 import asyncio
+from datetime import datetime
 
 from app.models.page_analysis import (
     PageAnalysisCreate,
@@ -22,22 +23,31 @@ from app.models.page_analysis import (
     ImageInfo
 )
 from app.models.auth import UserProfile
-from app.services.page_analyzer import PageAnalyzer, WebsiteCrawler
-from app.services.llm_seo_analyzer import LLMSEOAnalyzer, analyze_page_with_llm
+from app.services.analysis.page_analyzer import PageAnalyzer, WebsiteCrawler
+from app.services.analysis.llm_seo_analyzer import LLMSEOAnalyzer, analyze_page_with_llm
 from app.api.deps import get_current_user
+from app.services.supabase.auth import SupabaseAuthService, get_auth_service
+from app.crud.crud_page_analysis import CRUDPageAnalysis
 
 router = APIRouter(prefix="/page-analysis", tags=["page-analysis"])
 
-# In-memory storage for demo (use database in production)
-_analysis_cache = {}
+# In-memory storage for crawl status (still useful for transient crawl job tracking)
 _crawl_cache = {}
+
+
+def get_crud_page_analysis(
+    auth_service: SupabaseAuthService = Depends(get_auth_service)
+) -> CRUDPageAnalysis:
+    """Dependency to get CRUDPageAnalysis instance."""
+    return CRUDPageAnalysis(auth_service.supabase)
 
 
 @router.post("/analyze", response_model=PageAnalysisResponse)
 async def analyze_page(
     request: PageAnalysisCreate,
     background_tasks: BackgroundTasks,
-    current_user: UserProfile = Depends(get_current_user)
+    current_user: UserProfile = Depends(get_current_user),
+    crud: CRUDPageAnalysis = Depends(get_crud_page_analysis)
 ) -> PageAnalysisResponse:
     """
     Analyze a single page for SEO/AEO signals.
@@ -53,16 +63,41 @@ async def analyze_page(
     
     Optionally, run LLM analysis for deeper insights.
     """
-    analysis_id = uuid4()
+    # Create initial pending record
+    analysis_data = {
+        "user_id": current_user.id,
+        "url": request.url,
+        "status": PageAnalysisStatus.processing,
+        "created_at": datetime.utcnow().isoformat()
+    }
     
-    # Initialize response
-    response = PageAnalysisResponse(
-        id=analysis_id,
-        user_id=current_user.id,
-        url=request.url,
-        status=PageAnalysisStatus.processing
+    # Check if brand_id is available (could be passed in request or inferred)
+    # For now we proceed without brand_id if not provided
+    
+    db_obj = await crud.create(analysis_data)
+    if not db_obj:
+        raise HTTPException(status_code=500, detail="Failed to create analysis record")
+        
+    analysis_id = UUID(db_obj["id"])
+    
+    # Run analysis in background
+    background_tasks.add_task(
+        _run_page_analysis,
+        analysis_id=analysis_id,
+        request=request,
+        crud=crud
     )
     
+    # Return initial response
+    return PageAnalysisResponse(**db_obj)
+
+
+async def _run_page_analysis(
+    analysis_id: UUID,
+    request: PageAnalysisCreate,
+    crud: CRUDPageAnalysis
+):
+    """Background task to run page analysis and update DB."""
     try:
         # Perform page analysis
         analyzer = PageAnalyzer()
@@ -74,83 +109,65 @@ async def analyze_page(
         )
         await analyzer.close()
         
+        update_data = {}
+        
         if result.get("status") == "error":
-            response.status = PageAnalysisStatus.failed
-            response.error = result.get("error", "Unknown error")
-            return response
+            update_data["status"] = PageAnalysisStatus.failed
+            update_data["error"] = result.get("error", "Unknown error")
+        else:
+            update_data["status"] = PageAnalysisStatus.completed
+            update_data["metadata"] = result.get("metadata", {})
+            update_data["content_analysis"] = result.get("content_analysis", {})
+            update_data["seo_warnings"] = result.get("seo_warnings", [])
+            update_data["headings"] = result.get("headings", {})
+            update_data["additional_tags"] = result.get("additional_tags", {})
+            update_data["links"] = result.get("links", [])
+            update_data["images"] = result.get("images", [])
+            update_data["keywords"] = result.get("keywords", {})
+            update_data["bigrams"] = result.get("bigrams", {})
+            update_data["trigrams"] = result.get("trigrams", {})
+            update_data["aeo_signals"] = result.get("aeo_signals", {})
+            update_data["content_hash"] = result.get("content_hash")
+            
+            # Run LLM analysis if requested
+            if request.run_llm_analysis:
+                try:
+                    llm_result = await analyze_page_with_llm(
+                        page_data=result,
+                        provider=request.llm_provider or "openai"
+                    )
+                    update_data["llm_analysis"] = llm_result
+                except Exception as e:
+                    update_data["llm_analysis"] = {"error": str(e)}
         
-        # Map result to response - convert dicts to Pydantic models
-        response.status = PageAnalysisStatus.completed
-        
-        # Convert metadata dict to PageMetadata model
-        if result.get("metadata"):
-            response.metadata = PageMetadata(**result["metadata"]) if isinstance(result["metadata"], dict) else result["metadata"]
-        
-        # Convert content_analysis dict to ContentAnalysis model
-        if result.get("content_analysis"):
-            response.content_analysis = ContentAnalysis(**result["content_analysis"]) if isinstance(result["content_analysis"], dict) else result["content_analysis"]
-        
-        response.seo_warnings = result.get("seo_warnings", [])
-        response.headings = result.get("headings", {})
-        response.additional_tags = result.get("additional_tags", {})
-        
-        # Convert links list of dicts to list of LinkInfo models
-        links_data = result.get("links", [])
-        response.links = [LinkInfo(**link) if isinstance(link, dict) else link for link in links_data]
-        
-        # Convert images list of dicts to list of ImageInfo models
-        images_data = result.get("images", [])
-        response.images = [ImageInfo(**img) if isinstance(img, dict) else img for img in images_data]
-        
-        response.keywords = result.get("keywords", {})
-        response.bigrams = result.get("bigrams", {})
-        response.trigrams = result.get("trigrams", {})
-        
-        # Convert aeo_signals dict to AEOSignals model
-        if result.get("aeo_signals"):
-            response.aeo_signals = AEOSignals(**result["aeo_signals"]) if isinstance(result["aeo_signals"], dict) else result["aeo_signals"]
-        
-        response.content_hash = result.get("content_hash")
-        
-        # Run LLM analysis if requested
-        if request.run_llm_analysis:
-            try:
-                llm_result = await analyze_page_with_llm(
-                    page_data=result,
-                    provider=request.llm_provider or "openai"
-                )
-                response.llm_analysis = llm_result
-            except Exception as e:
-                # LLM analysis is optional, don't fail the whole request
-                response.llm_analysis = {"error": str(e)}
-        
-        # Cache result
-        _analysis_cache[str(analysis_id)] = response
+        # Update DB
+        await crud.update(analysis_id, update_data)
         
     except Exception as e:
-        response.status = PageAnalysisStatus.failed
-        response.error = str(e)
-    
-    return response
+        await crud.update(analysis_id, {
+            "status": PageAnalysisStatus.failed,
+            "error": str(e)
+        })
 
 
 @router.get("/analyze/{analysis_id}", response_model=PageAnalysisResponse)
 async def get_page_analysis(
     analysis_id: UUID,
-    current_user: UserProfile = Depends(get_current_user)
+    current_user: UserProfile = Depends(get_current_user),
+    crud: CRUDPageAnalysis = Depends(get_crud_page_analysis)
 ) -> PageAnalysisResponse:
     """
     Get a previously completed page analysis by ID.
     """
-    result = _analysis_cache.get(str(analysis_id))
+    result = await crud.get(analysis_id)
     if not result:
         raise HTTPException(status_code=404, detail="Analysis not found")
     
     # Verify ownership
-    if result.user_id != current_user.id:
+    if result.get("user_id") != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied")
     
-    return result
+    return PageAnalysisResponse(**result)
 
 
 @router.post("/crawl", response_model=WebsiteCrawlResponse)
@@ -182,7 +199,8 @@ async def crawl_website(
         status=PageAnalysisStatus.processing
     )
     
-    # Store initial state
+    # Store initial state (Crawl results are complex and might need a separate table structure)
+    # For now, we keep crawl state in memory but individual pages could be saved to DB if needed
     _crawl_cache[str(crawl_id)] = response
     
     # Run crawl in background

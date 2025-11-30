@@ -4,8 +4,11 @@ export interface Brand {
   id: string;
   name: string;
   domain: string;
-  industry?: string;
+  logo_url?: string;
   description?: string;
+  industry?: string;
+  ai_providers?: string[];
+  services?: string[];
   created_at: string;
 }
 
@@ -14,6 +17,9 @@ export interface CreateBrandData {
   domain: string;
   industry?: string;
   description?: string;
+  ai_providers?: string[];
+  services?: string[];
+  discovery_prompts?: string[];
 }
 
 export const brandsService = {

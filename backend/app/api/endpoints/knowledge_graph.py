@@ -36,7 +36,7 @@ async def monitor_knowledge_presence(
     logger.info(f"[API] Knowledge graph monitor request for: {request.brand_name}")
     
     try:
-        from app.services.knowledge_graph_service import get_knowledge_graph_monitor
+        from app.services.analysis.knowledge_graph_service import get_knowledge_graph_monitor
         service = get_knowledge_graph_monitor()
         
         result = await service.monitor_knowledge_presence(
@@ -62,7 +62,7 @@ async def quick_knowledge_check(
     logger.info(f"[API] Quick knowledge check for: {brand_name}")
     
     try:
-        from app.services.knowledge_graph_service import get_knowledge_graph_monitor
+        from app.services.analysis.knowledge_graph_service import get_knowledge_graph_monitor
         service = get_knowledge_graph_monitor()
         
         # Run a quick Wikipedia check only

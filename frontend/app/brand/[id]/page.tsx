@@ -1,16 +1,16 @@
 'use client'
 
-import { MapPin, Globe, ExternalLink, Plus, Building2, Trash2 } from "lucide-react"
+import { use, useEffect, useState } from 'react'
+import Link from 'next/link'
+import { Building2, Globe, Trash2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { AppSidebar } from "@/components/app-sidebar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { PageHeader } from '@/components/page-header'
-import Link from "next/link"
-import { useTranslations } from '@/lib/i18n'
-import { use, useEffect, useState } from 'react'
-import { brandsService, Brand } from "@/lib/services/brands"
+import { AppSidebar } from "@/components/layout/app-sidebar"
+import { PageHeader } from "@/components/layout/page-header"
+import { useTranslations } from "@/lib/i18n"
+import { brandsService, type Brand } from "@/lib/services/brands"
 import { competitorsService, Competitor } from "@/lib/services/competitors"
 import { keywordsService, Keyword } from "@/lib/services/keywords"
 import { analysisService, Analysis } from "@/lib/services/analysis"
@@ -188,7 +188,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                 {technicalAeo.recommendations.slice(0, 3).map((rec: any, i: number) => (
                   <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-gray-50 dark:bg-[#1E1E24]">
                     <div className={`w-2 h-2 mt-2 rounded-full shrink-0 ${rec.priority === 'critical' ? 'bg-red-500' :
-                        rec.priority === 'high' ? 'bg-orange-500' : 'bg-emerald-500'
+                      rec.priority === 'high' ? 'bg-orange-500' : 'bg-emerald-500'
                       }`} />
                     <div>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">

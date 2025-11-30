@@ -1,15 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Bell, CheckCheck, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { AppSidebar } from '@/components/app-sidebar'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { PageHeader } from '@/components/page-header'
-import { useTranslations } from '@/lib/i18n'
-import { notificationsService, Notification } from '@/lib/services/notifications'
+import { useEffect, useState } from "react"
+import { Bell, Loader2, CheckCheck } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/layout/app-sidebar"
+import { PageHeader } from "@/components/layout/page-header"
+import { useTranslations } from "@/lib/i18n"
+import { notificationsService, type Notification } from "@/lib/services/notifications"
 
 export default function NotificationsPage() {
   const { t } = useTranslations()

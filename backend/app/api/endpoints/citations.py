@@ -31,14 +31,9 @@ async def track_citations(
 ):
     """
     Track brand citations across AI platforms.
-    
-    Checks how often the brand is cited or referenced in AI responses
-    from platforms like Perplexity, ChatGPT, and Claude.
     """
-    logger.info(f"[API] Citation tracking request for: {request.brand_name}")
-    
     try:
-        from app.services.citation_tracking_service import get_citation_tracking_service
+        from app.services.analysis.citation_tracking_service import get_citation_tracking_service
         service = get_citation_tracking_service()
         
         result = await service.track_citations(

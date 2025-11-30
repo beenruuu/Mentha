@@ -1,5 +1,5 @@
-from pydantic import BaseModel
-from typing import Optional, Literal
+from pydantic import BaseModel, Field
+from typing import Optional, Literal, Dict, Any
 from uuid import UUID
 from datetime import datetime
 
@@ -18,6 +18,11 @@ class KeywordBase(BaseModel):
     trend_score: Optional[int] = None
     trend_direction: Optional[TrendDirection] = None
     data_source: Optional[DataSource] = "llm_estimated"
+    # AI Visibility Details
+    ai_position: Optional[int] = None
+    ai_models: Optional[Dict[str, Any]] = Field(default_factory=dict)
+    ai_improvement: Optional[str] = None
+    last_checked_at: Optional[datetime] = None
 
 class KeywordCreate(KeywordBase):
     pass
@@ -31,6 +36,10 @@ class KeywordUpdate(BaseModel):
     trend_score: Optional[int] = None
     trend_direction: Optional[TrendDirection] = None
     data_source: Optional[DataSource] = None
+    ai_position: Optional[int] = None
+    ai_models: Optional[Dict[str, Any]] = None
+    ai_improvement: Optional[str] = None
+    last_checked_at: Optional[datetime] = None
 
 class Keyword(KeywordBase):
     id: UUID

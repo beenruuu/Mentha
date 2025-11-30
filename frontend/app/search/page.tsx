@@ -1,15 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Clock, TrendingUp, FileText } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
-import { AppSidebar } from "@/components/app-sidebar"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
-import { PageHeader } from "@/components/page-header"
+import Link from 'next/link'
+import { Search, Clock, TrendingUp, FileText } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Card } from '@/components/ui/card'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import { AppSidebar } from '@/components/layout/app-sidebar'
+import { PageHeader } from '@/components/layout/page-header'
 import { useTranslations } from '@/lib/i18n'
-import Link from "next/link"
-import { brandsService, Brand } from '@/lib/services/brands'
+import { brandsService, type Brand } from '@/lib/services/brands'
 
 export default function SearchPage() {
   const { t } = useTranslations()
@@ -35,7 +35,7 @@ export default function SearchPage() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <PageHeader 
+        <PageHeader
           icon={<Search className="h-5 w-5 text-emerald-600" />}
           title={t.searchTitle}
         />
@@ -92,7 +92,7 @@ export default function SearchPage() {
                     <Card className="p-4 hover:shadow-md transition-shadow cursor-pointer bg-white dark:bg-black">
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden bg-gray-100 dark:bg-gray-800">
-                          <img 
+                          <img
                             src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`}
                             alt={brand.name}
                             className="w-5 h-5 object-contain"

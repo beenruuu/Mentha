@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AppSidebar } from '@/components/app-sidebar'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { PageHeader } from '@/components/page-header'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import { AppSidebar } from '@/components/layout/app-sidebar'
+import { PageHeader } from '@/components/layout/page-header'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Users, Plus, TrendingUp, TrendingDown, Search, ArrowUpDown } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
@@ -57,7 +57,7 @@ export default function CompetitorsPage() {
     try {
       setLoading(true)
       const data = await competitorsService.getAll()
-      
+
       // Map backend data to UI format - only show real data, no derived/fake values
       const mappedData: CompetitorDisplay[] = data.map(c => ({
         ...c,
@@ -117,7 +117,7 @@ export default function CompetitorsPage() {
         title: t.competitorAdded,
         description: t.competitorAddedToList.replace('{name}', competitorName),
       })
-      
+
       setCompetitorName('')
       setCompetitorDomain('')
       setIsDialogOpen(false)
@@ -135,7 +135,7 @@ export default function CompetitorsPage() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <PageHeader 
+        <PageHeader
           icon={<Users className="h-5 w-5 text-emerald-600" />}
           title={t.competitorsTitle}
         />
@@ -258,74 +258,74 @@ export default function CompetitorsPage() {
                 <div className="inline-block min-w-full align-middle">
                   <div className="overflow-hidden px-6 md:px-0">
                     <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t.competitor}</TableHead>
-                    <TableHead>{t.domain}</TableHead>
-                    <TableHead>
-                      <div className="flex items-center gap-1">
-                        {t.visibility}
-                        <ArrowUpDown className="h-3 w-3" />
-                      </div>
-                    </TableHead>
-                    <TableHead>{t.aiMentions}</TableHead>
-                    <TableHead>{t.avgPositionShort}</TableHead>
-                    <TableHead>{t.trend}</TableHead>
-                    <TableHead>{t.strengths}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {competitors.map((comp) => (
-                    <TableRow key={comp.id}>
-                      <TableCell className="font-medium">{comp.name}</TableCell>
-                      <TableCell className="text-muted-foreground">{comp.domain}</TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className={`font-semibold ${getScoreColor(comp.visibility_score)}`}>
-                            {comp.visibility_score ? `${comp.visibility_score}/100` : '-'}
-                          </div>
-                          <Progress value={comp.visibility_score || 0} className="h-1" />
-                        </div>
-                      </TableCell>
-                      <TableCell>{comp.mentions}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">#{comp.avgPosition}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          {comp.trend === 'up' ? (
-                            <TrendingUp className="h-4 w-4 text-green-600" />
-                          ) : comp.trend === 'down' ? (
-                            <TrendingDown className="h-4 w-4 text-red-600" />
-                          ) : (
-                            <div className="h-4 w-4 border-t-2 border-gray-400" />
-                          )}
-                          <span className={
-                            comp.trend === 'up' ? 'text-green-600' :
-                            comp.trend === 'down' ? 'text-red-600' :
-                            'text-gray-600'
-                          }>
-                            {comp.change}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap gap-1 max-w-xs">
-                          {comp.strengths.slice(0, 2).map((strength, i) => (
-                            <Badge key={i} variant="outline" className="text-xs">
-                              {strength}
-                            </Badge>
-                          ))}
-                          {comp.strengths.length > 2 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{comp.strengths.length - 2}
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t.competitor}</TableHead>
+                          <TableHead>{t.domain}</TableHead>
+                          <TableHead>
+                            <div className="flex items-center gap-1">
+                              {t.visibility}
+                              <ArrowUpDown className="h-3 w-3" />
+                            </div>
+                          </TableHead>
+                          <TableHead>{t.aiMentions}</TableHead>
+                          <TableHead>{t.avgPositionShort}</TableHead>
+                          <TableHead>{t.trend}</TableHead>
+                          <TableHead>{t.strengths}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {competitors.map((comp) => (
+                          <TableRow key={comp.id}>
+                            <TableCell className="font-medium">{comp.name}</TableCell>
+                            <TableCell className="text-muted-foreground">{comp.domain}</TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                <div className={`font-semibold ${getScoreColor(comp.visibility_score)}`}>
+                                  {comp.visibility_score ? `${comp.visibility_score}/100` : '-'}
+                                </div>
+                                <Progress value={comp.visibility_score || 0} className="h-1" />
+                              </div>
+                            </TableCell>
+                            <TableCell>{comp.mentions}</TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">#{comp.avgPosition}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {comp.trend === 'up' ? (
+                                  <TrendingUp className="h-4 w-4 text-green-600" />
+                                ) : comp.trend === 'down' ? (
+                                  <TrendingDown className="h-4 w-4 text-red-600" />
+                                ) : (
+                                  <div className="h-4 w-4 border-t-2 border-gray-400" />
+                                )}
+                                <span className={
+                                  comp.trend === 'up' ? 'text-green-600' :
+                                    comp.trend === 'down' ? 'text-red-600' :
+                                      'text-gray-600'
+                                }>
+                                  {comp.change}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-wrap gap-1 max-w-xs">
+                                {comp.strengths.slice(0, 2).map((strength, i) => (
+                                  <Badge key={i} variant="outline" className="text-xs">
+                                    {strength}
+                                  </Badge>
+                                ))}
+                                {comp.strengths.length > 2 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{comp.strengths.length - 2}
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
                     </Table>
                   </div>
                 </div>

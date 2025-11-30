@@ -1,20 +1,18 @@
 'use client'
 
-import { Search, CreditCard } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card } from '@/components/ui/card'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { AppSidebar } from '@/components/app-sidebar'
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
-import { Separator } from '@/components/ui/separator'
-import { UserAvatarMenu } from '@/components/user-avatar-menu'
 import Link from 'next/link'
+import { CreditCard } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
+import { AppSidebar } from '@/components/layout/app-sidebar'
+import { UserAvatarMenu } from '@/components/layout/user-avatar-menu'
 import { useTranslations } from '@/lib/i18n'
 
 export default function UpgradePage() {
   const { t } = useTranslations()
-  
+
   return (
     <SidebarProvider>
       <AppSidebar />

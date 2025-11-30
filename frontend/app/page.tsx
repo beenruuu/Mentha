@@ -14,14 +14,7 @@ import CallToAction from '@/components/landing/sections/CallToAction'
 import Footer from '@/components/landing/sections/Footer'
 
 export default function LandingPage() {
-  const router = useRouter()
-  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
 
-  useEffect(() => {
-    if (isDemoMode) {
-      router.push('/dashboard')
-    }
-  }, [isDemoMode, router])
 
   return (
     <div className="min-h-screen bg-[#050505] text-white selection:bg-emerald-500/30">

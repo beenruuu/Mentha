@@ -2,18 +2,18 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { Activity, Bot, Globe, TrendingUp, Calendar, Loader2, CheckCircle, XCircle, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
-
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { AppSidebar } from '@/components/app-sidebar'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { PageHeader } from '@/components/page-header'
+import { Bot, CheckCircle, XCircle, ShieldCheck, Activity, Globe, Loader2 } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/layout/app-sidebar"
+import { PageHeader } from "@/components/layout/page-header"
 import { useTranslations } from '@/lib/i18n'
-import { brandsService, Brand } from '@/lib/services/brands'
-import { analysisService, Analysis } from '@/lib/services/analysis'
-import { technicalAeoService, TechnicalAEO } from '@/lib/services/technical-aeo'
+import { brandsService, type Brand } from '@/lib/services/brands'
+import { analysisService, type Analysis } from '@/lib/services/analysis'
+import { technicalAeoService, type TechnicalAEO } from '@/lib/services/technical-aeo'
 
 export default function CrawlersPage() {
   const params = useParams<{ id: string }>()
@@ -60,7 +60,7 @@ export default function CrawlersPage() {
       const statusStr = status as string
       let displayStatus: string
       let statusType: 'allowed' | 'blocked' | 'unknown'
-      
+
       if (statusStr === 'allowed' || statusStr === 'Allowed') {
         displayStatus = 'Allowed'
         statusType = 'allowed'
@@ -75,7 +75,7 @@ export default function CrawlersPage() {
         displayStatus = 'Unknown'
         statusType = 'unknown'
       }
-      
+
       return {
         name,
         status: displayStatus,

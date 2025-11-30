@@ -127,7 +127,7 @@ async def _run_full_geo_analysis(
         if "ai_visibility" in modules_to_run:
             try:
                 logger.info("[GEO] Running AI visibility module...")
-                from app.services.ai_visibility_service import get_ai_visibility_service
+                from app.services.analysis.ai_visibility_service import get_ai_visibility_service
                 service = get_ai_visibility_service()
                 result = await service.measure_visibility(
                     brand_name=request.brand_name,
@@ -147,7 +147,7 @@ async def _run_full_geo_analysis(
         if "citations" in modules_to_run:
             try:
                 logger.info("[GEO] Running citations tracking module...")
-                from app.services.citation_tracking_service import get_citation_tracking_service
+                from app.services.analysis.citation_tracking_service import get_citation_tracking_service
                 service = get_citation_tracking_service()
                 result = await service.track_citations(
                     brand_name=request.brand_name,
@@ -168,7 +168,7 @@ async def _run_full_geo_analysis(
         if "search_simulator" in modules_to_run:
             try:
                 logger.info("[GEO] Running AI search simulator module...")
-                from app.services.ai_search_simulator_service import get_ai_search_simulator
+                from app.services.analysis.ai_search_simulator_service import get_ai_search_simulator
                 service = get_ai_search_simulator()
                 result = await service.simulate_search(
                     brand_name=request.brand_name,
@@ -194,7 +194,7 @@ async def _run_full_geo_analysis(
         if "content_structure" in modules_to_run:
             try:
                 logger.info("[GEO] Running content structure analysis module...")
-                from app.services.content_structure_analyzer_service import get_content_structure_analyzer
+                from app.services.analysis.content_structure_analyzer_service import get_content_structure_analyzer
                 service = get_content_structure_analyzer()
                 
                 # Ensure domain has protocol
@@ -217,7 +217,7 @@ async def _run_full_geo_analysis(
         if "knowledge_graph" in modules_to_run:
             try:
                 logger.info("[GEO] Running knowledge graph monitor module...")
-                from app.services.knowledge_graph_service import get_knowledge_graph_monitor
+                from app.services.analysis.knowledge_graph_service import get_knowledge_graph_monitor
                 service = get_knowledge_graph_monitor()
                 result = await service.monitor_knowledge_presence(
                     brand_name=request.brand_name,
@@ -237,7 +237,7 @@ async def _run_full_geo_analysis(
         if "eeat" in modules_to_run:
             try:
                 logger.info("[GEO] Running E-E-A-T analyzer module...")
-                from app.services.eeat_analyzer_service import get_eeat_analyzer
+                from app.services.analysis.eeat_analyzer_service import get_eeat_analyzer
                 service = get_eeat_analyzer()
                 
                 url = request.domain
@@ -419,7 +419,7 @@ async def quick_geo_check(
     
     try:
         # Quick AI visibility check
-        from app.services.ai_visibility_service import get_ai_visibility_service
+        from app.services.analysis.ai_visibility_service import get_ai_visibility_service
         visibility_service = get_ai_visibility_service()
         visibility = await visibility_service.measure_visibility(
             brand_name=brand_name,
@@ -429,7 +429,7 @@ async def quick_geo_check(
         results["ai_visibility_score"] = visibility.get("overall_score", 0)
         
         # Quick EEAT check
-        from app.services.eeat_analyzer_service import get_eeat_analyzer
+        from app.services.analysis.eeat_analyzer_service import get_eeat_analyzer
         eeat_service = get_eeat_analyzer()
         
         url = domain if domain.startswith(('http://', 'https://')) else f'https://{domain}'

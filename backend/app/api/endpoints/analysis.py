@@ -7,7 +7,7 @@ from app.models.auth import UserProfile
 from app.models.analysis import Analysis, AnalysisCreate, AnalysisUpdate, AnalysisStatus
 from app.services.supabase.database import SupabaseDatabaseService
 
-from app.services.analysis_service import AnalysisService
+from app.services.analysis.analysis_service import AnalysisService
 
 router = APIRouter()
 

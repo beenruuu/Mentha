@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { AppSidebar } from '@/components/app-sidebar'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { PageHeader } from '@/components/page-header'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/layout/app-sidebar"
+import { PageHeader } from "@/components/layout/page-header"
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Users, Plus, Search, Globe, Loader2, ExternalLink, Trash2 } from 'lucide-react'
@@ -303,7 +303,7 @@ export default function BrandCompetitorsPage() {
                                                     <TableCell className="font-medium">
                                                         <div className="flex items-center gap-3">
                                                             {comp.favicon || comp.domain ? (
-                                                                <img 
+                                                                <img
                                                                     src={comp.favicon || `https://www.google.com/s2/favicons?domain=${comp.domain}&sz=64`}
                                                                     alt={`${comp.name} logo`}
                                                                     className="w-8 h-8 rounded-lg object-contain bg-gray-100 dark:bg-[#1E1E24] p-1"
@@ -327,8 +327,8 @@ export default function BrandCompetitorsPage() {
                                                     </TableCell>
                                                     <TableCell>
                                                         <Badge variant="secondary" className="text-gray-500">
-                                                            {comp.visibility_score && comp.visibility_score > 0 
-                                                                ? `${comp.visibility_score}%` 
+                                                            {comp.visibility_score && comp.visibility_score > 0
+                                                                ? `${comp.visibility_score}%`
                                                                 : '—'}
                                                         </Badge>
                                                     </TableCell>

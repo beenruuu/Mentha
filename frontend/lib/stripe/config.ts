@@ -4,7 +4,7 @@ import Stripe from 'stripe'
 let stripeClient: Stripe | null = null
 
 export function getStripe() {
-  if (!stripeClient && process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY !== 'sk_test_demo') {
+  if (!stripeClient && process.env.STRIPE_SECRET_KEY) {
     stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY, {
       apiVersion: '2024-12-18.acacia',
       typescript: true,

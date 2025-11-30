@@ -2,19 +2,18 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { Plus, MessageSquare, Calendar, Copy, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-
-import { Card } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { AppSidebar } from '@/components/app-sidebar'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { PageHeader } from '@/components/page-header'
+import { MessageSquare, Plus, Calendar, Copy, Loader2 } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/layout/app-sidebar"
+import { PageHeader } from "@/components/layout/page-header"
 import { useTranslations } from '@/lib/i18n'
-import { brandsService, Brand } from '@/lib/services/brands'
-import { analysisService, Analysis } from '@/lib/services/analysis'
-import { queriesService, Query } from '@/lib/services/queries'
+import { brandsService, type Brand } from '@/lib/services/brands'
+import { analysisService, type Analysis } from '@/lib/services/analysis'
+import { queriesService, type Query } from '@/lib/services/queries'
 
 export default function QueriesPage() {
   const params = useParams<{ id: string }>()
@@ -199,8 +198,8 @@ export default function QueriesPage() {
                               </Badge>
                               <Badge
                                 className={`text-xs ${query.priority === 'high'
-                                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
-                                    : 'bg-gray-100 dark:bg-[#0A0A0F] text-gray-700 dark:text-gray-300'
+                                  ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                                  : 'bg-gray-100 dark:bg-[#0A0A0F] text-gray-700 dark:text-gray-300'
                                   }`}
                               >
                                 {query.priority}

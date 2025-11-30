@@ -7,6 +7,7 @@ export interface Competitor {
   brand_id?: string;
   similarity_score?: number;
   visibility_score?: number;
+  favicon?: string;
   tracked: boolean;
   created_at: string;
   updated_at: string;

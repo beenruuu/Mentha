@@ -37,7 +37,7 @@ async def analyze_eeat_signals(
     logger.info(f"[API] E-E-A-T analysis request for: {request.url or request.domain}")
     
     try:
-        from app.services.eeat_analyzer_service import get_eeat_analyzer
+        from app.services.analysis.eeat_analyzer_service import get_eeat_analyzer
         service = get_eeat_analyzer()
         
         result = await service.analyze_eeat_signals(
@@ -64,7 +64,7 @@ async def get_eeat_score(
     logger.info(f"[API] Quick E-E-A-T score for: {url}")
     
     try:
-        from app.services.eeat_analyzer_service import get_eeat_analyzer
+        from app.services.analysis.eeat_analyzer_service import get_eeat_analyzer
         service = get_eeat_analyzer()
         
         result = await service.analyze_eeat_signals(url=url)

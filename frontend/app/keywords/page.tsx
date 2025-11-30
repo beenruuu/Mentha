@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AppSidebar } from '@/components/app-sidebar'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { PageHeader } from '@/components/page-header'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import { AppSidebar } from '@/components/layout/app-sidebar'
+import { PageHeader } from '@/components/layout/page-header'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { TrendingUp, TrendingDown, Plus, Search, Minus } from 'lucide-react'
 import {
@@ -52,8 +52,8 @@ export default function KeywordsPage() {
       const total = data.length
       // Only show real data - don't calculate fake visibility averages
       const realVisibilityData = data.filter(k => k.ai_visibility_score && k.ai_visibility_score > 0)
-      const avgVisibility = realVisibilityData.length > 0 
-        ? Math.round(realVisibilityData.reduce((acc, k) => acc + (k.ai_visibility_score || 0), 0) / realVisibilityData.length) 
+      const avgVisibility = realVisibilityData.length > 0
+        ? Math.round(realVisibilityData.reduce((acc, k) => acc + (k.ai_visibility_score || 0), 0) / realVisibilityData.length)
         : 0
       const lastSyncTimestamp = data.reduce((latest: number, keyword) => {
         const ts = keyword.updated_at ? new Date(keyword.updated_at).getTime() : 0
@@ -61,12 +61,12 @@ export default function KeywordsPage() {
       }, 0)
       const lastSync = lastSyncTimestamp ? new Date(lastSyncTimestamp).toLocaleString() : '—'
 
-      setStats({ 
-        total, 
-        avgVisibility, 
+      setStats({
+        total,
+        avgVisibility,
         top3: 0, // Real position tracking requires SERP API integration
         improvements: 0, // Real improvement analysis requires historical data
-        lastSync 
+        lastSync
       })
     } catch (error) {
       console.error('Failed to load keywords:', error)
@@ -114,7 +114,7 @@ export default function KeywordsPage() {
         title: t.keywordAdded,
         description: t.keywordAddedToTracking.replace('{keyword}', newKeyword),
       })
-      
+
       setNewKeyword('')
       setIsDialogOpen(false)
       loadKeywords() // Reload list
@@ -131,7 +131,7 @@ export default function KeywordsPage() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <PageHeader 
+        <PageHeader
           icon={<TrendingUp className="h-5 w-5 text-emerald-600" />}
           title={t.keywordsTitle}
         />
@@ -247,50 +247,50 @@ export default function KeywordsPage() {
                 <div className="inline-block min-w-full align-middle">
                   <div className="overflow-hidden px-6 md:px-0">
                     <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t.keyword}</TableHead>
-                    <TableHead>{t.volume}</TableHead>
-                    <TableHead>{t.difficulty}</TableHead>
-                    <TableHead>{t.aiVisibility}</TableHead>
-                    <TableHead>{t.position}</TableHead>
-                    <TableHead>{t.aiModels}</TableHead>
-                    <TableHead>{t.trend}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {keywords.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center text-gray-500 py-8">
-                        {loading ? 'Loading...' : t.noKeywords}
-                      </TableCell>
-                    </TableRow>
-                  ) : keywords.map((kw) => (
-                    <TableRow key={kw.id}>
-                      <TableCell className="font-medium">{kw.keyword}</TableCell>
-                      <TableCell>{kw.search_volume?.toLocaleString() || '—'}</TableCell>
-                      <TableCell>
-                        <span className={getDifficultyColor(kw.difficulty)}>
-                          {kw.difficulty ? `${Math.round(kw.difficulty)}/100` : '—'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <span className={getVisibilityColor(kw.ai_visibility_score)}>
-                          {kw.ai_visibility_score ? `${Math.round(kw.ai_visibility_score)}%` : '—'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">—</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-gray-400 text-xs">—</span>
-                      </TableCell>
-                      <TableCell>
-                        <Minus className="h-4 w-4 text-gray-400" />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>{t.keyword}</TableHead>
+                          <TableHead>{t.volume}</TableHead>
+                          <TableHead>{t.difficulty}</TableHead>
+                          <TableHead>{t.aiVisibility}</TableHead>
+                          <TableHead>{t.position}</TableHead>
+                          <TableHead>{t.aiModels}</TableHead>
+                          <TableHead>{t.trend}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {keywords.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={7} className="text-center text-gray-500 py-8">
+                              {loading ? 'Loading...' : t.noKeywords}
+                            </TableCell>
+                          </TableRow>
+                        ) : keywords.map((kw) => (
+                          <TableRow key={kw.id}>
+                            <TableCell className="font-medium">{kw.keyword}</TableCell>
+                            <TableCell>{kw.search_volume?.toLocaleString() || '—'}</TableCell>
+                            <TableCell>
+                              <span className={getDifficultyColor(kw.difficulty)}>
+                                {kw.difficulty ? `${Math.round(kw.difficulty)}/100` : '—'}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className={getVisibilityColor(kw.ai_visibility_score)}>
+                                {kw.ai_visibility_score ? `${Math.round(kw.ai_visibility_score)}%` : '—'}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">—</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-gray-400 text-xs">—</span>
+                            </TableCell>
+                            <TableCell>
+                              <Minus className="h-4 w-4 text-gray-400" />
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
                     </Table>
                   </div>
                 </div>

@@ -8,7 +8,7 @@ from app.models.brand import Brand, BrandCreate, BrandUpdate
 from app.models.analysis import Analysis, AnalysisType, AnalysisStatus, AIModel
 from app.services.supabase.database import SupabaseDatabaseService
 from app.services.supabase.auth import SupabaseAuthService, get_auth_service
-from app.services.analysis_service import AnalysisService
+from app.services.analysis.analysis_service import AnalysisService
 
 router = APIRouter()
 
@@ -39,8 +39,8 @@ async def create_brand(
     ai_providers = brand.ai_providers or []
     services = brand.services or []
     
-    # Create brand data (exclude analysis fields)
-    data = brand.model_dump(exclude={'discovery_prompts', 'ai_providers', 'services'}, exclude_unset=True)
+    # Create brand data (exclude only discovery_prompts which are transient)
+    data = brand.model_dump(exclude={'discovery_prompts'}, exclude_unset=True)
     data["user_id"] = current_user.id
     created_brand = await service.create(data)
 

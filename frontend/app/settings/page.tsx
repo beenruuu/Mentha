@@ -2,21 +2,21 @@
 
 import { useEffect, useState } from "react"
 import { Search, Bell, User, Lock, CreditCard, Palette, Settings, Languages, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff } from "lucide-react"
-import { ThemeToggle } from '@/components/theme-toggle'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { AppSidebar } from "@/components/app-sidebar"
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
-import { Separator } from '@/components/ui/separator'
-import { UserAvatarMenu } from '@/components/user-avatar-menu'
-import { getLanguage, setLanguage, getTranslations, type Language } from '@/lib/i18n'
-import { useRouter } from 'next/navigation'
+import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { createClient } from '@/lib/supabase/client'
-import { toast } from 'sonner'
+import { Switch } from "@/components/ui/switch"
+import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { getTranslations, getLanguage, setLanguage, type Language } from "@/lib/i18n"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/layout/app-sidebar"
+import { Separator } from "@/components/ui/separator"
+import { UserAvatarMenu } from "@/components/layout/user-avatar-menu"
+import { Card } from "@/components/ui/card"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 
 interface NotificationPreferences {
   rankingChanges: boolean
@@ -504,8 +504,8 @@ export default function SettingsPage() {
                     <button
                       onClick={() => handleLanguageChange('es')}
                       className={`p-4 border-2 rounded-xl transition-all duration-200 ${lang === 'es'
-                          ? 'border-emerald-600 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-950/30 text-emerald-900 dark:text-emerald-100 shadow-lg scale-105'
-                          : 'border-gray-200 dark:border-[#2A2A30] bg-white dark:bg-black hover:border-emerald-300 dark:hover:border-emerald-800 text-gray-700 dark:text-gray-300 hover:scale-102'
+                        ? 'border-emerald-600 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-950/30 text-emerald-900 dark:text-emerald-100 shadow-lg scale-105'
+                        : 'border-gray-200 dark:border-[#2A2A30] bg-white dark:bg-black hover:border-emerald-300 dark:hover:border-emerald-800 text-gray-700 dark:text-gray-300 hover:scale-102'
                         }`}
                     >
                       <Languages className="w-5 h-5 mx-auto mb-2" />
@@ -514,8 +514,8 @@ export default function SettingsPage() {
                     <button
                       onClick={() => handleLanguageChange('en')}
                       className={`p-4 border-2 rounded-xl transition-all duration-200 ${lang === 'en'
-                          ? 'border-emerald-600 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-950/30 text-emerald-900 dark:text-emerald-100 shadow-lg scale-105'
-                          : 'border-gray-200 dark:border-[#2A2A30] bg-white dark:bg-black hover:border-emerald-300 dark:hover:border-emerald-800 text-gray-700 dark:text-gray-300 hover:scale-102'
+                        ? 'border-emerald-600 bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/20 dark:to-emerald-950/30 text-emerald-900 dark:text-emerald-100 shadow-lg scale-105'
+                        : 'border-gray-200 dark:border-[#2A2A30] bg-white dark:bg-black hover:border-emerald-300 dark:hover:border-emerald-800 text-gray-700 dark:text-gray-300 hover:scale-102'
                         }`}
                     >
                       <Languages className="w-5 h-5 mx-auto mb-2" />

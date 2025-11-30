@@ -1,19 +1,16 @@
 import { createBrowserClient } from '@supabase/ssr'
 
 export function createClient() {
-  // En modo demo, usar valores dummy para evitar errores
-  const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || (isDemoMode ? 'https://demo.supabase.co' : '')
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || (isDemoMode ? 'demo-key' : '')
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    if (!isDemoMode) {
-      console.warn('⚠️ Supabase URL and Key are required. Using demo mode.')
-    }
-    // Retornar un cliente con valores dummy en modo demo
+    console.error('⚠️ Supabase URL and Key are required.')
+    // Return a dummy client or throw error? 
+    // Better to return a client that will fail on requests but not crash the app immediately
     return createBrowserClient(
-      'https://demo.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0'
+      'https://placeholder.supabase.co',
+      'placeholder-key'
     )
   }
 

@@ -2,15 +2,15 @@ import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import { Analytics } from '@vercel/analytics/next'
-import { ThemeScript } from '@/components/theme-script'
-import { ThemeInit } from '@/components/theme-init'
-import { LanguageInit } from '@/components/language-init'
-import { CommandPalette } from '@/components/command-palette'
-import { DemoBanner } from '@/components/demo-banner'
-import { CookieConsent } from '@/components/cookie-consent'
+import { ThemeScript } from '@/components/shared/theme-script'
+import { ThemeInit } from '@/components/shared/theme-init'
+import { LanguageInit } from '@/components/shared/language-init'
+import { CommandPalette } from '@/components/shared/command-palette'
+
+import { CookieConsent } from '@/components/shared/cookie-consent'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
-import SettingsPanel from '@/components/settings-panel'
+import SettingsPanel from '@/components/dashboard/settings-panel'
 
 export const metadata: Metadata = {
   title: 'Mentha - AI Engine Optimization Platform',
@@ -53,10 +53,10 @@ export default function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className={`min-h-screen bg-black antialiased font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className={`min-h-screen bg-black antialiased font-sans ${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
         <LanguageInit />
         <ThemeInit />
-        <DemoBanner />
+
         <CommandPalette />
         <SettingsPanel />
         {children}

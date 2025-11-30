@@ -5,7 +5,6 @@
   "framework": "nextjs",
   "outputDirectory": ".next",
   "env": {
-    "NEXT_PUBLIC_DEMO_MODE": "false",
     "NEXT_PUBLIC_SUPABASE_URL": "https://demo.supabase.co",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "demo-key",
     "SUPABASE_SERVICE_ROLE_KEY": "demo-service-key",
