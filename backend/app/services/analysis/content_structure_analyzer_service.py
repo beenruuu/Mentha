@@ -78,8 +78,33 @@ class ContentStructureAnalyzerService:
         """
         if url and not html_content:
             try:
-                response = await self.client.get(url)
-                html_content = response.text
+                # Try Firecrawl first for better content extraction
+                from app.core.config import settings
+                if settings.FIRECRAWL_API_KEY:
+                    try:
+                        from app.services.firecrawl_service import FirecrawlService
+                        firecrawl = FirecrawlService()
+                        logger.info(f"[CONTENT] Using Firecrawl to fetch {url}")
+                        # Use both markdown and html formats
+                        data = await firecrawl.scrape_url(url, formats=["markdown", "html"])
+                        await firecrawl.close()
+                        
+                        if data.get('success'):
+                            # Prefer HTML for BeautifulSoup analysis
+                            raw_data = data.get('data', {})
+                            if 'html' in raw_data:
+                                html_content = raw_data['html']
+                                logger.info("[CONTENT] Successfully fetched HTML via Firecrawl")
+                            elif 'markdown' in raw_data:
+                                # Convert markdown to HTML for analysis (basic)
+                                logger.info("[CONTENT] Got markdown from Firecrawl, will use HTTP fallback for HTML")
+                    except Exception as fc_error:
+                        logger.warning(f"[CONTENT] Firecrawl fetch failed: {fc_error}")
+
+                # Fallback to standard HTTP fetch if no content yet
+                if not html_content:
+                    response = await self.client.get(url)
+                    html_content = response.text
             except Exception as e:
                 return {"error": f"Failed to fetch URL: {e}"}
         
@@ -102,7 +127,9 @@ class ContentStructureAnalyzerService:
             "hierarchy_analysis": self._analyze_hierarchy(soup),
             "snippet_optimization": self._analyze_snippet_potential(soup),
             "list_table_analysis": self._analyze_lists_tables(soup),
+            "list_table_analysis": self._analyze_lists_tables(soup),
             "entity_clarity": self._analyze_entity_clarity(soup),
+            "speakability_analysis": self._analyze_speakability(soup),
             "overall_structure_score": 0,
             "recommendations": []
         }
@@ -652,6 +679,92 @@ class ContentStructureAnalyzerService:
         
         return analysis
     
+    def _analyze_speakability(self, soup: BeautifulSoup) -> Dict[str, Any]:
+        """Analyze content speakability (readability for voice)."""
+        analysis = {
+            "avg_sentence_length": 0,
+            "avg_syllables_per_word": 0,
+            "flesch_reading_ease": 0,
+            "conversational_score": 0,
+            "quality_score": 0
+        }
+        
+        text = soup.get_text(separator=' ', strip=True)
+        if not text:
+            return analysis
+            
+        # Basic tokenization
+        sentences = [s.strip() for s in re.split(r'[.!?]+', text) if s.strip()]
+        words = [w.lower() for w in re.findall(r'\b[a-z]+\b', text.lower())]
+        
+        if not sentences or not words:
+            return analysis
+            
+        total_sentences = len(sentences)
+        total_words = len(words)
+        
+        # Syllable counting (heuristic)
+        def count_syllables(word):
+            word = word.lower()
+            count = 0
+            vowels = "aeiouy"
+            if word[0] in vowels:
+                count += 1
+            for i in range(1, len(word)):
+                if word[i] in vowels and word[i-1] not in vowels:
+                    count += 1
+            if word.endswith("e"):
+                count -= 1
+            if count == 0:
+                count += 1
+            return count
+            
+        total_syllables = sum(count_syllables(w) for w in words)
+        
+        # Metrics
+        analysis["avg_sentence_length"] = total_words / total_sentences
+        analysis["avg_syllables_per_word"] = total_syllables / total_words
+        
+        # Flesch Reading Ease
+        # 206.835 - 1.015(total words / total sentences) - 84.6(total syllables / total words)
+        flesch = 206.835 - (1.015 * analysis["avg_sentence_length"]) - (84.6 * analysis["avg_syllables_per_word"])
+        analysis["flesch_reading_ease"] = max(0, min(100, flesch))
+        
+        # Conversational Score (Pronouns)
+        pronouns = {'i', 'you', 'we', 'us', 'our', 'my', 'your'}
+        pronoun_count = sum(1 for w in words if w in pronouns)
+        pronoun_density = (pronoun_count / total_words) * 100
+        
+        # Score calculation
+        quality = 0
+        
+        # Readability (60-70 is standard, >80 is easy/conversational)
+        if analysis["flesch_reading_ease"] >= 80:
+            quality += 40
+        elif analysis["flesch_reading_ease"] >= 60:
+            quality += 30
+        elif analysis["flesch_reading_ease"] >= 50:
+            quality += 15
+            
+        # Sentence length (shorter is better for voice)
+        if analysis["avg_sentence_length"] <= 15:
+            quality += 30
+        elif analysis["avg_sentence_length"] <= 20:
+            quality += 20
+        elif analysis["avg_sentence_length"] <= 25:
+            quality += 10
+            
+        # Conversational tone
+        if pronoun_density >= 3: # >3% pronouns is good
+            quality += 30
+        elif pronoun_density >= 1:
+            quality += 15
+            
+        analysis["conversational_score"] = min(100, pronoun_density * 20) # Normalize roughly
+        analysis["quality_score"] = min(100, quality)
+        
+        return analysis
+
     def _calculate_structure_score(self, results: Dict[str, Any]) -> float:
         """Calculate overall content structure score."""
         weights = {
@@ -661,7 +774,8 @@ class ContentStructureAnalyzerService:
             "hierarchy_analysis": 0.20,
             "snippet_optimization": 0.15,
             "list_table_analysis": 0.10,
-            "entity_clarity": 0.10
+            "entity_clarity": 0.05,
+            "speakability_analysis": 0.15
         }
         
         total_score = 0
@@ -758,6 +872,30 @@ class ContentStructureAnalyzerService:
                 "category": "structure",
                 "title": "Add Table Headers",
                 "description": "Your tables need header rows (<th>) for proper data structure recognition."
+            })
+            
+        # Speakability recommendations
+        speakability = results.get("speakability_analysis", {})
+        if speakability.get("flesch_reading_ease", 100) < 60:
+            recommendations.append({
+                "priority": "high",
+                "category": "voice",
+                "title": "Simplify Content",
+                "description": "Your content is too complex for voice search. Use shorter words and simpler sentences."
+            })
+        if speakability.get("avg_sentence_length", 0) > 20:
+            recommendations.append({
+                "priority": "medium",
+                "category": "voice",
+                "title": "Shorten Sentences",
+                "description": "Long sentences are hard to follow in voice search. Aim for 15-20 words per sentence."
+            })
+        if speakability.get("conversational_score", 0) < 20:
+            recommendations.append({
+                "priority": "low",
+                "category": "voice",
+                "title": "Use Conversational Tone",
+                "description": "Use more pronouns (I, You, We) to make content sound natural for voice assistants."
             })
         
         return recommendations

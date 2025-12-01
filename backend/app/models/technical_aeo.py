@@ -21,6 +21,7 @@ class TechnicalAEOBase(BaseModel):
     https_score: float = 0.0
     response_time_ms: Optional[int] = None
     aeo_readiness_score: float = 0.0
+    voice_readiness_score: float = 0.0
     recommendations: Optional[List[Dict[str, Any]]] = None
 
 
@@ -37,6 +38,7 @@ class TechnicalAEOUpdate(BaseModel):
     mobile_responsive: Optional[bool] = None
     https_score: Optional[float] = None
     aeo_readiness_score: Optional[float] = None
+    voice_readiness_score: Optional[float] = None
     recommendations: Optional[List[Dict[str, Any]]] = None
 
 

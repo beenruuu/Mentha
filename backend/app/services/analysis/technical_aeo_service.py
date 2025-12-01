@@ -3,13 +3,17 @@ Technical AEO Service - Analyzes technical signals that affect AI engine optimiz
 Checks AI crawler permissions, structured data, and technical readiness for GEO.
 """
 
+import asyncio
+import logging
 from typing import Dict, Any, List, Optional
+from urllib.parse import urljoin, urlparse
 import httpx
 from bs4 import BeautifulSoup
 import json
 import re
-from urllib.parse import urljoin, urlparse
+from app.core.config import settings
 
+logger = logging.getLogger(__name__)
 
 class TechnicalAEOService:
     """Service for analyzing technical AEO/GEO signals."""
@@ -39,7 +43,9 @@ class TechnicalAEOService:
         'Product': 'Product Information',
         'BreadcrumbList': 'Navigation Breadcrumbs',
         'SearchAction': 'Site Search',
-        'WebSite': 'Website Info'
+        'WebSite': 'Website Info',
+        'Speakable': 'Speakable Content (Voice)',
+        'LocalBusiness': 'Local Business Info'
     }
     
     def __init__(self):
@@ -101,6 +107,114 @@ class TechnicalAEOService:
                 "text": ""
             }
 
+    async def crawl_site(self, domain: str, limit: int = 10) -> List[str]:
+        """
+        Discover pages on the site via sitemap or simple crawl.
+        
+        Args:
+            domain: Domain to crawl
+            limit: Max number of pages to return
+            
+        Returns:
+            List of page URLs
+        """
+        if not domain.startswith(('http://', 'https://')):
+            domain = f'https://{domain}'
+            
+        # Try Firecrawl first if configured
+        if settings.FIRECRAWL_API_KEY:
+            try:
+                from app.services.firecrawl_service import FirecrawlService
+                firecrawl = FirecrawlService()
+                print(f"Using Firecrawl to map {domain}...")
+                links = await firecrawl.map_site(domain)
+                await firecrawl.close()
+                
+                if links:
+                    # Filter for internal links only
+                    internal_links = []
+                    base_domain = urlparse(domain).netloc
+                    for link in links:
+                        if urlparse(link).netloc == base_domain:
+                            internal_links.append(link)
+                    
+                    print(f"Firecrawl found {len(internal_links)} internal pages.")
+                    return internal_links[:limit]
+            except Exception as e:
+                print(f"Firecrawl failed, falling back to internal crawler: {e}")
+
+        discovered_urls = set()
+        discovered_urls.add(domain)
+        
+        try:
+            # 1. Try Sitemap
+            robots_info = await self._check_robots_txt(domain)
+            sitemap_url = robots_info.get('sitemap')
+            
+            if not sitemap_url:
+                # Try standard sitemap locations
+                common_sitemaps = [
+                    urljoin(domain, '/sitemap.xml'),
+                    urljoin(domain, '/sitemap_index.xml'),
+                    urljoin(domain, '/wp-sitemap.xml')
+                ]
+                for url in common_sitemaps:
+                    try:
+                        resp = await self.client.head(url)
+                        if resp.status_code == 200:
+                            sitemap_url = url
+                            break
+                    except:
+                        continue
+            
+            if sitemap_url:
+                print(f"Found sitemap at {sitemap_url}")
+                try:
+                    resp = await self.client.get(sitemap_url)
+                    if resp.status_code == 200:
+                        soup = BeautifulSoup(resp.content, 'xml')
+                        # Handle sitemap index
+                        sitemaps = soup.find_all('sitemap')
+                        if sitemaps:
+                            # Just fetch the first sub-sitemap for now to save time
+                            loc = sitemaps[0].find('loc')
+                            if loc:
+                                sub_resp = await self.client.get(loc.text)
+                                if sub_resp.status_code == 200:
+                                    soup = BeautifulSoup(sub_resp.content, 'xml')
+                        
+                        urls = soup.find_all('url')
+                        for url in urls:
+                            loc = url.find('loc')
+                            if loc and loc.text:
+                                discovered_urls.add(loc.text)
+                                if len(discovered_urls) >= limit:
+                                    break
+                except Exception as e:
+                    print(f"Error parsing sitemap: {e}")
+            
+            # 2. Fallback: Simple Homepage Crawl if few pages found
+            if len(discovered_urls) < 3:
+                print("Few pages found in sitemap, crawling homepage...")
+                try:
+                    resp = await self.client.get(domain)
+                    soup = BeautifulSoup(resp.text, 'html.parser')
+                    for a in soup.find_all('a', href=True):
+                        href = a['href']
+                        full_url = urljoin(domain, href)
+                        # Only internal links
+                        if urlparse(full_url).netloc == urlparse(domain).netloc:
+                            discovered_urls.add(full_url)
+                            if len(discovered_urls) >= limit:
+                                break
+                except Exception as e:
+                    print(f"Error crawling homepage: {e}")
+                    
+        except Exception as e:
+            print(f"Error during site crawl: {e}")
+            
+        return list(discovered_urls)[:limit]
+
     async def audit_domain(self, domain: str) -> Dict[str, Any]:
         """
         Perform complete technical AEO audit for a domain.
@@ -129,14 +243,21 @@ class TechnicalAEOService:
             technical_signals
         )
         
+        # Calculate Voice Search Readiness score
+        voice_score = self._calculate_voice_score(
+            structured_data,
+            technical_signals
+        )
+        
         return {
             'domain': domain,
             'ai_crawler_permissions': crawler_permissions,
             'structured_data': structured_data,
             'technical_signals': technical_signals,
             'aeo_readiness_score': aeo_score,
+            'voice_readiness_score': voice_score,
             'recommendations': self._generate_recommendations(
-                crawler_permissions, structured_data, technical_signals
+                crawler_permissions, structured_data, technical_signals, voice_score
             )
         }
     
@@ -305,7 +426,9 @@ class TechnicalAEOService:
                 'schemas_detail': schemas_found,
                 'has_faq': 'FAQPage' in schema_types or 'QAPage' in schema_types,
                 'has_howto': 'HowTo' in schema_types,
-                'has_article': 'Article' in schema_types or 'NewsArticle' in schema_types
+                'has_article': 'Article' in schema_types or 'NewsArticle' in schema_types,
+                'has_speakable': 'Speakable' in schema_types,
+                'has_local_business': 'LocalBusiness' in schema_types or 'Restaurant' in schema_types or 'Store' in schema_types
             }
             
         except Exception as e:
@@ -433,11 +556,48 @@ class TechnicalAEOService:
         
         return min(round(score, 1), 100.0)
     
+    def _calculate_voice_score(
+        self,
+        schemas: Dict[str, Any],
+        technical: Dict[str, Any]
+    ) -> float:
+        """
+        Calculate Voice Search Readiness score (0-100).
+        
+        Factors:
+        - Speakable Schema: 30 pts
+        - FAQ/QA Schema: 20 pts
+        - LocalBusiness Schema: 20 pts
+        - Fast Response Time (<500ms): 20 pts
+        - HTTPS: 10 pts
+        """
+        score = 0.0
+        
+        if schemas.get('has_speakable'):
+            score += 30
+            
+        if schemas.get('has_faq'):
+            score += 20
+            
+        if schemas.get('has_local_business'):
+            score += 20
+            
+        if technical.get('response_time_ms', 1000) < 500:
+            score += 20
+        elif technical.get('response_time_ms', 1000) < 1000:
+            score += 10
+            
+        if technical.get('https'):
+            score += 10
+            
+        return min(round(score, 1), 100.0)
+    
     def _generate_recommendations(
         self,
         crawlers: Dict[str, Any],
         schemas: Dict[str, Any],
-        technical: Dict[str, Any]
+        technical: Dict[str, Any],
+        voice_score: float = 0.0
     ) -> List[Dict[str, str]]:
         """Generate actionable AEO recommendations"""
         recommendations = []
@@ -498,6 +658,23 @@ class TechnicalAEOService:
                 'title': 'Add RSS Feed',
                 'description': 'Provide an RSS/Atom feed to make content updates easily discoverable.'
             })
+            
+        # Voice Search recommendations
+        if voice_score < 50:
+            if not schemas.get('has_speakable'):
+                recommendations.append({
+                    'priority': 'medium',
+                    'category': 'voice_search',
+                    'title': 'Add Speakable Schema',
+                    'description': 'Implement schema.org/Speakable to identify sections of content best suited for text-to-speech playback.'
+                })
+            if not schemas.get('has_local_business'):
+                recommendations.append({
+                    'priority': 'medium',
+                    'category': 'voice_search',
+                    'title': 'Local Business Schema',
+                    'description': 'For voice queries like "near me", LocalBusiness schema is essential.'
+                })
         
         return recommendations
     

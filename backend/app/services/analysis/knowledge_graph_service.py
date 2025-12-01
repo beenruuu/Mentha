@@ -336,13 +336,25 @@ class KnowledgeGraphMonitorService:
         """
         Check for Google Knowledge Panel presence.
         
-        Uses web search as indicator (actual KG API requires auth).
+        Tries to use official Google Knowledge Graph Search API if key is available.
+        Falls back to web search heuristics if not.
         """
+        # Try official API first if key is available
+        google_api_key = settings.GOOGLE_API_KEY if hasattr(settings, 'GOOGLE_API_KEY') else None
+        
+        if google_api_key:
+            try:
+                return await self._check_google_kg_api(brand_name, google_api_key)
+            except Exception as e:
+                logger.warning(f"Google KG API failed, falling back to heuristics: {e}")
+        
+        # Fallback to heuristics
         result = {
             "found": False,
             "likely_has_panel": False,
             "supporting_signals": [],
-            "brand_recognition": "unknown"
+            "brand_recognition": "unknown",
+            "method": "heuristic"
         }
         
         try:
@@ -408,6 +420,52 @@ class KnowledgeGraphMonitorService:
         except Exception as e:
             result["error"] = str(e)
         
+        return result
+
+    async def _check_google_kg_api(self, brand_name: str, api_key: str) -> Dict[str, Any]:
+        """Check Google Knowledge Graph Search API."""
+        result = {
+            "found": False,
+            "likely_has_panel": False,
+            "entity_score": 0,
+            "entity_types": [],
+            "description": None,
+            "method": "api"
+        }
+        
+        url = "https://kgsearch.googleapis.com/v1/entities:search"
+        params = {
+            "query": brand_name,
+            "key": api_key,
+            "limit": 1,
+            "indent": True,
+        }
+        
+        response = await self.client.get(url, params=params)
+        
+        if response.status_code == 200:
+            data = response.json()
+            items = data.get("itemListElement", [])
+            
+            if items:
+                item = items[0]
+                result["found"] = True
+                result["likely_has_panel"] = True
+                result["entity_score"] = item.get("resultScore", 0)
+                
+                entity = item.get("result", {})
+                result["entity_types"] = entity.get("@type", [])
+                result["description"] = entity.get("description") or entity.get("detailedDescription", {}).get("articleBody")
+                
+                # Check if it's actually the brand (simple name match check)
+                name = entity.get("name", "")
+                if brand_name.lower() in name.lower():
+                    result["brand_recognition"] = "high"
+                else:
+                    result["brand_recognition"] = "medium" # Found something, but maybe not exact match
+            else:
+                result["brand_recognition"] = "none"
+                
         return result
     
     async def _check_llm_entity_recognition(

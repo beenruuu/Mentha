@@ -234,7 +234,8 @@ class CitationTrackingService:
                                         result["contexts"].append({
                                             "query": query,
                                             "context": context,
-                                            "source_url": cite
+                                            "source_url": cite,
+                                            "model": "perplexity"
                                         })
                             
                     except Exception as e:
@@ -615,6 +616,66 @@ class CitationTrackingService:
         
         return list(set(signals))
     
+    async def check_authority_sources(self, brand_name: str, domain: str) -> List[Dict[str, Any]]:
+        """
+        Check for brand presence on specific high-authority domains.
+        """
+        authority_sources = [
+            {"name": "Wikipedia", "domain": "wikipedia.org", "type": "Encyclopedia", "impact": "high"},
+            {"name": "G2", "domain": "g2.com", "type": "Review Platform", "impact": "medium"},
+            {"name": "Capterra", "domain": "capterra.com", "type": "Review Platform", "impact": "medium"},
+            {"name": "TechCrunch", "domain": "techcrunch.com", "type": "News", "impact": "high"},
+            {"name": "Forbes", "domain": "forbes.com", "type": "News", "impact": "high"},
+            {"name": "Medium", "domain": "medium.com", "type": "Blog", "impact": "low"},
+            {"name": "ProductHunt", "domain": "producthunt.com", "type": "Community", "impact": "medium"},
+            {"name": "Trustpilot", "domain": "trustpilot.com", "type": "Review Platform", "impact": "medium"},
+            {"name": "LinkedIn", "domain": "linkedin.com", "type": "Social", "impact": "low"},
+        ]
+        
+        results = []
+        
+        try:
+            from duckduckgo_search import DDGS
+            
+            with DDGS() as ddgs:
+                for source in authority_sources:
+                    query = f'site:{source["domain"]} "{brand_name}"'
+                    try:
+                        # Quick check - just need 1 result
+                        search_results = list(ddgs.text(query, max_results=1))
+                        is_present = len(search_results) > 0
+                        
+                        results.append({
+                            "source": source["name"],
+                            "type": source["type"],
+                            "authority": 90 if source["impact"] == "high" else 80 if source["impact"] == "medium" else 70, # Mock DA for now
+                            "status": "present" if is_present else "missing",
+                            "impact": source["impact"],
+                            "url": search_results[0]['href'] if is_present else None
+                        })
+                        
+                        # Sleep briefly to avoid rate limits
+                        await asyncio.sleep(0.5)
+                        
+                    except Exception as e:
+                        logger.error(f"Error checking {source['name']}: {e}")
+                        results.append({
+                            "source": source["name"],
+                            "type": source["type"],
+                            "authority": 0,
+                            "status": "error",
+                            "impact": source["impact"]
+                        })
+                        
+        except ImportError:
+            logger.error("duckduckgo_search not installed")
+            return []
+        except Exception as e:
+            logger.error(f"Error in check_authority_sources: {e}")
+            return []
+            
+        return results
+
     def _analyze_citation_sentiment(self, contexts: List[Dict]) -> str:
         """Analyze sentiment of citation contexts."""
         if not contexts:

@@ -251,10 +251,12 @@ Ejemplo: [1, 4, 7]"""
         description: str = "",
         services: str = "",
         max_results: int = 5,
-        entity_type: str = "business"
+        entity_type: str = "business",
+        country: str = "ES",
+        language: str = "es"
     ) -> List[Dict[str, Any]]:
         """
-        Search for REAL competitors in the same industry, respecting entity type.
+        Search for REAL competitors in the same industry, respecting entity type and location.
         """
         if not self.enabled:
             return []
@@ -269,29 +271,57 @@ Ejemplo: [1, 4, 7]"""
             elif isinstance(services, list):
                 service_list = services
             
-            # Build queries based on entity type
+            # Build localized queries based on entity type
             queries = []
             
+            # Localization helpers
+            loc_suffix = f" {country}" if country else ""
+            
+            # Language-specific terms
+            terms = {
+                "es": {
+                    "news": "noticias", "digital_papers": "diarios digitales", "magazines": "revistas",
+                    "orgs": "organismos", "associations": "asociaciones", "companies": "empresas",
+                    "competitors": "competidores", "similar": "similar a", "alternatives": "alternativas a",
+                    "vs": "vs", "best": "mejores"
+                },
+                "en": {
+                    "news": "news", "digital_papers": "digital newspapers", "magazines": "magazines",
+                    "orgs": "organizations", "associations": "associations", "companies": "companies",
+                    "competitors": "competitors", "similar": "similar to", "alternatives": "alternatives to",
+                    "vs": "vs", "best": "best"
+                }
+            }
+            t = terms.get(language, terms["en"])
+            
             if entity_type == 'media':
-                queries.append(f'noticias "{industry}" España')
-                queries.append(f'diarios digitales "{industry}"')
-                queries.append(f'revistas "{industry}"')
+                queries.append(f'{t["news"]} "{industry}"{loc_suffix}')
+                queries.append(f'{t["digital_papers"]} "{industry}"')
+                queries.append(f'{t["magazines"]} "{industry}"')
             elif entity_type == 'institution':
-                queries.append(f'organismos "{industry}" España')
-                queries.append(f'asociaciones "{industry}"')
+                queries.append(f'{t["orgs"]} "{industry}"{loc_suffix}')
+                queries.append(f'{t["associations"]} "{industry}"')
             else:
                 # Business queries (standard)
                 if service_list:
                     for service in service_list[:3]:
-                        queries.append(f'empresas "{service}" España')
+                        queries.append(f'{t["companies"]} "{service}"{loc_suffix}')
+                        queries.append(f'{t["best"]} {t["companies"]} {service}{loc_suffix}')
+                
                 if industry:
-                    queries.append(f'empresas "{industry}" España competidores')
+                    queries.append(f'{t["companies"]} "{industry}"{loc_suffix} {t["competitors"]}')
+                    queries.append(f'top {t["companies"]} {industry}{loc_suffix}')
+                
+                # Direct competitor discovery queries
+                queries.append(f'{t["similar"]} {brand_name}')
+                queries.append(f'{t["alternatives"]} {brand_name}')
+                queries.append(f'{brand_name} {t["vs"]}')
             
             # Fallback
             if not queries:
-                queries = [f'{brand_name} competidores', f'similar a {brand_name}']
+                queries = [f'{brand_name} {t["competitors"]}', f'{t["similar"]} {brand_name}']
             
-            print(f"Competitor search queries (Type: {entity_type}): {queries}")
+            print(f"Competitor search queries (Type: {entity_type}, Loc: {country}): {queries}")
             
             all_candidates = []
             seen_domains: Set[str] = set()
@@ -322,7 +352,6 @@ Ejemplo: [1, 4, 7]"""
                         continue
 
                     # NO HARDCODED EXCLUSIONS HERE - We rely on AI filtering later
-                    # except for obvious technical platforms if needed, but better to let AI decide based on context
                     
                     company_name = self._extract_company_name(result.get('title', ''), extracted_domain)
                     
@@ -338,7 +367,7 @@ Ejemplo: [1, 4, 7]"""
                             'confidence': 'medium'
                         })
                 
-                if len(all_candidates) >= 15:
+                if len(all_candidates) >= 20: # Increased candidate pool
                     break
             
             # Use AI to filter candidates with context
@@ -562,7 +591,9 @@ Ejemplo: [1, 4, 7]"""
         industry: str,
         key_terms: Optional[str] = None,
         description: str = "",
-        services: str = ""
+        services: str = "",
+        country: str = "ES",
+        language: str = "es"
     ) -> Dict[str, Any]:
         """
         Gather comprehensive search context for a brand analysis.
@@ -575,6 +606,8 @@ Ejemplo: [1, 4, 7]"""
             key_terms: Optional additional key terms
             description: Brand description for context
             services: Services offered by the brand
+            country: User's country code (e.g., 'ES', 'US')
+            language: User's language code (e.g., 'es', 'en')
             
         Returns:
             Dictionary with all search context data
@@ -586,12 +619,21 @@ Ejemplo: [1, 4, 7]"""
                 "message": "Web search is disabled. Install duckduckgo-search to enable."
             }
         
-        print(f"Gathering web search context for: {brand_name}")
+        print(f"Gathering web search context for: {brand_name} (Loc: {country}, Lang: {language})")
         
         # Perform searches in parallel
         keyword_results, competitor_results, mention_results, industry_results = await asyncio.gather(
             self.search_keywords(brand_name, industry, max_results=10),
-            self.search_competitors(brand_name, industry, domain=domain, description=description, services=services, max_results=5),
+            self.search_competitors(
+                brand_name, 
+                industry, 
+                domain=domain, 
+                description=description, 
+                services=services, 
+                max_results=5,
+                country=country,
+                language=language
+            ),
             self.search_brand_mentions(brand_name, domain, max_results=8),
             self.search_industry_terms(industry, max_results=10),
             return_exceptions=True

@@ -14,6 +14,8 @@ from pydantic import BaseModel, Field
 
 from app.models.auth import UserProfile
 from app.api.deps import get_current_user
+from app.services.supabase.auth import get_auth_service
+from app.crud.geo_analysis import get_geo_crud
 
 logger = logging.getLogger(__name__)
 
@@ -51,8 +53,7 @@ class GEOAnalysisResponse(BaseModel):
     error: Optional[str] = None
 
 
-# In-memory cache for analysis results (use database in production)
-_geo_analysis_cache: Dict[str, GEOAnalysisResponse] = {}
+# Database persistence enabled - no in-memory cache needed
 
 
 @router.post("/analyze", response_model=GEOAnalysisResponse)
@@ -74,22 +75,48 @@ async def run_geo_analysis(
     
     The analysis runs asynchronously. Poll the status endpoint for results.
     """
-    analysis_id = uuid4()
+    # Get Supabase client
+    auth_service = get_auth_service()
+    crud = get_geo_crud(auth_service.supabase)
+    
+    # Get brand_id from domain or create temp record
+    # For now, we'll need brand_id to be passed in request or fetched
+    # Assuming brand exists in database
+    try:
+        brand_result = auth_service.supabase.table("brands").select("id").eq("domain", request.domain).limit(1).execute()
+        if not brand_result.data:
+            raise HTTPException(status_code=404, detail=f"Brand with domain {request.domain} not found")
+        brand_id = brand_result.data[0]["id"]
+    except Exception as e:
+        logger.error(f"Error fetching brand: {e}")
+        raise HTTPException(status_code=500, detail="Failed to fetch brand information")
+    
+    # Create initial analysis record in database
+    try:
+        db_analysis = await crud.create_geo_analysis(
+            brand_id=brand_id,
+            overall_score=0,
+            grade="N/A",
+            status="processing"
+        )
+        analysis_id = db_analysis["id"]
+    except Exception as e:
+        logger.error(f"Error creating GEO analysis record: {e}")
+        raise HTTPException(status_code=500, detail="Failed to create analysis record")
     
     response = GEOAnalysisResponse(
-        id=analysis_id,
+        id=UUID(analysis_id),
         brand_name=request.brand_name,
         domain=request.domain,
         status="processing",
-        created_at=datetime.utcnow().isoformat() + "Z"
+        created_at=db_analysis["created_at"]
     )
-    
-    _geo_analysis_cache[str(analysis_id)] = response
     
     # Run analysis in background
     background_tasks.add_task(
         _run_full_geo_analysis,
         analysis_id=analysis_id,
+        brand_id=brand_id,
         request=request
     )
     
@@ -97,18 +124,19 @@ async def run_geo_analysis(
 
 
 async def _run_full_geo_analysis(
-    analysis_id: UUID,
+    analysis_id: str,
+    brand_id: str,
     request: GEOAnalysisRequest
 ):
     """Background task to run full GEO analysis."""
     logger.info(f"[GEO] Starting full GEO analysis for {request.brand_name}")
     logger.info(f"[GEO] Analysis ID: {analysis_id}")
+    logger.info(f"[GEO] Brand ID: {brand_id}")
     logger.info(f"[GEO] Domain: {request.domain}, Industry: {request.industry}")
     
-    response = _geo_analysis_cache.get(str(analysis_id))
-    if not response:
-        logger.error(f"[GEO] Analysis {analysis_id} not found in cache")
-        return
+    # Get database connection
+    auth_service = get_auth_service()
+    crud = get_geo_crud(auth_service.supabase)
     
     try:
         modules_to_run = request.modules if not request.run_full_analysis else [
@@ -143,6 +171,9 @@ async def _run_full_geo_analysis(
             except Exception as e:
                 logger.error(f"[GEO] AI visibility failed: {e}")
                 results["ai_visibility"] = {"error": str(e)}
+            
+            # Update progress
+            await crud.update_geo_analysis(analysis_id=analysis_id, modules=results)
         
         if "citations" in modules_to_run:
             try:
@@ -164,6 +195,9 @@ async def _run_full_geo_analysis(
             except Exception as e:
                 logger.error(f"[GEO] Citations tracking failed: {e}")
                 results["citations"] = {"error": str(e)}
+            
+            # Update progress
+            await crud.update_geo_analysis(analysis_id=analysis_id, modules=results)
         
         if "search_simulator" in modules_to_run:
             try:
@@ -190,6 +224,9 @@ async def _run_full_geo_analysis(
             except Exception as e:
                 logger.error(f"[GEO] Search simulator failed: {e}")
                 results["search_simulator"] = {"error": str(e)}
+            
+            # Update progress
+            await crud.update_geo_analysis(analysis_id=analysis_id, modules=results)
         
         if "content_structure" in modules_to_run:
             try:
@@ -213,6 +250,9 @@ async def _run_full_geo_analysis(
             except Exception as e:
                 logger.error(f"[GEO] Content structure analysis failed: {e}")
                 results["content_structure"] = {"error": str(e)}
+            
+            # Update progress
+            await crud.update_geo_analysis(analysis_id=analysis_id, modules=results)
         
         if "knowledge_graph" in modules_to_run:
             try:
@@ -233,6 +273,9 @@ async def _run_full_geo_analysis(
             except Exception as e:
                 logger.error(f"[GEO] Knowledge graph monitor failed: {e}")
                 results["knowledge_graph"] = {"error": str(e)}
+            
+            # Update progress
+            await crud.update_geo_analysis(analysis_id=analysis_id, modules=results)
         
         if "eeat" in modules_to_run:
             try:
@@ -259,6 +302,9 @@ async def _run_full_geo_analysis(
             except Exception as e:
                 logger.error(f"[GEO] E-E-A-T analyzer failed: {e}")
                 results["eeat"] = {"error": str(e)}
+            
+            # Update progress
+            await crud.update_geo_analysis(analysis_id=analysis_id, modules=results)
         
         # Calculate overall score
         overall_score = total_score / module_count if module_count > 0 else 0
@@ -274,20 +320,61 @@ async def _run_full_geo_analysis(
         # Deduplicate and sort recommendations
         unique_recommendations = _deduplicate_recommendations(all_recommendations)
         
-        # Update response
-        response.status = "completed"
-        response.completed_at = datetime.utcnow().isoformat() + "Z"
-        response.overall_score = round(overall_score, 1)
-        response.grade = grade
-        response.modules = results
-        response.summary = summary
-        response.recommendations = unique_recommendations[:20]  # Top 20 recommendations
+        # Save visibility snapshots to database
+        if "ai_visibility" in results and results["ai_visibility"].get("models"):
+            for model_name, model_data in results["ai_visibility"]["models"].items():
+                try:
+                    await crud.create_visibility_snapshot(
+                        brand_id=brand_id,
+                        ai_model=model_name,
+                        visibility_score=model_data.get("visibility_score", 0),
+                        mention_count=model_data.get("mention_count", 0),
+                        sentiment=model_data.get("sentiment"),
+                        metadata={"contexts": model_data.get("contexts", [])}
+                    )
+                except Exception as e:
+                    logger.error(f"Error saving visibility snapshot for {model_name}: {e}")
+        
+        # Save citations to database
+        if "citations" in results and results["citations"].get("contexts"):
+            for citation in results["citations"]["contexts"]:
+                try:
+                    await crud.create_citation_record(
+                        brand_id=brand_id,
+                        ai_model=citation.get("model", "unknown"),
+                        query=citation.get("query", ""),
+                        context=citation.get("context"),
+                        source_url=citation.get("source_url"),
+                        citation_type=citation.get("type", "direct")
+                    )
+                except Exception as e:
+                    logger.error(f"Error saving citation: {e}")
+        
+        # Update analysis record in database
+        try:
+            await crud.update_geo_analysis(
+                analysis_id=analysis_id,
+                status="completed",
+                overall_score=round(overall_score, 1),
+                grade=grade,
+                modules=results,
+                summary=str(summary),
+                recommendations=unique_recommendations[:20],
+                completed_at=datetime.utcnow()
+            )
+        except Exception as e:
+            logger.error(f"Error updating GEO analysis in database: {e}")
         
     except Exception as e:
-        response.status = "failed"
-        response.error = str(e)
-    
-    _geo_analysis_cache[str(analysis_id)] = response
+        logger.error(f"[GEO] Analysis failed: {e}")
+        try:
+            await crud.update_geo_analysis(
+                analysis_id=analysis_id,
+                status="failed",
+                completed_at=datetime.utcnow()
+            )
+        except Exception as db_error:
+            logger.error(f"Error updating failed status in database: {db_error}")
 
 
 def _score_to_grade(score: float) -> str:
@@ -391,10 +478,126 @@ async def get_geo_analysis(
     current_user: UserProfile = Depends(get_current_user)
 ) -> GEOAnalysisResponse:
     """Get the status and results of a GEO analysis."""
-    result = _geo_analysis_cache.get(str(analysis_id))
-    if not result:
-        raise HTTPException(status_code=404, detail="Analysis not found")
-    return result
+    auth_service = get_auth_service()
+    crud = get_geo_crud(auth_service.supabase)
+    
+    try:
+        db_analysis = await crud.get_geo_analysis_by_id(str(analysis_id))
+        
+        if not db_analysis:
+            raise HTTPException(status_code=404, detail="Analysis not found")
+        
+        # Get brand info for response
+        brand_info = auth_service.supabase.table("brands")\
+            .select("name, domain")\
+            .eq("id", db_analysis["brand_id"])\
+            .limit(1)\
+            .execute()
+        
+        brand_name = brand_info.data[0]["name"] if brand_info.data else ""
+        domain = brand_info.data[0]["domain"] if brand_info.data else ""
+        
+        return GEOAnalysisResponse(
+            id=UUID(db_analysis["id"]),
+            brand_name=brand_name,
+            domain=domain,
+            status=db_analysis["status"],
+            created_at=db_analysis["created_at"],
+            completed_at=db_analysis.get("completed_at"),
+            overall_score=float(db_analysis.get("overall_score", 0)),
+            grade=db_analysis.get("grade", "N/A"),
+            modules=db_analysis.get("modules", {}),
+            summary=db_analysis.get("summary", ""),
+            recommendations=db_analysis.get("recommendations", [])
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching GEO analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/brands/{brand_id}/latest")
+async def get_latest_geo_analysis(
+    brand_id: UUID,
+    current_user: UserProfile = Depends(get_current_user)
+) -> Optional[Dict[str, Any]]:
+    """Get the latest GEO analysis for a brand."""
+    auth_service = get_auth_service()
+    crud = get_geo_crud(auth_service.supabase)
+    
+    try:
+        result = await crud.get_latest_geo_analysis(str(brand_id))
+        return result
+    except Exception as e:
+        logger.error(f"Error fetching latest GEO analysis: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/brands/{brand_id}/history")
+async def get_geo_analysis_history(
+    brand_id: UUID,
+    limit: int = 10,
+    current_user: UserProfile = Depends(get_current_user)
+) -> List[Dict[str, Any]]:
+    """Get historical GEO analyses for a brand."""
+    auth_service = get_auth_service()
+    crud = get_geo_crud(auth_service.supabase)
+    
+    try:
+        results = await crud.get_geo_history(str(brand_id), limit=limit)
+        return results
+    except Exception as e:
+        logger.error(f"Error fetching GEO history: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/brands/{brand_id}/visibility")
+async def get_brand_visibility_data(
+    brand_id: UUID,
+    ai_model: Optional[str] = None,
+    limit: int = 30,
+    current_user: UserProfile = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """Get AI visibility data for a brand."""
+    auth_service = get_auth_service()
+    crud = get_geo_crud(auth_service.supabase)
+    
+    try:
+        history = await crud.get_visibility_history(str(brand_id), ai_model, limit)
+        latest = await crud.get_latest_visibility_scores(str(brand_id))
+        
+        return {
+            "history": history,
+            "latest_scores": latest
+        }
+    except Exception as e:
+        logger.error(f"Error fetching visibility data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/brands/{brand_id}/citations")
+async def get_brand_citations(
+    brand_id: UUID,
+    ai_model: Optional[str] = None,
+    limit: int = 50,
+    current_user: UserProfile = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """Get citation data for a brand."""
+    auth_service = get_auth_service()
+    crud = get_geo_crud(auth_service.supabase)
+    
+    try:
+        citations = await crud.get_citations(str(brand_id), ai_model, limit)
+        rates = await crud.get_citation_rates(str(brand_id))
+        
+        return {
+            "citations": citations,
+            "citation_rates": rates
+        }
+    except Exception as e:
+        logger.error(f"Error fetching citations: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/quick-check")
