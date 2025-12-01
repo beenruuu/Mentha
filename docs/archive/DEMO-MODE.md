@@ -1,250 +1,84 @@
-# 🌿 Mentha AEO - Modo Demo
+# ⚠️ ARCHIVED: Mentha AEO - Modo Demo
 
-## 🎯 Funcionamiento sin APIs
-
-El proyecto está configurado para funcionar en **modo demo** sin necesidad de APIs reales. Esto te permite:
-
-- ✅ Ver toda la interfaz funcionando
-- ✅ Probar todas las características
-- ✅ Hacer análisis AEO (con datos simulados)
-- ✅ Navegar por todas las secciones
-- ✅ Ver resultados realistas
-
-## 🚀 Inicio Rápido (Sin APIs)
-
-### 1. Instalar Dependencias
-
-```bash
-npm install
-```
-
-### 2. Iniciar el Servidor
-
-```bash
-npm run dev
-```
-
-### 3. Abrir en el Navegador
-
-Visita [http://localhost:3000](http://localhost:3000)
-
-## 📱 Páginas Disponibles en Modo Demo
-
-### Análisis AEO (`/aeo-analysis`)
-- Formulario de análisis completamente funcional
-- Simula análisis con GPT-4 o Claude
-- Muestra puntuaciones y recomendaciones realistas
-- **Datos mock** - No requiere API de OpenAI/Anthropic
-
-### Keywords IA (`/keywords`)
-- Tabla con keywords trackeadas
-- Métricas de visibilidad
-- Tendencias y posiciones
-- **Datos mock** - No requiere base de datos
-
-### Competencia (`/competitors`)
-- Comparación con competidores
-- Análisis de brechas
-- Métricas comparativas
-- **Datos mock** - Todo funciona localmente
-
-### Dashboard (`/dashboard`)
-- Vista general de métricas
-- Gráficos y estadísticas
-- **Datos mock** - Funciona sin backend
-
-## 🔧 Configuración Actual
-
-El archivo `.env.local` está configurado con:
-
-```env
-NEXT_PUBLIC_DEMO_MODE=true
-```
-
-Esto hace que:
-- ❌ No se llame a APIs de OpenAI
-- ❌ No se llame a APIs de Anthropic  
-- ❌ No se conecte a Supabase
-- ❌ No se procesen pagos con Stripe
-- ✅ Se usen datos mock realistas
-- ✅ Todas las interfaces funcionen
-- ✅ Se simulen delays de API
-
-## 📊 Datos Mock Disponibles
-
-### Análisis AEO
-- Puntuaciones: 0-100
-- Fortalezas y debilidades
-- Recomendaciones detalladas
-- Keywords sugeridas
-
-### Keywords
-- 5 keywords de ejemplo
-- Métricas completas
-- Tendencias variadas
-- Menciones en diferentes modelos IA
-
-### Competidores
-- 4 competidores principales
-- Scores de visibilidad
-- Análisis comparativo
-- Fortalezas identificadas
-
-## 🎨 Características Funcionales
-
-### ✅ Sin Autenticación Requerida
-Las páginas están visibles sin necesidad de login. Para testing rápido.
-
-### ✅ UI Completa
-- Sidebar con navegación
-- Modo oscuro funcional
-- Diseño responsivo
-- Animaciones y transiciones
-
-### ✅ Interactividad
-- Formularios funcionan
-- Botones responden
-- Tablas ordenables
-- Cards clicables
-
-## 🔄 Cuando Tengas las APIs
-
-### 1. Cambiar Modo Demo
-
-Edita `.env.local`:
-
-```env
-# Cambiar de true a false
-NEXT_PUBLIC_DEMO_MODE=false
-```
-
-### 2. Agregar Credenciales Reales
-
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-key-real
-SUPABASE_SERVICE_ROLE_KEY=tu-service-key
-
-# OpenAI
-OPENAI_API_KEY=sk-tu-key-real
-
-# Anthropic
-ANTHROPIC_API_KEY=sk-ant-tu-key-real
-
-# Stripe
-STRIPE_SECRET_KEY=sk_test_tu-key-real
-```
-
-### 3. Reiniciar Servidor
-
-```bash
-# Detener con Ctrl+C
-# Iniciar de nuevo
-npm run dev
-```
-
-## 📝 Notas Importantes
-
-### Sin Persistencia
-Los datos en modo demo **NO se guardan**. Al recargar la página, todo vuelve al estado inicial.
-
-### Simulación Realista
-Los delays están configurados para simular llamadas reales a APIs:
-- Análisis AEO: 2 segundos
-- Carga de datos: instantánea
-
-### Navegación Completa
-Puedes navegar por todas las secciones:
-- `/` - Landing (si existe)
-- `/dashboard` - Panel principal
-- `/aeo-analysis` - Análisis AEO
-- `/keywords` - Keywords IA
-- `/competitors` - Análisis de competencia
-- `/search` - Búsqueda de marcas
-- `/notifications` - Notificaciones
-- `/settings` - Configuración
-
-## 🎯 Próximos Pasos
-
-1. **Fase 1 - Demo (Actual)**
-   - ✅ Ver todo el frontend
-   - ✅ Probar la UX
-   - ✅ Familiarizarse con features
-
-2. **Fase 2 - Autenticación**
-   - Configurar Supabase
-   - Habilitar login/registro
-   - Proteger rutas
-
-3. **Fase 3 - Análisis Real**
-   - Obtener APIs de OpenAI/Anthropic
-   - Conectar endpoints reales
-   - Guardar resultados en BD
-
-4. **Fase 4 - Monetización**
-   - Configurar Stripe
-   - Habilitar suscripciones
-   - Límites por plan
-
-## 💡 Consejos
-
-### Para Desarrollo
-```bash
-# Modo demo (actual)
-NEXT_PUBLIC_DEMO_MODE=true
-
-# Rápido, sin APIs, perfecto para diseño
-```
-
-### Para Testing
-```bash
-# Modo hybrid
-NEXT_PUBLIC_DEMO_MODE=false
-
-# Solo las APIs que tengas configuradas
-# Supabase: autenticación real
-# OpenAI: análisis real
-# Stripe: deshabilitado
-```
-
-### Para Producción
-```bash
-# Modo completo
-NEXT_PUBLIC_DEMO_MODE=false
-
-# Todas las APIs configuradas
-# Todo funcionando end-to-end
-```
-
-## 🐛 Troubleshooting
-
-### "Module not found"
-```bash
-npm install
-```
-
-### Cambios no se reflejan
-```bash
-# Limpiar cache de Next.js
-rm -rf .next
-npm run dev
-```
-
-### Puerto 3000 ocupado
-```bash
-# Usar otro puerto
-PORT=3001 npm run dev
-```
-
-## 📞 Soporte
-
-¿Problemas con el modo demo?
-1. Verifica que `.env.local` existe
-2. Confirma `NEXT_PUBLIC_DEMO_MODE=true`
-3. Reinicia el servidor
-4. Limpia cache (`rm -rf .next`)
+> **NOTA:** Este documento se mantiene solo como referencia histórica. El proyecto ha evolucionado para usar **servicios de datos reales**. El "Modo Demo" original ha sido **completamente descontinuado**.
+>
+> **Estado actual del proyecto:**
+> - ✅ Autenticación real con Supabase
+> - ✅ Análisis real con LLMs (OpenAI, Anthropic, Perplexity)
+> - ✅ Métricas de keywords reales (Google Trends, SerpAPI)
+> - ✅ Búsqueda web real (DuckDuckGo)
+> - ✅ Cálculo de Authority Score en backend (`AnalysisService._calculate_authority_nexus`)
+> - ✅ Persistencia completa en base de datos
+>
+> Ver `REAL_DATA_SERVICES_SUMMARY.md` para detalles de los servicios actuales.
 
 ---
 
-**¡Disfruta explorando Mentha AEO sin necesidad de APIs! 🌿**
+## Información histórica (Legacy)
+
+El proyecto originalmente estaba configurado para funcionar en **modo demo** sin necesidad de APIs reales. Esta funcionalidad ya **no está disponible** y ha sido reemplazada por una integración completa con servicios reales.
+
+### Páginas actuales (con datos reales)
+
+| Página | Ruta | Fuente de datos |
+|--------|------|-----------------|
+| Dashboard | `/dashboard` | brands, analyses, competitors |
+| Keywords | `/keywords` | Google Trends, base de datos |
+| Competidores | `/brand/[id]/competitors` | competitorsService, base de datos |
+| Authority Nexus | `/brand/[id]` | Backend `AnalysisService` |
+
+### Servicios de datos reales implementados
+
+| Servicio | Descripción | Fuente |
+|----------|-------------|--------|
+| `KeywordMetricsService` | Métricas de keywords | Google Trends, SerpAPI |
+| `AIVisibilityService` | Visibilidad en IA | ChatGPT, Claude, Perplexity |
+| `CitationTrackingService` | Rastreo de citas | DuckDuckGo, LLMs |
+| `TechnicalAEOService` | Auditoría técnica | robots.txt, schemas |
+| `WebSearchService` | Búsqueda web | DuckDuckGo |
+
+### Authority Score
+
+El cálculo del Authority Score ahora se realiza exclusivamente en el backend:
+
+```python
+# backend/app/services/analysis/analysis_service.py
+async def _calculate_authority_nexus(self, brand_name, brand_url):
+    citations = await self.citation_service.check_authority_sources(brand_name, brand_url)
+    present_count = len([c for c in citations if c.get("status") == "present"])
+    score = min(present_count * 10, 100)
+    high_impact_bonus = sum(5 for c in citations if c.get("status") == "present" and c.get("impact") == "high")
+    return {"citations": citations, "score": min(score + high_impact_bonus, 100)}
+```
+
+El frontend (`AuthorityNexus.tsx`) solo muestra el valor `score` recibido del backend. Si el backend no proporciona un score, se muestra un fallback calculado localmente basado en las citas presentes.
+
+---
+
+## Configuración actual
+
+El proyecto requiere las siguientes variables de entorno:
+
+```env
+# Supabase (requerido)
+NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
+SUPABASE_SERVICE_ROLE_KEY=tu-service-key
+
+# OpenAI (requerido para análisis)
+OPENAI_API_KEY=sk-...
+
+# Anthropic (opcional)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# AI Visibility (opcional, cuesta dinero)
+AI_VISIBILITY_ENABLED=false
+PERPLEXITY_API_KEY=
+
+# SerpAPI (opcional para métricas de keywords premium)
+SERPAPI_KEY=
+```
+
+---
+
+**Este documento es solo referencia histórica. El modo demo ya no existe.**

@@ -51,7 +51,50 @@ Para habilitar: `AI_VISIBILITY_ENABLED=true` en `.env`
 - `sentiment`: Sentimiento general (positive/neutral/negative)
 - Por modelo: score individual, snippets de contexto
 
-### 3. Servicios Existentes (ya eran reales)
+### 3. CitationTrackingService (NUEVO)
+**Archivo:** `backend/app/services/analysis/citation_tracking_service.py`
+
+**Función:** Rastrea citas de marca en plataformas de IA y búsqueda web.
+
+**Fuentes de datos:**
+- **DuckDuckGo** (gratis) - Búsqueda web y noticias
+- **LLMs** (OpenAI, Anthropic, Perplexity) - Consultas directas para verificar citas
+
+**Métricas devueltas:**
+- `citation_score`: Puntuación de autoridad basada en citas
+- `sources`: Lista de fuentes donde aparece la marca
+- `sentiment`: Sentimiento del contexto de la cita
+
+### 4. VisualAssetService (NUEVO)
+**Archivo:** `backend/app/services/analysis/visual_asset_service.py`
+
+**Función:** Analiza oportunidades visuales para SGE (Search Generative Experience).
+
+**Fuentes de datos:**
+- **Contenido de la página** - Análisis de estructura y densidad de texto
+- **Nano Banana (LLM)** - Generación de prompts para imágenes
+
+**Métricas devueltas:**
+- `visual_score`: Puntuación de optimización visual
+- `opportunities`: Lugares sugeridos para insertar imágenes/diagramas
+- `generated_prompts`: Prompts para generar los assets visuales
+
+### 5. KnowledgeGraphMonitorService (NUEVO)
+**Archivo:** `backend/app/services/analysis/knowledge_graph_service.py`
+
+**Función:** Verifica la presencia en bases de conocimiento estructuradas.
+
+**Fuentes de datos:**
+- **Wikidata/Wikipedia** - APIs públicas
+- **Google Knowledge Graph** - API de Google
+- **LLM Knowledge** - Verificación de reconocimiento de entidad
+
+**Métricas devueltas:**
+- `graph_presence_score`: Puntuación de presencia en grafos
+- `found_nodes`: Nodos de conocimiento encontrados
+- `completeness`: Integridad de la información de la entidad
+
+### 6. Servicios Existentes (ya eran reales)
 
 **WebSearchService** (`web_search_service.py`)
 - ✅ Ya obtenía datos REALES de DuckDuckGo

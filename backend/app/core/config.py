@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     AI_VISIBILITY_ENABLED: bool = True  # Enabled by default - uses available API keys for real visibility measurement
     PERPLEXITY_API_KEY: str = ""  # Optional: for Perplexity visibility checks
     
+    # Advanced Crawling
+    FIRECRAWL_API_KEY: str = ""
+    FIRECRAWL_API_URL: str = "https://api.firecrawl.dev" # Can be changed for self-hosted
+    
     # Demo mode (set in backend/.env)
     DEMO_MODE: bool = False
 

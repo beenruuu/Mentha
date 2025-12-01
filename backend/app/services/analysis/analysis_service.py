@@ -14,6 +14,8 @@ from app.services.analysis.web_search_service import WebSearchService
 from app.services.analysis.technical_aeo_service import TechnicalAEOService
 from app.services.analysis.keyword_metrics_service import KeywordMetricsService
 from app.services.analysis.ai_visibility_service import AIVisibilityService
+from app.services.analysis.content_structure_analyzer_service import ContentStructureAnalyzerService
+from app.services.analysis.knowledge_graph_service import KnowledgeGraphMonitorService
 from app.core.config import settings
 
 class AnalysisService:
@@ -21,11 +23,19 @@ class AnalysisService:
         self.analysis_db = SupabaseDatabaseService("aeo_analyses", Analysis)
         self.recommendation_db = SupabaseDatabaseService("recommendations", Recommendation)
         self.notification_db = SupabaseDatabaseService("notifications", Notification)
+        # Import Competitor locally to avoid circular imports if any
+        from app.models.competitor import Competitor
+        self.competitor_db = SupabaseDatabaseService("competitors", Competitor)
         self.ingestion_service = AnalysisResultsIngestionService()
         self.web_search_service = WebSearchService()
         self.technical_aeo_service = TechnicalAEOService()
         self.keyword_metrics_service = KeywordMetricsService()
         self.ai_visibility_service = AIVisibilityService()
+        self.ai_visibility_service = AIVisibilityService()
+        self.content_structure_service = ContentStructureAnalyzerService()
+        self.kg_service = KnowledgeGraphMonitorService()
+        from app.services.analysis.citation_tracking_service import CitationTrackingService
+        self.citation_service = CitationTrackingService()
 
     async def run_analysis(self, analysis_id: UUID):
         """
@@ -88,23 +98,31 @@ class AnalysisService:
             
             # Run data gathering in parallel
             # 1. Web Search (Competitors & Context) - Pass entity_type for smart filtering
+            user_country = data.get("user_country", "ES")
+            preferred_language = data.get("preferred_language", "es")
+            
             search_task = self.web_search_service.get_search_context(
                 brand_name=brand_name,
                 domain=brand_url,
                 industry=industry,
                 description=page_content.get('description', ''),
-                services=",".join(business_info.get('services', []))
+                services=",".join(business_info.get('services', [])),
+                country=user_country,
+                language=preferred_language
             )
             
             # 2. Technical Audit
             technical_task = self.technical_aeo_service.audit_domain(brand_url)
             
-            # 3. AI Visibility (Real API checks)
-            visibility_task = self.ai_visibility_service.measure_visibility(brand_name, industry)
+            # Fetch existing competitors to check for Share of Model
+            existing_competitors = []
+            if analysis.brand_id:
+                comps = await self.competitor_db.list(filters={"brand_id": str(analysis.brand_id)})
+                existing_competitors = [c.name for c in comps]
             
-            # Execute parallel tasks
-            search_context, technical_data, visibility_data = await asyncio.gather(
-                search_task, technical_task, visibility_task
+            # 3. AI Visibility (Real API checks)
+            search_context, technical_data, visibility_data, content_data, kg_data = await asyncio.gather(
+                search_task, technical_task, visibility_task, content_task, kg_task
             )
             
             # 4. Keyword Metrics (Dependent on search context keywords)
@@ -136,6 +154,10 @@ class AnalysisService:
                 "competitors": search_context.get('competitor_results', []), # Real competitors from search
                 "keywords": keywords_data, # Real keyword metrics
                 "technical_audit": technical_data,
+                "content_analysis": content_data,
+                "knowledge_graph": kg_data,
+                "visual_suggestions": visual_suggestions,
+                "authority_nexus": await self._calculate_authority_nexus(brand_name, brand_url),
                 
                 # Placeholders for LLM Synthesis
                 "summary": "",
@@ -167,14 +189,20 @@ class AnalysisService:
             
             # Merge synthesis into results
             if synthesis_response:
-                results.update({
-                    "summary": synthesis_response.get("summary", ""),
-                    "strengths": synthesis_response.get("strengths", []),
-                    "weaknesses": synthesis_response.get("weaknesses", []),
-                    "recommendations": synthesis_response.get("recommendations", []),
-                    "market_position": synthesis_response.get("market_position", ""),
-                    "voice_search_readiness": synthesis_response.get("voice_search_readiness", "")
-                })
+                try:
+                    import json
+                    synthesis_data = json.loads(synthesis_response.text)
+                    results.update({
+                        "summary": synthesis_data.get("summary", ""),
+                        "strengths": synthesis_data.get("strengths", []),
+                        "weaknesses": synthesis_data.get("weaknesses", []),
+                        "recommendations": synthesis_data.get("recommendations", []),
+                        "market_position": synthesis_data.get("market_position", ""),
+                        "voice_search_readiness": synthesis_data.get("voice_search_readiness", "")
+                    })
+                except json.JSONDecodeError:
+                    print(f"Failed to parse LLM JSON response: {synthesis_response.text}")
+                    results.update({"summary": "Failed to generate synthesis."})
                 
                 # Enrich competitors with AI insights if available
                 if "competitor_insights" in synthesis_response:
@@ -254,6 +282,12 @@ MEASURED DATA (DO NOT INVENT METRICS, USE THESE):
 - AI Visibility Score: {results['visibility_findings'].get('overall_score')}%
 - Competitors Found: {[c['name'] for c in results['competitors']]}
 - Top Keywords: {[k['keyword'] for k in results['keywords'][:5]]}
+- Speakability Score: {results['content_analysis'].get('speakability_analysis', {}).get('quality_score', 0)}/100
+- Speakability Score: {results['content_analysis'].get('speakability_analysis', {}).get('quality_score', 0)}/100
+- Content Structure Score: {results['content_analysis'].get('overall_structure_score', 0)}/100
+- Knowledge Graph Presence: {results['knowledge_graph'].get('presence_score', 0)}/100
+- KG Completeness: {results['knowledge_graph'].get('completeness_score', 0)}/100
+- Recognized as Entity: {results['knowledge_graph'].get('knowledge_sources', {}).get('llm_recognition', {}).get('recognized_as_entity', False)}
 
 TASK:
 Generate a qualitative analysis JSON.
@@ -277,15 +311,6 @@ OUTPUT JSON FORMAT:
 }}
 """
     
-    # Helper methods for ingestion and notifications remain unchanged
-    async def _create_recommendation(self, analysis: Analysis, rec_data: Dict[str, Any]):
-        # ... (implementation unchanged)
-        pass
-
-    async def _handle_notifications(self, analysis: Analysis, results: Dict[str, Any], success: bool):
-        # ... (implementation unchanged)
-        pass
-    
     def _is_valid_keyword(self, keyword: str, preferred_language: str = "en") -> bool:
         """Check if a keyword is valid (no foreign scripts, no generic words)."""
         import re
@@ -295,7 +320,6 @@ OUTPUT JSON FORMAT:
             return False
         
         # Skip if contains non-Latin characters (Cyrillic, Chinese, Arabic, etc.)
-        # This prevents keywords like "скачайте", "установите", etc.
         if re.search(r'[^\u0000-\u007F\u00C0-\u00FF\u0100-\u017F]', keyword):
             return False
         
@@ -656,3 +680,23 @@ OUTPUT JSON FORMAT:
         except Exception as e:
             print(f"Failed to create recommendation: {e}")
 
+    async def _calculate_authority_nexus(self, brand_name: str, brand_url: str) -> Dict[str, Any]:
+        """
+        Calculate authority nexus data including score and citations.
+        """
+        citations = await self.citation_service.check_authority_sources(brand_name, brand_url)
+        
+        # Calculate score based on citations
+        # 10 points for each 'present' citation
+        # Max score 100
+        present_count = sum(1 for c in citations if c.get('status') == 'present')
+        score = min(present_count * 10, 100)
+        
+        # Bonus for high impact sources
+        high_impact_bonus = sum(5 for c in citations if c.get('status') == 'present' and c.get('impact') == 'high')
+        score = min(score + high_impact_bonus, 100)
+        
+        return {
+            "citations": citations,
+            "score": score
+        }

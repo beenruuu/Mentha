@@ -101,6 +101,7 @@ class AIVisibilityService:
         domain: str = "",
         industry: str = "",
         keywords: List[str] = None,
+        competitors: List[str] = None,
         num_queries: int = 3,
         language: str = "en"
     ) -> Dict[str, Any]:
@@ -112,6 +113,7 @@ class AIVisibilityService:
             domain: The brand's domain (for context)
             industry: The industry for contextual queries
             keywords: Related keywords to include in queries
+            competitors: List of competitor names to check for
             num_queries: Number of test queries per model
             
         Returns:
@@ -126,6 +128,7 @@ class AIVisibilityService:
             "models": {},
             "overall_score": 0,
             "mention_count": 0,
+            "competitor_mentions": {comp: 0 for comp in (competitors or [])},
             "sentiment": "neutral",
             "enabled": True
         }
@@ -137,13 +140,13 @@ class AIVisibilityService:
         tasks = []
         
         if self.openai_key:
-            tasks.append(self._measure_openai_visibility(brand_name, domain, test_queries))
+            tasks.append(self._measure_openai_visibility(brand_name, domain, test_queries, competitors))
         
         if self.anthropic_key:
-            tasks.append(self._measure_anthropic_visibility(brand_name, domain, test_queries))
+            tasks.append(self._measure_anthropic_visibility(brand_name, domain, test_queries, competitors))
         
         if self.perplexity_key:
-            tasks.append(self._measure_perplexity_visibility(brand_name, domain, test_queries))
+            tasks.append(self._measure_perplexity_visibility(brand_name, domain, test_queries, competitors))
         
         # Always run baseline (free)
         tasks.append(self._measure_baseline_visibility(brand_name, domain, industry))
@@ -177,6 +180,12 @@ class AIVisibilityService:
             weight = self.MODEL_WEIGHTS.get(model_name, 0.1)
             score = result.get("visibility_score", 0)
             mentions = result.get("mention_count", 0)
+            
+            # Aggregate competitor mentions
+            comp_mentions = result.get("competitor_mentions", {})
+            for comp, count in comp_mentions.items():
+                if comp in results["competitor_mentions"]:
+                    results["competitor_mentions"][comp] += count
             
             total_weighted_score += score * weight
             total_weight += weight
@@ -243,7 +252,8 @@ class AIVisibilityService:
         self,
         brand_name: str,
         domain: str,
-        test_queries: List[str]
+        test_queries: List[str],
+        competitors: List[str] = None
     ) -> Dict[str, Any]:
         """Query OpenAI models and analyze brand mentions."""
         if not self.openai_key:
@@ -254,6 +264,7 @@ class AIVisibilityService:
             "model": "openai",
             "visibility_score": 0,
             "mention_count": 0,
+            "competitor_mentions": {comp: 0 for comp in (competitors or [])},
             "responses_analyzed": 0,
             "mention_positions": [],
             "sentiment": "neutral",
@@ -292,6 +303,12 @@ class AIVisibilityService:
                             mentions = self._count_brand_mentions(content, brand_name, domain)
                             mention_count += mentions
                             
+                            # Analyze for competitor mentions
+                            if competitors:
+                                for comp in competitors:
+                                    comp_mentions = self._count_brand_mentions(content, comp)
+                                    result["competitor_mentions"][comp] += comp_mentions
+                            
                             if mentions > 0:
                                 responses_with_mentions += 1
                                 # Extract context snippet
@@ -324,7 +341,8 @@ class AIVisibilityService:
         self,
         brand_name: str,
         domain: str,
-        test_queries: List[str]
+        test_queries: List[str],
+        competitors: List[str] = None
     ) -> Dict[str, Any]:
         """Query Anthropic Claude and analyze brand mentions."""
         if not self.anthropic_key:
@@ -335,6 +353,7 @@ class AIVisibilityService:
             "model": "anthropic",
             "visibility_score": 0,
             "mention_count": 0,
+            "competitor_mentions": {comp: 0 for comp in (competitors or [])},
             "responses_analyzed": 0,
             "sentiment": "neutral",
             "context_snippets": []
@@ -374,6 +393,12 @@ class AIVisibilityService:
                             mentions = self._count_brand_mentions(content, brand_name, domain)
                             mention_count += mentions
                             
+                            # Analyze for competitor mentions
+                            if competitors:
+                                for comp in competitors:
+                                    comp_mentions = self._count_brand_mentions(content, comp)
+                                    result["competitor_mentions"][comp] += comp_mentions
+                            
                             if mentions > 0:
                                 responses_with_mentions += 1
                                 snippet = self._extract_mention_context(content, brand_name)
@@ -404,7 +429,8 @@ class AIVisibilityService:
         self,
         brand_name: str,
         domain: str,
-        test_queries: List[str]
+        test_queries: List[str],
+        competitors: List[str] = None
     ) -> Dict[str, Any]:
         """Query Perplexity API for web-augmented visibility."""
         if not self.perplexity_key:
@@ -415,6 +441,7 @@ class AIVisibilityService:
             "model": "perplexity",
             "visibility_score": 0,
             "mention_count": 0,
+            "competitor_mentions": {comp: 0 for comp in (competitors or [])},
             "responses_analyzed": 0,
             "sentiment": "neutral",
             "context_snippets": [],
@@ -451,6 +478,12 @@ class AIVisibilityService:
                             
                             mentions = self._count_brand_mentions(content, brand_name, domain)
                             mention_count += mentions
+                            
+                            # Analyze for competitor mentions
+                            if competitors:
+                                for comp in competitors:
+                                    comp_mentions = self._count_brand_mentions(content, comp)
+                                    result["competitor_mentions"][comp] += comp_mentions
                             
                             if mentions > 0:
                                 responses_with_mentions += 1
@@ -492,7 +525,7 @@ class AIVisibilityService:
         """Get baseline visibility from web search (free, no API key needed)."""
         result = {
             "enabled": True,
-            "model": "baseline",
+            "model": "google_search",
             "visibility_score": 0,
             "mention_count": 0,
             "source": "web_search"

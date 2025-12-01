@@ -82,6 +82,39 @@ class OpenAIService(LLMService):
 
         return LLMResponse(text=response.choices[0].message.content, model=model, usage=usage)
 
+    async def generate_json(self, prompt: str, model: str = "gpt-3.5-turbo-0125", max_tokens: int = 500, temperature: float = 0.7, **kwargs) -> LLMResponse:
+        """Generate JSON using OpenAI."""
+        request_payload = {
+            "model": model,
+            "messages": [{"role": "user", "content": prompt}],
+            "response_format": {"type": "json_object"},
+        }
+        request_payload.update(kwargs)
+
+        override_temperature = request_payload.pop("temperature", temperature)
+        explicit_completion = request_payload.pop("max_completion_tokens", None)
+        explicit_tokens = request_payload.pop("max_tokens", None)
+
+        if explicit_completion is not None:
+            request_payload["max_completion_tokens"] = explicit_completion
+        elif self._requires_completion_tokens(model):
+            request_payload["max_completion_tokens"] = max_tokens
+        else:
+            request_payload["max_tokens"] = explicit_tokens if explicit_tokens is not None else max_tokens
+
+        if self._supports_temperature(model):
+            request_payload["temperature"] = override_temperature
+        else:
+            request_payload["temperature"] = 1
+
+        response = await self.client.chat.completions.create(**request_payload)
+
+        usage = LLMUsage(
+            prompt_tokens=response.usage.prompt_tokens, completion_tokens=response.usage.completion_tokens, total_tokens=response.usage.total_tokens
+        )
+
+        return LLMResponse(text=response.choices[0].message.content, model=model, usage=usage)
+
 
 class OpenRouterService(OpenAIService):
     """OpenRouter implementation of the LLM service (OpenAI compatible)."""
