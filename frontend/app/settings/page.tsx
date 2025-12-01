@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { SettingsPageSkeleton } from "@/components/skeletons"
 
 interface NotificationPreferences {
   rankingChanges: boolean
@@ -186,14 +187,7 @@ export default function SettingsPage() {
   }
 
   if (loading) {
-    return (
-      <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="flex items-center justify-center h-screen bg-[#fdfdfc] dark:bg-[#050505]">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </SidebarInset>
-      </SidebarProvider>
-    )
+    return <SettingsPageSkeleton />
   }
 
   return (

@@ -99,8 +99,7 @@ export default function KeywordsPage() {
     k.keyword.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  // Mock trend data generator (replace with real history later)
-  const getMockTrend = () => Array.from({ length: 7 }, () => Math.floor(Math.random() * 100))
+  // Removed mock trend data - will use real historical data from API
 
   return (
     <SidebarProvider>
@@ -244,7 +243,7 @@ export default function KeywordsPage() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${(kw.difficulty || 0) > 70 ? 'bg-red-500' :
-                                (kw.difficulty || 0) > 40 ? 'bg-yellow-500' : 'bg-emerald-500'
+                              (kw.difficulty || 0) > 40 ? 'bg-yellow-500' : 'bg-emerald-500'
                               }`} />
                             <span className="text-sm text-muted-foreground">
                               {kw.difficulty ? Math.round(kw.difficulty) : '—'}
@@ -254,7 +253,7 @@ export default function KeywordsPage() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span className={`font-bold ${(kw.ai_visibility_score || 0) > 70 ? 'text-emerald-600 dark:text-emerald-400' :
-                                (kw.ai_visibility_score || 0) > 30 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'
+                              (kw.ai_visibility_score || 0) > 30 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400'
                               }`}>
                               {kw.ai_visibility_score ? `${Math.round(kw.ai_visibility_score)}%` : '—'}
                             </span>
@@ -262,7 +261,7 @@ export default function KeywordsPage() {
                         </TableCell>
                         <TableCell>
                           <Sparkline
-                            data={getMockTrend()}
+                            data={[]}
                             width={80}
                             height={24}
                             color={(kw.ai_visibility_score || 0) > 50 ? "#10b981" : "#ef4444"}

@@ -12,7 +12,7 @@ const translations = {
     // ==========================================
     // LANDING PAGE
     // ==========================================
-
+    
     // Navbar
     navFeatures: 'Funcionalidades',
     navAIEngines: 'Motores IA',
@@ -20,7 +20,7 @@ const translations = {
     navFAQs: 'Preguntas frecuentes',
     navLogin: 'Iniciar sesión',
     navSignUp: 'Registrarse',
-
+    
     // Hero
     heroTagline: '✨ El Futuro del SEO está Aquí',
     heroTitle: 'Domina el',
@@ -33,13 +33,13 @@ const translations = {
     onboardingTitle: 'Optimiza tu marca para la',
     onboardingTitleHighlight: 'Era de Motores Generativos',
     onboardingDescription: 'Únete a miles de empresas vanguardistas que dominan su presencia en ChatGPT, Claude, Gemini y más.',
-
+    
     // Introduction
     introTag: 'El Cambio de Paradigma',
     introTitle: 'Tu SEO merece más.',
     introDescription: 'El comportamiento de búsqueda está cambiando. Los usuarios hacen preguntas, no buscan palabras clave. Tu estrategia de optimización necesita evolucionar de keywords a entidades y contexto.',
     introHighlight: 'Por eso creamos Mentha.',
-
+    
     // Features
     featuresTag: 'Funcionalidades',
     featuresTitle: 'Donde la IA se une a la',
@@ -56,7 +56,7 @@ const translations = {
     featureTagSmart: 'Recomendaciones Inteligentes',
     featureTagEntity: 'Seguimiento de Entidades',
     featureTagSentiment: 'Análisis de Sentimiento',
-
+    
     // Integrations
     integrationsTag: 'Motores IA',
     integrationsTitle: 'Optimizado para',
@@ -67,7 +67,7 @@ const translations = {
     integrationClaude: 'Asistente de IA avanzado de Anthropic con comprensión matizada.',
     integrationPerplexity: 'Motor de respuestas con IA y búsqueda web en tiempo real.',
     integrationGemini: 'Modelo de IA multimodal de Google para tareas diversas.',
-
+    
     // Pricing
     pricingTag: 'Precios',
     pricingTitle: 'Precios simples y',
@@ -102,7 +102,7 @@ const translations = {
     pricingEnterpriseFeature5: 'Analíticas Avanzadas',
     pricingEnterpriseFeature6: 'SSO y Seguridad',
     pricingEnterpriseCTA: 'Contactar Ventas',
-
+    
     // FAQs
     faqsTag: 'Preguntas frecuentes',
     faqsTitle: '¿Preguntas? Tenemos',
@@ -117,16 +117,16 @@ const translations = {
     faqAnswer4: '¡Sí! Nuestra función de inteligencia competitiva te permite rastrear cómo aparecen los rivales en respuestas generadas por IA, comparar share of voice e identificar oportunidades para mejorar tu posicionamiento.',
     faqQuestion5: '¿Hay una prueba gratuita disponible?',
     faqAnswer5: '¡Por supuesto! Comienza con nuestro plan gratuito que incluye 10 análisis por mes. Actualiza a Pro para análisis ilimitados y funciones avanzadas como seguimiento de competidores y acceso API.',
-
+    
     // Call to Action
     ctaText: 'Empieza gratis',
-
+    
     // Footer
     footerPrivacy: 'Política de Privacidad',
     footerTerms: 'Términos y Condiciones',
     footerBlog: 'Blog',
     footerRights: 'Todos los derechos reservados.',
-
+    
     // Privacy Policy Page
     privacyPolicy: 'Política de Privacidad',
     privacyLastUpdated: 'Última actualización:',
@@ -148,7 +148,7 @@ const translations = {
     privacySection6Text: 'Conservamos sus datos personales mientras su cuenta esté activa o sea necesario para proporcionarle servicios, cumplir con obligaciones legales, resolver disputas y hacer cumplir nuestros acuerdos.',
     privacySection7Title: '7. Transferencias Internacionales',
     privacySection7Text: 'Sus datos pueden ser transferidos y procesados en servidores ubicados fuera de su país de residencia. Tomamos medidas para asegurar que sus datos sean tratados de forma segura y de acuerdo con esta política.',
-
+    
     // Terms & Conditions Page
     termsAndConditions: 'Términos y Condiciones',
     termsLastUpdated: 'Última actualización:',
@@ -168,11 +168,11 @@ const translations = {
     termsSection7Text: 'Podemos actualizar estos Términos ocasionalmente. Le notificaremos sobre cambios significativos enviando un aviso a la dirección de correo electrónico asociada a su cuenta o publicando un aviso visible en nuestro sitio.',
     termsSection8Title: '8. Contacto',
     termsSection8Text: 'Si tiene preguntas sobre estos Términos, contáctenos en legal@mentha.ai.',
-
+    
     // ==========================================
     // APP PAGES (existing translations)
     // ==========================================
-
+    
     // Navigation
     dashboard: 'Dashboard',
     brands: 'Marcas',
@@ -182,7 +182,7 @@ const translations = {
     notifications: 'Notificaciones',
     notificationsDescription: 'Te avisaremos cuando haya actualizaciones importantes de tus marcas.',
     settings: 'Configuración',
-
+    
     // Settings
     profile: 'Perfil',
     security: 'Seguridad',
@@ -195,17 +195,20 @@ const translations = {
     language: 'Idioma',
     spanish: 'Español',
     english: 'Inglés',
-
+    
     // User menu
     myAccount: 'Mi Cuenta',
     logout: 'Cerrar sesión',
-
+    
     // Common
     save: 'Guardar',
     cancel: 'Cancelar',
+    loading: 'Cargando...',
+    noData: 'Sin datos',
+    noBrandsYet: 'No hay marcas aún',
     searchPlaceholder: 'Buscar...',
     searchBrands: 'Buscar marcas, consultas, modelos...',
-
+    
     // Search page
     searchTitle: 'Buscar',
     searchDescription: 'Encuentra marcas, consultas e insights en tu panel.',
@@ -220,7 +223,7 @@ const translations = {
     hoursAgo: 'Hace {n} horas',
     yesterday: 'Ayer',
     daysAgo: 'Hace {n} días',
-
+    
     // Dashboard
     rankingMovements: 'Movimientos de ranking esta semana.',
     brandOverview: 'Resumen de Marca',
@@ -237,9 +240,14 @@ const translations = {
     bestModel: 'Mejor modelo',
     brand: 'Marca',
     position: 'Posición',
-
+    
     // Brand pages
     overview: 'Vista general',
+    overviewTooltip: 'Panel general con métricas clave, insights y estado de tu marca',
+    keywordsTooltip: 'Analiza cómo aparece tu marca en respuestas de IA para diferentes keywords',
+    searchPerformanceTooltip: 'Métricas de rendimiento en buscadores tradicionales (Google, Bing)',
+    competitionTooltip: 'Compara tu visibilidad en IA frente a tus competidores',
+    crawlersTooltip: 'Monitorea qué bots de IA están rastreando tu sitio web',
     brandQueries: 'Consultas',
     aiCrawlers: 'Crawlers IA',
     analysisPending: 'Analizando...',
@@ -247,7 +255,7 @@ const translations = {
     areYouSure: '¿Estás absolutamente seguro?',
     deleteWarning: 'Esta acción no se puede deshacer. Esto eliminará permanentemente la marca {name} y todos los datos asociados, incluyendo keywords, competidores e historial de análisis.',
     deleting: 'Eliminando...',
-
+    
     // Brand info
     airbnbDescription: 'Plataforma global de alquiler vacacional que conecta viajeros con alojamientos únicos y experiencias locales.',
     airbnbLocation: 'San Francisco, EE.UU.',
@@ -257,7 +265,7 @@ const translations = {
     vercelLocation: 'San Francisco, EE.UU.',
     revolutDescription: 'Aplicación de banca digital que ofrece cambio de divisas, transferencias de dinero y herramientas de gestión financiera.',
     revolutLocation: 'Londres, Reino Unido',
-
+    
     // Time
     hoursAgo2: 'Hace 2 horas',
     hoursAgo5: 'Hace 5 horas',
@@ -265,31 +273,31 @@ const translations = {
     hoursAgo189: '189 búsquedas',
     hoursAgo156: '156 búsquedas',
     hoursAgo142: '142 búsquedas',
-
+    
     // Popular searches text
     bestBrandsAI: 'Mejores marcas en IA',
     modelRanking: 'Ranking de modelos',
     competitorComparison: 'Comparación de competidores',
     mentionTrends: 'Tendencias de menciones',
-
+    
     // Recent searches text
     airbnbPerformance: 'Airbnb rendimiento',
     stravaComparison: 'Comparación Strava vs competidores',
     vercelRanking: 'Vercel ranking en GPT-5',
     revolutMentions: 'Revolut menciones fintech',
-
+    
     // Sidebar
     createBrand: 'Crear marca',
     panel: 'Panel',
     aeoAnalysis: 'Análisis AEO',
     keywordsAI: 'Keywords IA',
     competition: 'Competencia',
-
+    
     // Common words
     in: 'en',
     of: 'de',
     for: 'para',
-
+    
     // Competitors page
     competitorsTitle: 'Competidores',
     addCompetitor: 'Agregar Competidor',
@@ -301,7 +309,7 @@ const translations = {
     trend: 'Tendencia',
     actions: 'Acciones',
     noCompetitors: 'No hay competidores agregados',
-
+    
     // Keywords page
     keywordsTitle: 'Palabras Clave',
     addKeyword: 'Agregar Keyword',
@@ -310,7 +318,7 @@ const translations = {
     difficulty: 'Dificultad',
     volume: 'Volumen',
     noKeywords: 'No hay keywords agregadas',
-
+    
     // Notifications
     notificationsTitle: 'Notificaciones',
     markAllRead: 'Marcar todas como leídas',
@@ -321,7 +329,7 @@ const translations = {
     rankingImprovement: 'Mejora en el ranking de',
     newMentionDetected: 'Nueva mención detectada para',
     noNotifications: 'No hay notificaciones',
-
+    
     // Settings page
     configuration: 'Configuración',
     quickSettings: 'Ajustes rápidos',
@@ -365,7 +373,7 @@ const translations = {
     upgradeToPro: 'Actualizar a Pro',
     billingHistory: 'Historial de facturación',
     noInvoicesAvailable: 'No hay facturas disponibles',
-
+    
     // Upgrade page
     upgradePlan: 'Actualizar Plan',
     upgradeToProUnlock: 'Actualiza a Pro y desbloquea insights',
@@ -397,7 +405,7 @@ const translations = {
     select: 'Seleccionar',
     contactUs: 'Contactar',
     perMonth: '/mes',
-
+    
     // Brand pages
     brandSummary: 'Resumen de Marca',
     scorePending: 'Puntuación pendiente',
@@ -406,7 +414,7 @@ const translations = {
     analysisInProgress: 'El análisis está en progreso. Te avisaremos cuando existan sugerencias.',
     noRecommendationsFound: 'No se encontraron recomendaciones específicas.',
     startAnalysisForRecs: 'Inicia un análisis para obtener recomendaciones.',
-
+    
     // Crawlers page
     robotsTxtStatus: 'Estado de Robots.txt',
     analyzingCrawlPermissions: 'Analizando permisos de rastreo...',
@@ -416,10 +424,10 @@ const translations = {
     verifyingRobotsPermissions: 'Verificando permisos de robots.txt...',
     noPermissionsDataFound: 'No se encontraron datos de permisos.',
     analysisInProgressNotify: 'El análisis está en progreso. Te avisaremos cuando existan sugerencias.',
-
+    
     // Dashboard page
     averagePositionShort: 'POSICIÓN PROM.',
-
+    
     // Notifications page detailed
     airbnbRankingImprovement: 'Airbnb subió 3 posiciones en GPT-5 para consultas de "recomendaciones de viaje".',
     vercelNewMention: 'Vercel fue mencionado en Claude-4-sonnet para "herramientas de desarrollo web".',
@@ -432,7 +440,7 @@ const translations = {
     daysAgo3: 'Hace 3d',
     weeklyReportReady: 'Tu informe semanal de rendimiento está listo para revisar.',
     viewReport: 'Ver informe',
-
+    
     // Competitors page (Detailed)
     competitorsTracked: 'Competidores Trackeados',
     inYourIndustry: 'En tu industria',
@@ -467,7 +475,7 @@ const translations = {
     pleaseCompleteAllFields: 'Por favor completa todos los campos',
     competitorAdded: 'Competidor agregado',
     competitorAddedToList: '{name} se agregó a tu lista de competidores',
-
+    
     // Keywords page (Detailed)
     trackedKeywords: 'Keywords Trackeadas',
     sinceLastMonth: 'desde el mes pasado',
@@ -489,14 +497,14 @@ const translations = {
     pleaseEnterKeyword: 'Por favor ingresa una keyword',
     keywordAdded: 'Keyword agregada',
     keywordAddedToTracking: '"{keyword}" se agregó a tu lista de trackeo',
-
+    
     // Sidebar
     closeMenu: 'Cerrar menú',
     almostReachedLimit: 'Casi alcanzas tu límite',
     tokensUsed: 'tokens usados',
     upgradeToProArrow: 'Actualizar a Pro →',
     logoutButton: 'Cerrar sesión',
-
+    
     // Brand pages
     brandNotFound: 'Marca no encontrada',
     backToBrand: 'Volver a la marca',
@@ -515,7 +523,7 @@ const translations = {
     active: 'Activo',
     inactive: 'Inactivo',
     pending: 'Pendiente',
-
+    
     // Crawlers page
     aiCrawlersMonitor: 'Monitor de Crawlers de IA',
     trackBotsVisiting: 'Rastrea qué bots de IA están visitando tu sitio web y qué contenido están indexando',
@@ -535,7 +543,7 @@ const translations = {
     every3Days: 'Cada 3 días',
     daysAgo2: 'Hace 2 días',
     oct13Date: '13 Oct 2025, 22:10',
-
+    
     // Queries page
     queriesManagement: 'Gestión de Consultas',
     trackPerformanceAcrossAI: 'Rastrea el rendimiento de tus consultas a través de modelos de IA',
@@ -556,7 +564,7 @@ const translations = {
     mentionsShort: 'Menciones',
     avgPos: 'Pos. Prom.',
     paused: 'Pausado',
-
+    
     // Overview page
     actionableInsights: 'Acciones Recomendadas',
     pendingActions: '{n} pendientes',
@@ -577,14 +585,14 @@ const translations = {
     topQueries: 'Top Consultas',
     potentialCompetitors: 'Competidores Potenciales',
     addCompetitors: 'Agregar Competidores',
-
+    
     // Additional crawlers translations
     activityTimeline: 'Timeline de Actividad (Últimas 24h)',
     indexedPages: 'Indexó {n} páginas nuevas',
     visitedHomepage: 'Visited homepage',
     scannedDocumentation: 'Escaneó documentación',
     deepCrawling: 'Crawling profundo',
-
+    
     // Additional queries translations
     queryBuilder: 'Query Builder',
     createStrategicQueries: 'Crea y gestiona queries estratégicas para monitorear tu visibilidad en IA',
@@ -606,7 +614,7 @@ const translations = {
     nextExecution: 'Próxima ejecución',
     filter: 'Filtrar',
     pages: 'páginas',
-
+    
     // ==========================================
     // AUTH PAGES
     // ==========================================
@@ -626,17 +634,17 @@ const translations = {
     authSignUp: 'Regístrate',
     authHaveAccount: '¿Ya tienes cuenta?',
     authSignIn: 'Inicia sesión',
-
+    
     authSignUpTitle: 'Crear Cuenta',
     authSignUpDescription: 'Únete a Mentha AEO y optimiza tu presencia en IA',
     authFullName: 'Nombre Completo',
     authFullNamePlaceholder: 'Tu nombre completo',
     authCreatingAccount: 'Creando cuenta...',
     authCreateAccount: 'Crear Cuenta',
-
+    
     authSignUpSuccess: '¡Registro Exitoso!',
     authSignUpSuccessMessage: 'Revisa tu email para confirmar tu cuenta. Serás redirigido al login en unos segundos...',
-
+    
     authForgotTitle: '¿Olvidaste tu contraseña?',
     authForgotDescription: 'Introduce tu email y te enviaremos un enlace para restablecerla.',
     authSendingLink: 'Enviando...',
@@ -644,7 +652,7 @@ const translations = {
     authBackToLogin: 'Volver al login',
     authEmailSentTitle: '¡Enlace enviado!',
     authEmailSentDescription: 'Revisa tu correo electrónico. Si no llega, revisa la bandeja de spam.',
-
+    
     authResetTitle: 'Restablecer Contraseña',
     authResetDescription: 'Introduce tu nueva contraseña.',
     authNewPassword: 'Nueva contraseña',
@@ -658,7 +666,7 @@ const translations = {
     authRequestLink: 'Solicitar enlace',
     authPasswordsNoMatch: 'Las contraseñas no coinciden',
     authPasswordTooWeak: 'La contraseña no cumple los requisitos mínimos',
-
+    
     // ==========================================
     // BLOG
     // ==========================================
@@ -669,7 +677,7 @@ const translations = {
     blogReadyToOptimize: '¿Listo para optimizar tu futuro?',
     blogStartOptimizing: 'Empieza a optimizar tu marca para la búsqueda IA hoy con la plataforma de visibilidad IA de Mentha.',
     blogGetStartedFree: 'Comenzar Gratis',
-
+    
     // ==========================================
     // DASHBOARD
     // ==========================================
@@ -696,9 +704,7 @@ const translations = {
     dashboardRecentActivityDescription: 'Últimos rastreos de crawlers de IA',
     dashboardNoCrawlerActivity: 'Sin actividad reciente de crawlers.',
     dashboardNotifications: 'Notificaciones',
-    dashboardCrawlerPermissions: 'Permisos de Crawlers',
-    dashboardCrawlerPermissionsDesc: 'Verifica qué bots de IA tienen permiso para rastrear tu sitio basado en robots.txt',
-
+    
     // ==========================================
     // AEO ANALYSIS
     // ==========================================
@@ -739,7 +745,7 @@ const translations = {
     // ==========================================
     // LANDING PAGE
     // ==========================================
-
+    
     // Navbar
     navFeatures: 'Features',
     navAIEngines: 'AI Engines',
@@ -747,7 +753,7 @@ const translations = {
     navFAQs: 'FAQs',
     navLogin: 'Login',
     navSignUp: 'Sign Up',
-
+    
     // Hero
     heroTagline: '✨ The Future of SEO is Here',
     heroTitle: 'Dominate the',
@@ -760,13 +766,13 @@ const translations = {
     onboardingTitle: 'Optimize your brand for the',
     onboardingTitleHighlight: 'Generative Engine Era',
     onboardingDescription: 'Join thousands of forward-thinking companies mastering their presence on ChatGPT, Claude, Gemini, and more.',
-
+    
     // Introduction
     introTag: 'The Paradigm Shift',
     introTitle: 'Your SEO deserves better.',
     introDescription: 'Search behavior is changing. Users are asking questions, not searching keywords. Your optimization strategy needs to evolve from keywords to entities and context.',
     introHighlight: "That's why we built Mentha.",
-
+    
     // Features
     featuresTag: 'Features',
     featuresTitle: 'Where AI meets',
@@ -783,7 +789,7 @@ const translations = {
     featureTagSmart: 'Smart Recommendations',
     featureTagEntity: 'Entity Tracking',
     featureTagSentiment: 'Sentiment Analysis',
-
+    
     // Integrations
     integrationsTag: 'AI Engines',
     integrationsTitle: 'Optimized for',
@@ -794,7 +800,7 @@ const translations = {
     integrationClaude: "Anthropic's advanced AI assistant with nuanced understanding.",
     integrationPerplexity: 'AI-powered answer engine with real-time web search.',
     integrationGemini: "Google's multimodal AI model for diverse tasks.",
-
+    
     // Pricing
     pricingTag: 'Pricing',
     pricingTitle: 'Simple,',
@@ -829,7 +835,7 @@ const translations = {
     pricingEnterpriseFeature5: 'Advanced Analytics',
     pricingEnterpriseFeature6: 'SSO & Security',
     pricingEnterpriseCTA: 'Contact Sales',
-
+    
     // FAQs
     faqsTag: 'FAQs',
     faqsTitle: "Questions? We've got",
@@ -844,16 +850,16 @@ const translations = {
     faqAnswer4: 'Yes! Our competitor intelligence feature lets you track how rivals appear in AI-generated answers, compare share of voice, and identify opportunities to improve your positioning.',
     faqQuestion5: 'Is there a free trial available?',
     faqAnswer5: 'Absolutely! Start with our free tier that includes 10 analyses per month. Upgrade to Pro for unlimited analyses and advanced features like competitor tracking and API access.',
-
+    
     // Call to Action
     ctaText: 'Start for free',
-
+    
     // Footer
     footerPrivacy: 'Privacy Policy',
     footerTerms: 'Terms & Conditions',
     footerBlog: 'Blog',
     footerRights: 'All rights reserved.',
-
+    
     // Privacy Policy Page
     privacyPolicy: 'Privacy Policy',
     privacyLastUpdated: 'Last updated:',
@@ -875,7 +881,7 @@ const translations = {
     privacySection6Text: 'We retain your personal data as long as your account is active or as needed to provide you services, comply with legal obligations, resolve disputes, and enforce our agreements.',
     privacySection7Title: '7. International Transfers',
     privacySection7Text: 'Your data may be transferred and processed on servers located outside your country of residence. We take steps to ensure your data is treated securely and in accordance with this policy.',
-
+    
     // Terms & Conditions Page
     termsAndConditions: 'Terms & Conditions',
     termsLastUpdated: 'Last updated:',
@@ -895,11 +901,11 @@ const translations = {
     termsSection7Text: 'We may update these Terms occasionally. We will notify you of significant changes by sending a notice to the email address associated with your account or by posting a visible notice on our site.',
     termsSection8Title: '8. Contact',
     termsSection8Text: 'If you have questions about these Terms, contact us at legal@mentha.ai.',
-
+    
     // ==========================================
     // APP PAGES
     // ==========================================
-
+    
     // Navigation
     dashboard: 'Dashboard',
     brands: 'Brands',
@@ -909,7 +915,7 @@ const translations = {
     notifications: 'Notifications',
     notificationsDescription: 'We will notify you when there are important updates for your brands.',
     settings: 'Settings',
-
+    
     // Settings
     profile: 'Profile',
     security: 'Security',
@@ -922,17 +928,20 @@ const translations = {
     language: 'Language',
     spanish: 'Spanish',
     english: 'English',
-
+    
     // User menu
     myAccount: 'My Account',
     logout: 'Log out',
-
+    
     // Common
     save: 'Save',
     cancel: 'Cancel',
+    loading: 'Loading...',
+    noData: 'No data',
+    noBrandsYet: 'No brands yet',
     searchPlaceholder: 'Search...',
     searchBrands: 'Search brands, queries, models...',
-
+    
     // Search page
     searchTitle: 'Search',
     searchDescription: 'Find brands, queries and insights in your panel.',
@@ -947,7 +956,7 @@ const translations = {
     hoursAgo: '{n} hours ago',
     yesterday: 'Yesterday',
     daysAgo: '{n} days ago',
-
+    
     // Dashboard
     rankingMovements: 'Ranking movements this week.',
     brandOverview: 'Brand Overview',
@@ -964,9 +973,14 @@ const translations = {
     bestModel: 'Best model',
     brand: 'Brand',
     position: 'Position',
-
+    
     // Brand pages
     overview: 'Overview',
+    overviewTooltip: 'General dashboard with key metrics, insights and your brand status',
+    keywordsTooltip: 'Analyze how your brand appears in AI responses for different keywords',
+    searchPerformanceTooltip: 'Performance metrics in traditional search engines (Google, Bing)',
+    competitionTooltip: 'Compare your AI visibility against your competitors',
+    crawlersTooltip: 'Monitor which AI bots are crawling your website',
     brandQueries: 'Queries',
     aiCrawlers: 'AI Crawlers',
     analysisPending: 'Analysis pending...',
@@ -974,7 +988,7 @@ const translations = {
     areYouSure: 'Are you absolutely sure?',
     deleteWarning: 'This action cannot be undone. This will permanently delete the brand {name} and all associated data including keywords, competitors, and analysis history.',
     deleting: 'Deleting...',
-
+    
     // Brand info
     airbnbDescription: 'Global vacation rental platform connecting travelers with unique accommodations and local experiences.',
     airbnbLocation: 'San Francisco, USA',
@@ -984,7 +998,7 @@ const translations = {
     vercelLocation: 'San Francisco, USA',
     revolutDescription: 'Digital banking app offering currency exchange, money transfers and financial management tools.',
     revolutLocation: 'London, United Kingdom',
-
+    
     // Time
     hoursAgo2: '2 hours ago',
     hoursAgo5: '5 hours ago',
@@ -992,31 +1006,31 @@ const translations = {
     hoursAgo189: '189 searches',
     hoursAgo156: '156 searches',
     hoursAgo142: '142 searches',
-
+    
     // Popular searches text
     bestBrandsAI: 'Best brands in AI',
     modelRanking: 'Model ranking',
     competitorComparison: 'Competitor comparison',
     mentionTrends: 'Mention trends',
-
+    
     // Recent searches text
     airbnbPerformance: 'Airbnb performance',
     stravaComparison: 'Strava vs competitors comparison',
     vercelRanking: 'Vercel ranking in GPT-5',
     revolutMentions: 'Revolut fintech mentions',
-
+    
     // Sidebar
     createBrand: 'Create brand',
     panel: 'Dashboard',
     aeoAnalysis: 'AEO Analysis',
     keywordsAI: 'AI Keywords',
     competition: 'Competition',
-
+    
     // Common words
     in: 'in',
     of: 'of',
     for: 'for',
-
+    
     // Competitors page
     competitorsTitle: 'Competitors',
     addCompetitor: 'Add Competitor',
@@ -1028,7 +1042,7 @@ const translations = {
     trend: 'Trend',
     actions: 'Actions',
     noCompetitors: 'No competitors added',
-
+    
     // Keywords page
     keywordsTitle: 'Keywords',
     addKeyword: 'Add Keyword',
@@ -1037,7 +1051,7 @@ const translations = {
     difficulty: 'Difficulty',
     volume: 'Volume',
     noKeywords: 'No keywords added',
-
+    
     // Notifications
     notificationsTitle: 'Notifications',
     markAllRead: 'Mark all as read',
@@ -1048,7 +1062,7 @@ const translations = {
     rankingImprovement: 'Ranking improvement for',
     newMentionDetected: 'New mention detected for',
     noNotifications: 'No notifications',
-
+    
     // Settings page
     configuration: 'Settings',
     quickSettings: 'Quick settings',
@@ -1092,7 +1106,7 @@ const translations = {
     upgradeToPro: 'Upgrade to Pro',
     billingHistory: 'Billing history',
     noInvoicesAvailable: 'No invoices available',
-
+    
     // Upgrade page
     upgradePlan: 'Upgrade Plan',
     upgradeToProUnlock: 'Upgrade to Pro and unlock insights',
@@ -1124,7 +1138,7 @@ const translations = {
     select: 'Select',
     contactUs: 'Contact',
     perMonth: '/month',
-
+    
     // Brand pages
     brandSummary: 'Brand Summary',
     scorePending: 'Score pending',
@@ -1133,7 +1147,7 @@ const translations = {
     analysisInProgress: 'Analysis is in progress. We will notify you when suggestions are available.',
     noRecommendationsFound: 'No specific recommendations found.',
     startAnalysisForRecs: 'Start an analysis to get recommendations.',
-
+    
     // Crawlers page
     robotsTxtStatus: 'Robots.txt Status',
     analyzingCrawlPermissions: 'Analyzing crawl permissions...',
@@ -1143,10 +1157,10 @@ const translations = {
     verifyingRobotsPermissions: 'Verifying robots.txt permissions...',
     noPermissionsDataFound: 'No permissions data found.',
     analysisInProgressNotify: 'Analysis is in progress. We will notify you when suggestions are available.',
-
+    
     // Dashboard page
     averagePositionShort: 'AVG POSITION',
-
+    
     // Notifications page detailed
     airbnbRankingImprovement: 'Airbnb moved up 3 positions in GPT-5 for "travel recommendations" queries.',
     vercelNewMention: 'Vercel was mentioned in Claude-4-sonnet for "web development tools".',
@@ -1159,7 +1173,7 @@ const translations = {
     daysAgo3: '3d ago',
     weeklyReportReady: 'Your weekly performance report is ready to review.',
     viewReport: 'View report',
-
+    
     // Competitors page (Detailed)
     competitorsTracked: 'Tracked Competitors',
     inYourIndustry: 'In your industry',
@@ -1194,7 +1208,7 @@ const translations = {
     pleaseCompleteAllFields: 'Please complete all fields',
     competitorAdded: 'Competitor added',
     competitorAddedToList: '{name} was added to your competitors list',
-
+    
     // Keywords page (Detailed)
     trackedKeywords: 'Tracked Keywords',
     sinceLastMonth: 'since last month',
@@ -1216,14 +1230,14 @@ const translations = {
     pleaseEnterKeyword: 'Please enter a keyword',
     keywordAdded: 'Keyword added',
     keywordAddedToTracking: '"{keyword}" was added to your tracking list',
-
+    
     // Sidebar
     closeMenu: 'Close menu',
     almostReachedLimit: 'Almost reached your limit',
     tokensUsed: 'tokens used',
     upgradeToProArrow: 'Upgrade to Pro →',
     logoutButton: 'Log out',
-
+    
     // Brand pages
     brandNotFound: 'Brand not found',
     backToBrand: 'Back to brand',
@@ -1242,7 +1256,7 @@ const translations = {
     active: 'Active',
     inactive: 'Inactive',
     pending: 'Pending',
-
+    
     // Crawlers page
     aiCrawlersMonitor: 'AI Crawlers Monitor',
     trackBotsVisiting: 'Track which AI bots are visiting your website and what content they are indexing',
@@ -1262,7 +1276,7 @@ const translations = {
     every3Days: 'Every 3 days',
     daysAgo2: '2 days ago',
     oct13Date: 'Oct 13, 2025, 10:10 PM',
-
+    
     // Queries page
     queriesManagement: 'Query Management',
     trackPerformanceAcrossAI: 'Track your queries performance across AI models',
@@ -1283,7 +1297,7 @@ const translations = {
     mentionsShort: 'Mentions',
     avgPos: 'Avg Pos',
     paused: 'Paused',
-
+    
     // Overview page
     actionableInsights: 'Actionable Insights',
     pendingActions: '{n} pending',
@@ -1304,14 +1318,14 @@ const translations = {
     topQueries: 'Top Queries',
     potentialCompetitors: 'Potential Competitors',
     addCompetitors: 'Add Competitors',
-
+    
     // Additional crawlers translations
     activityTimeline: 'Activity Timeline (Last 24h)',
     indexedPages: 'Indexed {n} new pages',
     visitedHomepage: 'Visited homepage',
     scannedDocumentation: 'Scanned documentation',
     deepCrawling: 'Deep crawling',
-
+    
     // Additional queries translations
     queryBuilder: 'Query Builder',
     createStrategicQueries: 'Create and manage strategic queries to monitor your AI visibility',
@@ -1333,7 +1347,7 @@ const translations = {
     nextExecution: 'Next execution',
     filter: 'Filter',
     pages: 'pages',
-
+    
     // ==========================================
     // AUTH PAGES
     // ==========================================
@@ -1353,17 +1367,17 @@ const translations = {
     authSignUp: 'Sign up',
     authHaveAccount: 'Already have an account?',
     authSignIn: 'Sign in',
-
+    
     authSignUpTitle: 'Create Account',
     authSignUpDescription: 'Join Mentha AEO and optimize your AI presence',
     authFullName: 'Full Name',
     authFullNamePlaceholder: 'Your full name',
     authCreatingAccount: 'Creating account...',
     authCreateAccount: 'Create Account',
-
+    
     authSignUpSuccess: 'Registration Successful!',
     authSignUpSuccessMessage: 'Check your email to confirm your account. You will be redirected to login in a few seconds...',
-
+    
     authForgotTitle: 'Forgot your password?',
     authForgotDescription: 'Enter your email and we will send you a link to reset it.',
     authSendingLink: 'Sending...',
@@ -1371,7 +1385,7 @@ const translations = {
     authBackToLogin: 'Back to login',
     authEmailSentTitle: 'Link sent!',
     authEmailSentDescription: 'Check your email. If it doesn\'t arrive, check your spam folder.',
-
+    
     authResetTitle: 'Reset Password',
     authResetDescription: 'Enter your new password.',
     authNewPassword: 'New password',
@@ -1385,7 +1399,7 @@ const translations = {
     authRequestLink: 'Request link',
     authPasswordsNoMatch: 'Passwords do not match',
     authPasswordTooWeak: 'Password does not meet minimum requirements',
-
+    
     // ==========================================
     // BLOG
     // ==========================================
@@ -1396,7 +1410,7 @@ const translations = {
     blogReadyToOptimize: 'Ready to optimize for the future?',
     blogStartOptimizing: 'Start optimizing your brand for AI search today with Mentha\'s AI visibility platform.',
     blogGetStartedFree: 'Get Started for Free',
-
+    
     // ==========================================
     // DASHBOARD
     // ==========================================
@@ -1423,9 +1437,7 @@ const translations = {
     dashboardRecentActivityDescription: 'Latest AI crawler visits',
     dashboardNoCrawlerActivity: 'No recent crawler activity.',
     dashboardNotifications: 'Notifications',
-    dashboardCrawlerPermissions: 'Crawler Permissions',
-    dashboardCrawlerPermissionsDesc: 'Verifies which AI bots have permission to crawl your site based on robots.txt',
-
+    
     // ==========================================
     // AEO ANALYSIS
     // ==========================================
@@ -1540,27 +1552,27 @@ export function setGeoLanguage(lang: Language) {
  */
 export async function detectAndSetGeoLanguage(): Promise<Language> {
   if (typeof window === 'undefined') return 'es'
-
+  
   // If user has manually set a language, respect that choice
   if (isLanguageManuallySet()) {
     return getLanguage()
   }
-
+  
   try {
     // Use a geolocation API to detect country
     const response = await fetch('https://ipapi.co/json/', {
       signal: AbortSignal.timeout(5000) // 5 second timeout
     })
-
+    
     if (!response.ok) throw new Error('Failed to fetch geolocation')
-
+    
     const data = await response.json()
     const countryCode = data.country_code
-
+    
     // Spain -> Spanish, rest of the world -> English
     const detectedLang: Language = countryCode === 'ES' ? 'es' : 'en'
     setGeoLanguage(detectedLang)
-
+    
     return detectedLang
   } catch (error) {
     // If geolocation fails, default to Spanish
@@ -1581,14 +1593,14 @@ export function useTranslations() {
       const storedLang = getLanguage()
       setLangState(storedLang)
       setT(getTranslations(storedLang))
-
+      
       // If no manual preference, try to detect via geolocation
       if (!isLanguageManuallySet()) {
         const detectedLang = await detectAndSetGeoLanguage()
         setLangState(detectedLang)
         setT(getTranslations(detectedLang))
       }
-
+      
       setIsInitialized(true)
     }
 
@@ -1600,7 +1612,7 @@ export function useTranslations() {
       setLangState(newLang)
       setT(getTranslations(newLang))
     }
-
+    
     window.addEventListener('languagechange', handleLanguageChange as EventListener)
 
     return () => {

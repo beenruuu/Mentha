@@ -25,6 +25,7 @@ import { useTranslations } from '@/lib/i18n'
 import { keywordsService, Keyword } from '@/lib/services/keywords'
 import { brandsService, Brand } from '@/lib/services/brands'
 import Link from 'next/link'
+import { BrandKeywordsPageSkeleton } from '@/components/skeletons'
 import { Sparkline } from '@/components/ui/sparkline'
 import {
     DropdownMenu,
@@ -74,32 +75,6 @@ export default function BrandKeywordsPage({ isEmbedded = false }: { isEmbedded?:
                 brandsService.getById(brandId!),
                 keywordsService.getAll(brandId!)
             ])
-
-            setBrand(brandData)
-
-            const mappedData: KeywordDisplay[] = keywordsData.map(k => {
-                const hasRealVisibilityData = (k.ai_visibility_score || 0) > 0
-                // Mock SERP features for now
-                const mockFeatures = []
-                if (Math.random() > 0.5) mockFeatures.push('image')
-                if (Math.random() > 0.7) mockFeatures.push('video')
-                if (Math.random() > 0.8) mockFeatures.push('local')
-                if (Math.random() > 0.9) mockFeatures.push('shopping')
-                if (Math.random() > 0.6) mockFeatures.push('news')
-                if (Math.random() > 0.4) mockFeatures.push('ai_overview')
-
-                return {
-                    ...k,
-                    estimatedPosition: undefined,
-                    derivedTrend: 'neutral' as const,
-                    hasMentions: hasRealVisibilityData,
-                    trendData: Array.from({ length: 7 }, () => Math.floor(Math.random() * 100)), // Mock trend data for now
-                    serpFeatures: mockFeatures
-                }
-            })
-            setKeywords(mappedData)
-
-            const total = keywordsData.length
             const keywordsWithVisibility = keywordsData.filter(k => (k.ai_visibility_score || 0) > 0)
             const avgVisibility = keywordsWithVisibility.length > 0
                 ? Math.round(keywordsWithVisibility.reduce((acc, k) => acc + (k.ai_visibility_score || 0), 0) / keywordsWithVisibility.length)
@@ -110,6 +85,7 @@ export default function BrandKeywordsPage({ isEmbedded = false }: { isEmbedded?:
                 return score > 0 && score < 50
             }).length
 
+            const total = keywordsData.length
             setStats({ total, avgVisibility, top3, improvements })
         } catch (error) {
             console.error('Failed to load data:', error)
@@ -170,6 +146,10 @@ export default function BrandKeywordsPage({ isEmbedded = false }: { isEmbedded?:
     }
 
     if (!brandId) return null
+
+    if (loading && !brand) {
+        return <BrandKeywordsPageSkeleton />
+    }
 
     const Content = () => (
         <div className={`bg-[#FAFAFA] dark:bg-[#09090b] h-full flex flex-col ${isEmbedded ? '' : 'h-screen overflow-hidden'}`}>

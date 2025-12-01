@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, Bell, Settings, ChevronRight, X, Bot, Search as SearchIcon, TrendingUp, Users, LogOut, Plus, Trash2 } from "lucide-react"
+import { Search, Bell, Settings, ChevronRight, X, Bot, Search as SearchIcon, TrendingUp, Users, LogOut, Plus, Trash2, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState, useEffect } from "react"
@@ -8,6 +8,11 @@ import { useRouter, usePathname } from "next/navigation"
 import { useSidebar } from "@/components/ui/sidebar"
 import { useTranslations } from "@/lib/i18n"
 import { brandsService, Brand } from "@/lib/services/brands"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +26,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 function BrandItem({ id, name, domain, onDeleted }: { id: string; name: string; domain: string; onDeleted?: () => void }) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
   const { t } = useTranslations()
   const router = useRouter()
@@ -97,20 +102,80 @@ function BrandItem({ id, name, domain, onDeleted }: { id: string; name: string; 
       {expanded && (
         <div className="ml-4 pl-3 border-l border-border/50 mt-1 space-y-0.5">
           <Link href={`/brand/${id}`}>
-            <button className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors">
-              {t.overview}
+            <button className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item">
+              <span>{t.overview}</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-3 h-3 opacity-0 group-hover/item:opacity-70 transition-opacity cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-[200px]">
+                  {t.overviewTooltip || "Panel general con métricas clave, insights y estado de tu marca"}
+                </TooltipContent>
+              </Tooltip>
+            </button>
+          </Link>
+          <Link href={`/brand/${id}/keywords`}>
+            <button className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item">
+              <span className="flex items-center gap-2">
+                <TrendingUp className="w-3 h-3 opacity-70" />
+                {t.keywordsAI}
+              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-3 h-3 opacity-0 group-hover/item:opacity-70 transition-opacity cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-[200px]">
+                  {t.keywordsTooltip || "Analiza cómo aparece tu marca en respuestas de IA para diferentes keywords"}
+                </TooltipContent>
+              </Tooltip>
             </button>
           </Link>
           <Link href={`/brand/${id}/search-performance`}>
-            <button className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors">
-              <SearchIcon className="w-3 h-3 opacity-70" />
-              Search Performance
+            <button className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item">
+              <span className="flex items-center gap-2">
+                <SearchIcon className="w-3 h-3 opacity-70" />
+                Search Performance
+              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-3 h-3 opacity-0 group-hover/item:opacity-70 transition-opacity cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-[200px]">
+                  {t.searchPerformanceTooltip || "Métricas de rendimiento en buscadores tradicionales (Google, Bing)"}
+                </TooltipContent>
+              </Tooltip>
             </button>
           </Link>
           <Link href={`/brand/${id}/competitors`}>
-            <button className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors">
-              <Users className="w-3 h-3 opacity-70" />
-              {t.competition}
+            <button className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item">
+              <span className="flex items-center gap-2">
+                <Users className="w-3 h-3 opacity-70" />
+                {t.competition}
+              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-3 h-3 opacity-0 group-hover/item:opacity-70 transition-opacity cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-[200px]">
+                  {t.competitionTooltip || "Compara tu visibilidad en IA frente a tus competidores"}
+                </TooltipContent>
+              </Tooltip>
+            </button>
+          </Link>
+          <Link href={`/brand/${id}/crawlers`}>
+            <button className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item">
+              <span className="flex items-center gap-2">
+                <Bot className="w-3 h-3 opacity-70" />
+                Crawlers Monitor
+              </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-3 h-3 opacity-0 group-hover/item:opacity-70 transition-opacity cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent side="right" className="max-w-[200px]">
+                  {t.crawlersTooltip || "Monitorea qué bots de IA están rastreando tu sitio web"}
+                </TooltipContent>
+              </Tooltip>
             </button>
           </Link>
         </div>
@@ -148,22 +213,14 @@ export function AppSidebar() {
   }, [pathname, router])
 
   const handleLogout = async () => {
-    // En modo demo, simplemente redirigir
-    const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
-
-    if (isDemoMode) {
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      await supabase.auth.signOut()
       router.push('/auth/login')
-    } else {
-      // En producción, usar Supabase
-      try {
-        const { createClient } = await import('@/lib/supabase/client')
-        const supabase = createClient()
-        await supabase.auth.signOut()
-        router.push('/auth/login')
-      } catch (error) {
-        console.error('Error al cerrar sesión:', error)
-        router.push('/auth/login')
-      }
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error)
+      router.push('/auth/login')
     }
   }
 
@@ -244,33 +301,7 @@ export function AppSidebar() {
               <span>{t.panel}</span>
             </button>
           </Link>
-          <Link href="/keywords">
-            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === '/keywords'
-              ? 'bg-secondary text-foreground font-medium'
-              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-              }`}>
-              <TrendingUp className="w-4 h-4" />
-              <span>{t.keywordsAI}</span>
-            </button>
-          </Link>
-          <Link href="/competitors">
-            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === '/competitors'
-              ? 'bg-secondary text-foreground font-medium'
-              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-              }`}>
-              <Users className="w-4 h-4" />
-              <span>{t.competition}</span>
-            </button>
-          </Link>
-          <Link href="/search">
-            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === '/search'
-              ? 'bg-secondary text-foreground font-medium'
-              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-              }`}>
-              <Search className="w-4 h-4" />
-              <span>{t.search}</span>
-            </button>
-          </Link>
+
           <Link href="/notifications">
             <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === '/notifications'
               ? 'bg-secondary text-foreground font-medium'
@@ -301,9 +332,9 @@ export function AppSidebar() {
             </div>
             <div className="space-y-0.5">
               {loading ? (
-                <div className="px-3 py-2 text-xs text-muted-foreground animate-pulse">Loading...</div>
+                <div className="px-3 py-2 text-xs text-muted-foreground animate-pulse">{t.loading}</div>
               ) : brands.length === 0 ? (
-                <div className="px-3 py-2 text-xs text-muted-foreground">No brands yet</div>
+                <div className="px-3 py-2 text-xs text-muted-foreground">{t.noBrandsYet}</div>
               ) : (
                 brands.map((brand) => {
                   return (

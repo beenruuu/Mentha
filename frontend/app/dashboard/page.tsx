@@ -25,6 +25,7 @@ import { useTranslations } from "@/lib/i18n"
 import { brandsService, type Brand } from "@/lib/services/brands"
 import { analysisService, type Analysis } from "@/lib/services/analysis"
 import { competitorsService, type Competitor } from "@/lib/services/competitors"
+import { geoAnalysisService, type VisibilitySnapshot } from "@/lib/services/geo-analysis"
 import { MetricTab } from "@/components/dashboard/metric-tab"
 import { ActionItem } from "@/components/dashboard/action-item"
 import { ReasoningCard } from "@/components/dashboard/reasoning-card"
@@ -43,6 +44,7 @@ export default function DashboardPage() {
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
   const [competitors, setCompetitors] = useState<Competitor[]>([])
   const [chartData, setChartData] = useState<any[]>([])
+  const [modelPerformance, setModelPerformance] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [activeMetric, setActiveMetric] = useState<'rank' | 'position' | 'inclusion'>('rank')
 
@@ -79,6 +81,20 @@ export default function DashboardPage() {
           // Fetch competitors
           const comps = await competitorsService.getAll(brand.id)
           setCompetitors(comps)
+
+          // Fetch GEO visibility data for model performance
+          try {
+            const visibilityData = await geoAnalysisService.getVisibilityData(brand.id)
+            if (visibilityData.latest_scores && visibilityData.latest_scores.length > 0) {
+              const scores: Record<string, number> = {}
+              visibilityData.latest_scores.forEach((snapshot: VisibilitySnapshot) => {
+                scores[snapshot.ai_model] = snapshot.visibility_score
+              })
+              setModelPerformance(scores)
+            }
+          } catch (error) {
+            console.error('Error fetching GEO visibility data:', error)
+          }
         }
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err)
@@ -253,51 +269,10 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              {/* Right Column: Notable Changes & Insights (4 cols) */}
+              {/* Right Column: Upgrade CTA (Notable Changes removed - will be replaced with real GEO insights) */}
               <div className="lg:col-span-4 space-y-6 pl-0 lg:pl-6 border-l border-transparent lg:border-gray-100 dark:lg:border-[#1A1A20]">
 
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Notable Changes</h3>
-                  <div className="space-y-6 relative">
-                    <div className="absolute left-[11px] top-2 bottom-2 w-px bg-gray-200 dark:bg-gray-800" />
-
-                    <div className="relative pl-8">
-                      <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 flex items-center justify-center z-10">
-                        <div className="w-2 h-2 rounded-full bg-blue-500" />
-                      </div>
-                      <p className="text-sm text-gray-900 dark:text-gray-100 font-medium leading-snug flex items-center gap-1 flex-wrap">
-                        <Image src="/providers/gemini-color.svg" alt="Gemini" width={14} height={14} className="inline-block" />
-                        <span>Gemini</span> leads with 33/100, 19 points above
-                        <Image src="/providers/openai.svg" alt="ChatGPT" width={14} height={14} className="inline-block" />
-                        <span>ChatGPT</span>
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">Today, 9:41 AM</p>
-                    </div>
-
-                    <div className="relative pl-8">
-                      <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 flex items-center justify-center z-10">
-                        <div className="w-2 h-2 rounded-full bg-orange-500" />
-                      </div>
-                      <p className="text-sm text-gray-900 dark:text-gray-100 font-medium leading-snug">
-                        New competitor detected: <span className="text-orange-600 dark:text-orange-400">CBRE GWS</span>
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">Yesterday</p>
-                    </div>
-
-                    <div className="relative pl-8">
-                      <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-center justify-center z-10">
-                        <div className="w-2 h-2 rounded-full bg-red-500" />
-                      </div>
-                      <p className="text-sm text-gray-900 dark:text-gray-100 font-medium leading-snug flex items-center gap-1 flex-wrap">
-                        <Image src="/providers/claude-color.svg" alt="Claude" width={14} height={14} className="inline-block" />
-                        <span>Claude</span> shows lowest performance at 4/100 rank score
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">2 days ago</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-6 border-t border-gray-100 dark:border-[#1A1A20]">
+                <div className="pt-6">
                   <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Unlock Advanced Tracking</h3>
                   <div className="p-4 rounded-xl bg-gradient-to-br from-gray-900 to-black dark:from-[#111114] dark:to-black border border-gray-800 text-white relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
@@ -354,21 +329,38 @@ export default function DashboardPage() {
                   Model Performance
                 </h3>
                 <div className="space-y-3">
-                  {AI_PROVIDER_META.map((provider, index) => (
-                    <div key={provider.id} className="flex items-center justify-between group p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-[#111114] transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 p-1 text-gray-900 dark:text-white">
-                          <Image src={provider.icon} alt={provider.name} width={16} height={16} className="w-full h-full object-contain" />
+                  {AI_PROVIDER_META.map((provider) => {
+                    const score = modelPerformance[provider.id] || 0
+                    const hasData = modelPerformance[provider.id] !== undefined
+
+                    return (
+                      <div key={provider.id} className="flex items-center justify-between group p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-[#111114] transition-colors">
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 p-1 text-gray-900 dark:text-white">
+                            <Image src={provider.icon} alt={provider.name} width={16} height={16} className="w-full h-full object-contain" />
+                          </div>
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{provider.name}</span>
                         </div>
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{provider.name}</span>
+                        <div className="flex items-center gap-3">
+                          {hasData ? (
+                            <>
+                              <div className="w-20 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-emerald-500 rounded-full transition-all duration-500"
+                                  style={{ width: `${score}%` }}
+                                />
+                              </div>
+                              <span className="text-xs font-mono text-emerald-500 font-medium w-10 text-right">
+                                {Math.round(score)}%
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-xs text-gray-400">No data</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-xs font-mono text-emerald-500 font-medium">
-                          {90 - (index * 5)}%
-                        </span>
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               </div>
 

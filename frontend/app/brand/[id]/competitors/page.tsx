@@ -25,6 +25,7 @@ import { useTranslations } from '@/lib/i18n'
 import { competitorsService, Competitor } from '@/lib/services/competitors'
 import { brandsService, Brand } from '@/lib/services/brands'
 import Link from 'next/link'
+import { BrandCompetitorsPageSkeleton } from '@/components/skeletons'
 import {
     AlertDialog,
     AlertDialogAction,
@@ -73,8 +74,8 @@ export default function BrandCompetitorsPage() {
 
             const mappedCompetitors = competitorsData.map(c => ({
                 ...c,
-                overlapScore: Math.floor(Math.random() * 40) + 30, // Mock overlap 30-70%
-                trend: Math.random() > 0.5 ? 'up' : 'neutral' as const
+                overlapScore: c.similarity_score || 0,
+                trend: 'neutral' as const
             }))
             setCompetitors(mappedCompetitors)
         } catch (error) {
@@ -145,14 +146,7 @@ export default function BrandCompetitorsPage() {
     if (!brandId) return null
 
     if (loading && !brand) {
-        return (
-            <SidebarProvider>
-                <AppSidebar />
-                <SidebarInset className="flex items-center justify-center h-screen bg-[#fdfdfc] dark:bg-[#050505]">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </SidebarInset>
-            </SidebarProvider>
-        )
+        return <BrandCompetitorsPageSkeleton />
     }
 
     return (

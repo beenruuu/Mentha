@@ -9,6 +9,7 @@ import { AppSidebar } from "@/components/layout/app-sidebar"
 import { useTranslations } from "@/lib/i18n"
 import { notificationsService, type Notification } from "@/lib/services/notifications"
 import { format, isToday, isYesterday } from "date-fns"
+import { NotificationsPageSkeleton } from "@/components/skeletons"
 
 export default function NotificationsPage() {
   const { t } = useTranslations()
@@ -89,6 +90,10 @@ export default function NotificationsPage() {
   const grouped = groupNotifications(notifications)
   const selectedNotification = notifications.find(n => n.id === selectedId)
 
+  if (loading) {
+    return <NotificationsPageSkeleton />
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -117,11 +122,7 @@ export default function NotificationsPage() {
         </header>
 
         <main className="flex-1 bg-white dark:bg-black rounded-tl-3xl border-t border-l border-gray-200 dark:border-[#2A2A30] overflow-hidden flex shadow-2xl relative z-10">
-          {loading ? (
-            <div className="flex items-center justify-center w-full h-full">
-              <Loader2 className="w-8 h-8 text-primary animate-spin" />
-            </div>
-          ) : notifications.length === 0 ? (
+          {notifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center w-full h-full text-center p-8">
               <div className="w-16 h-16 bg-secondary/30 rounded-full flex items-center justify-center mb-4">
                 <Bell className="w-8 h-8 text-muted-foreground" />
@@ -207,19 +208,6 @@ export default function NotificationsPage() {
                       <p className="text-gray-600 dark:text-gray-300 leading-relaxed text-base">
                         {selectedNotification.message}
                       </p>
-
-                      {/* Example of rich content that could be in a notification */}
-                      <div className="mt-8 p-4 bg-gray-50 dark:bg-[#111114] rounded-lg border border-gray-100 dark:border-[#1A1A20]">
-                        <h4 className="text-sm font-semibold mb-2">Related Context</h4>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <span>Brand:</span>
-                          <span className="font-medium text-gray-900 dark:text-white">Mentha AI</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                          <span>Source:</span>
-                          <span className="font-medium text-gray-900 dark:text-white">System Monitor</span>
-                        </div>
-                      </div>
 
                       <div className="mt-8 flex gap-3">
                         <Button>View Details</Button>

@@ -6,6 +6,7 @@ export interface TechnicalAEO {
     brand_id: string;
     domain: string;
     aeo_readiness_score: number;
+    voice_readiness_score?: number;
     ai_crawler_permissions: {
         crawlers: Record<string, string>;
         summary?: string;
