@@ -20,7 +20,7 @@ const FeatureCard = (props: {
         >
             <div className="aspect-video">{children}</div>
             <div className="flex-1 flex flex-col">
-                <h3 className="text-3xl font-medium mt-6 text-gray-900 dark:text-white">{title}</h3>
+                <h3 className="text-3xl font-medium mt-6 text-gray-900 dark:text-white break-words hyphens-auto">{title}</h3>
                 <p className="text-gray-500 dark:text-white/50 mt-2 flex-1">{description}</p>
             </div>
         </div>

@@ -122,6 +122,7 @@ export default function Navbar() {
                                                 {link.label}
                                             </a>
                                         ))}
+                                        <ThemeToggleSimple className="flex" />
                                         <Link href="/auth/login" className="w-3/4">
                                             <Button
                                                 className="w-full"

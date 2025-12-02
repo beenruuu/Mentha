@@ -118,7 +118,7 @@ async def get_brand_info(url: str = Query(..., description="The URL to analyze")
         page_data = await fetch_page_content(url)
         
         # Use AI to infer business info
-        from app.services.analysis.web_search_service import WebSearchService
+        from app.services.web_search_service import WebSearchService
         web_service = WebSearchService()
         
         business_info = await web_service.infer_business_info_from_page(

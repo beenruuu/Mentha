@@ -8,7 +8,7 @@ import { useTranslations } from "@/lib/i18n";
 
 export default function Features() {
     const { t } = useTranslations();
-    
+
     const features = [
         t.featureTagAEO,
         t.featureTagBrand,
@@ -34,12 +34,11 @@ export default function Features() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6 }}
                         viewport={{ once: true, amount: 0.2 }}
-                        className="h-full"
+                        className="h-full md:col-span-2 lg:col-span-1"
                     >
                         <FeatureCard
                             title={t.featureAEOTitle}
                             description={t.featureAEODescription}
-                            className="md:col-span-2 lg:col-span-1"
                         >
                             <div className="aspect-video flex items-center justify-center">
                                 <div className="relative">
@@ -55,12 +54,12 @@ export default function Features() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                         viewport={{ once: true, amount: 0.2 }}
-                        className="h-full"
+                        className="h-full md:col-span-2 lg:col-span-1"
                     >
                         <FeatureCard
                             title={t.featureCompetitorTitle}
                             description={t.featureCompetitorDescription}
-                            className="md:col-span-2 lg:col-span-1 group transition duration-500"
+                            className="group transition duration-500"
                         >
                             <div className="aspect-video flex items-center justify-center">
                                 <div className="relative">
@@ -76,12 +75,12 @@ export default function Features() {
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.4 }}
                         viewport={{ once: true, amount: 0.2 }}
-                        className="h-full"
+                        className="h-full md:col-span-2 md:col-start-2 lg:col-span-1 lg:col-start-auto"
                     >
                         <FeatureCard
                             title={t.featureBrandTitle}
                             description={t.featureBrandDescription}
-                            className="group md:col-span-2 md:col-start-2 lg:col-span-1 lg:col-start-auto"
+                            className="group"
                         >
                             <div className="aspect-video flex items-center justify-center">
                                 <div className="relative">

@@ -324,6 +324,10 @@ async def _run_full_geo_analysis(
         if "ai_visibility" in results and results["ai_visibility"].get("models"):
             for model_name, model_data in results["ai_visibility"]["models"].items():
                 try:
+                    # Skip google_search as it's not in the allowed enum values for ai_visibility_snapshots
+                    if model_name == "google_search":
+                        continue
+                        
                     await crud.create_visibility_snapshot(
                         brand_id=brand_id,
                         ai_model=model_name,

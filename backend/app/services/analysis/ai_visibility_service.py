@@ -532,7 +532,7 @@ class AIVisibilityService:
         }
         
         try:
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
             
             with DDGS() as ddgs:
                 # Search for brand mentions

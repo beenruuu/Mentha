@@ -372,7 +372,7 @@ class EEATSignalAnalyzerService:
         
         # Check backlink indicators (external sites linking to this)
         try:
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
             
             with DDGS() as ddgs:
                 query = f'link:{domain}' if domain else f'"{brand_name}" site'

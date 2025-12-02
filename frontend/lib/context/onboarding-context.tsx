@@ -3,155 +3,114 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react'
 
 export type OnboardingStep =
-    | 'about-you'        // Paso 1: Nombre, apellidos, experiencia SEO
-    | 'company'          // Paso 2: URL sitio web, ubicación
-    | 'brand-profile'    // Paso 3: Logo, nombre, dominio, categoría, descripción
-    | 'competitors'      // Paso 4: Competidores detectados
-    | 'research-prompts' // Paso 5: Prompts branded/non-branded
-    | 'schedule'         // Paso 6: Configuración de modelos IA (placeholder)
-    | 'setup'            // Paso 7: Activación y procesamiento
+    | 'user-identity'
+    | 'user-professional'
+    | 'user-company'
+    | 'user-discovery'
+    | 'brand-input'
+    | 'ai-providers'
+    | 'discovery-prompts'
+    | 'analysis-progress'
+    | 'completion'
 
 export interface UserInfo {
     firstName: string
     lastName: string
-    seoExperience?: string  // Opcional: experiencia en SEO/IA
+    country: string
+    industry: string
+    role: string
+    companyName: string
+    discoverySource: string
+    preferredLanguage: 'en' | 'es' | 'fr' | 'de' | 'it'
 }
 
-export interface CompanyInfo {
-    websiteUrl: string
-    location: string  // Código país ej: ES, US, etc.
-    corporateDomain?: string  // Dominio corporativo para auto-unión
-}
-
-export interface BrandProfile {
-    logo?: string
-    name: string
+export interface BrandInfo {
+    url: string
     domain: string
-    category: string
-    description: string
+    favicon?: string
+    logo?: string
+    title?: string
+    description?: string
+    industry?: string
+    location?: string
+    founded?: string
+    businessModel?: string
+    services?: string[]  // Services inferred from the website
+    id?: string  // Brand ID after creation
 }
 
-export interface Competitor {
+export interface AIProvider {
     id: string
     name: string
-    domain: string
-    logo?: string
+    model: string
+    status: 'connected' | 'connect'
+    selected: boolean
 }
 
-export interface ResearchPrompt {
+export interface DiscoveryPrompt {
     id: string
     text: string
-    type: 'branded' | 'non-branded'
+    selected: boolean
     isCustom?: boolean
-}
-
-export interface AIModelSchedule {
-    modelId: string
-    name: string
-    enabled: boolean
-    credits?: number  // Placeholder - concepto orientativo
-}
-
-export interface ScheduleConfig {
-    models: AIModelSchedule[]
-    activeDays: string[]  // L, M, X, J, V, S, D
 }
 
 interface OnboardingContextType {
     currentStep: OnboardingStep
     setStep: (step: OnboardingStep) => void
-    
-    // Paso 1
     userInfo: UserInfo
     setUserInfo: (info: UserInfo) => void
-    
-    // Paso 2
-    companyInfo: CompanyInfo
-    setCompanyInfo: (info: CompanyInfo) => void
-    isAnalyzing: boolean
-    setIsAnalyzing: (analyzing: boolean) => void
-    
-    // Paso 3
-    brandProfile: BrandProfile
-    setBrandProfile: (profile: BrandProfile) => void
-    
-    // Paso 4
-    competitors: Competitor[]
-    setCompetitors: (competitors: Competitor[]) => void
-    
-    // Paso 5
-    researchPrompts: ResearchPrompt[]
-    setResearchPrompts: (prompts: ResearchPrompt[]) => void
-    
-    // Paso 6
-    scheduleConfig: ScheduleConfig
-    setScheduleConfig: (config: ScheduleConfig) => void
-    
-    // Navegación
+    brandInfo: BrandInfo
+    setBrandInfo: (info: BrandInfo) => void
+    aiProviders: AIProvider[]
+    setAIProviders: (providers: AIProvider[]) => void
+    discoveryPrompts: DiscoveryPrompt[]
+    setDiscoveryPrompts: (prompts: DiscoveryPrompt[]) => void
     nextStep: () => void
     prevStep: () => void
-    
-    // Brand ID después de creación
-    brandId?: string
-    setBrandId: (id: string) => void
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined)
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {
-    const [currentStep, setCurrentStep] = useState<OnboardingStep>('about-you')
+    const [currentStep, setCurrentStep] = useState<OnboardingStep>('user-identity')
 
-    // Paso 1 - Acerca de ti
     const [userInfo, setUserInfo] = useState<UserInfo>({
-        firstName: '',
-        lastName: '',
-        seoExperience: ''
+        firstName: '', 
+        lastName: '', 
+        country: '', 
+        industry: '',
+        role: '',
+        companyName: '',
+        discoverySource: '',
+        preferredLanguage: 'en'
     })
 
-    // Paso 2 - Empresa
-    const [companyInfo, setCompanyInfo] = useState<CompanyInfo>({
-        websiteUrl: '',
-        location: ''
-    })
-    const [isAnalyzing, setIsAnalyzing] = useState(false)
-
-    // Paso 3 - Perfil de Marca
-    const [brandProfile, setBrandProfile] = useState<BrandProfile>({
-        logo: '',
-        name: '',
-        domain: '',
-        category: '',
-        description: ''
+    const [brandInfo, setBrandInfo] = useState<BrandInfo>({
+        url: '',
+        domain: ''
     })
 
-    // Paso 4 - Competidores
-    const [competitors, setCompetitors] = useState<Competitor[]>([])
+    const [aiProviders, setAIProviders] = useState<AIProvider[]>([
+        { id: 'chatgpt', name: 'ChatGPT', model: 'GPT-5', status: 'connected', selected: true },
+        { id: 'claude', name: 'Claude', model: 'Claude 4.5 Sonnet', status: 'connected', selected: true },
+        { id: 'gemini', name: 'Google Gemini', model: 'Gemini 2.5 Flash', status: 'connected', selected: true },
+        { id: 'perplexity', name: 'Perplexity', model: 'Sonar', status: 'connect', selected: false },
+        { id: 'grok', name: 'Grok', model: 'Grok 4', status: 'connect', selected: false },
+    ])
 
-    // Paso 5 - Research Prompts
-    const [researchPrompts, setResearchPrompts] = useState<ResearchPrompt[]>([])
-
-    // Paso 6 - Schedule (placeholder)
-    const [scheduleConfig, setScheduleConfig] = useState<ScheduleConfig>({
-        models: [
-            { modelId: 'chatgpt', name: 'ChatGPT', enabled: true, credits: 10 },
-            { modelId: 'claude', name: 'Claude', enabled: true, credits: 10 },
-            { modelId: 'perplexity', name: 'Perplexity', enabled: false, credits: 15 },
-            { modelId: 'gemini', name: 'Gemini', enabled: false, credits: 10 },
-        ],
-        activeDays: ['L', 'M', 'X', 'J', 'V']
-    })
-
-    // Brand ID
-    const [brandId, setBrandId] = useState<string | undefined>()
+    // Discovery prompts will be generated dynamically based on brand info
+    const [discoveryPrompts, setDiscoveryPrompts] = useState<DiscoveryPrompt[]>([])
 
     const steps: OnboardingStep[] = [
-        'about-you',
-        'company',
-        'brand-profile',
-        'competitors',
-        'research-prompts',
-        'schedule',
-        'setup'
+        'user-identity',
+        'user-professional',
+        'user-company',
+        'user-discovery',
+        'brand-input',
+        'ai-providers',
+        'discovery-prompts',
+        'analysis-progress',
+        'completion'
     ]
 
     const nextStep = () => {
@@ -174,22 +133,14 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
             setStep: setCurrentStep,
             userInfo,
             setUserInfo,
-            companyInfo,
-            setCompanyInfo,
-            isAnalyzing,
-            setIsAnalyzing,
-            brandProfile,
-            setBrandProfile,
-            competitors,
-            setCompetitors,
-            researchPrompts,
-            setResearchPrompts,
-            scheduleConfig,
-            setScheduleConfig,
+            brandInfo,
+            setBrandInfo,
+            aiProviders,
+            setAIProviders,
+            discoveryPrompts,
+            setDiscoveryPrompts,
             nextStep,
-            prevStep,
-            brandId,
-            setBrandId
+            prevStep
         }}>
             {children}
         </OnboardingContext.Provider>

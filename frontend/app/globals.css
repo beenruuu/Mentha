@@ -130,3 +130,64 @@ body[data-settings-open="true"] main.dashboard-main {
   transition: filter 0.2s ease;
   pointer-events: none;
 }
+
+@layer utilities {
+  @keyframes mentha-snake {
+    to { stroke-dashoffset: -480; }
+  }
+
+  @keyframes mentha-shimmer {
+    0% { transform: translateX(-150%) rotate(-25deg); opacity: 0; }
+    40% { opacity: 0.6; }
+    100% { transform: translateX(150%) rotate(-25deg); opacity: 0; }
+  }
+
+  .mentha-logo-outline {
+    background: transparent;
+    overflow: visible;
+  }
+
+  .mentha-outline-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+  }
+
+  .mentha-outline-stroke {
+    stroke: var(--mentha);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 480;
+    stroke-dashoffset: 0;
+    animation: mentha-snake 3.6s linear infinite;
+    filter: drop-shadow(0 4px 8px rgba(var(--mentha-rgb), 0.08));
+  }
+
+  .mentha-logo-inner svg { display: block; }
+
+  .mentha-logo-outline::after {
+    content: '';
+    position: absolute;
+    left: -50%;
+    top: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.65) 50%, rgba(255,255,255,0) 70%);
+    transform: rotate(-25deg) translateX(-150%);
+    animation: mentha-shimmer 2.6s ease-in-out infinite;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    border-radius: inherit;
+    opacity: 0.95;
+  }
+
+  /* Slight outer glow using a pseudo-element to enhance the aurora effect */
+  .mentha-outline-stroke {
+    /* add subtle glow via shadow-like stroke using filter, keeping stroke itself crisp */
+    filter: drop-shadow(0 0 8px rgba(var(--mentha-rgb), 0.18));
+  }
+}

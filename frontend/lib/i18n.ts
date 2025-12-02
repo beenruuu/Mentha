@@ -203,9 +203,6 @@ const translations = {
     // Common
     save: 'Guardar',
     cancel: 'Cancelar',
-    loading: 'Cargando...',
-    noData: 'Sin datos',
-    noBrandsYet: 'No hay marcas aún',
     searchPlaceholder: 'Buscar...',
     searchBrands: 'Buscar marcas, consultas, modelos...',
     
@@ -936,9 +933,6 @@ const translations = {
     // Common
     save: 'Save',
     cancel: 'Cancel',
-    loading: 'Loading...',
-    noData: 'No data',
-    noBrandsYet: 'No brands yet',
     searchPlaceholder: 'Search...',
     searchBrands: 'Search brands, queries, models...',
     

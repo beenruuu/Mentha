@@ -103,15 +103,15 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="bg-[#FAFAFA] dark:bg-[#09090b] h-screen overflow-hidden flex flex-col">
+      <SidebarInset className="bg-[#fdfdfc] dark:bg-[#050505] h-screen overflow-hidden flex flex-col">
         {/* Header */}
-        <header className="flex items-center justify-between px-6 py-4 shrink-0">
+        <header className="flex items-center justify-between px-8 py-6 bg-[#fdfdfc] dark:bg-[#050505] border-b border-border/40">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-xl bg-white dark:bg-zinc-800 border border-border/50 flex items-center justify-center overflow-hidden shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-800 border border-border/50 flex items-center justify-center overflow-hidden shadow-sm">
               <img
                 src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=128`}
                 alt={`${brand.name} logo`}
-                className="w-6 h-6 object-contain"
+                className="w-8 h-8 object-contain"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                   e.currentTarget.parentElement!.innerText = brand.name.charAt(0).toUpperCase();
@@ -119,40 +119,42 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
               />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{brand.name}</h1>
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                <Globe className="w-3 h-3" />
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{brand.name}</h1>
+              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                <Globe className="w-3.5 h-3.5" />
                 <a href={brand.domain} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
                   {brand.domain}
                 </a>
               </div>
             </div>
           </div>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900/30">
-                <Trash2 className="h-4 w-4 mr-2" />
-                {t.deleteBrand}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t.areYouSure}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t.deleteWarning.replace('{name}', brand.name)}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDeleteBrand} className="bg-red-600 hover:bg-red-700">
-                  {isDeleting ? t.deleting : t.delete}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <div className="flex items-center gap-3">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900/30">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  {t.deleteBrand}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t.areYouSure}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t.deleteWarning.replace('{name}', brand.name)}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteBrand} className="bg-red-600 hover:bg-red-700">
+                    {isDeleting ? t.deleting : t.delete}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </header>
 
-        <main className="flex-1 bg-white dark:bg-black rounded-tl-3xl border-t border-l border-gray-200 dark:border-[#2A2A30] overflow-y-auto p-6 md:p-8 shadow-2xl relative z-10">
+        <main className="flex-1 overflow-y-auto p-8 bg-[#fdfdfc] dark:bg-[#050505]">
           <div className="max-w-7xl mx-auto space-y-8">
 
             {/* Quick Stats */}

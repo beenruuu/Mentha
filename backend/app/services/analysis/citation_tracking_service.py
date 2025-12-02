@@ -431,7 +431,7 @@ class CitationTrackingService:
         }
         
         try:
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
             
             domain_clean = domain.replace('https://', '').replace('http://', '').replace('www.', '')
             
@@ -635,7 +635,7 @@ class CitationTrackingService:
         results = []
         
         try:
-            from duckduckgo_search import DDGS
+            from ddgs import DDGS
             
             with DDGS() as ddgs:
                 for source in authority_sources:

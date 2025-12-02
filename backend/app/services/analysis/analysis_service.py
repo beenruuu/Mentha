@@ -121,6 +121,20 @@ class AnalysisService:
                 existing_competitors = [c.name for c in comps]
             
             # 3. AI Visibility (Real API checks)
+            visibility_task = self.ai_visibility_service.measure_visibility(
+                brand_name=brand_name,
+                domain=brand_url,
+                industry=industry,
+                competitors=existing_competitors
+            )
+            
+            content_task = self.content_structure_service.analyze_content_structure(url=brand_url)
+            
+            kg_task = self.kg_service.monitor_knowledge_presence(
+                brand_name=brand_name, 
+                domain=brand_url
+            )
+
             search_context, technical_data, visibility_data, content_data, kg_data = await asyncio.gather(
                 search_task, technical_task, visibility_task, content_task, kg_task
             )
@@ -139,6 +153,9 @@ class AnalysisService:
 
             # --- PHASE 3: RESULT ASSEMBLY ---
             print("Phase 3: Result Assembly")
+            
+            visual_suggestions = []
+
             
             # Construct the deterministic result object
             results = {

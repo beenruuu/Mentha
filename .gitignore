@@ -29,37 +29,6 @@ yarn-error.log*
 !.env.local.example
 
 # vercel
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-node_modules/
-**/node_modules/
-/.next/
-.next/
-frontend/.next/
-**/.next/
-**/__pycache__/
-*.pyc
-package-lock.json
-
-# next.js
-/out/
-
-# production
-/build
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files
-.env*
-!.env.local.example
-
-# vercel
 .vercel
 
 # typescript
@@ -69,10 +38,3 @@ next-env.d.ts
 # SEO analyzer subprojects (separate repos)
 black-seo-analyzer/
 python-seo-analyzer/
-
-# Build artifacts
-*.tsbuildinfo
-
-# Reports
-lighthouse-report.*
-firegeo/

@@ -28,8 +28,6 @@ class Brand(BrandBase):
     user_id: UUID
     created_at: datetime
     updated_at: datetime
-    ai_providers: Optional[List[str]] = None
-    services: Optional[List[str]] = None
 
     class Config:
         from_attributes = True

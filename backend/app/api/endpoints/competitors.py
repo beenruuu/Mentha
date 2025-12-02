@@ -145,3 +145,42 @@ async def _run_competitor_analysis(
         
     except Exception as e:
         print(f"Competitor analysis failed: {e}")
+
+from pydantic import BaseModel
+
+class CompetitorDiscoveryRequest(BaseModel):
+    brand_name: str
+    industry: str
+    domain: str = ""
+    description: str = ""
+    services: List[str] = []
+    country: str = "ES"
+    language: str = "es"
+
+@router.post("/discover", response_model=List[dict])
+async def discover_competitors(
+    request: CompetitorDiscoveryRequest,
+    current_user: UserProfile = Depends(get_current_user)
+):
+    """
+    Discover potential competitors using web search.
+    """
+    from app.services.analysis.web_search_service import WebSearchService
+    
+    search_service = WebSearchService()
+    
+    # Convert list of services to comma-separated string if needed, 
+    # but search_competitors handles list now.
+    
+    competitors = await search_service.search_competitors(
+        brand_name=request.brand_name,
+        industry=request.industry,
+        domain=request.domain,
+        description=request.description,
+        services=request.services,
+        country=request.country,
+        language=request.language,
+        max_results=10
+    )
+    
+    return competitors
