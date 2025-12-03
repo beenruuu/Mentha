@@ -10,11 +10,47 @@ import json
 from datetime import datetime
 from urllib.parse import urlparse
 
+
+# =============================================================================
+# ANSI Color Codes for Terminal Output
+# =============================================================================
+class Colors:
+    RED = "\033[91m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    BLUE = "\033[94m"
+    MAGENTA = "\033[95m"
+    CYAN = "\033[96m"
+    WHITE = "\033[97m"
+    BOLD = "\033[1m"
+    RESET = "\033[0m"
+
+
+def log_info(emoji: str, message: str):
+    """Log info message with emoji and cyan color."""
+    print(f"{Colors.CYAN}{emoji} {message}{Colors.RESET}")
+
+
+def log_success(emoji: str, message: str):
+    """Log success message with emoji and green color."""
+    print(f"{Colors.GREEN}{emoji} {message}{Colors.RESET}")
+
+
+def log_error(emoji: str, message: str):
+    """Log error message with emoji and red color."""
+    print(f"{Colors.RED}{emoji} {message}{Colors.RESET}")
+
+
+def log_warning(emoji: str, message: str):
+    """Log warning message with emoji and yellow color."""
+    print(f"{Colors.YELLOW}{emoji} {message}{Colors.RESET}")
+
+
 try:
     from ddgs import DDGS
 except ImportError:
     DDGS = None
-    print("Warning: ddgs not installed. Web search will be disabled.")
+    log_warning("⚠️", "ddgs not installed. Web search will be disabled.")
 
 
 # Comprehensive exclusion list - sites that are never competitors
@@ -49,7 +85,7 @@ class WebSearchService:
         self.enabled = DDGS is not None
         self.llm_service = llm_service
         if not self.enabled:
-            print("Web search is disabled. Install duckduckgo-search to enable.")
+            log_warning("🔍❌", "Web search is disabled. Install duckduckgo-search to enable.")
     
     def set_llm_service(self, llm_service):
         """Set the LLM service for AI-powered filtering."""
@@ -68,7 +104,7 @@ class WebSearchService:
                 self.llm_service = OpenAIService(api_key=settings.OPENAI_API_KEY)
                 return self.llm_service
         except Exception as e:
-            print(f"Could not initialize LLM service: {e}")
+            log_error("🤖❌", f"Could not initialize LLM service: {e}")
         
         return None
     
@@ -149,7 +185,7 @@ DEFINICIONES DE ENTITY_TYPE:
                 return json.loads(json_match.group())
             
         except Exception as e:
-            print(f"Error inferring business info: {e}")
+            log_error("📄❌", f"Error inferring business info: {e}")
         
         return {
             "entity_type": "business",
@@ -168,7 +204,7 @@ DEFINICIONES DE ENTITY_TYPE:
         entity_type: str = "business"
     ) -> List[Dict[str, Any]]:
         """
-        Use AI to filter search results and identify real competitors based on ENTITY TYPE.
+        Use AI to filter search results, identify real competitors, and extract correct company names.
         """
         if not candidates:
             return []
@@ -179,84 +215,180 @@ DEFINICIONES DE ENTITY_TYPE:
         
         # Build prompt for AI filtering
         candidates_text = "\n".join([
-            f"{i+1}. {c.get('name', 'Unknown')} ({c.get('domain', 'N/A')}): {c.get('snippet', '')[:150]}"
+            f"{i+1}. Dominio: {c.get('domain', 'N/A')} | Título: {c.get('name', 'Unknown')} | Snippet: {c.get('snippet', '')[:150]}"
             for i, c in enumerate(candidates[:15])
         ])
         
         # Adjust criteria based on entity type
         criteria = ""
         if entity_type == 'media':
-            criteria = """
-            CRITERIOS PARA MEDIOS/NOTICIAS:
-            ✓ INCLUIR: Otros periódicos, revistas digitales, portales de noticias.
-            ✗ EXCLUIR: Tiendas online, empresas de servicios, blogs personales pequeños.
-            """
+            criteria = "INCLUIR: periódicos, revistas digitales, portales de noticias. EXCLUIR: tiendas, blogs personales."
         elif entity_type == 'institution':
-            criteria = """
-            CRITERIOS PARA INSTITUCIONES:
-            ✓ INCLUIR: Organismos similares, universidades, asociaciones del mismo sector.
-            ✗ EXCLUIR: Empresas comerciales, tiendas.
-            """
-        else: # business (default)
-            criteria = """
-            CRITERIOS PARA NEGOCIOS (Default):
-            ✓ INCLUIR: Empresas que venden lo mismo o servicios sustitutivos.
-            ✗ EXCLUIR: Periódicos, Wikipedia, Directorios, Gobiernos.
-            """
+            criteria = "INCLUIR: organismos similares, universidades, asociaciones. EXCLUIR: empresas comerciales."
+        else:
+            criteria = "INCLUIR: empresas que venden lo mismo o servicios sustitutivos. EXCLUIR: periódicos, Wikipedia, directorios."
 
-        prompt = f"""Eres un experto en análisis competitivo. Analiza estos resultados.
+        prompt = f"""Analiza estos resultados de búsqueda y extrae los competidores reales.
 
-ENTIDAD A ANALIZAR:
+MARCA A ANALIZAR:
 - Nombre: {brand_name}
 - Tipo: {entity_type.upper()}
 - Industria: {industry}
 - Descripción: {description or 'No disponible'}
 
-RESULTADOS DE BÚSQUEDA:
+RESULTADOS:
 {candidates_text}
 
-TAREA: Identifica SOLO los competidores directos para una entidad de tipo {entity_type.upper()}.
-{criteria}
+TAREA: 
+1. Identifica los competidores directos ({criteria})
+2. Para cada uno, extrae el NOMBRE REAL de la empresa (no el título de la página, no fechas, no descripciones genéricas)
 
-Responde ÚNICAMENTE con un JSON array de números de los candidatos válidos.
-Ejemplo: [1, 4, 7]"""
+Responde SOLO con un JSON array así:
+[
+  {{"index": 1, "name": "Nombre Real Empresa"}},
+  {{"index": 4, "name": "Otra Empresa"}}
+]
+
+IMPORTANTE sobre el nombre:
+- Usa el nombre comercial/marca de la empresa
+- Si el título es una fecha o descripción genérica, deduce el nombre del dominio
+- Ejemplo: dominio "ifma-spain.org" → nombre "IFMA Spain"
+- Ejemplo: dominio "eulen.com" → nombre "Eulen"
+"""
 
         try:
             response = await llm.generate_text(
                 prompt=prompt,
                 model="gpt-4o-mini",
-                max_tokens=100,
+                max_tokens=300,
                 temperature=0
             )
             
             import re
-            match = re.search(r'\[[\d,\s]*\]', response.text.strip())
+            # Try to parse JSON array with objects
+            match = re.search(r'\[[\s\S]*?\]', response.text.strip())
             if match:
-                indices = json.loads(match.group())
-                filtered = [candidates[i-1] for i in indices if 0 < i <= len(candidates)]
-                print(f"AI filtered {len(candidates)} candidates to {len(filtered)} competitors (Type: {entity_type})")
-                return filtered
+                results = json.loads(match.group())
+                filtered = []
+                for item in results:
+                    idx = item.get('index', 0)
+                    name = item.get('name', '')
+                    if 0 < idx <= len(candidates) and name:
+                        competitor = candidates[idx - 1].copy()
+                        competitor['name'] = name  # Override with AI-extracted name
+                        filtered.append(competitor)
+                
+                if filtered:
+                    log_success("🎯✅", f"AI filtered {len(candidates)} candidates to {len(filtered)} competitors (Type: {entity_type})")
+                    return filtered
             
             return candidates[:5]
             
         except Exception as e:
-            print(f"AI filtering failed: {e}, returning unfiltered results")
+            log_warning("🎯⚠️", f"AI filtering failed: {e}, returning unfiltered results")
             return candidates[:5]
 
-    async def search_competitors(
-        self, 
-        brand_name: str, 
+    async def _get_competitors_from_llm(
+        self,
+        brand_name: str,
+        industry: str,
+        description: str = "",
+        services: str = "",
+        country: str = "ES",
+        language: str = "es",
+        max_results: int = 10
+    ) -> List[Dict[str, Any]]:
+        """
+        Get competitors directly from LLM knowledge (no web search).
+        The LLM knows about established companies from its training data.
+        """
+        llm = await self._get_llm_service()
+        if not llm:
+            return []
+        
+        lang_text = "español" if language == "es" else "English"
+        country_text = f"en {country}" if country else ""
+        
+        prompt = f"""Eres un experto en análisis de mercado. Dame los principales competidores de esta empresa.
+
+EMPRESA:
+- Nombre: {brand_name}
+- Industria: {industry}
+- Descripción: {description or 'No disponible'}
+- Servicios: {services or 'No especificados'}
+- País: {country}
+
+TAREA: Lista los {max_results} principales competidores directos {country_text}.
+
+Responde SOLO con un JSON array así:
+[
+  {{"name": "Nombre Empresa", "domain": "empresa.com", "reason": "Por qué es competidor"}},
+  {{"name": "Otra Empresa", "domain": "otra.com", "reason": "Razón"}}
+]
+
+IMPORTANTE:
+- Solo empresas REALES que existan
+- Incluye el dominio web real
+- Competidores directos del mismo sector/servicios
+- Responde en {lang_text}"""
+
+        try:
+            response = await llm.generate_text(
+                prompt=prompt,
+                model="gpt-4o-mini",
+                max_tokens=800,
+                temperature=0.3
+            )
+            
+            import re
+            match = re.search(r'\[[\s\S]*?\]', response.text.strip())
+            if match:
+                results = json.loads(match.group())
+                competitors = []
+                for item in results:
+                    name = item.get('name', '')
+                    domain = item.get('domain', '')
+                    if name and domain:
+                        # Clean domain
+                        domain = domain.lower().strip()
+                        if domain.startswith('http'):
+                            from urllib.parse import urlparse
+                            domain = urlparse(domain).netloc
+                        if domain.startswith('www.'):
+                            domain = domain[4:]
+                        
+                        competitors.append({
+                            'name': name,
+                            'domain': domain,
+                            'snippet': item.get('reason', ''),
+                            'favicon': self._get_favicon_url(domain),
+                            'source': 'llm_knowledge',
+                            'confidence': 'high'
+                        })
+                
+                log_success("🧠✅", f"LLM found {len(competitors)} competitors from knowledge base")
+                return competitors
+            
+            return []
+            
+        except Exception as e:
+            log_error("🧠❌", f"LLM competitor search failed: {e}")
+            return []
+
+    async def _get_competitors_from_web_search(
+        self,
+        brand_name: str,
         industry: str,
         domain: str = "",
         description: str = "",
         services: str = "",
-        max_results: int = 5,
         entity_type: str = "business",
         country: str = "ES",
-        language: str = "es"
+        language: str = "es",
+        max_results: int = 10
     ) -> List[Dict[str, Any]]:
         """
-        Search for REAL competitors in the same industry, respecting entity type and location.
+        Get competitors from DuckDuckGo web search + AI validation.
         """
         if not self.enabled:
             return []
@@ -321,7 +453,7 @@ Ejemplo: [1, 4, 7]"""
             if not queries:
                 queries = [f'{brand_name} {t["competitors"]}', f'{t["similar"]} {brand_name}']
             
-            print(f"Competitor search queries (Type: {entity_type}, Loc: {country}): {queries}")
+            log_info("🔍🏢", f"Competitor search queries (Type: {entity_type}, Loc: {country}): {queries}")
             
             all_candidates = []
             seen_domains: Set[str] = set()
@@ -382,36 +514,121 @@ Ejemplo: [1, 4, 7]"""
             return filtered[:max_results]
             
         except Exception as e:
-            print(f"Error in competitor search: {e}")
+            log_error("🏢❌", f"Error in web search competitor discovery: {e}")
             return []
+
+    async def search_competitors(
+        self, 
+        brand_name: str, 
+        industry: str,
+        domain: str = "",
+        description: str = "",
+        services: str = "",
+        max_results: int = 10,
+        entity_type: str = "business",
+        country: str = "ES",
+        language: str = "es"
+    ) -> List[Dict[str, Any]]:
+        """
+        Search for competitors using multiple sources and combine results.
+        
+        Sources:
+        1. LLM Knowledge - Competitors the AI knows from training data (high confidence)
+        2. Web Search - Real-time search via DuckDuckGo + AI validation (medium confidence)
+        
+        Each competitor is tagged with its source for analytics.
+        """
+        log_info("🔍🚀", f"Starting multi-source competitor discovery for: {brand_name}")
+        
+        # Run both searches in parallel
+        llm_results, web_results = await asyncio.gather(
+            self._get_competitors_from_llm(
+                brand_name=brand_name,
+                industry=industry,
+                description=description,
+                services=services,
+                country=country,
+                language=language,
+                max_results=8
+            ),
+            self._get_competitors_from_web_search(
+                brand_name=brand_name,
+                industry=industry,
+                domain=domain,
+                description=description,
+                services=services,
+                entity_type=entity_type,
+                country=country,
+                language=language,
+                max_results=8
+            ),
+            return_exceptions=True
+        )
+        
+        # Handle exceptions
+        if isinstance(llm_results, Exception):
+            log_error("🧠❌", f"LLM search failed: {llm_results}")
+            llm_results = []
+        if isinstance(web_results, Exception):
+            log_error("🔍❌", f"Web search failed: {web_results}")
+            web_results = []
+        
+        # Merge results, avoiding duplicates by domain
+        seen_domains: Set[str] = set()
+        if domain:
+            seen_domains.add(self._normalize_domain(domain))
+        
+        merged = []
+        
+        # Add LLM results first (higher confidence)
+        for comp in llm_results:
+            normalized = self._normalize_domain(comp.get('domain', ''))
+            if normalized and normalized not in seen_domains:
+                seen_domains.add(normalized)
+                merged.append(comp)
+        
+        # Add web search results that aren't duplicates
+        for comp in web_results:
+            normalized = self._normalize_domain(comp.get('domain', ''))
+            if normalized and normalized not in seen_domains:
+                seen_domains.add(normalized)
+                merged.append(comp)
+        
+        log_success("🎯✅", f"Found {len(merged)} unique competitors ({len(llm_results)} from LLM, {len(web_results)} from web search)")
+        
+        return merged[:max_results]
     
     def _is_excluded_domain(self, domain: str) -> bool:
         # Deprecated: We now use AI context-aware filtering
         return False
     
     def _extract_company_name(self, title: str, domain: str) -> str:
-        """Extract clean company name from search result title."""
+        """
+        Extract a preliminary company name from search result title.
+        This is just a fallback - the AI will provide the final correct name.
+        """
         if not title:
-            return ""
+            return self._domain_to_name(domain)
         
-        # Clean up title
+        # Just do basic cleanup - AI will fix the name later
         name = title.split('|')[0].strip()
-        name = name.split('-')[0].strip()
-        name = name.split('–')[0].strip()
+        name = name.split(' - ')[0].strip()
         name = name.split(':')[0].strip()
         
-        # Remove common suffixes
-        for suffix in [' S.A.', ' S.L.', ' S.L.U.', ' Inc.', ' Ltd.', ' LLC', ' GmbH']:
-            if name.endswith(suffix):
-                name = name[:-len(suffix)].strip()
+        # If it looks like garbage, use domain
+        if len(name) < 2 or len(name) > 60:
+            return self._domain_to_name(domain)
         
-        # If name is too long or looks like a sentence, try to use domain
-        if len(name) > 50 or ' es ' in name.lower() or ' the ' in name.lower():
-            domain_name = domain.split('.')[0] if domain else ""
-            if domain_name and len(domain_name) > 2:
-                return domain_name.replace('-', ' ').title()
-        
-        return name if len(name) > 1 else ""
+        return name
+    
+    def _domain_to_name(self, domain: str) -> str:
+        """Convert domain to a readable company name."""
+        if not domain:
+            return ""
+        domain_name = domain.split('.')[0]
+        if domain_name and len(domain_name) > 2:
+            return domain_name.replace('-', ' ').replace('_', ' ').title()
+        return ""
 
     async def search_brand_mentions(
         self, 
@@ -443,7 +660,7 @@ Ejemplo: [1, 4, 7]"""
             )
             return results
         except Exception as e:
-            print(f"Error in brand mentions search: {e}")
+            log_error("📰❌", f"Error in brand mentions search: {e}")
             return []
     
     async def search_keywords(
@@ -478,7 +695,7 @@ Ejemplo: [1, 4, 7]"""
             )
             return results
         except Exception as e:
-            print(f"Error in keyword search: {e}")
+            log_error("🔑❌", f"Error in keyword search: {e}")
             return []
     
     async def search_industry_terms(
@@ -509,7 +726,7 @@ Ejemplo: [1, 4, 7]"""
             )
             return results
         except Exception as e:
-            print(f"Error in industry search: {e}")
+            log_error("🏭❌", f"Error in industry search: {e}")
             return []
     
     def _search_sync(self, query: str, max_results: int) -> List[Dict[str, Any]]:
@@ -528,7 +745,7 @@ Ejemplo: [1, 4, 7]"""
                 results = list(ddgs.text(query, max_results=max_results))
                 return results
         except Exception as e:
-            print(f"DuckDuckGo search failed for '{query}': {e}")
+            log_error("🦆❌", f"DuckDuckGo search failed for '{query}': {e}")
             return []
     
     def _extract_domain(self, url: str) -> str:
@@ -613,13 +830,13 @@ Ejemplo: [1, 4, 7]"""
             Dictionary with all search context data
         """
         if not self.enabled:
-            print("Web search disabled - skipping real data gathering")
+            log_warning("🔍❌", "Web search disabled - skipping real data gathering")
             return {
                 "enabled": False,
                 "message": "Web search is disabled. Install duckduckgo-search to enable."
             }
         
-        print(f"Gathering web search context for: {brand_name} (Loc: {country}, Lang: {language})")
+        log_info("🌐🔍", f"Gathering web search context for: {brand_name} (Loc: {country}, Lang: {language})")
         
         # Perform searches in parallel
         keyword_results, competitor_results, mention_results, industry_results = await asyncio.gather(
@@ -641,16 +858,16 @@ Ejemplo: [1, 4, 7]"""
         
         # Handle any exceptions from parallel execution
         if isinstance(keyword_results, Exception):
-            print(f"Keyword search error: {keyword_results}")
+            log_error("🔑❌", f"Keyword search error: {keyword_results}")
             keyword_results = []
         if isinstance(competitor_results, Exception):
-            print(f"Competitor search error: {competitor_results}")
+            log_error("🏢❌", f"Competitor search error: {competitor_results}")
             competitor_results = []
         if isinstance(mention_results, Exception):
-            print(f"Mention search error: {mention_results}")
+            log_error("📰❌", f"Mention search error: {mention_results}")
             mention_results = []
         if isinstance(industry_results, Exception):
-            print(f"Industry search error: {industry_results}")
+            log_error("🏭❌", f"Industry search error: {industry_results}")
             industry_results = []
         
         context = {
@@ -671,5 +888,5 @@ Ejemplo: [1, 4, 7]"""
             )
         }
         
-        print(f"Search context gathered: {context['total_results']} total results")
+        log_success("🌐✅", f"Search context gathered: {context['total_results']} total results")
         return context

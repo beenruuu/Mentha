@@ -22,6 +22,8 @@ class BrandUpdate(BaseModel):
     logo_url: Optional[str] = None
     description: Optional[str] = None
     industry: Optional[str] = None
+    discovery_prompts: Optional[List[str]] = None
+    ai_providers: Optional[List[str]] = None
 
 class Brand(BrandBase):
     id: UUID

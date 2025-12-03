@@ -10,6 +10,41 @@ from app.models.competitor import Competitor
 from app.services.supabase.database import SupabaseDatabaseService
 
 
+# =============================================================================
+# ANSI Color Codes for Terminal Output
+# =============================================================================
+class Colors:
+    RED = "\033[91m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    BLUE = "\033[94m"
+    MAGENTA = "\033[95m"
+    CYAN = "\033[96m"
+    WHITE = "\033[97m"
+    BOLD = "\033[1m"
+    RESET = "\033[0m"
+
+
+def log_info(emoji: str, message: str):
+    """Log info message with emoji and cyan color."""
+    print(f"{Colors.CYAN}{emoji} {message}{Colors.RESET}")
+
+
+def log_success(emoji: str, message: str):
+    """Log success message with emoji and green color."""
+    print(f"{Colors.GREEN}{emoji} {message}{Colors.RESET}")
+
+
+def log_error(emoji: str, message: str):
+    """Log error message with emoji and red color."""
+    print(f"{Colors.RED}{emoji} {message}{Colors.RESET}")
+
+
+def log_warning(emoji: str, message: str):
+    """Log warning message with emoji and yellow color."""
+    print(f"{Colors.YELLOW}{emoji} {message}{Colors.RESET}")
+
+
 class AnalysisResultsIngestionService:
     """Persists structured LLM output into the relational tables used by the UI."""
 
@@ -27,7 +62,7 @@ class AnalysisResultsIngestionService:
         keyword_metrics: Optional[Dict[str, Any]] = None
     ) -> None:
         if not results:
-            print("No results to ingest.")
+            log_warning("📦⚠️", "No results to ingest.")
             return
 
         try:
@@ -38,21 +73,21 @@ class AnalysisResultsIngestionService:
                 real_keywords = keyword_metrics.get("keywords", [])
                 keywords_data = self._merge_keyword_metrics(keywords_data, real_keywords)
             
-            print(f"Ingesting keywords: {len(keywords_data)} found.")
+            log_info("🔑📥", f"Ingesting keywords: {len(keywords_data)} found.")
             await self._ingest_keywords(analysis, keywords_data)
             
-            print(f"Ingesting competitors: {len(results.get('competitors', []))} found.")
+            log_info("🏢📥", f"Ingesting competitors: {len(results.get('competitors', []))} found.")
             await self._ingest_competitors(analysis, results.get("competitors"))
             
             # Note: Crawler activity data is NOT ingested from LLM results
             # Real crawler data should come from server logs or analytics integrations
             # The LLM only provides robots.txt permission analysis, not actual visit data
             
-            print(f"Ingesting queries: {len(results.get('queries', []))} found.")
+            log_info("❓📥", f"Ingesting queries: {len(results.get('queries', []))} found.")
             await self._ingest_queries(analysis, results.get("queries"))
             
         except Exception as ingestion_error:
-            print(f"Failed to ingest analysis results: {ingestion_error}")
+            log_error("📦❌", f"Failed to ingest analysis results: {ingestion_error}")
 
     def _merge_keyword_metrics(
         self,
@@ -129,7 +164,7 @@ class AnalysisResultsIngestionService:
                 delete_query = delete_query.eq("brand_id", brand_id)
             delete_query.execute()
         except Exception as delete_error:
-            print(f"Failed to clean previous keywords: {delete_error}")
+            log_error("🔑❌", f"Failed to clean previous keywords: {delete_error}")
 
         created = 0
         for item in keywords:
@@ -151,7 +186,7 @@ class AnalysisResultsIngestionService:
             await self.keyword_db.create(payload)
             created += 1
 
-        print(f"Hydrated {created} keywords for user {user_id}")
+        log_success("🔑✅", f"Hydrated {created} keywords for user {user_id}")
 
     async def _ingest_competitors(self, analysis: Analysis, competitors: Optional[List[Dict[str, Any]]]) -> None:
         if not competitors or not analysis.brand_id:
@@ -163,7 +198,7 @@ class AnalysisResultsIngestionService:
         try:
             self.competitor_db.supabase.table("competitors").delete().eq("brand_id", brand_id).execute()
         except Exception as delete_error:
-            print(f"Failed to clean previous competitors: {delete_error}")
+            log_error("🏢❌", f"Failed to clean previous competitors: {delete_error}")
 
         created = 0
         for item in competitors:
@@ -198,7 +233,7 @@ class AnalysisResultsIngestionService:
             await self.competitor_db.create(payload)
             created += 1
 
-        print(f"Hydrated {created} competitors for brand {brand_id}")
+        log_success("🏢✅", f"Hydrated {created} competitors for brand {brand_id}")
 
     async def _ingest_crawlers(self, analysis: Analysis, crawlers: Optional[List[Dict[str, Any]]]) -> None:
         if not crawlers or not analysis.brand_id:
@@ -209,7 +244,7 @@ class AnalysisResultsIngestionService:
         try:
             self.crawler_log_db.supabase.table("crawler_logs").delete().eq("brand_id", brand_id).execute()
         except Exception as delete_error:
-            print(f"Failed to clean previous crawler logs: {delete_error}")
+            log_error("🤖❌", f"Failed to clean previous crawler logs: {delete_error}")
 
         now = datetime.utcnow()
 
@@ -234,7 +269,7 @@ class AnalysisResultsIngestionService:
             await self.crawler_log_db.create(payload)
             created += 1
 
-        print(f"Hydrated {created} crawler logs for brand {brand_id}")
+        log_success("🤖✅", f"Hydrated {created} crawler logs for brand {brand_id}")
     
     async def _ingest_queries(self, analysis: Analysis, queries: Optional[List[Dict[str, Any]]]) -> None:
         """Ingest query/prompt data."""
@@ -249,7 +284,7 @@ class AnalysisResultsIngestionService:
         try:
             self.supabase_client.table("queries").delete().eq("brand_id", brand_id).execute()
         except Exception as delete_error:
-            print(f"Failed to clean previous queries: {delete_error}")
+            log_error("❓❌", f"Failed to clean previous queries: {delete_error}")
 
         created = 0
         for query in queries:
@@ -295,18 +330,18 @@ class AnalysisResultsIngestionService:
                 self.supabase_client.table("queries").insert(payload).execute()
                 created += 1
             except Exception as e:
-                print(f"Failed to create query '{title}': {e}")
+                log_error("❓❌", f"Failed to create query '{title}': {e}")
 
-        print(f"Hydrated {created} queries for brand {brand_id}")
+        log_success("❓✅", f"Hydrated {created} queries for brand {brand_id}")
     
     async def ingest_technical_aeo(self, analysis: Analysis, technical_aeo_data: Dict[str, Any]) -> None:
         """Ingest technical AEO audit results."""
         if not technical_aeo_data or not technical_aeo_data.get("enabled"):
-            print("No technical AEO data to ingest.")
+            log_warning("🔧⚠️", "No technical AEO data to ingest.")
             return
         
         if not analysis.brand_id:
-            print("No brand_id for technical AEO ingestion.")
+            log_warning("🔧⚠️", "No brand_id for technical AEO ingestion.")
             return
         
         user_id = str(analysis.user_id)
@@ -317,7 +352,7 @@ class AnalysisResultsIngestionService:
         try:
             self.supabase_client.table("technical_aeo").delete().eq("brand_id", brand_id).execute()
         except Exception as delete_error:
-            print(f"Failed to clean previous technical AEO data: {delete_error}")
+            log_error("🔧❌", f"Failed to clean previous technical AEO data: {delete_error}")
         
         # Extract structured data info
         schemas = technical_aeo_data.get("structured_data", {})
@@ -345,18 +380,18 @@ class AnalysisResultsIngestionService:
         
         try:
             self.supabase_client.table("technical_aeo").insert(payload).execute()
-            print(f"Saved technical AEO data for brand {brand_id} (score: {payload['aeo_readiness_score']}/100)")
+            log_success("🔧✅", f"Saved technical AEO data for brand {brand_id} (score: {payload['aeo_readiness_score']}/100)")
         except Exception as e:
-            print(f"Failed to save technical AEO data: {e}")
+            log_error("🔧❌", f"Failed to save technical AEO data: {e}")
     
     async def ingest_web_search_results(self, analysis: Analysis, search_context: Dict[str, Any]) -> None:
         """Ingest web search results."""
         if not search_context or not search_context.get("enabled"):
-            print("No web search data to ingest.")
+            log_warning("🌐⚠️", "No web search data to ingest.")
             return
         
         if not analysis.brand_id:
-            print("No brand_id for web search ingestion.")
+            log_warning("🌐⚠️", "No brand_id for web search ingestion.")
             return
         
         user_id = str(analysis.user_id)
@@ -391,9 +426,9 @@ class AnalysisResultsIngestionService:
                 self.supabase_client.table("web_search_results").insert(payload).execute()
                 saved += 1
             except Exception as e:
-                print(f"Failed to save {search_type} search results: {e}")
+                log_error("🌐❌", f"Failed to save {search_type} search results: {e}")
         
-        print(f"Saved {saved} web search result sets for analysis {analysis_id}")
+        log_success("🌐✅", f"Saved {saved} web search result sets for analysis {analysis_id}")
 
     @staticmethod
     def _to_int(value: Any, default: int = 0) -> int:

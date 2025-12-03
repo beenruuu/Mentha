@@ -18,6 +18,42 @@ from app.services.analysis.content_structure_analyzer_service import ContentStru
 from app.services.analysis.knowledge_graph_service import KnowledgeGraphMonitorService
 from app.core.config import settings
 
+# ANSI color codes for terminal output
+class Colors:
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
+    # Colors
+    RED = "\033[91m"
+    GREEN = "\033[92m"
+    YELLOW = "\033[93m"
+    BLUE = "\033[94m"
+    MAGENTA = "\033[95m"
+    CYAN = "\033[96m"
+    WHITE = "\033[97m"
+    GRAY = "\033[90m"
+
+def log_info(emoji: str, message: str, color: str = Colors.CYAN):
+    """Log an info message with emoji and color."""
+    print(f"{color}{emoji} {message}{Colors.RESET}")
+
+def log_success(emoji: str, message: str):
+    """Log a success message in green."""
+    print(f"{Colors.GREEN}{emoji} {message}{Colors.RESET}")
+
+def log_error(emoji: str, message: str):
+    """Log an error message in red."""
+    print(f"{Colors.RED}{emoji} {message}{Colors.RESET}")
+
+def log_warning(emoji: str, message: str):
+    """Log a warning message in yellow."""
+    print(f"{Colors.YELLOW}{emoji} {message}{Colors.RESET}")
+
+def log_phase(phase_num: int, phase_name: str):
+    """Log a phase header."""
+    print(f"\n{Colors.BOLD}{Colors.MAGENTA}{'─'*50}{Colors.RESET}")
+    print(f"{Colors.BOLD}{Colors.MAGENTA}📍 Phase {phase_num}: {phase_name}{Colors.RESET}")
+    print(f"{Colors.BOLD}{Colors.MAGENTA}{'─'*50}{Colors.RESET}")
+
 class AnalysisService:
     def __init__(self):
         self.analysis_db = SupabaseDatabaseService("aeo_analyses", Analysis)
@@ -74,14 +110,19 @@ class AnalysisService:
             brand_name = brand.get('name', '')
             brand_url = brand.get('domain', '')
             
-            print(f"Starting analysis for {brand_name} ({brand_url})")
+            print(f"\n{Colors.BOLD}{Colors.GREEN}{'═'*60}{Colors.RESET}")
+            log_success("🚀", f"Starting analysis for {Colors.BOLD}{brand_name}{Colors.RESET}{Colors.GREEN} ({brand_url})")
+            print(f"{Colors.BOLD}{Colors.GREEN}{'═'*60}{Colors.RESET}\n")
 
             # --- PHASE 1: ENTITY RESOLUTION ---
-            print("Phase 1: Entity Resolution")
+            log_phase(1, "Entity Resolution")
+            log_info("🔍", "Fetching page content...")
+            
             # Fetch basic page content to understand the entity
             page_content = await self.technical_aeo_service.fetch_page_content(brand_url)
             
             # Infer entity type and business info
+            log_info("🧠", "Inferring business info from page...")
             business_info = await self.web_search_service.infer_business_info_from_page(
                 url=brand_url,
                 page_title=page_content.get('title', ''),
@@ -91,10 +132,10 @@ class AnalysisService:
             
             entity_type = business_info.get('entity_type', 'business')
             industry = business_info.get('industry', 'Services')
-            print(f"Detected Entity: {entity_type} | Industry: {industry}")
+            log_success("✅", f"Detected → Entity: {Colors.BOLD}{entity_type}{Colors.RESET}{Colors.GREEN} | Industry: {Colors.BOLD}{industry}{Colors.RESET}")
 
             # --- PHASE 2: REAL DATA ACQUISITION ---
-            print("Phase 2: Real Data Acquisition")
+            log_phase(2, "Real Data Acquisition")
             
             # Run data gathering in parallel
             # 1. Web Search (Competitors & Context) - Pass entity_type for smart filtering
@@ -152,7 +193,8 @@ class AnalysisService:
             )
 
             # --- PHASE 3: RESULT ASSEMBLY ---
-            print("Phase 3: Result Assembly")
+            log_phase(3, "Result Assembly")
+            log_info("📦", "Constructing result object...")
             
             visual_suggestions = []
 
@@ -186,7 +228,8 @@ class AnalysisService:
             }
             
             # --- PHASE 4: SYNTHESIS ---
-            print("Phase 4: Synthesis (LLM)")
+            log_phase(4, "Synthesis (LLM)")
+            log_info("🤖", "Generating qualitative insights with AI...")
             
             # Construct prompt with the REAL data
             prompt = self._construct_synthesis_prompt(
@@ -218,7 +261,7 @@ class AnalysisService:
                         "voice_search_readiness": synthesis_data.get("voice_search_readiness", "")
                     })
                 except json.JSONDecodeError:
-                    print(f"Failed to parse LLM JSON response: {synthesis_response.text}")
+                    log_error("❌", f"Failed to parse LLM JSON response")
                     results.update({"summary": "Failed to generate synthesis."})
                 
                 # Enrich competitors with AI insights if available
@@ -242,7 +285,8 @@ class AnalysisService:
             })
 
             # 7. Ingest Structured Results into DB
-            print(f"Ingesting results into database for analysis {analysis_id}...")
+            log_phase(5, "Database Ingestion")
+            log_info("💾", f"Ingesting results for analysis {analysis_id}...")
             await self.ingestion_service.ingest_results(analysis, results, {"keywords": keywords_data})
             await self.ingestion_service.ingest_technical_aeo(analysis, technical_data)
             await self.ingestion_service.ingest_web_search_results(analysis, search_context)
@@ -262,18 +306,20 @@ class AnalysisService:
                         update_payload["entity_type"] = entity_type
                         
                     if update_payload:
-                        print(f"Updating Brand {analysis.brand_id} with inferred info: {update_payload}")
+                        log_info("🏷️", f"Updating Brand with inferred info: {update_payload}")
                         await brand_db.update(str(analysis.brand_id), update_payload)
                 except Exception as brand_update_error:
-                    print(f"Failed to update Brand info: {brand_update_error}")
+                    log_error("❌", f"Failed to update Brand info: {brand_update_error}")
 
-            print("Ingestion completed.")
+            print(f"\n{Colors.BOLD}{Colors.GREEN}{'═'*60}{Colors.RESET}")
+            log_success("✅", f"Analysis completed successfully for {Colors.BOLD}{brand_name}{Colors.RESET}")
+            print(f"{Colors.BOLD}{Colors.GREEN}{'═'*60}{Colors.RESET}\n")
 
             # 8. Persist notifications
             await self._handle_notifications(analysis, results, success=True)
 
         except Exception as e:
-            print(f"Analysis failed: {e}")
+            log_error("💥", f"Analysis failed: {e}")
             import traceback
             traceback.print_exc()
             await self.analysis_db.update(str(analysis_id), {

@@ -2,11 +2,10 @@
 
 import { useOnboarding } from '@/lib/context/onboarding-context'
 import { useEffect, useState, useRef } from 'react'
-import { CheckCircle2, Loader2, Sparkles, AlertCircle, Building2, Users, Settings, Rocket } from 'lucide-react'
+import { CheckCircle2, Loader2, Sparkles, AlertCircle, Users, Settings, Rocket } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { geoAnalysisService } from '@/lib/services/geo-analysis'
 
 import { fetchAPI } from '@/lib/api-client'
 import { useRouter } from 'next/navigation'
@@ -22,13 +21,10 @@ interface SetupTask {
 
 export default function SetupStep() {
     const {
-        userInfo,
-        companyInfo,
-        brandProfile,
+        brandId,
         competitors,
         researchPrompts,
         scheduleConfig,
-        setBrandId
     } = useOnboarding()
     const router = useRouter()
     const { lang } = useTranslations()
@@ -36,37 +32,30 @@ export default function SetupStep() {
 
     const [tasks, setTasks] = useState<SetupTask[]>([
         {
-            id: 'org',
-            message: 'Creating organization...',
-            messageEs: 'Creando organización...',
-            status: 'pending',
-            icon: <Building2 className="w-4 h-4" />
-        },
-        {
-            id: 'site',
-            message: 'Adding website...',
-            messageEs: 'Añadiendo sitio web...',
+            id: 'prompts',
+            message: 'Saving research prompts...',
+            messageEs: 'Guardando prompts de investigación...',
             status: 'pending',
             icon: <Settings className="w-4 h-4" />
         },
         {
+            id: 'schedule',
+            message: 'Configuring AI models...',
+            messageEs: 'Configurando modelos IA...',
+            status: 'pending',
+            icon: <Sparkles className="w-4 h-4" />
+        },
+        {
             id: 'competitors',
-            message: 'Processing competitors...',
-            messageEs: 'Procesando competidores...',
+            message: 'Saving competitors...',
+            messageEs: 'Guardando competidores...',
             status: 'pending',
             icon: <Users className="w-4 h-4" />
         },
         {
             id: 'analysis',
-            message: 'Starting GEO analysis...',
-            messageEs: 'Iniciando análisis GEO...',
-            status: 'pending',
-            icon: <Sparkles className="w-4 h-4" />
-        },
-        {
-            id: 'finalize',
-            message: 'Finalizing setup...',
-            messageEs: 'Finalizando configuración...',
+            message: 'Starting full analysis...',
+            messageEs: 'Iniciando análisis completo...',
             status: 'pending',
             icon: <Rocket className="w-4 h-4" />
         },
@@ -76,10 +65,10 @@ export default function SetupStep() {
     const [error, setError] = useState<string | null>(null)
 
     const t = {
-        title: lang === 'es' ? 'Configurando tu cuenta' : 'Setting up your account',
+        title: lang === 'es' ? 'Finalizando configuración' : 'Finalizing setup',
         subtitle: lang === 'es'
-            ? 'Estamos preparando todo para ti. Esto solo tomará un momento.'
-            : 'We are preparing everything for you. This will only take a moment.',
+            ? 'Estamos guardando tus preferencias. Esto solo tomará un momento.'
+            : 'We are saving your preferences. This will only take a moment.',
         progress: lang === 'es' ? 'Progreso' : 'Progress',
         redirecting: lang === 'es' ? 'Redirigiendo al dashboard...' : 'Redirecting to dashboard...',
         errorMessage: lang === 'es'
@@ -104,171 +93,123 @@ export default function SetupStep() {
         let redirectTimeout: NodeJS.Timeout | null = null
 
         const runSetup = async () => {
+            if (!brandId) {
+                setError(lang === 'es' ? 'No se encontró la marca. Por favor, vuelve a intentarlo.' : 'Brand not found. Please try again.')
+                return
+            }
+
             try {
-                // Task 1: Create organization / Update user profile
-                updateTaskStatus('org', 'running')
+                // Task 1: Save research prompts
+                updateTaskStatus('prompts', 'running')
                 setOverallProgress(10)
-                addLog(lang === 'es' ? 'Iniciando configuración...' : 'Starting setup...')
+                addLog(lang === 'es' ? 'Guardando prompts de investigación...' : 'Saving research prompts...')
 
-                await fetchAPI('/auth/me', {
-                    method: 'PUT',
-                    body: JSON.stringify({
-                        full_name: `${userInfo.firstName} ${userInfo.lastName}`,
-                        seo_experience: userInfo.seoExperience || null,
-                    })
-                })
+                const selectedPrompts = researchPrompts.map((p: { text: string }) => p.text)
+                
+                if (selectedPrompts.length > 0) {
+                    try {
+                        await fetchAPI(`/brands/${brandId}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({
+                                discovery_prompts: selectedPrompts,
+                            })
+                        })
+                        addLog(lang === 'es' ? `${selectedPrompts.length} prompts guardados` : `${selectedPrompts.length} prompts saved`)
+                    } catch (promptErr: any) {
+                        console.warn('Failed to save prompts:', promptErr)
+                        addLog(lang === 'es' ? 'Prompts se guardarán después' : 'Prompts will be saved later')
+                    }
+                }
 
-                updateTaskStatus('org', 'completed')
-                setOverallProgress(20)
-                addLog(lang === 'es' ? 'Perfil de usuario actualizado' : 'User profile updated')
-                await new Promise(resolve => setTimeout(resolve, 500))
-
-                // Task 2: Add website / Create brand
-                updateTaskStatus('site', 'running')
+                updateTaskStatus('prompts', 'completed')
                 setOverallProgress(30)
-                addLog(lang === 'es' ? 'Creando marca y sitio web...' : 'Creating brand and website...')
+                await new Promise(resolve => setTimeout(resolve, 200))
+
+                // Task 2: Configure AI models
+                if (!isMounted) return
+                updateTaskStatus('schedule', 'running')
+                setOverallProgress(45)
+                addLog(lang === 'es' ? 'Configurando modelos IA...' : 'Configuring AI models...')
 
                 const selectedProviders = scheduleConfig.models
                     .filter((m: { enabled: boolean }) => m.enabled)
                     .map((m: { modelId: string }) => m.modelId)
 
-                const selectedPrompts = researchPrompts.map((p: { text: string }) => p.text)
-
-                const brand = await fetchAPI<{ id: string }>('/brands/', {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        domain: companyInfo.websiteUrl,
-                        name: brandProfile.name,
-                        industry: brandProfile.category,
-                        description: brandProfile.description,
-                        logo: brandProfile.logo,
-                        location: companyInfo.location,
-                        discovery_prompts: selectedPrompts,
-                        ai_providers: selectedProviders,
-                    })
-                })
-
-                setBrandId(brand.id)
-                updateTaskStatus('site', 'completed')
-                setOverallProgress(45)
-                addLog(lang === 'es' ? 'Marca creada exitosamente' : 'Brand created successfully')
-                await new Promise(resolve => setTimeout(resolve, 500))
-
-                // Task 3: Process competitors
-                updateTaskStatus('competitors', 'running')
-                setOverallProgress(55)
-                addLog(lang === 'es' ? `Procesando ${competitors.length} competidores...` : `Processing ${competitors.length} competitors...`)
-
-                if (competitors.length > 0) {
-                    for (const competitor of competitors) {
-                        try {
-                            await fetchAPI(`/brands/${brand.id}/competitors`, {
-                                method: 'POST',
-                                body: JSON.stringify({
-                                    name: competitor.name,
-                                    domain: competitor.domain,
-                                })
+                if (selectedProviders.length > 0) {
+                    try {
+                        await fetchAPI(`/brands/${brandId}`, {
+                            method: 'PUT',
+                            body: JSON.stringify({
+                                ai_providers: selectedProviders,
                             })
-                        } catch (e) {
-                            console.warn('Failed to add competitor:', competitor.name, e)
-                        }
+                        })
+                        addLog(lang === 'es' ? `${selectedProviders.length} modelos configurados` : `${selectedProviders.length} models configured`)
+                    } catch (modelErr: any) {
+                        console.warn('Failed to save AI providers:', modelErr)
+                        addLog(lang === 'es' ? 'Modelos se configurarán después' : 'Models will be configured later')
+                    }
+                }
+
+                updateTaskStatus('schedule', 'completed')
+                setOverallProgress(60)
+                await new Promise(resolve => setTimeout(resolve, 200))
+
+                // Task 3: Save all competitors to database
+                if (!isMounted) return
+                updateTaskStatus('competitors', 'running')
+                setOverallProgress(70)
+                addLog(lang === 'es' ? `Guardando ${competitors.length} competidores...` : `Saving ${competitors.length} competitors...`)
+
+                // Save all competitors (they were discovered but not yet persisted)
+                for (const competitor of competitors) {
+                    try {
+                        await fetchAPI(`/competitors/`, {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                brand_id: brandId,
+                                name: competitor.name,
+                                domain: competitor.domain,
+                                favicon: competitor.logo,
+                                source: competitor.source || 'manual',
+                                confidence: competitor.confidence || 'medium',
+                            })
+                        })
+                    } catch (e) {
+                        // Ignore duplicate errors
+                        console.warn('Failed to add competitor:', competitor.name, e)
                     }
                 }
 
                 updateTaskStatus('competitors', 'completed')
-                setOverallProgress(70)
-                addLog(lang === 'es' ? 'Competidores procesados' : 'Competitors processed')
-                await new Promise(resolve => setTimeout(resolve, 500))
+                setOverallProgress(85)
+                addLog(lang === 'es' ? 'Competidores guardados' : 'Competitors saved')
+                await new Promise(resolve => setTimeout(resolve, 300))
 
-                // Task 4: Start GEO Analysis
+                // Task 4: Trigger full analysis
+                if (!isMounted) return
                 updateTaskStatus('analysis', 'running')
-                setOverallProgress(75)
-                addLog(lang === 'es' ? 'Iniciando análisis GEO completo...' : 'Starting full GEO analysis...')
+                setOverallProgress(90)
+                addLog(lang === 'es' ? 'Iniciando análisis completo en segundo plano...' : 'Starting full analysis in background...')
 
                 try {
-                    const analysis = await geoAnalysisService.analyze({
-                        brand_name: brandProfile.name,
-                        domain: companyInfo.websiteUrl,
-                        industry: brandProfile.category,
-                        competitors: competitors.map((c: { domain: string }) => c.domain),
-                        topics: selectedPrompts,
-                        run_full_analysis: true
+                    // Trigger the full analysis (runs in background)
+                    await fetchAPI(`/analysis/trigger/${brandId}`, {
+                        method: 'POST'
                     })
-
-                    // Poll for progress
-                    let isComplete = false
-                    const processedModules = new Set<string>()
-
-                    while (!isComplete && isMounted) {
-                        await new Promise(r => setTimeout(r, 2000))
-                        if (!isMounted) break
-                        const status = await geoAnalysisService.getAnalysis(analysis.id)
-
-                        // Check modules and add logs
-                        if (status.modules.ai_visibility && !processedModules.has('ai_visibility')) {
-                            processedModules.add('ai_visibility')
-                            addLog(lang === 'es' ? 'Visibilidad IA analizada' : 'AI Visibility analyzed')
-                            setOverallProgress(prev => Math.min(prev + 5, 90))
-                        }
-                        if (status.modules.citations && !processedModules.has('citations')) {
-                            processedModules.add('citations')
-                            addLog(lang === 'es' ? 'Citas rastreadas' : 'Citations tracked')
-                            setOverallProgress(prev => Math.min(prev + 5, 90))
-                        }
-                        if (status.modules.search_simulator && !processedModules.has('search_simulator')) {
-                            processedModules.add('search_simulator')
-                            addLog(lang === 'es' ? 'Simulación de búsqueda completada' : 'Search simulation completed')
-                            setOverallProgress(prev => Math.min(prev + 5, 90))
-                        }
-                        if (status.modules.content_structure && !processedModules.has('content_structure')) {
-                            processedModules.add('content_structure')
-                            addLog(lang === 'es' ? 'Estructura de contenido analizada' : 'Content structure analyzed')
-                            setOverallProgress(prev => Math.min(prev + 5, 90))
-                        }
-                        if (status.modules.knowledge_graph && !processedModules.has('knowledge_graph')) {
-                            processedModules.add('knowledge_graph')
-                            addLog(lang === 'es' ? 'Gráfico de conocimiento verificado' : 'Knowledge graph checked')
-                            setOverallProgress(prev => Math.min(prev + 5, 90))
-                        }
-                        if (status.modules.eeat && !processedModules.has('eeat')) {
-                            processedModules.add('eeat')
-                            addLog(lang === 'es' ? 'Señales E-E-A-T analizadas' : 'E-E-A-T signals analyzed')
-                            setOverallProgress(prev => Math.min(prev + 5, 90))
-                        }
-
-                        if (status.status === 'completed' || status.status === 'failed') {
-                            isComplete = true
-                        }
-                    }
+                    addLog(lang === 'es' ? 'Análisis iniciado correctamente' : 'Analysis started successfully')
                 } catch (e) {
-                    console.error('Failed to start GEO analysis:', e)
-                    addLog(lang === 'es' ? 'Error en el análisis (continuando...)' : 'Analysis failed (continuing...)')
-                    // No bloqueamos el setup por error en análisis
+                    console.warn('Failed to trigger analysis:', e)
+                    addLog(lang === 'es' ? 'El análisis se ejecutará automáticamente' : 'Analysis will run automatically')
                 }
 
-                if (!isMounted) return
                 updateTaskStatus('analysis', 'completed')
-                setOverallProgress(95)
-                addLog(lang === 'es' ? 'Análisis completado' : 'Analysis completed')
-                await new Promise(resolve => setTimeout(resolve, 500))
-
-                // Task 5: Finalize
-                if (!isMounted) return
-                updateTaskStatus('finalize', 'running')
-                setOverallProgress(98)
-                addLog(lang === 'es' ? 'Finalizando...' : 'Finalizing...')
-
-                await new Promise(resolve => setTimeout(resolve, 800))
-                if (!isMounted) return
-
-                updateTaskStatus('finalize', 'completed')
                 setOverallProgress(100)
                 addLog(lang === 'es' ? '¡Todo listo!' : 'All set!')
 
                 // Redirect to dashboard after a short delay
-                await new Promise(resolve => setTimeout(resolve, 1500))
+                await new Promise(resolve => setTimeout(resolve, 1000))
                 if (!isMounted) return
-                router.push(`/brand/${brand.id}`)
+                router.push(`/brand/${brandId}`)
 
             } catch (err: any) {
                 console.error('Setup failed:', err)
@@ -282,7 +223,8 @@ export default function SetupStep() {
 
                 // Redirect to dashboard after error
                 redirectTimeout = setTimeout(() => {
-                    if (isMounted) router.push('/dashboard')
+                    if (isMounted && brandId) router.push(`/brand/${brandId}`)
+                    else if (isMounted) router.push('/dashboard')
                 }, 3000)
             }
         }
@@ -293,7 +235,7 @@ export default function SetupStep() {
             isMounted = false
             if (redirectTimeout) clearTimeout(redirectTimeout)
         }
-    }, [])
+    }, [brandId])
 
     const completedTasks = tasks.filter(t => t.status === 'completed').length
 

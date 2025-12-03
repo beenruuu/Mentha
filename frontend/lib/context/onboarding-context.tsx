@@ -36,6 +36,8 @@ export interface Competitor {
     name: string
     domain: string
     logo?: string
+    source?: 'llm_knowledge' | 'web_search' | 'manual' | 'analysis'
+    confidence?: 'high' | 'medium' | 'low'
 }
 
 export interface ResearchPrompt {
@@ -94,6 +96,10 @@ interface OnboardingContextType {
     // Brand ID después de creación
     brandId?: string
     setBrandId: (id: string) => void
+    
+    // Analysis status for tracking background analysis
+    analysisStatus: 'idle' | 'analyzing' | 'completed' | 'error'
+    setAnalysisStatus: (status: 'idle' | 'analyzing' | 'completed' | 'error') => void
 }
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined)
@@ -143,6 +149,9 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
     // Brand ID
     const [brandId, setBrandId] = useState<string | undefined>()
+    
+    // Analysis status for tracking background analysis
+    const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'completed' | 'error'>('idle')
 
     const steps: OnboardingStep[] = [
         'about-you',
@@ -189,7 +198,9 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
             nextStep,
             prevStep,
             brandId,
-            setBrandId
+            setBrandId,
+            analysisStatus,
+            setAnalysisStatus
         }}>
             {children}
         </OnboardingContext.Provider>

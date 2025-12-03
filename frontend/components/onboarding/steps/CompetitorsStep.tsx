@@ -9,6 +9,16 @@ import { useState, useEffect } from 'react'
 import { Plus, Trash2, Edit2, Check, X, Globe, Building2 } from 'lucide-react'
 import { useTranslations } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
+import { fetchAPI } from '@/lib/api-client'
+
+interface DiscoveredCompetitor {
+    name: string
+    domain: string
+    favicon?: string
+    snippet?: string
+    source?: string
+    confidence?: string
+}
 
 export default function CompetitorsStep() {
     const { competitors, setCompetitors, nextStep, prevStep, brandProfile, companyInfo } = useOnboarding()
@@ -18,8 +28,8 @@ export default function CompetitorsStep() {
     const [editingId, setEditingId] = useState<string | null>(null)
     const [editData, setEditData] = useState({ name: '', domain: '' })
     const [showAddForm, setShowAddForm] = useState(false)
-    const [isDiscovering, setIsDiscovering] = useState(false)
-    const [hasDiscovered, setHasDiscovered] = useState(false)
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState('')
 
     const t = {
         title: lang === 'es' ? 'Competidores' : 'Competitors',
@@ -40,57 +50,83 @@ export default function CompetitorsStep() {
         back: lang === 'es' ? 'Atrás' : 'Back',
         step: lang === 'es' ? 'Paso 4 de 6' : 'Step 4 of 6',
         skip: lang === 'es' ? 'Saltar por ahora' : 'Skip for now',
-        discovering: lang === 'es' ? 'Detectando competidores...' : 'Detecting competitors...',
+        analyzing: lang === 'es' ? 'Analizando competidores...' : 'Analyzing competitors...',
+        almostReady: lang === 'es' ? 'Casi listo...' : 'Almost ready...',
     }
 
-    // Auto-discover competitors on mount if list is empty
+    // Discover competitors using web search (fast, no full analysis)
     useEffect(() => {
-        const discoverCompetitors = async () => {
-            if (competitors.length === 0 && !hasDiscovered && brandProfile.name) {
-                setIsDiscovering(true)
-                try {
-                    const response = await fetch('/api/competitors/discover', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            brand_name: brandProfile.name,
-                            industry: brandProfile.category,
-                            domain: brandProfile.domain,
-                            description: brandProfile.description,
-                            country: companyInfo.location || 'ES',
-                            language: lang
-                        })
-                    })
+        // If we already have competitors loaded, don't search again
+        if (competitors.length > 0) {
+            setIsLoading(false)
+            return
+        }
 
-                    if (response.ok) {
-                        const data = await response.json()
-                        // Map API response to Competitor interface
-                        const mappedCompetitors: Competitor[] = data.map((c: any, index: number) => ({
-                            id: `comp-auto-${Date.now()}-${index}`,
-                            name: c.name,
-                            domain: c.domain,
-                            logo: c.favicon
-                        }))
-                        setCompetitors(mappedCompetitors)
-                    }
-                } catch (error) {
-                    console.error('Failed to discover competitors:', error)
-                } finally {
-                    setIsDiscovering(false)
-                    setHasDiscovered(true)
+        if (!brandProfile.name || !brandProfile.domain) {
+            setIsLoading(false)
+            return
+        }
+
+        let isMounted = true
+
+        const discoverCompetitors = async () => {
+            try {
+                setError('')
+                
+                // Call the discover endpoint directly (fast web search + AI filter)
+                const data = await fetchAPI<DiscoveredCompetitor[]>('/competitors/discover', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        brand_name: brandProfile.name,
+                        industry: brandProfile.category || '',
+                        domain: brandProfile.domain,
+                        description: brandProfile.description || '',
+                        services: [],
+                        country: companyInfo.location || 'ES',
+                        language: lang || 'es'
+                    })
+                })
+                
+                if (!isMounted) return
+
+                if (data && data.length > 0) {
+                    // Map discovered competitors to context format
+                    const mappedCompetitors: Competitor[] = data.map((c, index) => ({
+                        id: `discovered-${index}`,
+                        name: c.name,
+                        domain: c.domain,
+                        logo: c.favicon,
+                        source: c.source as Competitor['source'],
+                        confidence: c.confidence as Competitor['confidence']
+                    }))
+                    setCompetitors(mappedCompetitors)
+                }
+                
+                setIsLoading(false)
+            } catch (err: any) {
+                console.error('Failed to discover competitors:', err)
+                if (isMounted) {
+                    setError(err.message || 'Error discovering competitors')
+                    setIsLoading(false)
                 }
             }
         }
 
         discoverCompetitors()
-    }, [brandProfile.name, competitors.length, hasDiscovered, brandProfile.category, brandProfile.domain, brandProfile.description, companyInfo.location, lang, setCompetitors])
+
+        return () => {
+            isMounted = false
+        }
+    }, [brandProfile.name, brandProfile.domain])
 
     const handleAddCompetitor = () => {
         if (newCompetitor.name && newCompetitor.domain) {
             const competitor: Competitor = {
                 id: `comp-${Date.now()}`,
                 name: newCompetitor.name,
-                domain: newCompetitor.domain.replace(/^https?:\/\//, '').replace(/\/$/, '')
+                domain: newCompetitor.domain.replace(/^https?:\/\//, '').replace(/\/$/, ''),
+                source: 'manual',
+                confidence: 'high'
             }
             setCompetitors([...competitors, competitor])
             setNewCompetitor({ name: '', domain: '' })
@@ -143,13 +179,18 @@ export default function CompetitorsStep() {
 
                 <div className="space-y-3">
                     {/* Loading State */}
-                    {isDiscovering ? (
+                    {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-12 space-y-4">
                             <div className="relative w-12 h-12">
                                 <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
                                 <div className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
                             </div>
-                            <p className="text-sm text-muted-foreground animate-pulse">{t.discovering}</p>
+                            <p className="text-sm text-muted-foreground animate-pulse">
+                                {t.analyzing}
+                            </p>
+                            <p className="text-xs text-muted-foreground/60">
+                                {lang === 'es' ? 'Buscando competidores...' : 'Searching for competitors...'}
+                            </p>
                         </div>
                     ) : (
                         /* Competitor list */
@@ -211,7 +252,22 @@ export default function CompetitorsStep() {
                                             // View mode
                                             <>
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-medium text-white truncate">{competitor.name}</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="font-medium text-white truncate">{competitor.name}</p>
+                                                        {/* Source badge */}
+                                                        {competitor.source && (
+                                                            <span className={cn(
+                                                                "text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0",
+                                                                competitor.source === 'llm_knowledge' && "bg-purple-500/20 text-purple-400",
+                                                                competitor.source === 'web_search' && "bg-blue-500/20 text-blue-400",
+                                                                competitor.source === 'manual' && "bg-green-500/20 text-green-400",
+                                                            )}>
+                                                                {competitor.source === 'llm_knowledge' ? '🧠 AI' : 
+                                                                 competitor.source === 'web_search' ? '🔍 Web' : 
+                                                                 '✏️ Manual'}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                     <p className="text-sm text-muted-foreground truncate flex items-center gap-1">
                                                         <Globe className="w-3 h-3" />
                                                         {competitor.domain}
@@ -309,12 +365,13 @@ export default function CompetitorsStep() {
                     <Button
                         variant="ghost"
                         onClick={prevStep}
+                        disabled={isLoading}
                         className="text-muted-foreground hover:text-white"
                     >
                         {t.back}
                     </Button>
                     <div className="flex gap-3">
-                        {competitors.length === 0 && !isDiscovering && (
+                        {competitors.length === 0 && !isLoading && (
                             <Button
                                 variant="ghost"
                                 onClick={nextStep}
@@ -325,7 +382,7 @@ export default function CompetitorsStep() {
                         )}
                         <Button
                             onClick={nextStep}
-                            disabled={isDiscovering}
+                            disabled={isLoading}
                             className="bg-white text-black hover:bg-white/90 px-8 h-10 rounded-md font-medium transition-all"
                         >
                             {t.next}

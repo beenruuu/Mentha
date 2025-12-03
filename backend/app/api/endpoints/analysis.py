@@ -78,6 +78,33 @@ async def update_analysis(
         
     return await service.update(str(analysis_id), analysis_update.dict(exclude_unset=True))
 
+
+@router.post("/trigger/{brand_id}", response_model=Analysis)
+async def trigger_analysis_for_brand(
+    brand_id: UUID,
+    background_tasks: BackgroundTasks,
+    current_user: UserProfile = Depends(get_current_user),
+    service: SupabaseDatabaseService = Depends(get_analysis_service)
+):
+    """
+    Trigger a new analysis for a specific brand.
+    Creates an analysis record and runs the analysis in the background.
+    """
+    # Create analysis record
+    data = {
+        "user_id": str(current_user.id),
+        "brand_id": str(brand_id),
+        "status": AnalysisStatus.pending,
+    }
+    
+    created_analysis = await service.create(data)
+    
+    # Trigger background task for analysis
+    background_tasks.add_task(run_analysis_task, created_analysis.id)
+    
+    return created_analysis
+
+
 @router.get("/gap/{brand_id}")
 async def get_gap_analysis(
     brand_id: UUID,

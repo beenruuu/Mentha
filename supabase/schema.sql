@@ -71,6 +71,9 @@ CREATE TABLE IF NOT EXISTS public.brands (
   description TEXT,
   industry TEXT,
   entity_type TEXT CHECK (entity_type IN ('business', 'media', 'institution', 'blog', 'other')),
+  ai_providers JSONB DEFAULT '[]'::jsonb,
+  discovery_prompts JSONB DEFAULT '[]'::jsonb,
+  services JSONB DEFAULT '[]'::jsonb,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

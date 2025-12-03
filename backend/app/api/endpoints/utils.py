@@ -1,9 +1,30 @@
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
+from typing import List, Optional
 import httpx
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 
 router = APIRouter()
+
+
+class GeneratePromptsRequest(BaseModel):
+    brand_name: str
+    domain: str
+    industry: Optional[str] = None
+    description: Optional[str] = None
+    competitors: Optional[str] = None
+    location: Optional[str] = None
+    language: str = "es"
+
+
+class PromptItem(BaseModel):
+    text: str
+    type: str  # 'branded' or 'non-branded'
+
+
+class GeneratePromptsResponse(BaseModel):
+    prompts: List[PromptItem]
 
 
 async def fetch_page_content(url: str) -> dict:
@@ -118,7 +139,7 @@ async def get_brand_info(url: str = Query(..., description="The URL to analyze")
         page_data = await fetch_page_content(url)
         
         # Use AI to infer business info
-        from app.services.web_search_service import WebSearchService
+        from app.services.analysis.web_search_service import WebSearchService
         web_service = WebSearchService()
         
         business_info = await web_service.infer_business_info_from_page(
@@ -167,3 +188,94 @@ async def get_brand_info(url: str = Query(..., description="The URL to analyze")
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error analyzing brand: {str(e)}")
+
+
+@router.post("/generate-research-prompts", response_model=GeneratePromptsResponse)
+async def generate_research_prompts(request: GeneratePromptsRequest):
+    """
+    Generate personalized research prompts using AI based on brand info, industry, and competitors.
+    """
+    try:
+        from app.core.config import settings
+        import openai
+        import json
+        
+        client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        
+        # Build context for the AI
+        context_parts = [
+            f"Marca: {request.brand_name}",
+            f"Dominio: {request.domain}",
+        ]
+        if request.industry:
+            context_parts.append(f"Sector/Industria: {request.industry}")
+        if request.description:
+            context_parts.append(f"Descripción: {request.description}")
+        if request.competitors:
+            context_parts.append(f"Competidores: {request.competitors}")
+        if request.location:
+            context_parts.append(f"Ubicación/País: {request.location}")
+        
+        context = "\n".join(context_parts)
+        
+        lang_instruction = "en español" if request.language == "es" else "in English"
+        
+        prompt = f"""Eres un experto en SEO y análisis de intención de búsqueda.
+
+Genera 8-10 prompts de investigación personalizados para analizar la presencia online y posicionamiento de esta marca:
+
+{context}
+
+Los prompts deben ser:
+1. Consultas que usuarios reales buscarían en Google
+2. Relevantes para el sector/industria específico
+3. Una mezcla de:
+   - "branded": consultas que incluyen el nombre de la marca (ej: "marca opiniones", "marca precios")
+   - "non-branded": consultas genéricas del sector sin mencionar la marca (ej: "mejores empresas de X", "servicios de X en ciudad")
+
+Genera los prompts {lang_instruction}.
+
+Responde SOLO con un JSON válido con este formato:
+{{
+  "prompts": [
+    {{"text": "consulta de búsqueda aquí", "type": "branded"}},
+    {{"text": "otra consulta", "type": "non-branded"}}
+  ]
+}}
+
+Importante:
+- Incluye al menos 3 prompts branded y 4 non-branded
+- Los prompts deben ser específicos al sector, no genéricos
+- Si hay competidores, incluye algunos prompts comparativos como "marca vs competidor"
+- Piensa en diferentes intenciones: informacional, transaccional, comparativa"""
+
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            response_format={"type": "json_object"}
+        )
+        
+        result = json.loads(response.choices[0].message.content)
+        
+        # Validate and clean prompts
+        prompts = []
+        for p in result.get("prompts", []):
+            if isinstance(p, dict) and "text" in p and "type" in p:
+                prompt_type = p["type"] if p["type"] in ["branded", "non-branded"] else "non-branded"
+                prompts.append(PromptItem(text=p["text"], type=prompt_type))
+        
+        return GeneratePromptsResponse(prompts=prompts)
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        # Return fallback prompts on error
+        fallback = [
+            PromptItem(text=f"{request.brand_name} opiniones", type="branded"),
+            PromptItem(text=f"{request.brand_name} precios", type="branded"),
+            PromptItem(text=f"{request.brand_name} reviews", type="branded"),
+            PromptItem(text=f"mejores empresas de {request.industry or 'servicios'}", type="non-branded"),
+            PromptItem(text=f"{request.industry or 'servicios'} cerca de mi", type="non-branded"),
+        ]
+        return GeneratePromptsResponse(prompts=fallback)
