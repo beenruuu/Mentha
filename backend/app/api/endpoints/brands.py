@@ -8,7 +8,7 @@ from app.models.brand import Brand, BrandCreate, BrandUpdate
 from app.models.analysis import Analysis, AnalysisType, AnalysisStatus, AIModel
 from app.services.supabase.database import SupabaseDatabaseService
 from app.services.supabase.auth import SupabaseAuthService, get_auth_service
-from app.services.analysis_service import AnalysisService
+from app.services.analysis.analysis_service import AnalysisService
 
 router = APIRouter()
 
@@ -34,6 +34,20 @@ async def create_brand(
     service: SupabaseDatabaseService = Depends(get_brand_service),
     auth_service: SupabaseAuthService = Depends(get_auth_service)
 ):
+    # Check for duplicate brand (same name or domain for this user)
+    existing_brands = await service.list(filters={"user_id": current_user.id})
+    for existing in existing_brands:
+        if existing.domain and brand.domain and existing.domain.lower() == brand.domain.lower():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Ya tienes una marca con el dominio '{brand.domain}'"
+            )
+        if existing.name and brand.name and existing.name.lower() == brand.name.lower():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Ya tienes una marca con el nombre '{brand.name}'"
+            )
+    
     # Extract analysis-specific fields before creating brand
     discovery_prompts = brand.discovery_prompts or []
     ai_providers = brand.ai_providers or []

@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS public.brands (
   logo_url TEXT,
   description TEXT,
   industry TEXT,
+  entity_type TEXT CHECK (entity_type IN ('business', 'media', 'institution', 'blog', 'other')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
