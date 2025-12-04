@@ -189,7 +189,7 @@ export default function ResearchPromptsStep() {
         <div className="w-full flex justify-center animate-in fade-in duration-500">
             <Card className="w-full max-w-2xl p-6 shadow-2xl border-white/10 bg-black/40 backdrop-blur-xl">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-5">
+                <div className="flex items-center justify-between mb-6">
                     <div>
                         <h1 className="text-2xl font-bold text-white">{t.title}</h1>
                         <p className="text-sm text-muted-foreground mt-1">{t.subtitle}</p>
@@ -201,58 +201,68 @@ export default function ResearchPromptsStep() {
 
                 {/* AI Suggestions */}
                 {isGenerating ? (
-                    <div className="flex items-center justify-center py-12 text-muted-foreground">
-                        <Loader2 className="w-5 h-5 animate-spin mr-3" />
-                        <span>{t.generating}</span>
+                    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                        <div className="relative w-16 h-16 mb-4">
+                            <div className="absolute inset-0 border-2 border-amber-500/30 rounded-full animate-ping opacity-30" />
+                            <div className="absolute inset-0 border-2 border-t-amber-500 rounded-full animate-spin" />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Sparkles className="w-6 h-6 text-amber-400" />
+                            </div>
+                        </div>
+                        <span className="text-sm">{t.generating}</span>
                     </div>
                 ) : suggestedPrompts.length > 0 ? (
-                    <div className="mb-5">
-                        <div className="flex items-center justify-between mb-3">
+                    <div className="mb-6">
+                        <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-2">
-                                <Sparkles className="w-4 h-4 text-amber-400" />
-                                <span className="text-sm font-medium text-white">{t.suggestions}</span>
-                                <span className="text-xs text-muted-foreground">— {t.selectToAdd}</span>
+                                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                                    <Sparkles className="w-4 h-4 text-amber-400" />
+                                </div>
+                                <div>
+                                    <span className="text-sm font-medium text-white block">{t.suggestions}</span>
+                                    <span className="text-xs text-muted-foreground">{t.selectToAdd}</span>
+                                </div>
                             </div>
                             <Button
                                 size="sm"
                                 variant="ghost"
                                 onClick={generatePrompts}
-                                className="h-7 text-xs text-muted-foreground hover:text-white"
+                                className="h-8 text-xs text-muted-foreground hover:text-white gap-1.5"
                             >
-                                <RefreshCw className="w-3 h-3 mr-1.5" />
+                                <RefreshCw className="w-3.5 h-3.5" />
                                 {t.regenerate}
                             </Button>
                         </div>
                         
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-2">
                             {suggestedPrompts.map((prompt, index) => (
                                 <button
                                     key={index}
                                     type="button"
                                     onClick={() => toggleSuggestion(index)}
                                     className={cn(
-                                        "flex items-center gap-2 px-3 py-2.5 rounded-lg text-left transition-all",
+                                        "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all",
                                         prompt.selected
-                                            ? "bg-primary/15 ring-1 ring-primary/30"
-                                            : "bg-white/5 hover:bg-white/8"
+                                            ? "bg-gradient-to-r from-primary/20 to-primary/5 ring-1 ring-primary/30"
+                                            : "bg-white/5 hover:bg-white/8 ring-1 ring-white/5"
                                     )}
                                 >
                                     <div className={cn(
-                                        "w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+                                        "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
                                         prompt.selected 
                                             ? "border-primary bg-primary" 
                                             : "border-gray-600"
                                     )}>
-                                        {prompt.selected && <Check className="w-2.5 h-2.5 text-black" />}
+                                        {prompt.selected && <Check className="w-3 h-3 text-black" />}
                                     </div>
-                                    <span className="flex-1 text-sm text-gray-300 line-clamp-1">{prompt.text}</span>
+                                    <span className="flex-1 text-sm text-white">{prompt.text}</span>
                                     <span className={cn(
-                                        "text-[10px] px-1.5 py-0.5 rounded shrink-0",
+                                        "text-[10px] font-medium px-2 py-1 rounded-full shrink-0",
                                         prompt.type === 'branded' 
-                                            ? "text-primary/80 bg-primary/10" 
-                                            : "text-blue-400/80 bg-blue-500/10"
+                                            ? "text-primary bg-primary/15" 
+                                            : "text-blue-400 bg-blue-500/15"
                                     )}>
-                                        {prompt.type === 'branded' ? 'B' : 'NB'}
+                                        {prompt.type === 'branded' ? t.branded : t.nonBranded}
                                     </span>
                                 </button>
                             ))}
@@ -261,7 +271,7 @@ export default function ResearchPromptsStep() {
                         {selectedCount > 0 && researchPrompts.length < MAX_PROMPTS && (
                             <Button
                                 onClick={addSelectedPrompts}
-                                className="w-full mt-3 h-9 bg-primary hover:bg-primary/90"
+                                className="w-full mt-4 h-11 bg-primary hover:bg-primary/90 font-medium"
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 {t.addSelected} ({selectedCount})
@@ -272,21 +282,24 @@ export default function ResearchPromptsStep() {
 
                 {/* Your Prompts */}
                 {researchPrompts.length > 0 && (
-                    <div className="mb-5">
+                    <div className="mb-6">
                         <div className="flex items-center gap-2 mb-3">
+                            <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center">
+                                <Search className="w-3.5 h-3.5 text-white" />
+                            </div>
                             <span className="text-sm font-medium text-white">{t.yourPrompts}</span>
-                            <span className="text-xs text-muted-foreground">{researchPrompts.length}/{MAX_PROMPTS}</span>
+                            <span className="text-xs text-muted-foreground ml-auto">{researchPrompts.length}/{MAX_PROMPTS}</span>
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                             {nonBrandedPrompts.length > 0 && (
-                                <div>
-                                    <p className="text-[10px] uppercase tracking-wider text-blue-400/70 mb-1.5 pl-1">{t.nonBranded}</p>
+                                <div className="space-y-1.5">
+                                    <p className="text-[10px] uppercase tracking-wider text-blue-400/80 font-medium pl-1">{t.nonBranded}</p>
                                     {renderPromptList(nonBrandedPrompts, 'non-branded')}
                                 </div>
                             )}
                             {brandedPrompts.length > 0 && (
-                                <div>
-                                    <p className="text-[10px] uppercase tracking-wider text-primary/70 mb-1.5 pl-1">{t.branded}</p>
+                                <div className="space-y-1.5">
+                                    <p className="text-[10px] uppercase tracking-wider text-primary/80 font-medium pl-1">{t.branded}</p>
                                     {renderPromptList(brandedPrompts, 'branded')}
                                 </div>
                             )}
@@ -296,13 +309,15 @@ export default function ResearchPromptsStep() {
 
                 {/* Add custom */}
                 {researchPrompts.length < MAX_PROMPTS && (
-                    <div className="flex items-center gap-2 p-3 rounded-lg bg-white/5 border border-white/10">
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10 border-dashed">
                         <button
                             type="button"
                             onClick={() => setNewPromptType(newPromptType === 'branded' ? 'non-branded' : 'branded')}
                             className={cn(
-                                "h-8 w-8 rounded flex items-center justify-center shrink-0 transition-colors",
-                                newPromptType === 'branded' ? "bg-primary/20 text-primary" : "bg-blue-500/20 text-blue-400"
+                                "h-9 w-9 rounded-lg flex items-center justify-center shrink-0 transition-all",
+                                newPromptType === 'branded' 
+                                    ? "bg-primary/20 text-primary ring-1 ring-primary/30" 
+                                    : "bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/30"
                             )}
                             title={newPromptType === 'branded' ? t.branded : t.nonBranded}
                         >
@@ -313,29 +328,29 @@ export default function ResearchPromptsStep() {
                             onChange={(e) => setNewPrompt(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder={t.placeholder}
-                            className="h-8 bg-transparent border-0 focus-visible:ring-0 text-sm flex-1 px-0"
+                            className="h-9 bg-transparent border-0 focus-visible:ring-0 text-sm flex-1"
                         />
                         <Button
                             onClick={handleAddPrompt}
                             disabled={!newPrompt.trim()}
                             size="sm"
-                            variant="ghost"
-                            className="h-8 w-8 p-0 text-gray-400 hover:text-white disabled:opacity-30"
+                            className="h-9 px-4 bg-white/10 hover:bg-white/20 disabled:opacity-30"
                         >
-                            <Plus className="w-4 h-4" />
+                            <Plus className="w-4 h-4 mr-1.5" />
+                            {t.add}
                         </Button>
                     </div>
                 )}
 
                 {researchPrompts.length >= MAX_PROMPTS && (
-                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-500/10 text-amber-400 text-xs">
-                        <AlertCircle className="w-3.5 h-3.5" />
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/10 text-amber-400 text-sm">
+                        <AlertCircle className="w-4 h-4" />
                         {t.limitReached}
                     </div>
                 )}
 
                 {/* Actions */}
-                <div className="flex justify-between mt-6">
+                <div className="flex justify-between mt-6 pt-4 border-t border-white/10">
                     <Button
                         variant="ghost"
                         onClick={prevStep}

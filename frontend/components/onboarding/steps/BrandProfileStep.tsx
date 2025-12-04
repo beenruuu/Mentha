@@ -74,12 +74,32 @@ export default function BrandProfileStep() {
     useEffect(() => {
         if (!isInitialized && brandProfile.category) {
             const cats = brandProfile.category.split(',').map(c => c.trim()).filter(Boolean)
-            // Separate known categories from custom ones
-            const knownIds = cats.filter(c => DEFAULT_CATEGORIES.some(dc => dc.id === c || dc.name_es === c || dc.name_en === c))
-            const custom = cats.filter(c => !DEFAULT_CATEGORIES.some(dc => dc.id === c || dc.name_es === c || dc.name_en === c))
-            setSelectedCategories(knownIds)
-            // Apply title case to custom categories
-            setCustomCategories(custom.map(c => toTitleCase(c)))
+            const matchedIds: string[] = []
+            const customCats: string[] = []
+            
+            for (const cat of cats) {
+                // Try to find matching default category by id, name_es, or name_en
+                const match = DEFAULT_CATEGORIES.find(dc => 
+                    dc.id.toLowerCase() === cat.toLowerCase() || 
+                    dc.name_es.toLowerCase() === cat.toLowerCase() || 
+                    dc.name_en.toLowerCase() === cat.toLowerCase()
+                )
+                if (match) {
+                    // Use the ID, not the name (avoid duplicates)
+                    if (!matchedIds.includes(match.id)) {
+                        matchedIds.push(match.id)
+                    }
+                } else {
+                    // It's a custom category
+                    const titleCased = toTitleCase(cat)
+                    if (!customCats.includes(titleCased)) {
+                        customCats.push(titleCased)
+                    }
+                }
+            }
+            
+            setSelectedCategories(matchedIds)
+            setCustomCategories(customCats)
             setIsInitialized(true)
         } else if (!isInitialized) {
             setIsInitialized(true)
@@ -142,10 +162,28 @@ export default function BrandProfileStep() {
 
     const addCustomCategory = () => {
         const trimmed = newCategory.trim()
-        if (trimmed && !customCategories.includes(trimmed)) {
-            setCustomCategories(prev => [...prev, trimmed])
-            setNewCategory('')
+        if (!trimmed) return
+        
+        // Check if it matches a default category (case-insensitive)
+        const matchingDefault = DEFAULT_CATEGORIES.find(dc => 
+            dc.id.toLowerCase() === trimmed.toLowerCase() || 
+            dc.name_es.toLowerCase() === trimmed.toLowerCase() || 
+            dc.name_en.toLowerCase() === trimmed.toLowerCase()
+        )
+        
+        if (matchingDefault) {
+            // Select the default category instead of adding as custom
+            if (!selectedCategories.includes(matchingDefault.id)) {
+                setSelectedCategories(prev => [...prev, matchingDefault.id])
+            }
+        } else {
+            // Add as custom category
+            const titleCased = toTitleCase(trimmed)
+            if (!customCategories.includes(titleCased)) {
+                setCustomCategories(prev => [...prev, titleCased])
+            }
         }
+        setNewCategory('')
     }
 
     const handleNext = async () => {

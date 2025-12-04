@@ -1,6 +1,9 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Depends
 from pydantic import BaseModel
 from typing import List, Optional
+
+from app.api.deps import get_current_user
+from app.models.auth import UserProfile
 import httpx
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -107,9 +110,13 @@ async def fetch_page_content(url: str) -> dict:
 
 
 @router.get("/metadata")
-async def get_url_metadata(url: str = Query(..., description="The URL to fetch metadata from")):
+async def get_url_metadata(
+    url: str = Query(..., description="The URL to fetch metadata from"),
+    current_user: UserProfile = Depends(get_current_user)
+):
     """
     Fetch metadata (title, description, favicon, og:image) from a given URL.
+    Requires authentication.
     """
     try:
         data = await fetch_page_content(url)
@@ -129,10 +136,14 @@ async def get_url_metadata(url: str = Query(..., description="The URL to fetch m
 
 
 @router.get("/brand-info")
-async def get_brand_info(url: str = Query(..., description="The URL to analyze")):
+async def get_brand_info(
+    url: str = Query(..., description="The URL to analyze"),
+    current_user: UserProfile = Depends(get_current_user)
+):
     """
     Fetch metadata AND infer business information using AI.
     Returns: url, domain, title, description, favicon, image, industry, location, company_type, services
+    Requires authentication.
     """
     try:
         # Fetch page content
@@ -167,6 +178,10 @@ async def get_brand_info(url: str = Query(..., description="The URL to analyze")
         company_type = business_info.get("company_type", "").upper()
         business_model = "B2B" if company_type == "B2B" else "B2C" if company_type == "B2C" else company_type
         
+        # Normalize industry to Title Case (fix issues like "RestauracióN")
+        industry_raw = business_info.get("industry", "")
+        industry = industry_raw.strip().title() if industry_raw else ""
+        
         return {
             "url": page_data["url"],
             "domain": page_data["domain"],
@@ -174,8 +189,8 @@ async def get_brand_info(url: str = Query(..., description="The URL to analyze")
             "description": page_data["description"],
             "favicon": page_data["favicon"],
             "image": page_data["image"],
-            # AI-inferred fields
-            "industry": business_info.get("industry", ""),
+            # AI-inferred fields (normalized)
+            "industry": industry,
             "location": location,
             "services": business_info.get("services", []),
             "businessModel": business_model,
@@ -191,9 +206,13 @@ async def get_brand_info(url: str = Query(..., description="The URL to analyze")
 
 
 @router.post("/generate-research-prompts", response_model=GeneratePromptsResponse)
-async def generate_research_prompts(request: GeneratePromptsRequest):
+async def generate_research_prompts(
+    request: GeneratePromptsRequest,
+    current_user: UserProfile = Depends(get_current_user)
+):
     """
     Generate personalized research prompts using AI based on brand info, industry, and competitors.
+    Requires authentication.
     """
     try:
         from app.core.config import settings

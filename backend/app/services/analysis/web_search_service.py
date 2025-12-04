@@ -57,9 +57,9 @@ except ImportError:
 EXCLUDED_DOMAINS = {
     # Social media and user-generated content
     'wikipedia.org', 'linkedin.com', 'facebook.com', 'twitter.com', 'instagram.com',
-    'youtube.com', 'reddit.com', 'quora.com', 'tiktok.com', 'pinterest.com',
+    'youtube.com', 'reddit.com', 'quora.com', 'tiktok.com', 'pinterest.com', 'x.com',
     # Search engines
-    'google.com', 'bing.com', 'duckduckgo.com', 'yahoo.com', 'yandex.ru',
+    'google.com', 'google.es', 'bing.com', 'duckduckgo.com', 'yahoo.com', 'yandex.ru',
     # E-commerce giants
     'amazon.com', 'amazon.es', 'ebay.com', 'ebay.es', 'aliexpress.com',
     # Job boards
@@ -71,9 +71,16 @@ EXCLUDED_DOMAINS = {
     # Business directories (NOT competitors)
     'empresite.eleconomista.es', 'einforma.com', 'axesor.es', 'infocif.es',
     'paginasamarillas.es', 'cylex.es', 'europages.es', 'kompass.com',
+    'yelp.com', 'yelp.es', 'tripadvisor.com', 'tripadvisor.es', 'foursquare.com',
+    'trustpilot.com', 'google.com/maps', 'maps.google.com',
+    # Food delivery / aggregators (NOT restaurant competitors)
+    'justeat.es', 'just-eat.es', 'glovo.com', 'ubereats.com', 'deliveroo.es',
+    'pedidosya.es', 'thefork.es', 'eltenedor.es', 'opentable.com',
     # Generic platforms
     'whatsapp.com', 'play.google.com', 'apps.apple.com', 'microsoft.com',
     'windows.com', 'store.steampowered.com', 'telegram.org',
+    # Booking platforms (NOT hotel competitors)
+    'booking.com', 'expedia.com', 'hotels.com', 'airbnb.com', 'vrbo.com',
 }
 
 
@@ -91,6 +98,30 @@ class WebSearchService:
         """Set the LLM service for AI-powered filtering."""
         self.llm_service = llm_service
     
+    def _is_excluded_domain(self, domain: str) -> bool:
+        """
+        Check if a domain should be excluded from competitor results.
+        Uses both exact match and suffix match for subdomains.
+        """
+        if not domain:
+            return True
+        
+        domain_lower = domain.lower().strip()
+        
+        # Direct match
+        if domain_lower in EXCLUDED_DOMAINS:
+            return True
+        
+        # Check if it's a subdomain of excluded domains
+        for excluded in EXCLUDED_DOMAINS:
+            if domain_lower.endswith('.' + excluded):
+                return True
+            # Also check without www
+            if domain_lower == excluded or domain_lower == 'www.' + excluded:
+                return True
+        
+        return False
+
     async def _get_llm_service(self):
         """Get or create the LLM service."""
         if self.llm_service:
@@ -155,14 +186,22 @@ Contenido: {content_preview}
 Responde SOLO con un JSON válido con esta estructura exacta:
 {{
     "entity_type": "business|media|institution|blog|other",
-    "industry": "industria principal específica",
+    "industry": "Industria Principal",
     "services": ["servicio1", "servicio2"],
     "company_type": "B2B|B2C|B2B2C",
     "target_market": "mercado objetivo"
 }}
 
+REGLAS PARA "industry":
+- Usa UN solo término genérico en Title Case (primera letra de cada palabra en mayúscula)
+- Ejemplos correctos: "Restaurante", "Tecnología", "Consultoría", "E-commerce", "Hostelería", "Salud", "Educación"
+- Ejemplos INCORRECTOS: "restauración", "RestauracióN", "RESTAURANTES", "comida y bebidas"
+- Si es un restaurante, bar o cafetería → "Hostelería"
+- Si es un hotel, alojamiento → "Hostelería"
+- Usa la industria más específica pero en formato limpio
+
 DEFINICIONES DE ENTITY_TYPE:
-- business: Vende productos o servicios comerciales (agencia, tienda, consultora, SaaS).
+- business: Vende productos o servicios comerciales (agencia, tienda, consultora, SaaS, restaurante, hotel).
 - media: Periódico, revista, portal de noticias, canal de TV.
 - institution: Gobierno, universidad, ONG, asociación.
 - blog: Blog personal o temático no comercial.
@@ -228,7 +267,7 @@ DEFINICIONES DE ENTITY_TYPE:
         else:
             criteria = "INCLUIR: empresas que venden lo mismo o servicios sustitutivos. EXCLUIR: periódicos, Wikipedia, directorios."
 
-        prompt = f"""Analiza estos resultados de búsqueda y extrae los competidores reales.
+        prompt = f"""Analiza estos resultados de búsqueda y extrae SOLO los competidores directos reales.
 
 MARCA A ANALIZAR:
 - Nombre: {brand_name}
@@ -240,8 +279,8 @@ RESULTADOS:
 {candidates_text}
 
 TAREA: 
-1. Identifica los competidores directos ({criteria})
-2. Para cada uno, extrae el NOMBRE REAL de la empresa (no el título de la página, no fechas, no descripciones genéricas)
+1. Identifica SOLO los competidores directos ({criteria})
+2. Para cada uno, extrae el NOMBRE REAL de la empresa
 
 Responde SOLO con un JSON array así:
 [
@@ -249,11 +288,25 @@ Responde SOLO con un JSON array así:
   {{"index": 4, "name": "Otra Empresa"}}
 ]
 
+EXCLUIR OBLIGATORIAMENTE:
+- Directorios de empresas (paginasamarillas, yelp, tripadvisor, google maps)
+- Redes sociales (facebook, instagram, twitter)
+- Agregadores de reseñas
+- Blogs y medios de comunicación
+- Páginas de Wikipedia o similares
+- Servicios de delivery (justeat, glovo, ubereats) - NO son competidores de restaurantes
+- Portales de empleo
+- Webs que no funcionan o están en construcción
+
+SOLO INCLUIR:
+- Empresas que venden EXACTAMENTE lo mismo
+- Con web propia funcional
+- En el mismo mercado geográfico
+
 IMPORTANTE sobre el nombre:
 - Usa el nombre comercial/marca de la empresa
-- Si el título es una fecha o descripción genérica, deduce el nombre del dominio
-- Ejemplo: dominio "ifma-spain.org" → nombre "IFMA Spain"
-- Ejemplo: dominio "eulen.com" → nombre "Eulen"
+- Si el título es genérico, deduce el nombre del dominio
+- Ejemplo: dominio "restaurantemario.com" → nombre "Restaurante Mario"
 """
 
         try:
@@ -326,10 +379,14 @@ Responde SOLO con un JSON array así:
   {{"name": "Otra Empresa", "domain": "otra.com", "reason": "Razón"}}
 ]
 
-IMPORTANTE:
-- Solo empresas REALES que existan
-- Incluye el dominio web real
-- Competidores directos del mismo sector/servicios
+REGLAS CRÍTICAS:
+- Solo empresas REALES que EXISTAN actualmente con web FUNCIONAL
+- El dominio debe ser el dominio REAL y PRINCIPAL de la empresa (NO subdominios, NO páginas de Facebook/Instagram)
+- Competidores DIRECTOS que ofrezcan los MISMOS productos/servicios
+- NO incluir: redes sociales, directorios, páginas de reseñas, agregadores
+- Verifica que la empresa tenga presencia web real antes de incluirla
+- Para restaurantes: solo otros restaurantes similares en la misma zona
+- Para servicios locales: solo competidores en la misma área geográfica
 - Responde en {lang_text}"""
 
         try:
@@ -356,6 +413,11 @@ IMPORTANTE:
                             domain = urlparse(domain).netloc
                         if domain.startswith('www.'):
                             domain = domain[4:]
+                        
+                        # Skip excluded domains (LLM might suggest aggregators)
+                        if self._is_excluded_domain(domain):
+                            log_warning("🧠⚠️", f"Skipping excluded domain from LLM: {domain}")
+                            continue
                         
                         competitors.append({
                             'name': name,
@@ -483,7 +545,9 @@ IMPORTANTE:
                     if brand_lower in normalized.replace('.', '').replace('-', ''):
                         continue
 
-                    # NO HARDCODED EXCLUSIONS HERE - We rely on AI filtering later
+                    # Pre-filter excluded domains (directories, social media, delivery apps, etc.)
+                    if self._is_excluded_domain(extracted_domain):
+                        continue
                     
                     company_name = self._extract_company_name(result.get('title', ''), extracted_domain)
                     
@@ -597,10 +661,6 @@ IMPORTANTE:
         log_success("🎯✅", f"Found {len(merged)} unique competitors ({len(llm_results)} from LLM, {len(web_results)} from web search)")
         
         return merged[:max_results]
-    
-    def _is_excluded_domain(self, domain: str) -> bool:
-        # Deprecated: We now use AI context-aware filtering
-        return False
     
     def _extract_company_name(self, title: str, domain: str) -> str:
         """

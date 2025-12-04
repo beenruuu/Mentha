@@ -71,14 +71,26 @@ async def update_brand(
     current_user: UserProfile = Depends(get_current_user),
     service: SupabaseDatabaseService = Depends(get_brand_service)
 ):
+    import logging
+    logger = logging.getLogger(__name__)
+    
     # Check ownership first
     existing_brand = await service.get(str(brand_id))
     if not existing_brand:
         raise HTTPException(status_code=404, detail="Brand not found")
     if str(existing_brand.user_id) != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized to update this brand")
-        
-    return await service.update(str(brand_id), brand_update.dict(exclude_unset=True))
+    
+    update_data = brand_update.model_dump(exclude_unset=True)
+    logger.info(f"📝 Updating brand {brand_id} with: {update_data}")
+    
+    try:
+        result = await service.update(str(brand_id), update_data)
+        logger.info(f"✅ Brand {brand_id} updated successfully")
+        return result
+    except Exception as e:
+        logger.error(f"❌ Failed to update brand {brand_id}: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to update brand: {str(e)}")
 
 @router.delete("/{brand_id}")
 async def delete_brand(

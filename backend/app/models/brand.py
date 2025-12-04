@@ -28,6 +28,10 @@ class BrandUpdate(BaseModel):
 class Brand(BrandBase):
     id: UUID
     user_id: UUID
+    discovery_prompts: Optional[List[str]] = None
+    ai_providers: Optional[List[str]] = None
+    services: Optional[List[str]] = None
+    entity_type: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 

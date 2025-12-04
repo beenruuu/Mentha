@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     
     # Demo mode (set in backend/.env)
     DEMO_MODE: bool = False
+    
+    # Admin access control - comma-separated list of allowed admin emails
+    ADMIN_EMAILS: str = ""
 
     class Config:
         env_file = ".env"

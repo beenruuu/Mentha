@@ -17,7 +17,8 @@ from app.api.endpoints import (
     geo_analysis,
     citations,
     knowledge_graph,
-    eeat
+    eeat,
+    admin
 )
 
 api_router = APIRouter()
@@ -40,3 +41,4 @@ api_router.include_router(geo_analysis.router, tags=["GEO Analysis"])
 api_router.include_router(citations.router, tags=["Citations"])
 api_router.include_router(knowledge_graph.router, tags=["Knowledge Graph"])
 api_router.include_router(eeat.router, tags=["E-E-A-T"])
+api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
