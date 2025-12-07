@@ -3,6 +3,7 @@
 import { Menu, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSidebar } from '@/components/ui/sidebar'
+import { UserAvatarMenu } from '@/components/layout/user-avatar-menu'
 
 interface AdminPageWrapperProps {
   title: string
@@ -38,6 +39,7 @@ export function AdminPageWrapper({ title, subtitle, children, actions }: AdminPa
           <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-900 dark:hover:text-white">
             <Settings className="w-4 h-4" />
           </Button>
+          <UserAvatarMenu />
         </div>
       </header>
 

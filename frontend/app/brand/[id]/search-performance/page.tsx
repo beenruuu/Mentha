@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useParams } from 'next/navigation'
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useTranslations } from '@/lib/i18n'
@@ -20,7 +20,10 @@ export default function SearchPerformancePage() {
             <AppSidebar />
             <SidebarInset className="bg-[#FAFAFA] dark:bg-[#09090b] h-screen overflow-hidden flex flex-col">
                 <header className="flex items-center justify-between px-6 py-4 shrink-0 border-b border-gray-200 dark:border-gray-800">
-                    <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">Search Performance</h1>
+                    <div className="flex items-center gap-4">
+                        <SidebarTrigger className="-ml-1" />
+                        <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">Search Performance</h1>
+                    </div>
                 </header>
 
                 <main className="flex-1 overflow-hidden">

@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -157,6 +157,7 @@ export default function BrandKeywordsPage({ isEmbedded = false }: { isEmbedded?:
             {!isEmbedded && (
                 <header className="flex items-center justify-between px-6 py-4 shrink-0">
                     <div className="flex items-center gap-4">
+                        <SidebarTrigger className="-ml-1" />
                         <div className="w-8 h-8 rounded-lg bg-white dark:bg-zinc-800 border border-gray-200 dark:border-gray-800 flex items-center justify-center overflow-hidden shadow-sm">
                             <img
                                 src={`https://www.google.com/s2/favicons?domain=${brand?.domain}&sz=64`}

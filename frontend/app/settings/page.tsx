@@ -39,6 +39,7 @@ export default function SettingsPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [isSavingProfile, setIsSavingProfile] = useState(false)
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
 
   // Password state
   const [currentPassword, setCurrentPassword] = useState('')
@@ -75,7 +76,7 @@ export default function SettingsPage() {
       }
     } catch (error) {
       console.error('Failed to load user:', error)
-      toast.error('Error al cargar el usuario')
+      toast.error(t.errorLoadingUser)
     } finally {
       setLoading(false)
     }
@@ -95,10 +96,10 @@ export default function SettingsPage() {
   const saveNotificationPreferences = (newPrefs: NotificationPreferences) => {
     try {
       localStorage.setItem('notificationPreferences', JSON.stringify(newPrefs))
-      toast.success('Preferencias de notificaciones guardadas')
+      toast.success(t.notificationPrefsSaved)
     } catch (error) {
       console.error('Failed to save notification preferences:', error)
-      toast.error('Error al guardar preferencias')
+      toast.error(t.errorSavingNotificationPrefs)
     }
   }
 
@@ -113,7 +114,7 @@ export default function SettingsPage() {
 
   const handleSaveProfile = async () => {
     if (!firstName.trim()) {
-      toast.error('El nombre es requerido')
+      toast.error(t.nameRequired)
       return
     }
 
@@ -126,31 +127,132 @@ export default function SettingsPage() {
 
       if (error) throw error
 
-      toast.success('Perfil actualizado correctamente', {
-        description: 'Tus cambios han sido guardados'
+      toast.success(t.profileUpdatedSuccess, {
+        description: t.changesSaved
       })
       await loadUser()
+      router.refresh()
     } catch (error: any) {
       console.error('Failed to update profile:', error)
-      toast.error('Error al actualizar perfil', {
-        description: error.message || 'Inténtalo de nuevo'
+      toast.error(t.errorUpdatingProfile, {
+        description: error.message || t.tryAgain
       })
     } finally {
       setIsSavingProfile(false)
     }
   }
 
+  const compressImage = (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = (event) => {
+        const img = new Image()
+        img.src = event.target?.result as string
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          const MAX_WIDTH = 300
+          const MAX_HEIGHT = 300
+          let width = img.width
+          let height = img.height
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width
+              width = MAX_WIDTH
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height
+              height = MAX_HEIGHT
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx?.drawImage(img, 0, 0, width, height)
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) resolve(blob)
+              else reject(new Error('Canvas to Blob failed'))
+            },
+            'image/jpeg',
+            0.7 // Quality 0.7 for compression
+          )
+        }
+        img.onerror = (error) => reject(error)
+      }
+      reader.onerror = (error) => reject(error)
+    })
+  }
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingAvatar(true)
+    try {
+      // 1. Compress image
+      const compressedBlob = await compressImage(file)
+      const compressedFile = new File([compressedBlob], file.name, {
+        type: 'image/jpeg',
+      })
+
+      // 2. Upload to Supabase Storage
+      const fileExt = 'jpg' // We converted to jpeg
+      const fileName = `${user.id}-${Math.random()}.${fileExt}`
+      const filePath = `${fileName}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, compressedFile)
+
+      if (uploadError) throw uploadError
+
+      // 3. Get Public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath)
+
+      // 4. Update User Metadata
+      const { error: updateError } = await supabase.auth.updateUser({
+        data: { avatar_url: publicUrl }
+      })
+
+      if (updateError) throw updateError
+
+      toast.success(t.profileUpdatedSuccess)
+      await loadUser()
+      router.refresh()
+
+      // Force reload to update header immediately if needed, 
+      // though router.refresh() should handle server components, 
+      // client components might need context update or window event.
+      window.dispatchEvent(new CustomEvent('user-updated'))
+
+    } catch (error: any) {
+      console.error('Error uploading avatar:', error)
+      toast.error('Error al subir la imagen', {
+        description: error.message
+      })
+    } finally {
+      setIsUploadingAvatar(false)
+    }
+  }
+
   const handleUpdatePassword = async () => {
     if (!newPassword || !confirmPassword) {
-      toast.error('Por favor completa todos los campos de contraseña')
+      toast.error(t.completePasswordFields)
       return
     }
     if (newPassword.length < 6) {
-      toast.error('La contraseña debe tener al menos 6 caracteres')
+      toast.error(t.passwordMinLength)
       return
     }
     if (newPassword !== confirmPassword) {
-      toast.error('Las contraseñas no coinciden')
+      toast.error(t.passwordsNoMatch)
       return
     }
 
@@ -162,14 +264,14 @@ export default function SettingsPage() {
 
       if (error) throw error
 
-      toast.success('Contraseña actualizada correctamente')
+      toast.success(t.passwordUpdatedSuccess)
       setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch (error: any) {
       console.error('Failed to update password:', error)
-      toast.error('Error al actualizar contraseña', {
-        description: error.message || 'Inténtalo de nuevo'
+      toast.error(t.errorUpdatingPassword, {
+        description: error.message || t.tryAgain
       })
     } finally {
       setIsUpdatingPassword(false)
@@ -182,7 +284,7 @@ export default function SettingsPage() {
     if (typeof document !== 'undefined') {
       document.documentElement.lang = newLang
     }
-    toast.success(`Idioma cambiado a ${newLang === 'es' ? 'Español' : 'English'}`)
+    toast.success(`${t.languageChangedTo} ${newLang === 'es' ? 'Español' : 'English'}`)
     router.refresh()
   }
 
@@ -195,9 +297,12 @@ export default function SettingsPage() {
       <AppSidebar />
       <SidebarInset className="bg-[#fdfdfc] dark:bg-[#050505] h-screen overflow-hidden flex flex-col">
         <header className="flex items-center justify-between px-8 py-6 bg-[#fdfdfc] dark:bg-[#050505] border-b border-border/40">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{t.configuration}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage your account and preferences</p>
+          <div className="flex items-center gap-4">
+            <SidebarTrigger className="-ml-1" />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{t.configuration}</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t.settingsDescription}</p>
+            </div>
           </div>
           <UserAvatarMenu />
         </header>
@@ -232,18 +337,42 @@ export default function SettingsPage() {
               <TabsContent value="profile" className="space-y-6">
                 <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
                   <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>Update your personal details and public profile.</CardDescription>
+                    <CardTitle>{t.personalInformation}</CardTitle>
+                    <CardDescription>{t.personalInfoDescription}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="flex items-center gap-6">
-                      <Avatar className="w-24 h-24 ring-4 ring-secondary/50">
-                        <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
-                        <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                          {user?.email?.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <Button variant="outline" className="border-border/40">Change Avatar</Button>
+                      <div className="relative">
+                        <Avatar className="w-24 h-24 ring-4 ring-secondary/50">
+                          <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
+                          <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                            {user?.email?.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        {isUploadingAvatar && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full">
+                            <Loader2 className="w-8 h-8 text-white animate-spin" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Label htmlFor="avatar-upload" className="cursor-pointer">
+                          <div className="flex items-center gap-2 px-4 py-2 border border-border/40 rounded-md hover:bg-secondary/50 transition-colors">
+                            <span className="text-sm font-medium">{t.changeAvatar}</span>
+                          </div>
+                          <Input
+                            id="avatar-upload"
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleAvatarChange}
+                            disabled={isUploadingAvatar}
+                          />
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          JPG, PNG. Max 2MB.
+                        </p>
+                      </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -273,8 +402,8 @@ export default function SettingsPage() {
               <TabsContent value="security" className="space-y-6">
                 <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
                   <CardHeader>
-                    <CardTitle>Password & Security</CardTitle>
-                    <CardDescription>Manage your password and security settings.</CardDescription>
+                    <CardTitle>{t.passwordSecurity}</CardTitle>
+                    <CardDescription>{t.passwordSecurityDescription}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
@@ -347,8 +476,8 @@ export default function SettingsPage() {
               <TabsContent value="notifications" className="space-y-6">
                 <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
                   <CardHeader>
-                    <CardTitle>Email Notifications</CardTitle>
-                    <CardDescription>Choose what updates you want to receive.</CardDescription>
+                    <CardTitle>{t.emailNotifications}</CardTitle>
+                    <CardDescription>{t.emailNotificationsDescription}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="flex items-center justify-between">
@@ -391,17 +520,17 @@ export default function SettingsPage() {
               <TabsContent value="billing" className="space-y-6">
                 <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
                   <CardHeader>
-                    <CardTitle>Current Plan</CardTitle>
-                    <CardDescription>Manage your subscription and billing details.</CardDescription>
+                    <CardTitle>{t.currentPlan}</CardTitle>
+                    <CardDescription>{t.currentPlanDescription}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <div className="p-6 rounded-xl bg-gradient-to-br from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 flex items-center justify-between">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold text-lg">{t.freePlan}</h3>
-                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium border border-emerald-500/20">Active</span>
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium border border-emerald-500/20">{t.activeStatus}</span>
                         </div>
-                        <p className="text-sm text-muted-foreground">Basic features for personal use</p>
+                        <p className="text-sm text-muted-foreground">{t.basicFeatures}</p>
                       </div>
                       <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
                         <Zap className="w-4 h-4 mr-2" />
@@ -422,8 +551,8 @@ export default function SettingsPage() {
               <TabsContent value="appearance" className="space-y-6">
                 <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
                   <CardHeader>
-                    <CardTitle>Appearance</CardTitle>
-                    <CardDescription>Customize the look and feel of the application.</CardDescription>
+                    <CardTitle>{t.appearanceTitle}</CardTitle>
+                    <CardDescription>{t.appearanceDescription}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-8">
                     <div className="space-y-4">
@@ -437,8 +566,8 @@ export default function SettingsPage() {
                         <div
                           onClick={() => handleLanguageChange('es')}
                           className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${lang === 'es'
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border/40 hover:border-border/80'
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border/40 hover:border-border/80'
                             }`}
                         >
                           <div className="flex items-center gap-3">
@@ -452,8 +581,8 @@ export default function SettingsPage() {
                         <div
                           onClick={() => handleLanguageChange('en')}
                           className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${lang === 'en'
-                              ? 'border-primary bg-primary/5'
-                              : 'border-border/40 hover:border-border/80'
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border/40 hover:border-border/80'
                             }`}
                         >
                           <div className="flex items-center gap-3">

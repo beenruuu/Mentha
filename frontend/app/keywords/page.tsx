@@ -26,6 +26,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { UserAvatarMenu } from '@/components/layout/user-avatar-menu'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { useTranslations } from '@/lib/i18n'
@@ -54,7 +55,7 @@ export default function KeywordsPage() {
       console.error('Failed to load keywords:', error)
       toast({
         title: t.errorTitle,
-        description: "Failed to load keywords",
+        description: t.errorTitle,
         variant: 'destructive',
       })
     } finally {
@@ -89,7 +90,7 @@ export default function KeywordsPage() {
     } catch (error) {
       toast({
         title: t.errorTitle,
-        description: "Failed to add keyword",
+        description: t.errorTitle,
         variant: 'destructive',
       })
     }
@@ -109,45 +110,48 @@ export default function KeywordsPage() {
         <header className="flex items-center justify-between px-8 py-6 bg-[#fdfdfc] dark:bg-[#050505] border-b border-border/40">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{t.keywordsTitle}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Manage and track your SEO keywords</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{t.keywordsDescription}</p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm">
-                <Plus className="mr-2 h-4 w-4" />
-                {t.addKeyword}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>{t.addNewKeyword}</DialogTitle>
-                <DialogDescription>
-                  {t.enterKeywordToTrack}
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="keyword">{t.keywordLabel}</Label>
-                  <Input
-                    id="keyword"
-                    placeholder={t.keywordPlaceholder}
-                    value={newKeyword}
-                    onChange={(e) => setNewKeyword(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword()}
-                    className="col-span-3"
-                  />
+          <div className="flex items-center gap-4">
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm">
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t.addKeyword}
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>{t.addNewKeyword}</DialogTitle>
+                  <DialogDescription>
+                    {t.enterKeywordToTrack}
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="keyword">{t.keywordLabel}</Label>
+                    <Input
+                      id="keyword"
+                      placeholder={t.keywordPlaceholder}
+                      value={newKeyword}
+                      onChange={(e) => setNewKeyword(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddKeyword()}
+                      className="col-span-3"
+                    />
+                  </div>
                 </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                  {t.cancel}
-                </Button>
-                <Button onClick={handleAddKeyword}>
-                  {t.add}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                    {t.cancel}
+                  </Button>
+                  <Button onClick={handleAddKeyword}>
+                    {t.add}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <UserAvatarMenu />
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto p-8 bg-[#fdfdfc] dark:bg-[#050505]">
@@ -157,13 +161,13 @@ export default function KeywordsPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-sm">
                 <CardHeader className="pb-2">
-                  <CardDescription>Total Keywords</CardDescription>
+                  <CardDescription>{t.totalKeywords}</CardDescription>
                   <CardTitle className="text-2xl">{keywords.length}</CardTitle>
                 </CardHeader>
               </Card>
               <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-sm">
                 <CardHeader className="pb-2">
-                  <CardDescription>Avg. Visibility</CardDescription>
+                  <CardDescription>{t.avgVisibility}</CardDescription>
                   <CardTitle className="text-2xl">
                     {keywords.length > 0 ? Math.round(keywords.reduce((acc, k) => acc + (k.ai_visibility_score || 0), 0) / keywords.length) : 0}%
                   </CardTitle>
@@ -171,7 +175,7 @@ export default function KeywordsPage() {
               </Card>
               <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-sm">
                 <CardHeader className="pb-2">
-                  <CardDescription>High Difficulty</CardDescription>
+                  <CardDescription>{t.highDifficulty}</CardDescription>
                   <CardTitle className="text-2xl">
                     {keywords.filter(k => (k.difficulty || 0) > 70).length}
                   </CardTitle>
@@ -179,7 +183,7 @@ export default function KeywordsPage() {
               </Card>
               <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-sm">
                 <CardHeader className="pb-2">
-                  <CardDescription>Opportunity</CardDescription>
+                  <CardDescription>{t.opportunity}</CardDescription>
                   <CardTitle className="text-2xl">
                     {keywords.filter(k => (k.search_volume || 0) > 1000 && (k.difficulty || 0) < 50).length}
                   </CardTitle>
@@ -193,7 +197,7 @@ export default function KeywordsPage() {
                 <div className="relative flex-1 max-w-sm">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Search keywords..."
+                    placeholder={t.searchKeywords}
                     className="pl-10 bg-white dark:bg-[#1E1E24] border-border/40"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -202,11 +206,11 @@ export default function KeywordsPage() {
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm" className="h-9 border-border/40 bg-white dark:bg-[#1E1E24]">
                     <Filter className="mr-2 h-4 w-4" />
-                    Filter
+                    {t.filter}
                   </Button>
                   <Button variant="outline" size="sm" className="h-9 border-border/40 bg-white dark:bg-[#1E1E24]">
                     <ArrowUpDown className="mr-2 h-4 w-4" />
-                    Sort
+                    {t.sort}
                   </Button>
                 </div>
               </div>
@@ -219,15 +223,15 @@ export default function KeywordsPage() {
                       <TableHead>{t.volume}</TableHead>
                       <TableHead>{t.difficulty}</TableHead>
                       <TableHead>{t.aiVisibility}</TableHead>
-                      <TableHead>Trend (7d)</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t.trend7d}</TableHead>
+                      <TableHead className="text-right">{t.actions}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredKeywords.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-12 text-muted-foreground">
-                          {loading ? 'Loading keywords...' : 'No keywords found matching your search.'}
+                          {loading ? t.loadingKeywords : t.noKeywordsFoundSearch}
                         </TableCell>
                       </TableRow>
                     ) : filteredKeywords.map((kw) => (
@@ -272,16 +276,16 @@ export default function KeywordsPage() {
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
+                                <span className="sr-only">{t.openMenu}</span>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem>View details</DropdownMenuItem>
-                              <DropdownMenuItem>Analyze now</DropdownMenuItem>
+                              <DropdownMenuLabel>{t.actions}</DropdownMenuLabel>
+                              <DropdownMenuItem>{t.viewDetails}</DropdownMenuItem>
+                              <DropdownMenuItem>{t.analyzeNow}</DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-red-600">Delete keyword</DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600">{t.deleteKeyword}</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>

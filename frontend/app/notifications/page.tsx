@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Bell, Loader2, CheckCheck, Info, AlertTriangle, CheckCircle, XCircle, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { useTranslations } from "@/lib/i18n"
 import { notificationsService, type Notification } from "@/lib/services/notifications"
@@ -101,6 +101,7 @@ export default function NotificationsPage() {
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 shrink-0">
           <div className="flex items-center gap-4">
+            <SidebarTrigger className="-ml-1" />
             <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{t.notificationsTitle}</h1>
             <div className="h-6 w-px bg-gray-200 dark:bg-gray-800" />
             <div className="flex items-center gap-2">

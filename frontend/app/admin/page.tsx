@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { UserAvatarMenu } from "@/components/layout/user-avatar-menu"
 import {
   AreaChart,
   Area,
@@ -29,6 +30,7 @@ import { adminService, type PlatformOverview, type UserAnalytics, type Subscript
 import { getCountryCode, getCountryName } from '@/lib/utils/countries'
 import { StatsGridSkeleton, ChartSkeleton, ListSkeleton } from '@/components/admin/admin-skeletons'
 import FlagIcon from '@/components/shared/flag-icon'
+
 
 const COLORS = ['#10b981', '#8b5cf6', '#f59e0b', '#ec4899', '#06b6d4']
 
@@ -142,20 +144,11 @@ export default function AdminDashboard() {
             <Menu className="w-5 h-5" />
           </button>
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">Vista General</h1>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Admin</span>
-          </div>
+
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="hidden md:flex h-8 text-xs font-medium bg-white dark:bg-[#1E1E24] border-gray-200 dark:border-gray-800 shadow-sm">
-            <Clock className="w-3.5 h-3.5 mr-2 text-gray-500" />
-            {new Date().toLocaleTimeString('es', { hour: '2-digit', minute: '2-digit' })}
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-900 dark:hover:text-white">
-            <Settings className="w-4 h-4" />
-          </Button>
+          <UserAvatarMenu />
         </div>
       </header>
 

@@ -19,8 +19,9 @@ import {
 import { format } from "date-fns"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
+import { UserAvatarMenu } from "@/components/layout/user-avatar-menu"
 import { useTranslations } from "@/lib/i18n"
 import { brandsService, type Brand } from "@/lib/services/brands"
 import { analysisService, type Analysis } from "@/lib/services/analysis"
@@ -117,7 +118,7 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ color: entry.color, backgroundColor: entry.color }} />
                   <span className="text-muted-foreground capitalize">
-                    {entry.name === 'rank' ? 'Rank Score' : entry.name === 'position' ? 'Avg. Position' : 'Inclusion Rate'}
+                    {entry.name === 'rank' ? t.dashboardRankScore : entry.name === 'position' ? t.dashboardAvgPosition : t.dashboardInclusionRate}
                   </span>
                 </div>
                 <span className="font-mono font-medium text-foreground">{entry.value}{entry.name === 'position' ? '' : '%'}</span>
@@ -145,22 +146,10 @@ export default function DashboardPage() {
         <header className="flex items-center justify-between px-6 py-4 shrink-0">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{t.dashboardTitle}</h1>
+            <SidebarTrigger className="-ml-1" />
             {/* Separator removed */}
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/50 dark:bg-white/5 border border-gray-200 dark:border-white/10">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Live Updates</span>
-            </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" className="hidden md:flex h-8 text-xs font-medium bg-white dark:bg-[#1E1E24] border-gray-200 dark:border-gray-800 shadow-sm">
-              <CalendarIcon className="w-3.5 h-3.5 mr-2 text-gray-500" />
-              Last 30 Days
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-900 dark:hover:text-white">
-              <Settings className="w-4 h-4" />
-            </Button>
-          </div>
+          <UserAvatarMenu />
         </header>
 
         {/* Main Content Panel with Rounded Top-Left Corner */}
@@ -182,7 +171,7 @@ export default function DashboardPage() {
                       : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
                       }`}
                   >
-                    Rank Score
+                    {t.dashboardRankScore}
                     {activeMetric === 'rank' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500" />}
                   </button>
                   <button
@@ -192,7 +181,7 @@ export default function DashboardPage() {
                       : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
                       }`}
                   >
-                    Avg. Position
+                    {t.dashboardAvgPosition}
                     {activeMetric === 'position' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />}
                   </button>
                   <button
@@ -202,7 +191,7 @@ export default function DashboardPage() {
                       : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
                       }`}
                   >
-                    Inclusion Rate
+                    {t.dashboardInclusionRate}
                     {activeMetric === 'inclusion' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500" />}
                   </button>
                 </div>
@@ -216,9 +205,9 @@ export default function DashboardPage() {
                       {activeMetric === 'inclusion' && `${currentInclusion}%`}
                     </div>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {activeMetric === 'rank' && 'Overall visibility score across all AI engines'}
-                      {activeMetric === 'position' && 'Average ranking position in search results'}
-                      {activeMetric === 'inclusion' && 'Percentage of queries where your brand appears'}
+                      {activeMetric === 'rank' && t.dashboardOverallVisibility}
+                      {activeMetric === 'position' && t.dashboardAvgPositionDesc}
+                      {activeMetric === 'inclusion' && t.dashboardInclusionRateDesc}
                     </p>
                   </div>
 
@@ -273,14 +262,14 @@ export default function DashboardPage() {
               <div className="lg:col-span-4 space-y-6 pl-0 lg:pl-6 border-l border-transparent lg:border-gray-100 dark:lg:border-[#1A1A20]">
 
                 <div className="pt-6">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Unlock Advanced Tracking</h3>
+                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">{t.dashboardUnlockTracking}</h3>
                   <div className="p-4 rounded-xl bg-gradient-to-br from-gray-900 to-black dark:from-[#111114] dark:to-black border border-gray-800 text-white relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
                     <p className="text-sm text-gray-300 mb-4 relative z-10">
-                      Upgrade your brand plan to track performance across personas, regions, and languages.
+                      {t.dashboardUpgradeMessage}
                     </p>
                     <Button className="w-full bg-white text-black hover:bg-gray-100 border-0 font-medium">
-                      Upgrade Plan
+                      {t.upgradePlan}
                     </Button>
                   </div>
                 </div>
@@ -294,8 +283,8 @@ export default function DashboardPage() {
               {/* Competition Performance */}
               <div className="lg:col-span-2 space-y-4">
                 <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                  Competition Performance
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">Live</span>
+                  {t.dashboardCompetitionPerformance}
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">{t.dashboardLive}</span>
                 </h3>
                 <div className="space-y-3">
                   {competitors.slice(0, 5).map((comp) => (
@@ -318,7 +307,7 @@ export default function DashboardPage() {
                     </div>
                   ))}
                   {competitors.length === 0 && (
-                    <div className="text-sm text-gray-500 italic">No competitors tracked.</div>
+                    <div className="text-sm text-gray-500 italic">{t.noCompetitorsTracked}</div>
                   )}
                 </div>
               </div>
@@ -326,7 +315,7 @@ export default function DashboardPage() {
               {/* Model Performance */}
               <div className="lg:col-span-2 space-y-4">
                 <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                  Model Performance
+                  {t.dashboardModelPerformance}
                 </h3>
                 <div className="space-y-3">
                   {AI_PROVIDER_META.map((provider) => {
@@ -337,7 +326,7 @@ export default function DashboardPage() {
                       <div key={provider.id} className="flex items-center justify-between group p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-[#111114] transition-colors">
                         <div className="flex items-center gap-3">
                           <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 p-1 text-gray-900 dark:text-white">
-                            <Image src={provider.icon} alt={provider.name} width={16} height={16} className="w-full h-full object-contain" />
+                            <Image src={provider.icon} alt={provider.name} width={16} height={16} className={provider.icon.includes('openai.svg') ? 'w-full h-full object-contain dark:invert' : 'w-full h-full object-contain'} />
                           </div>
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{provider.name}</span>
                         </div>
@@ -355,7 +344,7 @@ export default function DashboardPage() {
                               </span>
                             </>
                           ) : (
-                            <span className="text-xs text-gray-400">No data</span>
+                            <span className="text-xs text-gray-400">{t.dashboardNoData}</span>
                           )}
                         </div>
                       </div>

@@ -6,8 +6,9 @@ import { Search, Clock, TrendingUp, Sparkles, Command, ArrowRight, MessageSquare
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/layout/app-sidebar'
+import { UserAvatarMenu } from '@/components/layout/user-avatar-menu'
 import { useTranslations } from '@/lib/i18n'
 import { brandsService, type Brand } from '@/lib/services/brands'
 import { SearchInput } from '@/components/search/search-input'
@@ -49,10 +50,14 @@ export default function SearchPage() {
       <SidebarInset className="bg-[#fdfdfc] dark:bg-[#050505] h-screen overflow-hidden flex flex-col">
         {/* Header */}
         <header className="flex items-center justify-between px-8 py-6 bg-[#fdfdfc] dark:bg-[#050505]">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{t.searchTitle}</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">AI-powered analysis command center</p>
+          <div className="flex items-center gap-4">
+            <SidebarTrigger className="-ml-1" />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{t.searchTitle}</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">AI-powered analysis command center</p>
+            </div>
           </div>
+          <UserAvatarMenu />
         </header>
 
         <main className="flex-1 overflow-y-auto px-8 pb-8 bg-[#fdfdfc] dark:bg-[#050505]">

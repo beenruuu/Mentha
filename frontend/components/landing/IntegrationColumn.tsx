@@ -39,9 +39,9 @@ const IntegrationColumn = (props: {
                             key={integration.name}
                             className="bg-white dark:bg-zinc-900/50 border border-gray-200 dark:border-white/10 rounded-3xl p-6 hover:border-emerald-500/50 dark:hover:border-emerald-500/30 transition-all duration-300 shadow-sm dark:shadow-none"
                         >
-                            <div className="flex justify-center">
+                                <div className="flex justify-center">
                                 <Image
-                                    className="size-24"
+                                    className={`size-24 ${integration.icon.includes('openai.svg') ? 'dark:invert' : ''}`}
                                     src={integration.icon}
                                     alt={`${integration.name}-icon`}
                                     width={96}

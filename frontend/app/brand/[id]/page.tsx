@@ -6,7 +6,7 @@ import { Building2, Globe, Trash2, ArrowRight, Activity, Search, ShieldCheck, Sp
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { useTranslations } from "@/lib/i18n"
 import { brandsService, type Brand } from "@/lib/services/brands"
@@ -107,6 +107,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
         {/* Header */}
         <header className="flex items-center justify-between px-8 py-6 bg-[#fdfdfc] dark:bg-[#050505] border-b border-border/40">
           <div className="flex items-center gap-4">
+            <SidebarTrigger className="-ml-1" />
             <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-800 border border-border/50 flex items-center justify-center overflow-hidden shadow-sm">
               <img
                 src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=128`}

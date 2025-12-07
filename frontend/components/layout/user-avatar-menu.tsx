@@ -18,10 +18,34 @@ export function UserAvatarMenu() {
   const router = useRouter()
   const [lang, setLang] = useState<Language>('es')
   const t = getTranslations(lang)
+  const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
     setLang(getLanguage())
+    loadUser()
+
+    const handleUserUpdate = () => {
+      loadUser()
+    }
+
+    window.addEventListener('user-updated', handleUserUpdate)
+    return () => {
+      window.removeEventListener('user-updated', handleUserUpdate)
+    }
   }, [])
+
+  const loadUser = async () => {
+    try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        setUser(user)
+      }
+    } catch (error) {
+      console.error('Error loading user:', error)
+    }
+  }
 
   const handleLogout = async () => {
     try {
@@ -40,9 +64,9 @@ export function UserAvatarMenu() {
       <DropdownMenuTrigger asChild>
         <button className="relative w-8 h-8 rounded-full focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2">
           <Avatar className="w-8 h-8">
-            <AvatarImage src="" alt="Usuario" />
+            <AvatarImage src={user?.user_metadata?.avatar_url || ""} alt="Usuario" />
             <AvatarFallback className="bg-emerald-600 text-white text-sm font-medium">
-              U
+              {user?.email?.substring(0, 2).toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
           <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-black rounded-full"></div>

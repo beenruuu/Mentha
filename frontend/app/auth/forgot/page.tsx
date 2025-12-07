@@ -6,7 +6,6 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { useTranslations } from '@/lib/i18n'
 
 export default function ForgotPage() {
@@ -41,40 +40,57 @@ export default function ForgotPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">{t.authForgotTitle}</CardTitle>
-          <CardDescription className="text-center">{t.authForgotDescription}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {sent ? (
-            <div className="space-y-4">
-              <div className="text-sm text-muted-foreground">{t.authEmailSentDescription}</div>
-              <Button onClick={() => router.push('/auth/login')}>{t.authBackToLogin}</Button>
-            </div>
-          ) : (
-            <form onSubmit={handleSend} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email">{t.authEmail}</Label>
-                <Input id="email" name="email" autoComplete="email" type="email" placeholder={t.authEmailPlaceholder} value={email} onChange={(e) => setEmail(e.target.value)} required disabled={loading} />
-              </div>
+    <div className="w-full">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2 text-foreground">{t.authForgotTitle}</h1>
+        <p className="text-muted-foreground">{t.authForgotDescription}</p>
+      </div>
 
-              {error && <div className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded">{error}</div>}
-
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? t.authSendingLink : t.authSendLink}
-              </Button>
-            </form>
-          )}
-        </CardContent>
-        <CardFooter>
-          <div className="text-sm text-center w-full text-muted-foreground">
-            {t.authHaveAccount}{' '}
-            <Link href="/auth/login" className="text-emerald-600 hover:underline">{t.authSignIn}</Link>
+      {sent ? (
+        <div className="space-y-6">
+          <div className="text-sm text-green-600 bg-green-50 dark:bg-green-900/20 p-4 rounded border border-green-100 dark:border-green-900">
+            {t.authEmailSentDescription}
           </div>
-        </CardFooter>
-      </Card>
+          <Button onClick={() => router.push('/auth/login')} className="w-full bg-mentha hover:bg-mentha/90 text-white">
+            {t.authBackToLogin}
+          </Button>
+        </div>
+      ) : (
+        <form onSubmit={handleSend} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="email" className="text-foreground">{t.authEmail}</Label>
+            <Input
+              id="email"
+              name="email"
+              autoComplete="email"
+              type="email"
+              placeholder={t.authEmailPlaceholder}
+              value={email}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+              required
+              disabled={loading}
+              className="bg-background border-input text-foreground placeholder:text-muted-foreground"
+            />
+          </div>
+
+          {error && (
+            <div className="text-sm text-red-500 bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-100 dark:border-red-900">
+              {error}
+            </div>
+          )}
+
+          <Button type="submit" className="w-full bg-mentha hover:bg-mentha/90 text-white h-11" disabled={loading}>
+            {loading ? t.authSendingLink : t.authSendLink}
+          </Button>
+        </form>
+      )}
+
+      <div className="mt-6 text-center text-sm">
+        <span className="text-muted-foreground">{t.authHaveAccount} </span>
+        <Link href="/auth/login" className="font-medium text-mentha hover:underline">
+          {t.authSignIn}
+        </Link>
+      </div>
     </div>
   )
 }

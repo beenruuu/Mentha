@@ -22,6 +22,7 @@ import {
   Moon,
   Sun,
 } from "lucide-react"
+import { useTranslations } from "@/lib/i18n"
 
 interface Shortcut {
   name: string
@@ -32,54 +33,55 @@ interface Shortcut {
 }
 
 export function CommandPalette() {
+  const { t } = useTranslations()
   const [open, setOpen] = React.useState(false)
   const router = useRouter()
 
   const shortcuts: Shortcut[] = [
     {
-      name: "Ir al Dashboard",
+      name: t.cmdDashboard,
       shortcut: "Ctrl+D",
       action: () => router.push("/dashboard"),
       icon: <Home className="mr-2 h-4 w-4" />,
-      section: "Navegación",
+      section: t.cmdNavigation,
     },
     {
-      name: "Búsqueda",
+      name: t.cmdSearch,
       shortcut: "Ctrl+K",
       action: () => router.push("/search"),
       icon: <Search className="mr-2 h-4 w-4" />,
-      section: "Navegación",
+      section: t.cmdNavigation,
     },
     {
-      name: "Notificaciones",
+      name: t.cmdNotifications,
       shortcut: "Ctrl+N",
       action: () => router.push("/notifications"),
       icon: <Bell className="mr-2 h-4 w-4" />,
-      section: "Navegación",
+      section: t.cmdNavigation,
     },
     {
-      name: "Configuración",
+      name: t.cmdSettings,
       shortcut: "Ctrl+,",
       action: () => window.dispatchEvent(new CustomEvent('open-settings-panel')),
       icon: <Settings className="mr-2 h-4 w-4" />,
-      section: "Navegación",
+      section: t.cmdNavigation,
     },
     {
-      name: "Actualizar Plan",
+      name: t.cmdUpgrade,
       shortcut: "Ctrl+U",
       action: () => router.push("/upgrade"),
       icon: <Sparkles className="mr-2 h-4 w-4" />,
-      section: "Navegación",
+      section: t.cmdNavigation,
     },
     {
-      name: "Ver Atajos",
+      name: t.cmdShortcuts,
       shortcut: "Ctrl+Y",
       action: () => setOpen(true),
       icon: <Keyboard className="mr-2 h-4 w-4" />,
-      section: "Ayuda",
+      section: t.cmdHelp,
     },
     {
-      name: "Cambiar Tema",
+      name: t.cmdTheme,
       shortcut: "Ctrl+T",
       action: () => {
         // Esta acción se puede conectar con el theme-toggle
@@ -90,7 +92,7 @@ export function CommandPalette() {
         document.dispatchEvent(event)
       },
       icon: <Sun className="mr-2 h-4 w-4" />,
-      section: "Apariencia",
+      section: t.cmdAppearance,
     },
   ]
 
@@ -124,9 +126,9 @@ export function CommandPalette() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Buscar atajos de teclado..." />
+      <CommandInput placeholder={t.cmdPlaceholder} />
       <CommandList>
-        <CommandEmpty>No se encontraron atajos.</CommandEmpty>
+        <CommandEmpty>{t.cmdNoResults}</CommandEmpty>
         {Object.entries(groupedShortcuts).map(([section, items], idx) => (
           <React.Fragment key={section}>
             {idx > 0 && <CommandSeparator />}

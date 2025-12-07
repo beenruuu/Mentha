@@ -7,8 +7,9 @@ import { MessageSquare, Plus, Calendar, Copy, Loader2, Search, Filter, ArrowUpDo
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
+import { UserAvatarMenu } from "@/components/layout/user-avatar-menu"
 import { useTranslations } from '@/lib/i18n'
 import { brandsService, type Brand } from '@/lib/services/brands'
 import { analysisService, type Analysis } from '@/lib/services/analysis'
@@ -104,6 +105,7 @@ export default function BrandQueriesPage({ isEmbedded = false }: { isEmbedded?: 
       {!isEmbedded && (
         <header className="flex items-center justify-between px-8 py-6 bg-[#fdfdfc] dark:bg-[#050505] border-b border-border/40">
           <div className="flex items-center gap-4">
+            <SidebarTrigger className="-ml-1" />
             <div className="w-10 h-10 rounded-lg bg-white dark:bg-zinc-800 border border-border/50 flex items-center justify-center overflow-hidden shadow-sm">
               <img
                 src={`https://www.google.com/s2/favicons?domain=${brand?.domain}&sz=64`}
@@ -120,10 +122,13 @@ export default function BrandQueriesPage({ isEmbedded = false }: { isEmbedded?: 
               <p className="text-sm text-gray-500 dark:text-gray-400">Strategic queries for AI optimization</p>
             </div>
           </div>
-          <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
-            <Plus className="w-4 h-4 mr-2" />
-            {t.newQuery}
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
+              <Plus className="w-4 h-4 mr-2" />
+              {t.newQuery}
+            </Button>
+            <UserAvatarMenu />
+          </div>
         </header>
       )}
 

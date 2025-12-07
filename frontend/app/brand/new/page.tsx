@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { SidebarTrigger, SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
+import { UserAvatarMenu } from "@/components/layout/user-avatar-menu"
 import { analysisService } from "@/lib/services/analysis"
 import { brandsService } from "@/lib/services/brands"
 import { useToast } from "@/hooks/use-toast"
@@ -159,7 +160,10 @@ Competitors: ${formData.competitors}
                     <span>Volver al dashboard</span>
                   </button>
                 </Link>
-                <SidebarTrigger />
+                <div className="flex items-center gap-4">
+                  <UserAvatarMenu />
+                  <SidebarTrigger />
+                </div>
               </div>
 
               {/* Header with Progress */}
