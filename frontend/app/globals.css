@@ -88,58 +88,57 @@ body {
 
   /* Webkit browsers (Chrome, Safari, Edge) */
   *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   *::-webkit-scrollbar-track {
-    background: rgba(var(--mentha-rgb), 0.06);
-    border-radius: 9999px;
+    background: transparent;
   }
 
   *::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, var(--mentha), rgba(var(--mentha-rgb), 0.95));
+    background: rgba(var(--mentha-rgb), 0.5);
     border-radius: 9999px;
-    border: 2px solid transparent;
-    background-clip: padding-box;
-    box-shadow: 0 1px 2px rgba(16,24,40,0.06), 0 6px 12px rgba(var(--mentha-rgb), 0.06);
-    transition: background 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+    transition: background 0.2s ease;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background: rgba(var(--mentha-rgb), 0.9);
-    box-shadow: 0 4px 10px rgba(var(--mentha-rgb), 0.12);
-    transform: translateY(-1px);
-  }
-
-  *::-webkit-scrollbar-thumb:active {
-    background: rgba(var(--mentha-rgb), 0.98);
-    box-shadow: 0 6px 18px rgba(var(--mentha-rgb), 0.16);
+    background: var(--mentha);
   }
 
   /* Firefox */
   * {
     scrollbar-width: thin;
-    scrollbar-color: var(--mentha) rgba(var(--mentha-rgb), 0.06);
+    scrollbar-color: rgba(var(--mentha-rgb), 0.5) transparent;
   }
-}
 
-/* Settings panel blur effect - only blur main content area (the rounded container) */
-body[data-settings-open="true"] main.dashboard-main {
-  filter: blur(2px) brightness(0.85);
-  transition: filter 0.2s ease;
-  pointer-events: none;
-}
+  /* Settings panel blur effect - only blur main content area (the rounded container) */
+  body[data-settings-open="true"] main.dashboard-main {
+    filter: blur(2px) brightness(0.85);
+    transition: filter 0.2s ease;
+    pointer-events: none;
+  }
 
-@layer utilities {
   @keyframes mentha-snake {
-    to { stroke-dashoffset: -480; }
+    to {
+      stroke-dashoffset: -480;
+    }
   }
 
   @keyframes mentha-shimmer {
-    0% { transform: translateX(-150%) rotate(-25deg); opacity: 0; }
-    40% { opacity: 0.6; }
-    100% { transform: translateX(150%) rotate(-25deg); opacity: 0; }
+    0% {
+      transform: translateX(-150%) rotate(-25deg);
+      opacity: 0;
+    }
+
+    40% {
+      opacity: 0.6;
+    }
+
+    100% {
+      transform: translateX(150%) rotate(-25deg);
+      opacity: 0;
+    }
   }
 
   .mentha-logo-outline {
@@ -167,7 +166,9 @@ body[data-settings-open="true"] main.dashboard-main {
     filter: drop-shadow(0 4px 8px rgba(var(--mentha-rgb), 0.08));
   }
 
-  .mentha-logo-inner svg { display: block; }
+  .mentha-logo-inner svg {
+    display: block;
+  }
 
   .mentha-logo-outline::after {
     content: '';
@@ -176,7 +177,7 @@ body[data-settings-open="true"] main.dashboard-main {
     top: -50%;
     width: 200%;
     height: 200%;
-    background: linear-gradient(120deg, rgba(255,255,255,0) 30%, rgba(255,255,255,0.65) 50%, rgba(255,255,255,0) 70%);
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.65) 50%, rgba(255, 255, 255, 0) 70%);
     transform: rotate(-25deg) translateX(-150%);
     animation: mentha-shimmer 2.6s ease-in-out infinite;
     pointer-events: none;
