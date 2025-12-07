@@ -38,3 +38,7 @@ next-env.d.ts
 # SEO analyzer subprojects (separate repos)
 black-seo-analyzer/
 python-seo-analyzer/
+# Accidental embedded repos and temporary files
+firegeo/
+python-seo-analyzer.worktrees/
+.git_changes.txt
