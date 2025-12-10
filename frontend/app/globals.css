@@ -1,9 +1,9 @@
+/* Flag icons (svg sprites) */
+@import 'flag-icons/css/flag-icons.min.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Flag icons (svg sprites) */
-@import 'flag-icons/css/flag-icons.min.css';
 
 @layer base {
   :root {
