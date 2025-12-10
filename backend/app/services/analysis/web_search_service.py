@@ -9,6 +9,8 @@ import asyncio
 import json
 from datetime import datetime
 from urllib.parse import urlparse
+import httpx  # For URL validation
+from app.core.config import settings
 
 
 # =============================================================================
@@ -68,6 +70,9 @@ EXCLUDED_DOMAINS = {
     'guiadeprensa.com', 'eleconomista.es', 'cincodias.com', 'expansion.com',
     'larazon.es', 'abc.es', 'elmundo.es', 'elpais.com', 'europapress.es',
     'lavanguardia.com', 'elconfidencial.com', 'eldiario.es', '20minutos.es',
+    'xataka.com', 'genbeta.com', 'applesfera.com', 'motorpasion.com',
+    'webirix.com', 'smediabusiness.com', 'blog.doctorsim.com',
+    'researchgate.net', 'businessmodelanalyst.com',
     # Business directories (NOT competitors)
     'empresite.eleconomista.es', 'einforma.com', 'axesor.es', 'infocif.es',
     'paginasamarillas.es', 'cylex.es', 'europages.es', 'kompass.com',
@@ -91,6 +96,9 @@ class WebSearchService:
         """Initialize the web search service."""
         self.enabled = DDGS is not None
         self.llm_service = llm_service
+        self.web_provider = settings.WEB_SEARCH_PROVIDER.lower().strip() if settings.WEB_SEARCH_PROVIDER else "duckduckgo"
+        self.tavily_api_key = settings.TAVILY_API_KEY
+        self.serper_api_key = settings.SERPER_API_KEY
         if not self.enabled:
             log_warning("🔍❌", "Web search is disabled. Install duckduckgo-search to enable.")
     
@@ -98,6 +106,42 @@ class WebSearchService:
         """Set the LLM service for AI-powered filtering."""
         self.llm_service = llm_service
     
+    async def _validate_url_accessibility(self, url: str, timeout: int = 5) -> bool:
+        """
+        Validate if a URL is accessible and returns a 200 OK status.
+        Uses a lightweight HTTP HEAD/GET request.
+        """
+        if not url:
+            return False
+            
+        # Ensure scheme
+        if not url.startswith('http'):
+            url = 'https://' + url
+            
+        try:
+            # Use a real browser User-Agent to avoid being blocked
+            headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                "Accept-Language": "en-US,en;q=0.5"
+            }
+            
+            async with httpx.AsyncClient(verify=False, follow_redirects=True, timeout=timeout, headers=headers) as client:
+                # Try HEAD first (lighter)
+                try:
+                    response = await client.head(url)
+                    if 200 <= response.status_code < 400:
+                        return True
+                except Exception:
+                    pass # Fallback to GET
+                
+                # Fallback to GET (some servers block HEAD)
+                response = await client.get(url)
+                return 200 <= response.status_code < 400
+        except Exception as e:
+            # log_warning("🌐⚠️", f"URL validation failed for {url}: {e}")
+            return False
+
     def _is_excluded_domain(self, domain: str) -> bool:
         """
         Check if a domain should be excluded from competitor results.
@@ -211,7 +255,7 @@ DEFINICIONES DE ENTITY_TYPE:
         try:
             response = await llm.generate_text(
                 prompt=prompt,
-                model="gpt-4o-mini",
+                model="gpt-5-chat-latest",
                 max_tokens=300,
                 temperature=0
             )
@@ -292,15 +336,16 @@ EXCLUIR OBLIGATORIAMENTE:
 - Directorios de empresas (paginasamarillas, yelp, tripadvisor, google maps)
 - Redes sociales (facebook, instagram, twitter)
 - Agregadores de reseñas
-- Blogs y medios de comunicación
+- Blogs y medios de comunicación (xataka, webirix, blogs personales)
 - Páginas de Wikipedia o similares
 - Servicios de delivery (justeat, glovo, ubereats) - NO son competidores de restaurantes
 - Portales de empleo
 - Webs que no funcionan o están en construcción
+- Artículos de "Top X empresas" o "Mejores X" (extrae las empresas mencionadas, NO el artículo)
 
 SOLO INCLUIR:
 - Empresas que venden EXACTAMENTE lo mismo
-- Con web propia funcional
+- Con web propia funcional (NO subdominios de blog)
 - En el mismo mercado geográfico
 
 IMPORTANTE sobre el nombre:
@@ -312,7 +357,7 @@ IMPORTANTE sobre el nombre:
         try:
             response = await llm.generate_text(
                 prompt=prompt,
-                model="gpt-4o-mini",
+                model="gpt-5-chat-latest",
                 max_tokens=300,
                 temperature=0
             )
@@ -387,12 +432,14 @@ REGLAS CRÍTICAS:
 - Verifica que la empresa tenga presencia web real antes de incluirla
 - Para restaurantes: solo otros restaurantes similares en la misma zona
 - Para servicios locales: solo competidores en la misma área geográfica
-- Responde en {lang_text}"""
+- Responde en {lang_text}
+- IMPORTANTE: Si no estás 100% seguro de que el dominio existe, NO lo incluyas. Prefiero menos resultados pero que funcionen.
+- NO inventes dominios (ej: no pongas "reparacionmovilesmalaga.com" si no existe)."""
 
         try:
             response = await llm.generate_text(
                 prompt=prompt,
-                model="gpt-4o-mini",
+                model="gpt-5-chat-latest",
                 max_tokens=800,
                 temperature=0.3
             )
@@ -456,7 +503,6 @@ REGLAS CRÍTICAS:
             return []
         
         try:
-            loop = asyncio.get_event_loop()
             
             # Parse services
             service_list = []
@@ -515,6 +561,11 @@ REGLAS CRÍTICAS:
             if not queries:
                 queries = [f'{brand_name} {t["competitors"]}', f'{t["similar"]} {brand_name}']
             
+            # Add negative terms to exclude blogs and articles
+            # Simplified query to avoid DuckDuckGo "No results" errors
+            # We rely on post-filtering for strict exclusions
+            queries = [f'{q} -site:wikipedia.org' for q in queries]
+
             log_info("🔍🏢", f"Competitor search queries (Type: {entity_type}, Loc: {country}): {queries}")
             
             all_candidates = []
@@ -526,12 +577,7 @@ REGLAS CRÍTICAS:
             brand_lower = brand_name.lower().replace(' ', '')
             
             for query in queries:
-                results = await loop.run_in_executor(
-                    None,
-                    self._search_sync,
-                    query,
-                    15
-                )
+                results = await self._search(query, 25)
                 
                 for result in results:
                     link = result.get('href', '')
@@ -563,7 +609,7 @@ REGLAS CRÍTICAS:
                             'confidence': 'medium'
                         })
                 
-                if len(all_candidates) >= 20: # Increased candidate pool
+                if len(all_candidates) >= 40: # Increased candidate pool from 20
                     break
             
             # Use AI to filter candidates with context
@@ -643,22 +689,43 @@ REGLAS CRÍTICAS:
             seen_domains.add(self._normalize_domain(domain))
         
         merged = []
+        candidates_to_validate = []
         
         # Add LLM results first (higher confidence)
         for comp in llm_results:
             normalized = self._normalize_domain(comp.get('domain', ''))
             if normalized and normalized not in seen_domains:
                 seen_domains.add(normalized)
-                merged.append(comp)
+                candidates_to_validate.append(comp)
         
         # Add web search results that aren't duplicates
         for comp in web_results:
             normalized = self._normalize_domain(comp.get('domain', ''))
             if normalized and normalized not in seen_domains:
                 seen_domains.add(normalized)
-                merged.append(comp)
+                candidates_to_validate.append(comp)
         
-        log_success("🎯✅", f"Found {len(merged)} unique competitors ({len(llm_results)} from LLM, {len(web_results)} from web search)")
+        # Validate URLs in parallel
+        log_info("🔍🛡️", f"Validating accessibility for {len(candidates_to_validate)} candidates...")
+        
+        validation_tasks = []
+        for comp in candidates_to_validate:
+            domain_url = comp.get('domain', '')
+            if domain_url and not domain_url.startswith('http'):
+                domain_url = f"https://{domain_url}"
+            validation_tasks.append(self._validate_url_accessibility(domain_url))
+            
+        validation_results = await asyncio.gather(*validation_tasks)
+        
+        valid_count = 0
+        for comp, is_valid in zip(candidates_to_validate, validation_results):
+            if is_valid:
+                merged.append(comp)
+                valid_count += 1
+            else:
+                log_warning("🚫", f"Discarding inaccessible competitor: {comp.get('domain')}")
+
+        log_success("🎯✅", f"Found {len(merged)} unique & valid competitors ({len(llm_results)} from LLM, {len(web_results)} from web search). Discarded {len(candidates_to_validate) - valid_count} invalid.")
         
         return merged[:max_results]
     
@@ -789,24 +856,77 @@ REGLAS CRÍTICAS:
             log_error("🏭❌", f"Error in industry search: {e}")
             return []
     
-    def _search_sync(self, query: str, max_results: int) -> List[Dict[str, Any]]:
-        """
-        Synchronous search function to be run in thread pool.
-        
-        Args:
-            query: Search query
-            max_results: Maximum results to return
-            
-        Returns:
-            List of search result dictionaries
-        """
+    async def _search(self, query: str, max_results: int) -> List[Dict[str, Any]]:
+        """Provider-agnostic search wrapper with Tavily/Serper fallback to DuckDuckGo."""
+        provider = self.web_provider
+
+        # Prefer Tavily when key present
+        if provider == "tavily" and self.tavily_api_key:
+            try:
+                payload = {
+                    "api_key": self.tavily_api_key,
+                    "query": query,
+                    "search_depth": "advanced",
+                    "max_results": max_results,
+                    "include_answer": False,
+                }
+                async with httpx.AsyncClient(timeout=10) as client:
+                    res = await client.post("https://api.tavily.com/search", json=payload)
+                    res.raise_for_status()
+                    data = res.json()
+                    tavily_results = data.get("results", [])
+                    return [
+                        {
+                            "title": r.get("title", ""),
+                            "href": r.get("url", ""),
+                            "body": r.get("content", "") or r.get("snippet", ""),
+                        }
+                        for r in tavily_results[:max_results]
+                    ]
+            except Exception as e:
+                log_warning("🌐⚠️", f"Tavily search failed, falling back to DuckDuckGo: {e}")
+
+        # Serper (Google SERP)
+        if provider == "serper" and self.serper_api_key:
+            try:
+                headers = {
+                    "X-API-KEY": self.serper_api_key,
+                    "Content-Type": "application/json",
+                }
+                payload = {"q": query, "num": max_results}
+                async with httpx.AsyncClient(timeout=10) as client:
+                    res = await client.post("https://google.serper.dev/search", headers=headers, json=payload)
+                    res.raise_for_status()
+                    data = res.json()
+                    organic = data.get("organic", [])
+                    return [
+                        {
+                            "title": r.get("title", ""),
+                            "href": r.get("link", ""),
+                            "body": r.get("snippet", "") or r.get("description", ""),
+                        }
+                        for r in organic[:max_results]
+                    ]
+            except Exception as e:
+                log_warning("🌐⚠️", f"Serper search failed, falling back to DuckDuckGo: {e}")
+
+        # DuckDuckGo fallback
         try:
-            with DDGS() as ddgs:
-                results = list(ddgs.text(query, max_results=max_results))
-                return results
+            loop = asyncio.get_event_loop()
+            return await loop.run_in_executor(
+                None,
+                self._search_sync,
+                query,
+                max_results,
+            )
         except Exception as e:
             log_error("🦆❌", f"DuckDuckGo search failed for '{query}': {e}")
             return []
+
+    def _search_sync(self, query: str, max_results: int) -> List[Dict[str, Any]]:
+        """Synchronous DuckDuckGo search (fallback)."""
+        with DDGS() as ddgs:
+            return list(ddgs.text(query, max_results=max_results))
     
     def _extract_domain(self, url: str) -> str:
         """
