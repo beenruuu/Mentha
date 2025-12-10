@@ -19,17 +19,17 @@ interface SuggestedPrompt {
 }
 
 export default function ResearchPromptsStep() {
-    const { 
-        researchPrompts, 
-        setResearchPrompts, 
-        brandProfile, 
+    const {
+        researchPrompts,
+        setResearchPrompts,
+        brandProfile,
         competitors,
         companyInfo,
-        nextStep, 
-        prevStep 
+        nextStep,
+        prevStep
     } = useOnboarding()
     const { lang } = useTranslations()
-    
+
     const [newPrompt, setNewPrompt] = useState('')
     const [newPromptType, setNewPromptType] = useState<'branded' | 'non-branded'>('non-branded')
     const [isGenerating, setIsGenerating] = useState(false)
@@ -38,8 +38,8 @@ export default function ResearchPromptsStep() {
 
     const t = {
         title: lang === 'es' ? 'Prompts de investigación' : 'Research Prompts',
-        subtitle: lang === 'es' 
-            ? 'La IA ha generado prompts personalizados basándose en tu marca, sector y competidores.' 
+        subtitle: lang === 'es'
+            ? 'La IA ha generado prompts personalizados basándose en tu marca, sector y competidores.'
             : 'AI has generated personalized prompts based on your brand, industry and competitors.',
         branded: lang === 'es' ? 'Branded' : 'Branded',
         nonBranded: lang === 'es' ? 'Non-branded' : 'Non-branded',
@@ -72,7 +72,7 @@ export default function ResearchPromptsStep() {
         setIsGenerating(true)
         try {
             const competitorNames = competitors.map(c => c.name).join(', ')
-            
+
             const response = await fetchAPI<{ prompts: Array<{ text: string; type: 'branded' | 'non-branded' }> }>(
                 '/utils/generate-research-prompts',
                 {
@@ -109,7 +109,7 @@ export default function ResearchPromptsStep() {
     }
 
     const toggleSuggestion = (index: number) => {
-        setSuggestedPrompts(prev => prev.map((p, i) => 
+        setSuggestedPrompts(prev => prev.map((p, i) =>
             i === index ? { ...p, selected: !p.selected } : p
         ))
     }
@@ -122,11 +122,11 @@ export default function ResearchPromptsStep() {
             type: p.type,
             isCustom: false
         }))
-        
+
         // Add only up to the limit
         const available = MAX_PROMPTS - researchPrompts.length
         const toAdd = newPrompts.slice(0, available)
-        
+
         setResearchPrompts([...researchPrompts, ...toAdd])
         // Clear added suggestions
         setSuggestedPrompts(prev => prev.filter(p => !p.selected))
@@ -137,14 +137,17 @@ export default function ResearchPromptsStep() {
     const selectedCount = suggestedPrompts.filter(p => p.selected).length
 
     const handleAddPrompt = () => {
-        if (newPrompt.trim() && researchPrompts.length < MAX_PROMPTS) {
+        // Defensive check
+        const currentPrompts = Array.isArray(researchPrompts) ? researchPrompts : []
+
+        if (newPrompt.trim() && currentPrompts.length < MAX_PROMPTS) {
             const prompt: ResearchPrompt = {
                 id: `custom-${Date.now()}`,
                 text: newPrompt.trim(),
                 type: newPromptType,
                 isCustom: true
             }
-            setResearchPrompts([...researchPrompts, prompt])
+            setResearchPrompts([...currentPrompts, prompt])
             setNewPrompt('')
         }
     }
@@ -163,7 +166,7 @@ export default function ResearchPromptsStep() {
     const renderPromptList = (prompts: ResearchPrompt[], type: 'branded' | 'non-branded') => (
         <div className="space-y-1">
             {prompts.map((prompt) => (
-                <div 
+                <div
                     key={prompt.id}
                     className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 group"
                 >
@@ -172,9 +175,9 @@ export default function ResearchPromptsStep() {
                         type === 'branded' ? "bg-primary" : "bg-blue-500"
                     )} />
                     <p className="flex-1 text-sm text-gray-300">{prompt.text}</p>
-                    <Button 
-                        size="sm" 
-                        variant="ghost" 
+                    <Button
+                        size="sm"
+                        variant="ghost"
                         onClick={() => handleRemovePrompt(prompt.id)}
                         className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400"
                     >
@@ -233,7 +236,7 @@ export default function ResearchPromptsStep() {
                                 {t.regenerate}
                             </Button>
                         </div>
-                        
+
                         <div className="space-y-2">
                             {suggestedPrompts.map((prompt, index) => (
                                 <button
@@ -249,8 +252,8 @@ export default function ResearchPromptsStep() {
                                 >
                                     <div className={cn(
                                         "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
-                                        prompt.selected 
-                                            ? "border-primary bg-primary" 
+                                        prompt.selected
+                                            ? "border-primary bg-primary"
                                             : "border-gray-600"
                                     )}>
                                         {prompt.selected && <Check className="w-3 h-3 text-black" />}
@@ -258,8 +261,8 @@ export default function ResearchPromptsStep() {
                                     <span className="flex-1 text-sm text-white">{prompt.text}</span>
                                     <span className={cn(
                                         "text-[10px] font-medium px-2 py-1 rounded-full shrink-0",
-                                        prompt.type === 'branded' 
-                                            ? "text-primary bg-primary/15" 
+                                        prompt.type === 'branded'
+                                            ? "text-primary bg-primary/15"
                                             : "text-blue-400 bg-blue-500/15"
                                     )}>
                                         {prompt.type === 'branded' ? t.branded : t.nonBranded}
@@ -267,7 +270,7 @@ export default function ResearchPromptsStep() {
                                 </button>
                             ))}
                         </div>
-                        
+
                         {selectedCount > 0 && researchPrompts.length < MAX_PROMPTS && (
                             <Button
                                 onClick={addSelectedPrompts}
@@ -315,8 +318,8 @@ export default function ResearchPromptsStep() {
                             onClick={() => setNewPromptType(newPromptType === 'branded' ? 'non-branded' : 'branded')}
                             className={cn(
                                 "h-9 w-9 rounded-lg flex items-center justify-center shrink-0 transition-all",
-                                newPromptType === 'branded' 
-                                    ? "bg-primary/20 text-primary ring-1 ring-primary/30" 
+                                newPromptType === 'branded'
+                                    ? "bg-primary/20 text-primary ring-1 ring-primary/30"
                                     : "bg-blue-500/20 text-blue-400 ring-1 ring-blue-500/30"
                             )}
                             title={newPromptType === 'branded' ? t.branded : t.nonBranded}

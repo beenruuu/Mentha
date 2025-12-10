@@ -93,7 +93,11 @@ export default function SetupStep() {
         let redirectTimeout: NodeJS.Timeout | null = null
 
         const runSetup = async () => {
+            // Add initial delay for UX so progress bar starts at 0
+            await new Promise(resolve => setTimeout(resolve, 800))
+
             if (!brandId) {
+                console.error('SetupStep: Missing brandId')
                 setError(lang === 'es' ? 'No se encontró la marca. Por favor, vuelve a intentarlo.' : 'Brand not found. Please try again.')
                 return
             }
@@ -104,26 +108,39 @@ export default function SetupStep() {
                 setOverallProgress(10)
                 addLog(lang === 'es' ? 'Guardando prompts de investigación...' : 'Saving research prompts...')
 
-                const selectedPrompts = researchPrompts.map((p: { text: string }) => p.text)
-                
-                if (selectedPrompts.length > 0) {
-                    try {
-                        await fetchAPI(`/brands/${brandId}`, {
-                            method: 'PUT',
-                            body: JSON.stringify({
-                                discovery_prompts: selectedPrompts,
+                // Defensive check: Ensure researchPrompts is an array
+                const promptsToProcess = Array.isArray(researchPrompts) ? researchPrompts : []
+                addLog(lang === 'es' ? `Procesando ${promptsToProcess.length} prompts...` : `Processing ${promptsToProcess.length} prompts...`)
+
+                if (promptsToProcess.length > 0) {
+                    const selectedPrompts = promptsToProcess.map((p: any) => p?.text || '').filter(t => t)
+
+                    if (selectedPrompts.length > 0) {
+                        try {
+                            console.log('Saving prompts for brand:', brandId)
+                            await fetchAPI(`/brands/${brandId}`, {
+                                method: 'PUT',
+                                body: JSON.stringify({
+                                    discovery_prompts: selectedPrompts,
+                                })
                             })
-                        })
-                        addLog(lang === 'es' ? `${selectedPrompts.length} prompts guardados` : `${selectedPrompts.length} prompts saved`)
-                    } catch (promptErr: any) {
-                        console.warn('Failed to save prompts:', promptErr)
-                        addLog(lang === 'es' ? 'Prompts se guardarán después' : 'Prompts will be saved later')
+                            addLog(lang === 'es' ? `${selectedPrompts.length} prompts guardados` : `${selectedPrompts.length} prompts saved`)
+                        } catch (promptErr: any) {
+                            console.warn('Failed to save prompts:', promptErr)
+                            addLog(lang === 'es' ? 'Prompts se guardarán después (Error de conexión)' : 'Prompts will be saved later (Connection error)')
+                            // Continue anyway, don't hang
+                        }
+                    } else {
+                        addLog(lang === 'es' ? 'No hay prompts válidos seleccionados' : 'No valid prompts selected')
                     }
+                } else {
+                    addLog(lang === 'es' ? 'Lista de prompts vacía (omitido)' : 'Empty prompt list (skipped)')
                 }
 
+                // Always complete this step
                 updateTaskStatus('prompts', 'completed')
                 setOverallProgress(30)
-                await new Promise(resolve => setTimeout(resolve, 200))
+                await new Promise(resolve => setTimeout(resolve, 500)) // Visual delay
 
                 // Task 2: Configure AI models
                 if (!isMounted) return
