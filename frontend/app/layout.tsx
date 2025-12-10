@@ -10,7 +10,7 @@ import { CommandPalette } from '@/components/shared/command-palette'
 import { CookieConsent } from '@/components/shared/cookie-consent'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
-import SettingsPanel from '@/components/dashboard/settings-panel'
+import { RootProvider } from '@/components/layout/root-provider'
 
 export const metadata: Metadata = {
   title: 'Mentha - AI Engine Optimization Platform',
@@ -57,12 +57,13 @@ export default function RootLayout({
         <LanguageInit />
         <ThemeInit />
 
-        <CommandPalette />
-        <SettingsPanel />
-        {children}
-        <CookieConsent />
-        <Toaster position="top-right" expand={true} richColors />
-        <Analytics />
+        <RootProvider>
+          <CommandPalette />
+          {children}
+          <CookieConsent />
+          <Toaster position="top-right" expand={true} richColors />
+          <Analytics />
+        </RootProvider>
       </body>
     </html>
   )

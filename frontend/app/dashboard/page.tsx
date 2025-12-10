@@ -30,6 +30,7 @@ import { geoAnalysisService, type VisibilitySnapshot } from "@/lib/services/geo-
 import { MetricTab } from "@/components/dashboard/metric-tab"
 import { ActionItem } from "@/components/dashboard/action-item"
 import { ReasoningCard } from "@/components/dashboard/reasoning-card"
+import { GoogleConnect } from "@/components/integrations/GoogleConnect"
 
 const AI_PROVIDER_META = [
   { id: 'chatgpt', name: 'ChatGPT', icon: '/providers/openai.svg' },
@@ -177,22 +178,22 @@ export default function DashboardPage() {
                   <button
                     onClick={() => setActiveMetric('position')}
                     className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-all relative ${activeMetric === 'position'
-                      ? 'text-blue-600 dark:text-blue-500 bg-blue-50/50 dark:bg-blue-900/10'
+                      ? 'text-emerald-600 dark:text-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10'
                       : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
                       }`}
                   >
                     {t.dashboardAvgPosition}
-                    {activeMetric === 'position' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500" />}
+                    {activeMetric === 'position' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500" />}
                   </button>
                   <button
                     onClick={() => setActiveMetric('inclusion')}
                     className={`px-4 py-2 text-sm font-medium rounded-t-lg transition-all relative ${activeMetric === 'inclusion'
-                      ? 'text-purple-600 dark:text-purple-500 bg-purple-50/50 dark:bg-purple-900/10'
+                      ? 'text-emerald-600 dark:text-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10'
                       : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
                       }`}
                   >
                     {t.dashboardInclusionRate}
-                    {activeMetric === 'inclusion' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-500" />}
+                    {activeMetric === 'inclusion' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-500" />}
                   </button>
                 </div>
 
@@ -217,8 +218,8 @@ export default function DashboardPage() {
                         <AreaChart data={chartData} margin={{ top: 10, right: 0, bottom: 0, left: -20 }}>
                           <defs>
                             <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor={activeMetric === 'rank' ? '#10b981' : activeMetric === 'position' ? '#3b82f6' : '#8b5cf6'} stopOpacity={0.2} />
-                              <stop offset="95%" stopColor={activeMetric === 'rank' ? '#10b981' : activeMetric === 'position' ? '#3b82f6' : '#8b5cf6'} stopOpacity={0} />
+                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                              <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.2} />
@@ -241,7 +242,7 @@ export default function DashboardPage() {
                           <Area
                             type="monotone"
                             dataKey={activeMetric}
-                            stroke={activeMetric === 'rank' ? '#10b981' : activeMetric === 'position' ? '#3b82f6' : '#8b5cf6'}
+                            stroke="#10b981"
                             strokeWidth={3}
                             fillOpacity={1}
                             fill="url(#colorMetric)"
@@ -263,6 +264,11 @@ export default function DashboardPage() {
 
                 <div className="pt-6">
                   <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">{t.dashboardUnlockTracking}</h3>
+                  <div className="mb-6">
+                    <GoogleConnect />
+                  </div>
+
+                  {/* Upgrade Banner (Smaller) */}
                   <div className="p-4 rounded-xl bg-gradient-to-br from-gray-900 to-black dark:from-[#111114] dark:to-black border border-gray-800 text-white relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
                     <p className="text-sm text-gray-300 mb-4 relative z-10">

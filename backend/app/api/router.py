@@ -18,7 +18,10 @@ from app.api.endpoints import (
     citations,
     knowledge_graph,
     eeat,
-    admin
+    admin,
+    cms, 
+    gsc, 
+    lab
 )
 
 api_router = APIRouter()
@@ -42,3 +45,6 @@ api_router.include_router(citations.router, tags=["Citations"])
 api_router.include_router(knowledge_graph.router, tags=["Knowledge Graph"])
 api_router.include_router(eeat.router, tags=["E-E-A-T"])
 api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
+api_router.include_router(cms.router, prefix="/cms", tags=["CMS"])
+api_router.include_router(gsc.router, prefix="/gsc", tags=["GSC"])
+api_router.include_router(lab.router, prefix="/lab", tags=["Lab"])

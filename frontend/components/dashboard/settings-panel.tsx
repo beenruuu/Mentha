@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { X, Languages, Settings, User, Bell, Lock, CreditCard, Palette } from 'lucide-react'
+import { X, Languages, Settings, User, Bell, Lock, CreditCard, Palette, Building2 } from 'lucide-react'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { getLanguage, setLanguage, getTranslations, type Language } from '@/lib/i18n'
@@ -152,6 +152,7 @@ export default function SettingsPanel() {
 
   const sections = [
     { key: 'general', label: t.configuration, icon: <Settings className="w-4 h-4" /> },
+    { key: 'organization', label: 'Organización', icon: <Building2 className="w-4 h-4" /> },
     { key: 'profile', label: t.profile || 'Perfil', icon: <User className="w-4 h-4" /> },
     { key: 'notifications', label: t.notifications || 'Notificaciones', icon: <Bell className="w-4 h-4" /> },
     { key: 'security', label: t.security || 'Seguridad', icon: <Lock className="w-4 h-4" /> },
@@ -387,7 +388,7 @@ export default function SettingsPanel() {
 
               <div className="flex justify-end gap-3 pt-6 border-t border-gray-200/50 dark:border-white/5">
                 <Button variant="ghost" onClick={() => setOpen(false)} className="hover:bg-gray-100 dark:hover:bg-white/5">{t.close}</Button>
-                <Button onClick={() => { setOpen(false); router.push('/settings') }} variant="outline" className="border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5">
+                <Button onClick={() => { setOpen(false); router.push(`/settings?tab=${active}`) }} variant="outline" className="border-gray-200 dark:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5">
                   {t.openFullSettings}
                 </Button>
               </div>

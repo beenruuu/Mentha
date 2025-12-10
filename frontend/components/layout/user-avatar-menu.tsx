@@ -78,11 +78,18 @@ export function UserAvatarMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-gray-200 dark:bg-[#2A2A30]" />
         <DropdownMenuItem
-          onClick={() => window.dispatchEvent(new CustomEvent('open-settings-panel'))}
+          onClick={() => router.push('/settings')}
           className="cursor-pointer text-gray-700 dark:text-gray-300 focus:bg-gray-100 dark:focus:bg-[#1E1E24]"
         >
           <Settings className="mr-2 h-4 w-4" />
           <span>{t.settings}</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => router.push('/settings/organization')}
+          className="cursor-pointer text-gray-700 dark:text-gray-300 focus:bg-gray-100 dark:focus:bg-[#1E1E24]"
+        >
+          <User className="mr-2 h-4 w-4" />
+          <span>{t.organization || "Organización"}</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-gray-200 dark:bg-[#2A2A30]" />
         <DropdownMenuItem

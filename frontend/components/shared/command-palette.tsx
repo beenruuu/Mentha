@@ -62,7 +62,7 @@ export function CommandPalette() {
     {
       name: t.cmdSettings,
       shortcut: "Ctrl+,",
-      action: () => window.dispatchEvent(new CustomEvent('open-settings-panel')),
+      action: () => router.push("/settings"),
       icon: <Settings className="mr-2 h-4 w-4" />,
       section: t.cmdNavigation,
     },

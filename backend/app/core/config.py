@@ -33,6 +33,14 @@ class Settings(BaseSettings):
     WEB_SEARCH_ENABLED: bool = True
     WEB_SEARCH_PROVIDER: str = "duckduckgo"  # or "tavily", "serper", etc.
     
+    WEB_SEARCH_ENABLED: bool = True
+    WEB_SEARCH_PROVIDER: str = "duckduckgo"  # or "tavily", "serper", etc.
+    
+    # Google Search Console Integration
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
+    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/gsc/callback"
+    
     # AI Visibility Measurement
     AI_VISIBILITY_ENABLED: bool = True  # Enabled by default - uses available API keys for real visibility measurement
     PERPLEXITY_API_KEY: str = ""  # Optional: for Perplexity visibility checks
@@ -46,6 +54,10 @@ class Settings(BaseSettings):
     
     # Admin access control - comma-separated list of allowed admin emails
     ADMIN_EMAILS: str = ""
+
+    # Redis / Celery
+    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
 
     class Config:
         env_file = ".env"

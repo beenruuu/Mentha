@@ -1,11 +1,12 @@
 'use client'
 
 import { useEffect, useState } from "react"
-import { Search, Bell, User, Lock, CreditCard, Palette, Settings, Languages, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff, Shield, Zap, Globe } from "lucide-react"
+import { Search, Bell, User, Lock, CreditCard, Palette, Settings, Languages, Loader2, CheckCircle2, AlertCircle, Eye, EyeOff, Shield, Zap, Globe, Building2, Users, Plus } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { createClient } from '@/lib/supabase/client'
 import { Switch } from "@/components/ui/switch"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
 import { getTranslations, getLanguage, setLanguage, type Language } from "@/lib/i18n"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -27,8 +28,18 @@ interface NotificationPreferences {
   productUpdates: boolean
 }
 
+type Member = {
+  id: string;
+  full_name: string;
+  email: string;
+  avatar_url?: string;
+  role: "owner" | "admin" | "member" | "viewer";
+}
+
 export default function SettingsPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const defaultTab = searchParams.get('tab') || 'organization'
   const [lang, setLangState] = useState<Language>('es')
   const t = getTranslations(lang)
   const [user, setUser] = useState<any>(null)
@@ -57,6 +68,21 @@ export default function SettingsPage() {
     weeklyReports: true,
     productUpdates: false,
   })
+
+  const { data: members, isLoading: isLoadingMembers } = useQuery({
+    queryKey: ["orgMembers"],
+    queryFn: async () => {
+      // Mock data until endpoint is fully linked
+      return [
+        { id: "1", full_name: "Rubén (Tú)", email: "ruben@mentha.ai", role: "owner", avatar_url: "" },
+        { id: "2", full_name: "Demo User", email: "demo@mentha.ai", role: "viewer", avatar_url: "" }
+      ] as Member[];
+    }
+  });
+
+  const handleInvite = () => {
+    toast.info("Funcionalidad de invitación en desarrollo.");
+  }
 
   useEffect(() => {
     setLangState(getLanguage())
@@ -309,8 +335,12 @@ export default function SettingsPage() {
 
         <main className="flex-1 overflow-y-auto p-8 bg-[#fdfdfc] dark:bg-[#050505]">
           <div className="max-w-4xl mx-auto">
-            <Tabs defaultValue="profile" className="space-y-8">
+            <Tabs defaultValue={defaultTab} className="space-y-8">
               <TabsList className="bg-secondary/50 p-1 rounded-xl border border-border/40">
+                <TabsTrigger value="organization" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-[#1E1E24] data-[state=active]:shadow-sm">
+                  <Building2 className="w-4 h-4 mr-2" />
+                  {"Organización"}
+                </TabsTrigger>
                 <TabsTrigger value="profile" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-[#1E1E24] data-[state=active]:shadow-sm">
                   <User className="w-4 h-4 mr-2" />
                   {t.profile}
@@ -332,6 +362,93 @@ export default function SettingsPage() {
                   {t.appearance}
                 </TabsTrigger>
               </TabsList>
+
+              {/* Organization Content */}
+              <TabsContent value="organization" className="space-y-6">
+                <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="w-5 h-5 text-gray-500" />
+                      Detalles de Empresa
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="text-sm font-medium text-gray-500 block mb-1">Nombre</label>
+                        <p className="text-lg font-medium">Mentha Inc.</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-gray-500 block mb-1">Plan Actual</label>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 text-white text-xs font-bold border-none">PRO</span>
+                          <span className="text-xs text-muted-foreground">Renueva el 01/01/2026</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        <Users className="w-5 h-5 text-gray-500" />
+                        Miembros del Equipo
+                      </CardTitle>
+                      <CardDescription>Personas con acceso a este espacio de trabajo.</CardDescription>
+                    </div>
+                    <Button onClick={handleInvite} size="sm" className="gap-2">
+                      <Plus className="w-4 h-4" /> Invitar
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    {isLoadingMembers ? (
+                      <div className="space-y-4">
+                        {[1, 2, 3].map((i) => (
+                          <div key={i} className="flex items-center justify-between py-2">
+                            <div className="flex items-center gap-3 w-full">
+                              <div className="h-10 w-10 rounded-full bg-secondary animate-pulse" />
+                              <div className="space-y-2 flex-1">
+                                <div className="h-4 w-[200px] bg-secondary animate-pulse rounded" />
+                                <div className="h-3 w-[150px] bg-secondary animate-pulse rounded" />
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="divide-y dark:divide-gray-800">
+                        {members?.map((member) => (
+                          <div key={member.id} className="flex items-center justify-between py-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar>
+                                <AvatarImage src={member.avatar_url} />
+                                <AvatarFallback>{member.full_name[0]}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium text-sm">{member.full_name}</p>
+                                <p className="text-xs text-muted-foreground">{member.email}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${member.role === 'owner' ? 'bg-primary/10 text-primary' : 'bg-secondary text-secondary-foreground'}`}>
+                                {member.role === 'owner' && <Shield className="w-3 h-3" />}
+                                {member.role.toUpperCase()}
+                              </span>
+                              {member.role !== 'owner' && (
+                                <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8">
+                                  Eliminar
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
               {/* Profile Content */}
               <TabsContent value="profile" className="space-y-6">
@@ -524,7 +641,7 @@ export default function SettingsPage() {
                     <CardDescription>{t.currentPlanDescription}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="p-6 rounded-xl bg-gradient-to-br from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 flex items-center justify-between">
+                    <div className="p-6 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 flex items-center justify-between">
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold text-lg">{t.freePlan}</h3>

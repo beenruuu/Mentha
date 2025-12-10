@@ -308,16 +308,15 @@ export function AppSidebar() {
               <span>{t.notifications}</span>
             </button>
           </Link>
-          <button
-            onClick={() => window.dispatchEvent(new CustomEvent('open-settings-panel'))}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors mb-6 ${pathname === '/settings'
+          <Link href="/settings">
+            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === '/settings' || pathname.startsWith('/settings')
               ? 'bg-secondary text-foreground font-medium'
               : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-              }`}
-          >
-            <Settings className="w-4 h-4" />
-            <span>{t.settings}</span>
-          </button>
+              }`}>
+              <Settings className="w-4 h-4" />
+              <span>{t.settings}</span>
+            </button>
+          </Link>
 
           {/* Brands Section */}
           <div className="pt-4 mt-2 border-t border-border/40">

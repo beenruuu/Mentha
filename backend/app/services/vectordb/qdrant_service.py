@@ -42,17 +42,15 @@ class QdrantService:
         if self.collection_name not in collection_names:
             self.client.create_collection(collection_name=self.collection_name, vectors_config=VectorParams(size=vector_size, distance=Distance.COSINE))
 
-    async def add_documents(self, documents: List[Dict[str, Any]], embeddings: List[List[float]], metadata: Optional[List[Dict[str, Any]]] = None) -> List[str]:
+    async def add_documents(self, documents: List[Dict[str, Any]], embeddings: List[List[float]], metadata: Optional[List[Dict[str, Any]]] = None, organization_id: Optional[str] = None) -> List[str]:
         """
         Add documents and their embeddings to the vector database.
-
+        
         Args:
-            documents: List of documents (can be any dictionary with text field)
+            documents: List of documents
             embeddings: List of embedding vectors
             metadata: Optional metadata for each document
-
-        Returns:
-            List of generated IDs for the documents
+            organization_id: Optional Organization ID for multi-tenant isolation
         """
         if len(documents) != len(embeddings):
             raise ValueError("Number of documents and embeddings must match")
@@ -65,34 +63,49 @@ class QdrantService:
         # Ensure collection exists
         self.ensure_collection_exists(len(embeddings[0]))
 
-        # Add points to collection
-        points = [models.PointStruct(id=ids[i], vector=embeddings[i], payload={"document": documents[i], **metadata[i]}) for i in range(len(documents))]
+        # Add points to collection with organization_id in payload if provided
+        points = []
+        for i in range(len(documents)):
+            payload = {"document": documents[i], **metadata[i]}
+            if organization_id:
+                payload["organization_id"] = str(organization_id)
+            
+            points.append(models.PointStruct(id=ids[i], vector=embeddings[i], payload=payload))
 
         self.client.upsert(collection_name=self.collection_name, points=points)
 
         return ids
 
-    async def search(self, query_embedding: List[float], limit: int = 10, filter_params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    async def search(self, query_embedding: List[float], limit: int = 10, filter_params: Optional[Dict[str, Any]] = None, organization_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """
         Search for documents similar to the query embedding.
-
+        
         Args:
             query_embedding: Embedding vector of the query
             limit: Maximum number of results to return
             filter_params: Optional filter parameters
-
-        Returns:
-            List of matching documents with scores
+            organization_id: Optional Organization ID to restrict search scope
         """
         # Ensure collection exists
         self.ensure_collection_exists(len(query_embedding))
 
-        # Create filter if provided
-        filter_condition = None
+        # Create filter conditions
+        must_conditions = []
+        
         if filter_params:
-            filter_condition = models.Filter(
-                must=[models.FieldCondition(key=key, match=models.MatchValue(value=value)) for key, value in filter_params.items()]
+            must_conditions.extend([
+                models.FieldCondition(key=key, match=models.MatchValue(value=value)) 
+                for key, value in filter_params.items()
+            ])
+            
+        if organization_id:
+            must_conditions.append(
+                models.FieldCondition(key="organization_id", match=models.MatchValue(value=str(organization_id)))
             )
+
+        filter_condition = None
+        if must_conditions:
+            filter_condition = models.Filter(must=must_conditions)
 
         # Perform search
         search_result = self.client.search(collection_name=self.collection_name, query_vector=query_embedding, limit=limit, query_filter=filter_condition)

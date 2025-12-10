@@ -3,6 +3,7 @@ import openai
 import anthropic
 from pydantic import BaseModel
 from functools import lru_cache
+from typing import List
 
 from app.core.config import settings
 from app.models.llm import LLMUsage
@@ -114,6 +115,12 @@ class OpenAIService(LLMService):
         )
 
         return LLMResponse(text=response.choices[0].message.content, model=model, usage=usage)
+
+    async def get_embedding(self, text: str, model: str = "text-embedding-3-small") -> List[float]:
+        """Generate embedding for text."""
+        text = text.replace("\n", " ")
+        response = await self.client.embeddings.create(input=[text], model=model)
+        return response.data[0].embedding
 
 
 class OpenRouterService(OpenAIService):
