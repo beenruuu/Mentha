@@ -700,3 +700,155 @@ async def list_available_modules(
             }
         ]
     }
+
+
+@router.get("/brands/{brand_id}/dashboard-data")
+async def get_dashboard_data(
+    brand_id: UUID,
+    days: int = 30,
+    current_user: UserProfile = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """
+    Get all data needed for the dashboard in a single request.
+    
+    Returns:
+    - Historical visibility chart data
+    - Model performance (visibility score per AI provider)
+    - Latest analysis scores
+    - GSC summary if connected
+    """
+    auth_service = get_auth_service()
+    crud = get_geo_crud(auth_service.supabase)
+    supabase = auth_service.supabase
+    
+    try:
+        # Verify user owns the brand
+        brand_response = supabase.table("brands")\
+            .select("*, profiles!inner(id)")\
+            .eq("id", str(brand_id))\
+            .execute()
+        
+        if not brand_response.data:
+            raise HTTPException(status_code=404, detail="Brand not found")
+        
+        brand = brand_response.data[0]
+        
+        # 1. Historical visibility for chart
+        visibility_history = await crud.get_visibility_history(str(brand_id), limit=days)
+        
+        # Format for chart (group by date)
+        chart_data = []
+        if visibility_history:
+            # Group snapshots by date
+            from collections import defaultdict
+            date_groups = defaultdict(lambda: {"rank": 0, "position": 0, "inclusion_rate": 0, "count": 0})
+            
+            for snapshot in visibility_history:
+                # Extract date from measured_at
+                measured_at = snapshot.get("measured_at", "")
+                date_str = measured_at[:10] if measured_at else ""
+                
+                if date_str:
+                    date_groups[date_str]["rank"] += snapshot.get("visibility_score", 0)
+                    date_groups[date_str]["position"] += snapshot.get("visibility_score", 0)
+                    date_groups[date_str]["inclusion_rate"] += snapshot.get("inclusion_rate", 0) or snapshot.get("visibility_score", 0)
+                    date_groups[date_str]["count"] += 1
+            
+            # Average scores per day
+            for date_str, values in sorted(date_groups.items()):
+                count = values["count"] or 1
+                chart_data.append({
+                    "date": date_str,
+                    "rank": round(values["rank"] / count, 1),
+                    "position": round(values["position"] / count, 1),
+                    "inclusionRate": round(values["inclusion_rate"] / count, 1)
+                })
+        
+        # 2. Model Performance (latest visibility scores per model)
+        model_performance = []
+        latest_scores = await crud.get_latest_visibility_scores(str(brand_id))
+        
+        model_display_names = {
+            "openai": "ChatGPT",
+            "anthropic": "Claude",
+            "perplexity": "Perplexity",
+            "gemini": "Gemini"
+        }
+        
+        for score in latest_scores:
+            model_name = score.get("ai_model", "unknown")
+            model_performance.append({
+                "name": model_display_names.get(model_name, model_name.capitalize()),
+                "model": model_name,
+                "visibility_score": score.get("visibility_score", 0),
+                "mention_count": score.get("mention_count", 0),
+                "sentiment": score.get("sentiment", "neutral")
+            })
+        
+        # If no visibility data, add placeholders
+        if not model_performance:
+            for model, display_name in model_display_names.items():
+                model_performance.append({
+                    "name": display_name,
+                    "model": model,
+                    "visibility_score": 0,
+                    "mention_count": 0,
+                    "sentiment": "neutral"
+                })
+        
+        # 3. Latest Analysis Summary
+        latest_analysis = await crud.get_latest_geo_analysis(str(brand_id))
+        analysis_summary = None
+        if latest_analysis:
+            analysis_summary = {
+                "rank": latest_analysis.get("overall_score", 0),
+                "position": latest_analysis.get("overall_score", 0),  # Using same score for now
+                "inclusion_rate": latest_analysis.get("overall_score", 0),
+                "grade": latest_analysis.get("grade", "N/A"),
+                "completed_at": latest_analysis.get("completed_at")
+            }
+        
+        # 4. GSC Summary if connected
+        gsc_summary = None
+        if brand.get("gsc_connected"):
+            try:
+                gsc_response = supabase.table("gsc_top_queries")\
+                    .select("*")\
+                    .eq("brand_id", str(brand_id))\
+                    .limit(5)\
+                    .execute()
+                
+                if gsc_response.data:
+                    total_clicks = sum(q.get("total_clicks", 0) for q in gsc_response.data)
+                    total_impressions = sum(q.get("total_impressions", 0) for q in gsc_response.data)
+                    
+                    gsc_summary = {
+                        "connected": True,
+                        "site_url": brand.get("gsc_site_url"),
+                        "last_sync": brand.get("gsc_last_sync"),
+                        "total_clicks": total_clicks,
+                        "total_impressions": total_impressions,
+                        "top_queries": gsc_response.data[:5]
+                    }
+            except Exception as gsc_error:
+                logger.warning(f"Failed to fetch GSC summary: {gsc_error}")
+                gsc_summary = {"connected": True, "error": "Failed to load data"}
+        else:
+            gsc_summary = {"connected": False}
+        
+        return {
+            "brand_id": str(brand_id),
+            "brand_name": brand.get("name"),
+            "chart_data": chart_data,
+            "model_performance": model_performance,
+            "analysis_summary": analysis_summary,
+            "gsc_summary": gsc_summary,
+            "last_updated": datetime.utcnow().isoformat() + "Z"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching dashboard data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+

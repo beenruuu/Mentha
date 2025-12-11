@@ -62,6 +62,8 @@ class AnalysisService:
         # Import Competitor locally to avoid circular imports if any
         from app.models.competitor import Competitor
         self.competitor_db = SupabaseDatabaseService("competitors", Competitor)
+        from app.models.keyword import Keyword
+        self.keyword_db = SupabaseDatabaseService("keywords", Keyword)
         self.ingestion_service = AnalysisResultsIngestionService()
         self.web_search_service = WebSearchService()
         self.technical_aeo_service = TechnicalAEOService()
@@ -333,10 +335,18 @@ class AnalysisService:
                         await brand_db.update(str(analysis.brand_id), update_payload)
                 except Exception as brand_update_error:
                     log_error("❌", f"Failed to update Brand info: {brand_update_error}")
+            
+            # 7c. Update Competitor Visibility Scores
+            log_info("📊", "Measuring competitor visibility...")
+            await self._update_competitor_visibility(analysis, preferred_language)
+            
+            # 7d. Update Keyword Visibility Scores
+            log_info("🔑", "Measuring keyword visibility...")
+            await self._update_keyword_visibility(analysis, brand_name, brand_url, preferred_language)
 
-            print(f"\n{Colors.BOLD}{Colors.GREEN}{'═'*60}{Colors.RESET}")
+            print(f"\n{Colors.BOLD}{Colors.GREEN}{'='*60}{Colors.RESET}")
             log_success("✅", f"Analysis completed successfully for {Colors.BOLD}{brand_name}{Colors.RESET}")
-            print(f"{Colors.BOLD}{Colors.GREEN}{'═'*60}{Colors.RESET}\n")
+            print(f"{Colors.BOLD}{Colors.GREEN}{'='*60}{Colors.RESET}\n")
 
             # 8. Persist notifications
             await self._handle_notifications(analysis, results, success=True)
@@ -659,6 +669,17 @@ OUTPUT JSON FORMAT:
                 language=preferred_language
             )
             
+            # Persist visibility snapshot for dashboard charts
+            if visibility_results.get("overall_score", 0) > 0 and analysis.brand_id:
+                try:
+                    await self.ai_visibility_service.persist_visibility_snapshot(
+                        brand_id=str(analysis.brand_id),
+                        visibility_data=visibility_results
+                    )
+                    print(f"Persisted visibility snapshot for brand {analysis.brand_id}")
+                except Exception as persist_err:
+                    print(f"Warning: Failed to persist visibility snapshot: {persist_err}")
+            
             return visibility_results
             
         except Exception as e:
@@ -786,3 +807,133 @@ OUTPUT JSON FORMAT:
             "citations": citations,
             "score": score
         }
+
+    async def _update_competitor_visibility(self, analysis: Analysis, preferred_language: str = "es") -> None:
+        """
+        Measure AI visibility for each competitor and update their visibility_score.
+        
+        This runs after the main analysis to populate competitor visibility data
+        that is displayed in the dashboard.
+        """
+        if not analysis.brand_id:
+            return
+        
+        # Check if AI visibility is enabled
+        if not getattr(settings, 'AI_VISIBILITY_ENABLED', False):
+            print("Skipping competitor visibility measurement (AI_VISIBILITY_ENABLED=false)")
+            return
+        
+        try:
+            # Get all competitors for this brand
+            competitors = await self.competitor_db.list(filters={"brand_id": str(analysis.brand_id)})
+            
+            if not competitors:
+                print("No competitors found to measure visibility for")
+                return
+            
+            log_info("📊", f"Measuring AI visibility for {len(competitors)} competitors...")
+            
+            for comp in competitors:
+                try:
+                    # Measure visibility for this competitor (limited queries to save costs)
+                    visibility_result = await self.ai_visibility_service.measure_visibility(
+                        brand_name=comp.name,
+                        domain=comp.domain,
+                        num_queries=2,  # Limited queries for cost control
+                        language=preferred_language
+                    )
+                    
+                    visibility_score = visibility_result.get("overall_score", 0)
+                    
+                    # Update competitor with visibility score
+                    await self.competitor_db.update(str(comp.id), {
+                        "visibility_score": visibility_score
+                    })
+                    
+                    print(f"  → {comp.name}: {visibility_score}% visibility")
+                    
+                except Exception as comp_err:
+                    print(f"  → {comp.name}: Failed to measure ({comp_err})")
+                    continue
+            
+            log_success("✅", f"Updated visibility for {len(competitors)} competitors")
+            
+        except Exception as e:
+            log_error("❌", f"Failed to update competitor visibility: {e}")
+
+    async def _update_keyword_visibility(
+        self, 
+        analysis: Analysis, 
+        brand_name: str,
+        brand_domain: str,
+        preferred_language: str = "es"
+    ) -> None:
+        """
+        Measure AI visibility for each keyword and update their ai_visibility_score.
+        
+        This asks AI models "Tell me about [keyword]" and checks if the brand appears.
+        """
+        if not analysis.brand_id:
+            return
+        
+        # Check if AI visibility is enabled
+        if not getattr(settings, 'AI_VISIBILITY_ENABLED', False):
+            print("Skipping keyword visibility measurement (AI_VISIBILITY_ENABLED=false)")
+            return
+        
+        try:
+            # Get all keywords for this brand
+            keywords = await self.keyword_db.list(filters={"brand_id": str(analysis.brand_id)})
+            
+            if not keywords:
+                print("No keywords found to measure visibility for")
+                return
+            
+            log_info("🔑", f"Measuring AI visibility for {len(keywords)} keywords...")
+            
+            updated_count = 0
+            for kw in keywords[:10]:  # Limit to 10 keywords to control API costs
+                try:
+                    # Measure how visible the brand is for this specific keyword
+                    visibility_result = await self.ai_visibility_service.measure_visibility(
+                        brand_name=brand_name,
+                        domain=brand_domain,
+                        keywords=[kw.keyword],  # Query specifically for this keyword
+                        num_queries=1,  # Single query per keyword
+                        language=preferred_language
+                    )
+                    
+                    visibility_score = visibility_result.get("overall_score", 0)
+                    
+                    # Update keyword with visibility score
+                    update_data = {
+                        "ai_visibility_score": visibility_score,
+                        "last_checked_at": f"{datetime.utcnow().isoformat()}Z"
+                    }
+                    
+                    # Also save per-model scores if available
+                    models_data = visibility_result.get("models", {})
+                    if models_data:
+                        ai_models = {}
+                        for model_name, model_info in models_data.items():
+                            if model_info.get("enabled"):
+                                ai_models[model_name] = {
+                                    "score": model_info.get("visibility_score", 0),
+                                    "mentioned": model_info.get("mention_count", 0) > 0
+                                }
+                        if ai_models:
+                            update_data["ai_models"] = ai_models
+                    
+                    await self.keyword_db.update(str(kw.id), update_data)
+                    updated_count += 1
+                    
+                    print(f"  → '{kw.keyword}': {visibility_score}% visibility")
+                    
+                except Exception as kw_err:
+                    print(f"  → '{kw.keyword}': Failed ({kw_err})")
+                    continue
+            
+            log_success("✅", f"Updated visibility for {updated_count}/{len(keywords)} keywords")
+            
+        except Exception as e:
+            log_error("❌", f"Failed to update keyword visibility: {e}")

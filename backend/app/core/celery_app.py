@@ -18,15 +18,23 @@ celery_app.conf.update(
     task_acks_late=True,
     task_reject_on_worker_lost=True,
     worker_prefetch_multiplier=1,
-    # Scheduler
+    # Scheduler - Beat configuration
     beat_schedule={
-        'run-daily-geo-simulation-check': {
-            'task': 'run_geo_simulation', # Assuming we have a wrapper task that iterates all brands
-            'schedule': 86400.0, # Daily (seconds)
+        # Master scheduler - runs hourly, checks which brands need analysis based on plan
+        'scheduled-analysis-runner': {
+            'task': 'scheduled_analysis_runner',
+            'schedule': 3600.0,  # Every hour
         },
+        # Update AI visibility snapshots daily (for historical charts)
+        'update-visibility-snapshots': {
+            'task': 'update_visibility_snapshots',
+            'schedule': 86400.0,  # Daily (24 hours)
+        },
+        # Check competitors weekly
         'check-competitors-weekly': {
             'task': 'check_competitors', 
-            'schedule': 604800.0, # Weekly
+            'schedule': 604800.0,  # Weekly (7 days)
         },
     }
 )
+

@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { fetchAPI } from "@/lib/api-client"
 import { Competitor } from "@/lib/services/competitors"
+import { useTranslations } from "@/lib/i18n"
 
 interface CompetitorGapAnalysisProps {
     brandName: string
@@ -30,7 +31,41 @@ interface GapAnalysisResponse {
     winning_topics: GapAnalysisData[]
 }
 
+// Inline translations for this component
+const componentTranslations = {
+    es: {
+        loadingAnalysis: 'Cargando análisis...',
+        contentCoverageComparison: 'Comparación de Cobertura de Contenido',
+        yourBrand: 'Tu Marca',
+        competitorAvg: 'Promedio Competidores',
+        criticalMissingTopics: 'Temas Críticos Faltantes',
+        competitorsCoverHeavily: 'Los competidores cubren esto ampliamente. Tienes poco o ningún contenido.',
+        generateContent: 'Generar Contenido',
+        noCriticalGaps: 'No se encontraron brechas críticas.',
+        winningTopics: 'Temas Ganadores',
+        noWinningTopics: 'Aún no hay temas ganadores.',
+        gap: 'Brecha',
+        industryAvg: 'Promedio Industria'
+    },
+    en: {
+        loadingAnalysis: 'Loading analysis...',
+        contentCoverageComparison: 'Content Coverage Comparison',
+        yourBrand: 'Your Brand',
+        competitorAvg: 'Competitor Avg',
+        criticalMissingTopics: 'Critical Missing Topics',
+        competitorsCoverHeavily: 'Competitors cover this heavily. You have little to no content.',
+        generateContent: 'Generate Content',
+        noCriticalGaps: 'No critical gaps found.',
+        winningTopics: 'Winning Topics',
+        noWinningTopics: 'No winning topics yet.',
+        gap: 'Gap',
+        industryAvg: 'Industry Avg'
+    }
+}
+
 export function CompetitorGapAnalysis({ brandName, brandId, competitors }: CompetitorGapAnalysisProps) {
+    const { lang } = useTranslations()
+    const texts = componentTranslations[lang as 'es' | 'en'] || componentTranslations.en
     const [data, setData] = useState<GapAnalysisData[]>([])
     const [criticalGaps, setCriticalGaps] = useState<GapAnalysisData[]>([])
     const [winningTopics, setWinningTopics] = useState<GapAnalysisData[]>([])
@@ -68,11 +103,11 @@ export function CompetitorGapAnalysis({ brandName, brandId, competitors }: Compe
 
         const generateMockData = () => {
             const mockTopics: GapAnalysisData[] = [
-                { topic: 'Pricing', brand_coverage: 10, competitor_avg: 85, gap: -75, status: 'critical' },
-                { topic: 'API Docs', brand_coverage: 0, competitor_avg: 60, gap: -60, status: 'critical' },
-                { topic: 'Case Studies', brand_coverage: 30, competitor_avg: 70, gap: -40, status: 'warning' },
-                { topic: 'Security', brand_coverage: 90, competitor_avg: 80, gap: 10, status: 'good' },
-                { topic: 'Integrations', brand_coverage: 20, competitor_avg: 50, gap: -30, status: 'warning' },
+                { topic: lang === 'es' ? 'Precios' : 'Pricing', brand_coverage: 10, competitor_avg: 85, gap: -75, status: 'critical' },
+                { topic: lang === 'es' ? 'Documentación API' : 'API Docs', brand_coverage: 0, competitor_avg: 60, gap: -60, status: 'critical' },
+                { topic: lang === 'es' ? 'Casos de Éxito' : 'Case Studies', brand_coverage: 30, competitor_avg: 70, gap: -40, status: 'warning' },
+                { topic: lang === 'es' ? 'Seguridad' : 'Security', brand_coverage: 90, competitor_avg: 80, gap: 10, status: 'good' },
+                { topic: lang === 'es' ? 'Integraciones' : 'Integrations', brand_coverage: 20, competitor_avg: 50, gap: -30, status: 'warning' },
             ]
             setData(mockTopics)
             setCriticalGaps(mockTopics.filter(t => t.status === 'critical'))
@@ -80,12 +115,12 @@ export function CompetitorGapAnalysis({ brandName, brandId, competitors }: Compe
         }
 
         fetchGapAnalysis()
-    }, [brandId])
+    }, [brandId, lang])
 
     if (!mounted) return null
 
     if (loading) {
-        return <div className="flex items-center justify-center h-full text-muted-foreground">Loading analysis...</div>
+        return <div className="flex items-center justify-center h-full text-muted-foreground">{texts.loadingAnalysis}</div>
     }
 
     return (
@@ -95,16 +130,16 @@ export function CompetitorGapAnalysis({ brandName, brandId, competitors }: Compe
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-sm font-medium flex items-center gap-2">
                         <BarChart3 className="w-4 h-4 text-muted-foreground" />
-                        Content Coverage Comparison
+                        {texts.contentCoverageComparison}
                     </h3>
                     <div className="flex items-center gap-4 text-xs">
                         <div className="flex items-center gap-1.5">
                             <div className="w-3 h-3 rounded-sm bg-blue-500" />
-                            <span className="text-muted-foreground">Your Brand</span>
+                            <span className="text-muted-foreground">{texts.yourBrand}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                             <div className="w-3 h-3 rounded-sm bg-zinc-300 dark:bg-zinc-700" />
-                            <span className="text-muted-foreground">Competitor Avg</span>
+                            <span className="text-muted-foreground">{texts.competitorAvg}</span>
                         </div>
                     </div>
                 </div>
@@ -132,7 +167,7 @@ export function CompetitorGapAnalysis({ brandName, brandId, competitors }: Compe
                                 }}
                             />
                             <Bar dataKey="brand_coverage" name={brandName} fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
-                            <Bar dataKey="competitor_avg" name="Industry Avg" fill="hsl(var(--muted))" radius={[0, 4, 4, 0]} barSize={20} />
+                            <Bar dataKey="competitor_avg" name={texts.industryAvg} fill="hsl(var(--muted))" radius={[0, 4, 4, 0]} barSize={20} />
                         </BarChart>
                     </ResponsiveContainer>
                 </div>
@@ -144,7 +179,7 @@ export function CompetitorGapAnalysis({ brandName, brandId, competitors }: Compe
                     <CardHeader className="py-3 px-4">
                         <CardTitle className="text-sm font-medium text-red-700 dark:text-red-400 flex items-center gap-2">
                             <AlertCircle className="w-4 h-4" />
-                            Critical Missing Topics
+                            {texts.criticalMissingTopics}
                         </CardTitle>
                     </CardHeader>
                     <ScrollArea className="flex-1 px-4 pb-4">
@@ -158,16 +193,16 @@ export function CompetitorGapAnalysis({ brandName, brandId, competitors }: Compe
                                         </Badge>
                                     </div>
                                     <p className="text-xs text-muted-foreground mb-2">
-                                        Competitors cover this heavily. You have little to no content.
+                                        {texts.competitorsCoverHeavily}
                                     </p>
                                     <Button size="sm" variant="secondary" className="w-full h-7 text-xs bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-300 dark:hover:bg-red-900/60">
-                                        Generate Content
+                                        {texts.generateContent}
                                     </Button>
                                 </div>
                             ))}
                             {criticalGaps.length === 0 && (
                                 <div className="text-center py-4 text-muted-foreground text-xs">
-                                    No critical gaps found.
+                                    {texts.noCriticalGaps}
                                 </div>
                             )}
                         </div>
@@ -178,7 +213,7 @@ export function CompetitorGapAnalysis({ brandName, brandId, competitors }: Compe
                     <CardHeader className="py-3 px-4">
                         <CardTitle className="text-sm font-medium text-emerald-700 dark:text-emerald-400 flex items-center gap-2">
                             <CheckCircle2 className="w-4 h-4" />
-                            Winning Topics
+                            {texts.winningTopics}
                         </CardTitle>
                     </CardHeader>
                     <ScrollArea className="flex-1 px-4 pb-4">
@@ -191,7 +226,7 @@ export function CompetitorGapAnalysis({ brandName, brandId, competitors }: Compe
                             ))}
                             {winningTopics.length === 0 && (
                                 <div className="text-center py-4 text-muted-foreground text-xs">
-                                    No winning topics yet.
+                                    {texts.noWinningTopics}
                                 </div>
                             )}
                         </div>

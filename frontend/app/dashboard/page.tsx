@@ -2,10 +2,15 @@
 
 import { useEffect, useState } from "react"
 import Image from "next/image"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   Calendar as CalendarIcon,
   Settings,
-  CheckCircle2
+  CheckCircle2,
+  ChevronDown,
+  Building2,
+  Plus
 } from "lucide-react"
 import {
   AreaChart,
@@ -49,6 +54,50 @@ export default function DashboardPage() {
   const [modelPerformance, setModelPerformance] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [activeMetric, setActiveMetric] = useState<'rank' | 'position' | 'inclusion'>('rank')
+  const router = useRouter()
+
+  // Handler to change selected brand
+  const handleBrandChange = async (brand: Brand) => {
+    setSelectedBrand(brand)
+    setLoading(true)
+    try {
+      const analyses = await analysisService.getAll(brand.id)
+      const processedChartData = analyses
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .map(a => ({
+          date: format(new Date(a.created_at), 'MM/dd'),
+          rank: a.score ? Math.round(a.score) : 0,
+          position: a.avg_position ? Math.round(a.avg_position) : 0,
+          inclusion: a.inclusion_rate ? Math.round(a.inclusion_rate) : 0,
+        }))
+      setChartData(processedChartData)
+      if (analyses.length > 0) {
+        setAnalysis(analyses[analyses.length - 1])
+      } else {
+        setAnalysis(null)
+      }
+      const comps = await competitorsService.getAll(brand.id)
+      setCompetitors(comps)
+      try {
+        const visibilityData = await geoAnalysisService.getVisibilityData(brand.id)
+        if (visibilityData.latest_scores?.length > 0) {
+          const scores: Record<string, number> = {}
+          visibilityData.latest_scores.forEach((snapshot: VisibilitySnapshot) => {
+            scores[snapshot.ai_model] = snapshot.visibility_score
+          })
+          setModelPerformance(scores)
+        } else {
+          setModelPerformance({})
+        }
+      } catch {
+        setModelPerformance({})
+      }
+    } catch (error) {
+      console.error('Error loading brand data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
     const fetchData = async () => {
@@ -148,9 +197,64 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{t.dashboardTitle}</h1>
             <SidebarTrigger className="-ml-1" />
-            {/* Separator removed */}
+            {/* Brand Selector - only shows if multiple brands */}
+            {brands.length > 1 && selectedBrand && (
+              <div className="relative group">
+                <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-border/50 hover:border-primary/50 transition-colors text-sm font-medium">
+                  <div className="w-5 h-5 rounded bg-gray-100 dark:bg-zinc-700 flex items-center justify-center overflow-hidden">
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${selectedBrand.domain}&sz=32`}
+                      alt=""
+                      className="w-4 h-4 object-contain"
+                      onError={(e) => { e.currentTarget.style.display = 'none' }}
+                    />
+                  </div>
+                  {selectedBrand.name}
+                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                </button>
+                <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-zinc-900 border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                  {brands.map((brand) => (
+                    <button
+                      key={brand.id}
+                      onClick={() => handleBrandChange(brand)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-secondary/50 transition-colors first:rounded-t-lg last:rounded-b-lg ${brand.id === selectedBrand.id ? 'bg-primary/5 text-primary' : ''
+                        }`}
+                    >
+                      <div className="w-5 h-5 rounded bg-gray-100 dark:bg-zinc-800 flex items-center justify-center overflow-hidden">
+                        <img
+                          src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=32`}
+                          alt=""
+                          className="w-4 h-4 object-contain"
+                          onError={(e) => { e.currentTarget.style.display = 'none' }}
+                        />
+                      </div>
+                      <span className="truncate">{brand.name}</span>
+                    </button>
+                  ))}
+                  <div className="border-t border-border/50">
+                    <button
+                      onClick={() => router.push('/onboarding')}
+                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors rounded-b-lg"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Añadir marca
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          <UserAvatarMenu />
+          <div className="flex items-center gap-3">
+            {selectedBrand && (
+              <Link href={`/brand/${selectedBrand.id}`}>
+                <Button variant="outline" size="sm" className="gap-2 text-xs">
+                  <Building2 className="h-3.5 w-3.5" />
+                  Ver detalle
+                </Button>
+              </Link>
+            )}
+            <UserAvatarMenu />
+          </div>
         </header>
 
         {/* Main Content Panel with Rounded Top-Left Corner */}
@@ -296,8 +400,16 @@ export default function DashboardPage() {
                   {competitors.slice(0, 5).map((comp) => (
                     <div key={comp.id} className="flex items-center justify-between group p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-[#111114] transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center text-[10px] font-bold">
-                          {comp.name.charAt(0)}
+                        <div className="w-6 h-6 rounded bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center overflow-hidden">
+                          <img
+                            src={`https://www.google.com/s2/favicons?domain=${comp.domain}&sz=32`}
+                            alt={comp.name}
+                            className="w-4 h-4 object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                              e.currentTarget.parentElement!.innerHTML = `<span class="text-[10px] font-bold">${comp.name.charAt(0)}</span>`
+                            }}
+                          />
                         </div>
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{comp.name}</span>
                       </div>

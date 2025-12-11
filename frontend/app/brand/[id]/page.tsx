@@ -365,7 +365,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                               <Activity className="w-4 h-4" />
                             </Button>
                           </DialogTrigger>
-                          <DialogContent className="max-w-4xl h-[600px] flex flex-col">
+                          <DialogContent className="sm:max-w-[90vw] max-w-[95vw] w-[90vw] h-[85vh] flex flex-col">
                             <DialogHeader>
                               <DialogTitle>Competitor Content Gap Analysis</DialogTitle>
                               <DialogDescription>
@@ -392,8 +392,16 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                       {competitors.slice(0, 4).map((comp) => (
                         <div key={comp.id} className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-white dark:bg-zinc-800 border border-border/50 flex items-center justify-center text-xs font-bold text-muted-foreground">
-                              {comp.name.charAt(0)}
+                            <div className="w-8 h-8 rounded-lg bg-white dark:bg-zinc-800 border border-border/50 flex items-center justify-center overflow-hidden">
+                              <img
+                                src={`https://www.google.com/s2/favicons?domain=${comp.domain}&sz=32`}
+                                alt={comp.name}
+                                className="w-5 h-5 object-contain"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none'
+                                  e.currentTarget.parentElement!.innerHTML = `<span class="text-xs font-bold text-muted-foreground">${comp.name.charAt(0)}</span>`
+                                }}
+                              />
                             </div>
                             <span className="text-sm font-medium text-foreground">{comp.name}</span>
                           </div>

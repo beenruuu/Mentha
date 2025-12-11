@@ -696,6 +696,93 @@ class AIVisibilityService:
         
         return result
 
+    async def persist_visibility_snapshot(
+        self,
+        brand_id: str,
+        visibility_data: Dict[str, Any]
+    ) -> bool:
+        """
+        Persist visibility measurement to database for historical tracking.
+        
+        Saves a snapshot to ai_visibility_snapshots table for each AI model.
+        This enables historical charts in the dashboard.
+        """
+        try:
+            from app.services.supabase.database import SupabaseDatabaseService
+            
+            # We'll create a simple model-less service for raw inserts
+            from supabase import create_client
+            from app.core.config import settings
+            
+            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+            
+            models_data = visibility_data.get("models", {})
+            overall_score = visibility_data.get("overall_score", 0)
+            language = visibility_data.get("language", "es")
+            sentiment = visibility_data.get("sentiment", "neutral")
+            
+            snapshots_created = 0
+            
+            # Create snapshot for each model
+            for model_name, model_data in models_data.items():
+                if not model_data.get("enabled"):
+                    continue
+                
+                # Map model names to database enum values
+                model_mapping = {
+                    "openai": "openai",
+                    "anthropic": "anthropic",
+                    "perplexity": "perplexity",
+                    "google_search": "gemini",  # Use gemini as fallback for baseline
+                    "baseline": "gemini"
+                }
+                
+                db_model = model_mapping.get(model_name, "openai")
+                
+                snapshot_data = {
+                    "brand_id": brand_id,
+                    "ai_model": db_model,
+                    "visibility_score": model_data.get("visibility_score", 0),
+                    "mention_count": model_data.get("mention_count", 0),
+                    "sentiment": model_data.get("sentiment", sentiment),
+                    "query_count": model_data.get("responses_analyzed", 0),
+                    "inclusion_rate": model_data.get("visibility_score", 0),  # Same as visibility for now
+                    "language": language,
+                    "metadata": {
+                        "context_snippets": model_data.get("context_snippets", [])[:3],
+                        "competitor_mentions": model_data.get("competitor_mentions", {}),
+                    }
+                }
+                
+                # Insert into database
+                result = supabase.table("ai_visibility_snapshots").insert(snapshot_data).execute()
+                
+                if result.data:
+                    snapshots_created += 1
+                    print(f"Created visibility snapshot for {model_name}: {model_data.get('visibility_score', 0)}%")
+            
+            # Also save the overall score as a separate entry (using openai as the primary)
+            if overall_score > 0 and "openai" not in models_data:
+                overall_snapshot = {
+                    "brand_id": brand_id,
+                    "ai_model": "openai",
+                    "visibility_score": overall_score,
+                    "mention_count": visibility_data.get("mention_count", 0),
+                    "sentiment": sentiment,
+                    "language": language,
+                    "metadata": {"source": "overall_aggregate"}
+                }
+                supabase.table("ai_visibility_snapshots").insert(overall_snapshot).execute()
+            
+            print(f"Persisted {snapshots_created} visibility snapshots for brand {brand_id}")
+            return True
+            
+        except Exception as e:
+            print(f"Failed to persist visibility snapshot: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+
 
 # Singleton instance
 _ai_visibility_service: Optional[AIVisibilityService] = None
@@ -706,3 +793,4 @@ def get_ai_visibility_service() -> AIVisibilityService:
     if _ai_visibility_service is None:
         _ai_visibility_service = AIVisibilityService()
     return _ai_visibility_service
+

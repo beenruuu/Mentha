@@ -88,3 +88,131 @@ async def get_sites(
     except Exception as e:
         logger.error(f"Failed to fetch GSC sites: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/sync/{brand_id}")
+async def sync_gsc_data(
+    brand_id: str,
+    site_url: str = Query(..., description="The GSC site URL to sync"),
+    days_back: int = Query(30, description="Number of days to sync"),
+    current_user: UserProfile = Depends(get_current_user)
+):
+    """
+    Sync GSC performance data for a brand.
+    Fetches data from Google Search Console and stores it in the database.
+    """
+    try:
+        supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+        
+        # Verify user owns the brand
+        brand_response = supabase.table("brands").select("*").eq("id", brand_id).eq("user_id", current_user.id).execute()
+        if not brand_response.data:
+            raise HTTPException(status_code=403, detail="Not authorized to access this brand")
+        
+        # Get GSC tokens
+        user_response = supabase.auth.admin.get_user_by_id(current_user.id)
+        user = user_response.user
+        
+        if not user or not user.user_metadata or not user.user_metadata.get("gsc_tokens"):
+            raise HTTPException(status_code=400, detail="GSC not connected. Please connect Google Search Console first.")
+        
+        tokens = user.user_metadata.get("gsc_tokens")
+        
+        # Sync data
+        result = await gsc_service.sync_performance_data(
+            credentials_json=tokens,
+            brand_id=brand_id,
+            site_url=site_url,
+            days_back=days_back
+        )
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to sync GSC data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/performance/{brand_id}")
+async def get_gsc_performance(
+    brand_id: str,
+    days_back: int = Query(30, description="Number of days to fetch"),
+    limit: int = Query(50, description="Max number of queries to return"),
+    current_user: UserProfile = Depends(get_current_user)
+):
+    """
+    Get aggregated GSC performance data for a brand from the database.
+    """
+    try:
+        supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+        
+        # Verify user owns the brand
+        brand_response = supabase.table("brands").select("*").eq("id", brand_id).eq("user_id", current_user.id).execute()
+        if not brand_response.data:
+            raise HTTPException(status_code=403, detail="Not authorized to access this brand")
+        
+        brand = brand_response.data[0]
+        
+        # Check if GSC is connected
+        if not brand.get("gsc_connected"):
+            return {
+                "connected": False,
+                "message": "Google Search Console not connected",
+                "data": []
+            }
+        
+        # Fetch from gsc_top_queries view
+        result = supabase.table("gsc_top_queries").select("*").eq("brand_id", brand_id).limit(limit).execute()
+        
+        return {
+            "connected": True,
+            "site_url": brand.get("gsc_site_url"),
+            "last_sync": brand.get("gsc_last_sync"),
+            "data": result.data or []
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to fetch GSC performance: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/status/{brand_id}")
+async def get_gsc_status(
+    brand_id: str,
+    current_user: UserProfile = Depends(get_current_user)
+):
+    """
+    Get GSC connection status for a brand.
+    """
+    try:
+        supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+        
+        # Verify user owns the brand
+        brand_response = supabase.table("brands").select("gsc_connected, gsc_site_url, gsc_last_sync").eq("id", brand_id).eq("user_id", current_user.id).execute()
+        if not brand_response.data:
+            raise HTTPException(status_code=403, detail="Not authorized to access this brand")
+        
+        brand = brand_response.data[0]
+        
+        # Check if user has GSC tokens
+        user_response = supabase.auth.admin.get_user_by_id(current_user.id)
+        user = user_response.user
+        has_tokens = bool(user and user.user_metadata and user.user_metadata.get("gsc_tokens"))
+        
+        return {
+            "has_tokens": has_tokens,
+            "connected": brand.get("gsc_connected", False),
+            "site_url": brand.get("gsc_site_url"),
+            "last_sync": brand.get("gsc_last_sync")
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get GSC status: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+

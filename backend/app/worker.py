@@ -1,5 +1,5 @@
 from app.core.celery_app import celery_app
-from app.services.firecrawl_service import get_firecrawl_service
+from app.services.firecrawl_service import FirecrawlService
 from app.services.processing.chunking_service import get_chunking_service
 from app.services.vectordb.qdrant_service import get_vector_db_service
 from app.services.analysis.ai_search_simulator_service import get_ai_search_simulator
@@ -9,8 +9,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# FirecrawlService needs instance creation (no singleton getter in that file)
+def get_firecrawl_service():
+    return FirecrawlService()
+
 # Wrapper to run async functions in Celery
-def async_to_sync(awaitable):
+
+
 def async_to_sync(awaitable):
     try:
         loop = asyncio.get_event_loop()
@@ -75,6 +80,8 @@ def run_geo_simulation_task(brand_id: str, brand_name: str, domain: str, industr
     Run the GEO simulator for a specific brand.
     """
     logger.info(f"Starting GEO simulation for brand_id: {brand_id}, brand_name: {brand_name}")
+    
+    async def _process():
         try:
             simulator = get_ai_search_simulator()
             return await simulator.simulate_search(
@@ -101,4 +108,232 @@ def check_competitors_task(brand_id: str):
         return {"status": "checked", "brand_id": brand_id}
 
     return async_to_sync(_process())
+
+
+@celery_app.task(name="refresh_brand_analysis")
+def refresh_brand_analysis_task(brand_id: str):
+    """
+    Refresh analysis for a brand - triggered by scheduler based on subscription plan.
+    """
+    logger.info(f"Refreshing analysis for brand: {brand_id}")
+    
+    async def _process():
+        try:
+            from app.services.supabase.database import SupabaseDatabaseService
+            from app.models.brand import Brand
+            from app.models.analysis import Analysis, AnalysisStatus, AnalysisType
+            from app.services.analysis.analysis_service import AnalysisService
+            
+            brand_db = SupabaseDatabaseService("brands", Brand)
+            analysis_db = SupabaseDatabaseService("aeo_analyses", Analysis)
+            
+            # Fetch brand
+            brand = await brand_db.get(brand_id)
+            if not brand:
+                logger.error(f"Brand {brand_id} not found")
+                return {"status": "error", "message": "Brand not found"}
+            
+            # Create new analysis record
+            analysis_data = {
+                "user_id": str(brand.user_id),
+                "brand_id": brand_id,
+                "status": AnalysisStatus.pending,
+                "analysis_type": AnalysisType.domain,
+                "input_data": {
+                    "brand": {
+                        "name": brand.name,
+                        "domain": brand.domain,
+                        "industry": brand.industry or "",
+                        "description": brand.description or "",
+                        "entity_type": brand.entity_type or "business",
+                    },
+                    "discovery_prompts": brand.discovery_prompts or [],
+                    "ai_providers": ["chatgpt"],  # OpenAI only
+                    "preferred_language": "es",
+                }
+            }
+            
+            created_analysis = await analysis_db.create(analysis_data)
+            
+            # Run analysis
+            service = AnalysisService()
+            await service.run_analysis(created_analysis.id)
+            
+            return {"status": "success", "analysis_id": str(created_analysis.id)}
+            
+        except Exception as e:
+            logger.error(f"Failed to refresh analysis for {brand_id}: {e}", exc_info=True)
+            return {"status": "error", "message": str(e)}
+    
+    return async_to_sync(_process())
+
+
+@celery_app.task(name="update_visibility_snapshots")
+def update_visibility_snapshots_task():
+    """
+    Update AI visibility snapshots for all active brands.
+    Only uses OpenAI to control costs.
+    """
+    logger.info("Starting visibility snapshot update for all brands")
+    
+    async def _process():
+        try:
+            from app.services.supabase.database import SupabaseDatabaseService
+            from app.models.brand import Brand
+            from app.services.analysis.ai_visibility_service import AIVisibilityService
+            
+            brand_db = SupabaseDatabaseService("brands", Brand)
+            visibility_service = AIVisibilityService()
+            
+            # Get all brands
+            brands = await brand_db.list()
+            
+            results = []
+            for brand in brands:
+                try:
+                    # Measure visibility (OpenAI only)
+                    visibility_data = await visibility_service.measure_visibility(
+                        brand_name=brand.name,
+                        domain=brand.domain,
+                        industry=brand.industry or "",
+                        keywords=brand.discovery_prompts[:3] if brand.discovery_prompts else None,
+                        language="es"
+                    )
+                    
+                    # Persist snapshot
+                    await visibility_service.persist_visibility_snapshot(
+                        brand_id=str(brand.id),
+                        visibility_data=visibility_data
+                    )
+                    
+                    results.append({"brand_id": str(brand.id), "status": "success"})
+                    logger.info(f"Updated visibility for brand: {brand.name}")
+                    
+                except Exception as brand_error:
+                    logger.error(f"Failed to update visibility for {brand.name}: {brand_error}")
+                    results.append({"brand_id": str(brand.id), "status": "error", "error": str(brand_error)})
+            
+            return {"status": "completed", "results": results}
+            
+        except Exception as e:
+            logger.error(f"Failed to update visibility snapshots: {e}", exc_info=True)
+            return {"status": "error", "message": str(e)}
+    
+    return async_to_sync(_process())
+
+
+@celery_app.task(name="sync_gsc_data")
+def sync_gsc_data_task(user_id: str, brand_id: str):
+    """
+    Sync Google Search Console data for a brand.
+    """
+    logger.info(f"Syncing GSC data for brand: {brand_id}")
+    
+    async def _process():
+        try:
+            from app.services.integrations.gsc_service import gsc_service
+            from app.services.supabase.database import SupabaseDatabaseService
+            from supabase import create_client
+            from app.core.config import settings
+            
+            # Get user's GSC tokens
+            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+            user_response = supabase.auth.admin.get_user_by_id(user_id)
+            user = user_response.user
+            
+            if not user or not user.user_metadata or not user.user_metadata.get("gsc_tokens"):
+                logger.warning(f"GSC not connected for user {user_id}")
+                return {"status": "skipped", "reason": "GSC not connected"}
+            
+            tokens = user.user_metadata.get("gsc_tokens")
+            
+            # TODO: Fetch and persist GSC data
+            # This will be implemented in the GSC data ingestion service
+            
+            return {"status": "success", "brand_id": brand_id}
+            
+        except Exception as e:
+            logger.error(f"Failed to sync GSC data for {brand_id}: {e}", exc_info=True)
+            return {"status": "error", "message": str(e)}
+    
+    return async_to_sync(_process())
+
+
+@celery_app.task(name="scheduled_analysis_runner")
+def scheduled_analysis_runner_task():
+    """
+    Master scheduler task that determines which brands need analysis based on their subscription plan.
+    - Starter: Weekly analysis
+    - Pro: Daily analysis
+    - Enterprise: Every 6 hours
+    """
+    logger.info("Running scheduled analysis check")
+    
+    async def _process():
+        try:
+            from datetime import datetime, timedelta
+            from app.services.supabase.database import SupabaseDatabaseService
+            from app.models.brand import Brand
+            from app.models.analysis import Analysis
+            
+            brand_db = SupabaseDatabaseService("brands", Brand)
+            analysis_db = SupabaseDatabaseService("aeo_analyses", Analysis)
+            
+            brands = await brand_db.list()
+            now = datetime.utcnow()
+            
+            triggered = []
+            
+            for brand in brands:
+                # Get user's subscription plan
+                # For now, default to 'starter' if not found
+                # TODO: Fetch from subscriptions table
+                plan = "starter"
+                
+                # Determine interval based on plan
+                intervals = {
+                    "starter": timedelta(days=7),
+                    "pro": timedelta(days=1),
+                    "enterprise": timedelta(hours=6),
+                }
+                interval = intervals.get(plan, timedelta(days=7))
+                
+                # Check last analysis
+                analyses = await analysis_db.list(
+                    filters={"brand_id": str(brand.id)},
+                    order_by="created_at",
+                    order_desc=True,
+                    limit=1
+                )
+                
+                should_run = True
+                if analyses:
+                    last_analysis = analyses[0]
+                    if last_analysis.created_at:
+                        # Parse the timestamp
+                        if isinstance(last_analysis.created_at, str):
+                            last_time = datetime.fromisoformat(last_analysis.created_at.replace('Z', '+00:00'))
+                        else:
+                            last_time = last_analysis.created_at
+                        
+                        # Make timezone naive for comparison
+                        last_time = last_time.replace(tzinfo=None)
+                        
+                        if now - last_time < interval:
+                            should_run = False
+                
+                if should_run:
+                    # Trigger analysis
+                    refresh_brand_analysis_task.delay(str(brand.id))
+                    triggered.append(str(brand.id))
+                    logger.info(f"Triggered analysis for brand: {brand.name} (plan: {plan})")
+            
+            return {"status": "completed", "triggered": len(triggered), "brand_ids": triggered}
+            
+        except Exception as e:
+            logger.error(f"Scheduled analysis runner failed: {e}", exc_info=True)
+            return {"status": "error", "message": str(e)}
+    
+    return async_to_sync(_process())
+
 
