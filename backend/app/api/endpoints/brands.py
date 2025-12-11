@@ -74,6 +74,9 @@ async def update_brand(
     import logging
     logger = logging.getLogger(__name__)
     
+    logger.info(f"🚀 Received update request for brand {brand_id}")
+    logger.info(f"📦 Payload: {brand_update.model_dump()}")
+
     # Check ownership first
     existing_brand = await service.get(str(brand_id))
     if not existing_brand:

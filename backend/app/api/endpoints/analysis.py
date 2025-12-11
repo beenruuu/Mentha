@@ -4,7 +4,7 @@ from uuid import UUID
 
 from app.api.deps import get_current_user
 from app.models.auth import UserProfile
-from app.models.analysis import Analysis, AnalysisCreate, AnalysisUpdate, AnalysisStatus
+from app.models.analysis import Analysis, AnalysisCreate, AnalysisUpdate, AnalysisStatus, AnalysisType, AIModel
 from app.services.supabase.database import SupabaseDatabaseService
 
 from app.services.analysis.analysis_service import AnalysisService
@@ -89,13 +89,65 @@ async def trigger_analysis_for_brand(
     """
     Trigger a new analysis for a specific brand.
     Creates an analysis record and runs the analysis in the background.
+    
+    The analysis uses input_data populated from the brand's stored data,
+    including discovery_prompts configured during onboarding.
     """
-    # Create analysis record
+    # Import Brand model and service
+    from app.models.brand import Brand
+    brand_service = SupabaseDatabaseService("brands", Brand)
+    
+    # Fetch brand data to populate input_data
+    brand = await brand_service.get(str(brand_id))
+    if not brand:
+        raise HTTPException(status_code=404, detail="Brand not found")
+    
+    # Verify ownership
+    if str(brand.user_id) != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to analyze this brand")
+    
+    # Build input_data from brand information collected during onboarding
+    input_data = {
+        "brand": {
+            "name": brand.name,
+            "domain": brand.domain,
+            "industry": brand.industry or "",
+            "description": brand.description or "",
+            "entity_type": brand.entity_type or "business",
+            "business_scope": brand.business_scope or "national",
+            "city": brand.city or "",
+        },
+        "objectives": {
+            "key_terms": ", ".join(brand.services or []),
+        },
+        # Include discovery prompts configured during onboarding
+        "discovery_prompts": brand.discovery_prompts or [],
+        # Include AI providers selected during onboarding
+        "ai_providers": brand.ai_providers or [],
+        # User's preferred language (default Spanish)
+        "preferred_language": "es",
+        "user_country": "ES",
+    }
+    
+    # Determine AI model from brand's configured providers
+    ai_model = None
+    if brand.ai_providers:
+        # Use first enabled provider
+        first_provider = brand.ai_providers[0] if brand.ai_providers else "chatgpt"
+        if first_provider in ["chatgpt", "claude", "perplexity", "gemini"]:
+            ai_model = AIModel(first_provider)
+    
+    # Create analysis record with populated input_data
     data = {
         "user_id": str(current_user.id),
         "brand_id": str(brand_id),
         "status": AnalysisStatus.pending,
+        "analysis_type": AnalysisType.domain,
+        "input_data": input_data,
     }
+    
+    if ai_model:
+        data["ai_model"] = ai_model
     
     created_analysis = await service.create(data)
     

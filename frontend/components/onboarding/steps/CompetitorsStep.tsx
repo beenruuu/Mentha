@@ -48,7 +48,7 @@ export default function CompetitorsStep() {
             : 'No competitors detected. Add some manually.',
         next: lang === 'es' ? 'Continuar' : 'Continue',
         back: lang === 'es' ? 'Atrás' : 'Back',
-        step: lang === 'es' ? 'Paso 4 de 6' : 'Step 4 of 6',
+        step: lang === 'es' ? 'Paso 4 de 7' : 'Step 4 of 7',
         skip: lang === 'es' ? 'Saltar por ahora' : 'Skip for now',
         analyzing: lang === 'es' ? 'Analizando competidores...' : 'Analyzing competitors...',
         almostReady: lang === 'es' ? 'Casi listo...' : 'Almost ready...',
@@ -72,8 +72,9 @@ export default function CompetitorsStep() {
         const discoverCompetitors = async () => {
             try {
                 setError('')
-                
+
                 // Call the discover endpoint directly (fast web search + AI filter)
+                // Now with scope-aware fields for better local/regional competitor detection
                 const data = await fetchAPI<DiscoveredCompetitor[]>('/competitors/discover', {
                     method: 'POST',
                     body: JSON.stringify({
@@ -83,10 +84,15 @@ export default function CompetitorsStep() {
                         description: brandProfile.description || '',
                         services: [],
                         country: companyInfo.location || 'ES',
-                        language: lang || 'es'
+                        language: lang || 'es',
+                        // New scope-aware fields
+                        business_scope: brandProfile.businessScope || 'national',
+                        city: brandProfile.city || '',
+                        industry_specific: brandProfile.industrySpecific || ''
                     })
                 })
-                
+
+
                 if (!isMounted) return
 
                 if (data && data.length > 0) {
@@ -101,7 +107,7 @@ export default function CompetitorsStep() {
                     }))
                     setCompetitors(mappedCompetitors)
                 }
-                
+
                 setIsLoading(false)
             } catch (err: any) {
                 console.error('Failed to discover competitors:', err)
@@ -262,9 +268,9 @@ export default function CompetitorsStep() {
                                                                 competitor.source === 'web_search' && "bg-blue-500/20 text-blue-400",
                                                                 competitor.source === 'manual' && "bg-green-500/20 text-green-400",
                                                             )}>
-                                                                {competitor.source === 'llm_knowledge' ? '🧠 AI' : 
-                                                                 competitor.source === 'web_search' ? '🔍 Web' : 
-                                                                 '✏️ Manual'}
+                                                                {competitor.source === 'llm_knowledge' ? '🧠 AI' :
+                                                                    competitor.source === 'web_search' ? '🔍 Web' :
+                                                                        '✏️ Manual'}
                                                             </span>
                                                         )}
                                                     </div>

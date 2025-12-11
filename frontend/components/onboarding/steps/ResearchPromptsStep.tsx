@@ -4,8 +4,8 @@ import { useOnboarding, ResearchPrompt } from '@/lib/context/onboarding-context'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { useState, useEffect } from 'react'
-import { Plus, Trash2, Tag, Search, Sparkles, AlertCircle, Loader2, RefreshCw, Check } from 'lucide-react'
+import { useState } from 'react'
+import { Plus, Trash2, Tag, Search, Sparkles, AlertCircle, Loader2, Check } from 'lucide-react'
 import { useTranslations } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { fetchAPI } from '@/lib/api-client'
@@ -15,7 +15,6 @@ const MAX_PROMPTS = 10
 interface SuggestedPrompt {
     text: string
     type: 'branded' | 'non-branded'
-    selected: boolean
 }
 
 export default function ResearchPromptsStep() {
@@ -33,43 +32,41 @@ export default function ResearchPromptsStep() {
     const [newPrompt, setNewPrompt] = useState('')
     const [newPromptType, setNewPromptType] = useState<'branded' | 'non-branded'>('non-branded')
     const [isGenerating, setIsGenerating] = useState(false)
-    const [suggestedPrompts, setSuggestedPrompts] = useState<SuggestedPrompt[]>([])
-    const [hasGenerated, setHasGenerated] = useState(false)
+    const [suggestions, setSuggestions] = useState<SuggestedPrompt[]>([])
+    const [showSuggestions, setShowSuggestions] = useState(false)
 
     const t = {
         title: lang === 'es' ? 'Prompts de investigación' : 'Research Prompts',
         subtitle: lang === 'es'
-            ? 'La IA ha generado prompts personalizados basándose en tu marca, sector y competidores.'
-            : 'AI has generated personalized prompts based on your brand, industry and competitors.',
+            ? 'Define las consultas que usaremos para analizar tu presencia en motores de IA. Este paso es opcional.'
+            : 'Define the queries we will use to analyze your AI presence. This step is optional.',
         branded: lang === 'es' ? 'Branded' : 'Branded',
         nonBranded: lang === 'es' ? 'Non-branded' : 'Non-branded',
         brandedDesc: lang === 'es' ? 'Incluyen el nombre de tu marca' : 'Include your brand name',
         nonBrandedDesc: lang === 'es' ? 'Consultas genéricas del sector' : 'Generic industry queries',
-        addPrompt: lang === 'es' ? 'Añadir prompt personalizado' : 'Add custom prompt',
-        placeholder: lang === 'es' ? 'Escribe tu prompt personalizado...' : 'Write your custom prompt...',
+        addPrompt: lang === 'es' ? 'Añadir prompt' : 'Add prompt',
+        placeholder: lang === 'es' ? 'Escribe tu prompt de búsqueda...' : 'Write your search prompt...',
         add: lang === 'es' ? 'Añadir' : 'Add',
         limitReached: lang === 'es' ? `Límite de ${MAX_PROMPTS} prompts alcanzado` : `${MAX_PROMPTS} prompts limit reached`,
         next: lang === 'es' ? 'Continuar' : 'Continue',
         back: lang === 'es' ? 'Atrás' : 'Back',
-        step: lang === 'es' ? 'Paso 5 de 6' : 'Step 5 of 6',
-        custom: lang === 'es' ? 'Personalizado' : 'Custom',
-        generating: lang === 'es' ? 'Generando prompts...' : 'Generating prompts...',
-        regenerate: lang === 'es' ? 'Regenerar' : 'Regenerate',
-        suggestions: lang === 'es' ? 'Sugerencias de la IA' : 'AI Suggestions',
-        selectToAdd: lang === 'es' ? 'Selecciona los que quieras añadir' : 'Select the ones you want to add',
-        addSelected: lang === 'es' ? 'Añadir seleccionados' : 'Add selected',
+        step: lang === 'es' ? 'Paso 5 de 7' : 'Step 5 of 7',
+        generating: lang === 'es' ? 'Generando sugerencias...' : 'Generating suggestions...',
+        getSuggestions: lang === 'es' ? 'Obtener sugerencias con IA' : 'Get AI suggestions',
+        hideSuggestions: lang === 'es' ? 'Ocultar sugerencias' : 'Hide suggestions',
         yourPrompts: lang === 'es' ? 'Tus prompts' : 'Your prompts',
+        noPrompts: lang === 'es' ? 'No has añadido ningún prompt aún' : 'You have not added any prompts yet',
+        skipInfo: lang === 'es'
+            ? 'Puedes continuar sin prompts. El análisis usará consultas automáticas basadas en tu industria y competidores.'
+            : 'You can continue without prompts. The analysis will use automatic queries based on your industry and competitors.',
+        addSuggestion: lang === 'es' ? 'Añadir' : 'Add',
     }
 
-    // Generate prompts with AI on mount
-    useEffect(() => {
-        if (!hasGenerated && brandProfile.name) {
-            generatePrompts()
-        }
-    }, [])
-
-    const generatePrompts = async () => {
+    // Generate suggestions with AI (only when user clicks button)
+    const generateSuggestions = async () => {
         setIsGenerating(true)
+        setSuggestions([])
+        setShowSuggestions(true)
         try {
             const competitorNames = competitors.map(c => c.name).join(', ')
 
@@ -89,58 +86,50 @@ export default function ResearchPromptsStep() {
                 }
             )
 
-            setSuggestedPrompts(response.prompts.map(p => ({ ...p, selected: true })))
-            setHasGenerated(true)
+            setSuggestions(response.prompts)
         } catch (err) {
-            console.error('Failed to generate prompts:', err)
-            // Fallback to basic prompts
-            const fallbackPrompts: SuggestedPrompt[] = [
-                { text: `${brandProfile.name} opiniones`, type: 'branded', selected: true },
-                { text: `${brandProfile.name} precios`, type: 'branded', selected: true },
-                { text: `${brandProfile.name} vs competencia`, type: 'branded', selected: true },
-                { text: `mejores empresas de ${brandProfile.category?.split(',')[0] || 'servicios'}`, type: 'non-branded', selected: true },
-                { text: `${brandProfile.category?.split(',')[0] || 'servicios'} cerca de mi`, type: 'non-branded', selected: true },
+            console.error('Failed to generate suggestions:', err)
+            // Fallback to basic suggestions
+            const fallback: SuggestedPrompt[] = [
+                { text: `${brandProfile.name} opiniones`, type: 'branded' },
+                { text: `${brandProfile.name} precios`, type: 'branded' },
+                { text: `mejores empresas de ${brandProfile.category?.split(',')[0] || 'servicios'}`, type: 'non-branded' },
             ]
-            setSuggestedPrompts(fallbackPrompts)
-            setHasGenerated(true)
+            setSuggestions(fallback)
         } finally {
             setIsGenerating(false)
         }
     }
 
-    const toggleSuggestion = (index: number) => {
-        setSuggestedPrompts(prev => prev.map((p, i) =>
-            i === index ? { ...p, selected: !p.selected } : p
-        ))
-    }
+    const addSuggestion = (suggestion: SuggestedPrompt) => {
+        if (researchPrompts.length >= MAX_PROMPTS) return
 
-    const addSelectedPrompts = () => {
-        const selected = suggestedPrompts.filter(p => p.selected)
-        const newPrompts: ResearchPrompt[] = selected.map((p, i) => ({
-            id: `ai-${Date.now()}-${i}`,
-            text: p.text,
-            type: p.type,
+        // Check for duplicates
+        const exists = researchPrompts.some(p => p.text.toLowerCase() === suggestion.text.toLowerCase())
+        if (exists) return
+
+        const prompt: ResearchPrompt = {
+            id: `ai-${Date.now()}`,
+            text: suggestion.text,
+            type: suggestion.type,
             isCustom: false
-        }))
-
-        // Add only up to the limit
-        const available = MAX_PROMPTS - researchPrompts.length
-        const toAdd = newPrompts.slice(0, available)
-
-        setResearchPrompts([...researchPrompts, ...toAdd])
-        // Clear added suggestions
-        setSuggestedPrompts(prev => prev.filter(p => !p.selected))
+        }
+        setResearchPrompts([...researchPrompts, prompt])
+        // Remove from suggestions
+        setSuggestions(prev => prev.filter(s => s.text !== suggestion.text))
     }
-
-    const brandedPrompts = researchPrompts.filter(p => p.type === 'branded')
-    const nonBrandedPrompts = researchPrompts.filter(p => p.type === 'non-branded')
-    const selectedCount = suggestedPrompts.filter(p => p.selected).length
 
     const handleAddPrompt = () => {
-        // Defensive check
         const currentPrompts = Array.isArray(researchPrompts) ? researchPrompts : []
 
         if (newPrompt.trim() && currentPrompts.length < MAX_PROMPTS) {
+            // Check for duplicates
+            const exists = currentPrompts.some(p => p.text.toLowerCase() === newPrompt.trim().toLowerCase())
+            if (exists) {
+                setNewPrompt('')
+                return
+            }
+
             const prompt: ResearchPrompt = {
                 id: `custom-${Date.now()}`,
                 text: newPrompt.trim(),
@@ -163,30 +152,8 @@ export default function ResearchPromptsStep() {
         }
     }
 
-    const renderPromptList = (prompts: ResearchPrompt[], type: 'branded' | 'non-branded') => (
-        <div className="space-y-1">
-            {prompts.map((prompt) => (
-                <div
-                    key={prompt.id}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 group"
-                >
-                    <div className={cn(
-                        "w-1.5 h-1.5 rounded-full shrink-0",
-                        type === 'branded' ? "bg-primary" : "bg-blue-500"
-                    )} />
-                    <p className="flex-1 text-sm text-gray-300">{prompt.text}</p>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleRemovePrompt(prompt.id)}
-                        className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400"
-                    >
-                        <Trash2 className="w-3 h-3" />
-                    </Button>
-                </div>
-            ))}
-        </div>
-    )
+    const brandedPrompts = researchPrompts.filter(p => p.type === 'branded')
+    const nonBrandedPrompts = researchPrompts.filter(p => p.type === 'non-branded')
 
     return (
         <div className="w-full flex justify-center animate-in fade-in duration-500">
@@ -202,117 +169,9 @@ export default function ResearchPromptsStep() {
                     </span>
                 </div>
 
-                {/* AI Suggestions */}
-                {isGenerating ? (
-                    <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                        <div className="relative w-16 h-16 mb-4">
-                            <div className="absolute inset-0 border-2 border-amber-500/30 rounded-full animate-ping opacity-30" />
-                            <div className="absolute inset-0 border-2 border-t-amber-500 rounded-full animate-spin" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <Sparkles className="w-6 h-6 text-amber-400" />
-                            </div>
-                        </div>
-                        <span className="text-sm">{t.generating}</span>
-                    </div>
-                ) : suggestedPrompts.length > 0 ? (
-                    <div className="mb-6">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                                    <Sparkles className="w-4 h-4 text-amber-400" />
-                                </div>
-                                <div>
-                                    <span className="text-sm font-medium text-white block">{t.suggestions}</span>
-                                    <span className="text-xs text-muted-foreground">{t.selectToAdd}</span>
-                                </div>
-                            </div>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={generatePrompts}
-                                className="h-8 text-xs text-muted-foreground hover:text-white gap-1.5"
-                            >
-                                <RefreshCw className="w-3.5 h-3.5" />
-                                {t.regenerate}
-                            </Button>
-                        </div>
-
-                        <div className="space-y-2">
-                            {suggestedPrompts.map((prompt, index) => (
-                                <button
-                                    key={index}
-                                    type="button"
-                                    onClick={() => toggleSuggestion(index)}
-                                    className={cn(
-                                        "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all",
-                                        prompt.selected
-                                            ? "bg-gradient-to-r from-primary/20 to-primary/5 ring-1 ring-primary/30"
-                                            : "bg-white/5 hover:bg-white/8 ring-1 ring-white/5"
-                                    )}
-                                >
-                                    <div className={cn(
-                                        "w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
-                                        prompt.selected
-                                            ? "border-primary bg-primary"
-                                            : "border-gray-600"
-                                    )}>
-                                        {prompt.selected && <Check className="w-3 h-3 text-black" />}
-                                    </div>
-                                    <span className="flex-1 text-sm text-white">{prompt.text}</span>
-                                    <span className={cn(
-                                        "text-[10px] font-medium px-2 py-1 rounded-full shrink-0",
-                                        prompt.type === 'branded'
-                                            ? "text-primary bg-primary/15"
-                                            : "text-blue-400 bg-blue-500/15"
-                                    )}>
-                                        {prompt.type === 'branded' ? t.branded : t.nonBranded}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-
-                        {selectedCount > 0 && researchPrompts.length < MAX_PROMPTS && (
-                            <Button
-                                onClick={addSelectedPrompts}
-                                className="w-full mt-4 h-11 bg-primary hover:bg-primary/90 font-medium"
-                            >
-                                <Plus className="w-4 h-4 mr-2" />
-                                {t.addSelected} ({selectedCount})
-                            </Button>
-                        )}
-                    </div>
-                ) : null}
-
-                {/* Your Prompts */}
-                {researchPrompts.length > 0 && (
-                    <div className="mb-6">
-                        <div className="flex items-center gap-2 mb-3">
-                            <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center">
-                                <Search className="w-3.5 h-3.5 text-white" />
-                            </div>
-                            <span className="text-sm font-medium text-white">{t.yourPrompts}</span>
-                            <span className="text-xs text-muted-foreground ml-auto">{researchPrompts.length}/{MAX_PROMPTS}</span>
-                        </div>
-                        <div className="space-y-3">
-                            {nonBrandedPrompts.length > 0 && (
-                                <div className="space-y-1.5">
-                                    <p className="text-[10px] uppercase tracking-wider text-blue-400/80 font-medium pl-1">{t.nonBranded}</p>
-                                    {renderPromptList(nonBrandedPrompts, 'non-branded')}
-                                </div>
-                            )}
-                            {brandedPrompts.length > 0 && (
-                                <div className="space-y-1.5">
-                                    <p className="text-[10px] uppercase tracking-wider text-primary/80 font-medium pl-1">{t.branded}</p>
-                                    {renderPromptList(brandedPrompts, 'branded')}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* Add custom */}
-                {researchPrompts.length < MAX_PROMPTS && (
-                    <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10 border-dashed">
+                {/* Add custom prompt - PRIMARY ACTION */}
+                <div className="mb-6">
+                    <div className="flex items-center gap-3 p-4 rounded-xl bg-white/5 border border-white/10">
                         <button
                             type="button"
                             onClick={() => setNewPromptType(newPromptType === 'branded' ? 'non-branded' : 'branded')}
@@ -332,28 +191,179 @@ export default function ResearchPromptsStep() {
                             onKeyDown={handleKeyDown}
                             placeholder={t.placeholder}
                             className="h-9 bg-transparent border-0 focus-visible:ring-0 text-sm flex-1"
+                            disabled={researchPrompts.length >= MAX_PROMPTS}
                         />
                         <Button
                             onClick={handleAddPrompt}
-                            disabled={!newPrompt.trim()}
+                            disabled={!newPrompt.trim() || researchPrompts.length >= MAX_PROMPTS}
                             size="sm"
-                            className="h-9 px-4 bg-white/10 hover:bg-white/20 disabled:opacity-30"
+                            className="h-9 px-4 bg-primary hover:bg-primary/90 disabled:opacity-30"
                         >
                             <Plus className="w-4 h-4 mr-1.5" />
                             {t.add}
                         </Button>
                     </div>
+                    <div className="flex items-center gap-4 mt-2 px-1">
+                        <span className="text-[10px] text-muted-foreground">
+                            {newPromptType === 'branded' ? t.brandedDesc : t.nonBrandedDesc}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Your Prompts */}
+                {researchPrompts.length > 0 ? (
+                    <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="w-6 h-6 rounded-md bg-white/10 flex items-center justify-center">
+                                <Search className="w-3.5 h-3.5 text-white" />
+                            </div>
+                            <span className="text-sm font-medium text-white">{t.yourPrompts}</span>
+                            <span className="text-xs text-muted-foreground ml-auto">{researchPrompts.length}/{MAX_PROMPTS}</span>
+                        </div>
+                        <div className="space-y-3">
+                            {nonBrandedPrompts.length > 0 && (
+                                <div className="space-y-1.5">
+                                    <p className="text-[10px] uppercase tracking-wider text-blue-400/80 font-medium pl-1">{t.nonBranded}</p>
+                                    <div className="space-y-1">
+                                        {nonBrandedPrompts.map((prompt) => (
+                                            <div
+                                                key={prompt.id}
+                                                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 group"
+                                            >
+                                                <div className="w-1.5 h-1.5 rounded-full shrink-0 bg-blue-500" />
+                                                <p className="flex-1 text-sm text-gray-300">{prompt.text}</p>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() => handleRemovePrompt(prompt.id)}
+                                                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {brandedPrompts.length > 0 && (
+                                <div className="space-y-1.5">
+                                    <p className="text-[10px] uppercase tracking-wider text-primary/80 font-medium pl-1">{t.branded}</p>
+                                    <div className="space-y-1">
+                                        {brandedPrompts.map((prompt) => (
+                                            <div
+                                                key={prompt.id}
+                                                className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 group"
+                                            >
+                                                <div className="w-1.5 h-1.5 rounded-full shrink-0 bg-primary" />
+                                                <p className="flex-1 text-sm text-gray-300">{prompt.text}</p>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    onClick={() => handleRemovePrompt(prompt.id)}
+                                                    className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                ) : (
+                    <div className="mb-6 p-4 rounded-xl bg-white/5 border border-white/10 border-dashed text-center">
+                        <p className="text-sm text-muted-foreground">{t.noPrompts}</p>
+                        <p className="text-xs text-muted-foreground/70 mt-1">{t.skipInfo}</p>
+                    </div>
                 )}
 
                 {researchPrompts.length >= MAX_PROMPTS && (
-                    <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/10 text-amber-400 text-sm">
+                    <div className="flex items-center gap-2 p-3 rounded-xl bg-amber-500/10 text-amber-400 text-sm mb-6">
                         <AlertCircle className="w-4 h-4" />
                         {t.limitReached}
                     </div>
                 )}
 
+                {/* AI Suggestions - SECONDARY ACTION */}
+                <div className="mb-6">
+                    {!showSuggestions ? (
+                        <Button
+                            variant="outline"
+                            onClick={generateSuggestions}
+                            disabled={isGenerating || researchPrompts.length >= MAX_PROMPTS}
+                            className="w-full h-10 border-white/10 hover:bg-white/5 text-muted-foreground hover:text-white"
+                        >
+                            <Sparkles className="w-4 h-4 mr-2 text-amber-400" />
+                            {t.getSuggestions}
+                        </Button>
+                    ) : (
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-amber-400" />
+                                    <span className="text-sm font-medium text-white">
+                                        {lang === 'es' ? 'Sugerencias IA' : 'AI Suggestions'}
+                                    </span>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setShowSuggestions(false)}
+                                    className="h-7 text-xs text-muted-foreground hover:text-white"
+                                >
+                                    {t.hideSuggestions}
+                                </Button>
+                            </div>
+
+                            {isGenerating ? (
+                                <div className="flex items-center justify-center py-8 text-muted-foreground">
+                                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                    <span className="text-sm">{t.generating}</span>
+                                </div>
+                            ) : suggestions.length > 0 ? (
+                                <div className="space-y-1.5">
+                                    {suggestions.map((suggestion, index) => (
+                                        <div
+                                            key={index}
+                                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-amber-500/5 border border-amber-500/10"
+                                        >
+                                            <span className={cn(
+                                                "text-[10px] font-medium px-1.5 py-0.5 rounded shrink-0",
+                                                suggestion.type === 'branded'
+                                                    ? "text-primary bg-primary/15"
+                                                    : "text-blue-400 bg-blue-500/15"
+                                            )}>
+                                                {suggestion.type === 'branded' ? 'B' : 'NB'}
+                                            </span>
+                                            <span className="flex-1 text-sm text-gray-300">{suggestion.text}</span>
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                onClick={() => addSuggestion(suggestion)}
+                                                disabled={researchPrompts.length >= MAX_PROMPTS}
+                                                className="h-7 px-2 text-xs text-amber-400 hover:text-amber-300 hover:bg-amber-500/10"
+                                            >
+                                                <Plus className="w-3 h-3 mr-1" />
+                                                {t.addSuggestion}
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-center py-4 text-muted-foreground">
+                                    <Check className="w-4 h-4 mr-2 text-green-500" />
+                                    <span className="text-sm">
+                                        {lang === 'es' ? 'Todas las sugerencias añadidas' : 'All suggestions added'}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </div>
+
                 {/* Actions */}
-                <div className="flex justify-between mt-6 pt-4 border-t border-white/10">
+                <div className="flex justify-between pt-4 border-t border-white/10">
                     <Button
                         variant="ghost"
                         onClick={prevStep}

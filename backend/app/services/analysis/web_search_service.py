@@ -94,13 +94,17 @@ class WebSearchService:
     
     def __init__(self, llm_service=None):
         """Initialize the web search service."""
-        self.enabled = DDGS is not None
-        self.llm_service = llm_service
+        # Enable if any provider is available (DuckDuckGo, Tavily, Serper)
         self.web_provider = settings.WEB_SEARCH_PROVIDER.lower().strip() if settings.WEB_SEARCH_PROVIDER else "duckduckgo"
         self.tavily_api_key = settings.TAVILY_API_KEY
         self.serper_api_key = settings.SERPER_API_KEY
+
+        self.enabled = bool(DDGS or self.tavily_api_key or self.serper_api_key)
+        self.llm_service = llm_service
+        log_info("🌐", f"Web search provider set to {self.web_provider} (tavily_key={'yes' if self.tavily_api_key else 'no'}, serper_key={'yes' if self.serper_api_key else 'no'})")
+
         if not self.enabled:
-            log_warning("🔍❌", "Web search is disabled. Install duckduckgo-search to enable.")
+            log_warning("🔍❌", "Web search is disabled. Install duckduckgo-search or set Tavily/Serper keys to enable.")
     
     def set_llm_service(self, llm_service):
         """Set the LLM service for AI-powered filtering."""
@@ -231,32 +235,63 @@ Responde SOLO con un JSON válido con esta estructura exacta:
 {{
     "entity_type": "business|media|institution|blog|other",
     "industry": "Industria Principal",
+    "industry_specific": "Descripción específica del negocio",
+    "business_scope": "local|regional|national|international",
+    "city": "Ciudad si aplica",
     "services": ["servicio1", "servicio2"],
     "company_type": "B2B|B2C|B2B2C",
     "target_market": "mercado objetivo"
 }}
 
 REGLAS PARA "industry":
-- Usa UN solo término genérico en Title Case (primera letra de cada palabra en mayúscula)
-- Ejemplos correctos: "Restaurante", "Tecnología", "Consultoría", "E-commerce", "Hostelería", "Salud", "Educación"
-- Ejemplos INCORRECTOS: "restauración", "RestauracióN", "RESTAURANTES", "comida y bebidas"
-- Si es un restaurante, bar o cafetería → "Hostelería"
-- Si es un hotel, alojamiento → "Hostelería"
-- Usa la industria más específica pero en formato limpio
+- Usa UN solo término genérico en Title Case
+- Ejemplos: "Tecnología", "Hostelería", "Salud", "Educación"
+
+REGLAS PARA "industry_specific":
+- Descripción detallada del tipo de negocio
+- Ejemplos: "reparación de móviles y tablets", "pizzería italiana", "clínica dental"
+- Usar minúsculas, máximo 5-6 palabras
+
+REGLAS CRÍTICAS PARA "business_scope":
+
+NEGOCIOS QUE SON SIEMPRE "local" POR DEFECTO (a menos que indiquen claramente múltiples sedes):
+- Reparación de móviles/tablets/electrónica → LOCAL
+- Talleres de reparación (coches, electrodomésticos) → LOCAL
+- Restaurantes, bares, cafeterías → LOCAL
+- Peluquerías, estéticas, spas → LOCAL
+- Clínicas dentales, médicas, veterinarias → LOCAL
+- Tiendas físicas pequeñas → LOCAL
+- Gimnasios independientes → LOCAL
+- Servicios a domicilio (fontanería, electricidad, limpieza) → LOCAL
+
+SOLO MARCAR COMO "national/international" SI:
+- Tiene claramente múltiples tiendas/sedes en diferentes ciudades
+- Menciona "envío a toda España" o similar
+- Es una marca famosa conocida (El Corte Inglés, MediaMarkt, etc.)
+- Tiene presencia online sin tienda física (e-commerce puro)
+
+SI HAY DUDA → ASUMIR "local" (es más seguro para competidores)
+
+REGLAS PARA "city":
+- OBLIGATORIO intentar extraer la ciudad del contenido
+- Buscar en: dirección física, teléfono con prefijo, menciones de ciudad/barrio
+- Si el dominio es .es y parece negocio local pero no hay ciudad → dejar vacío pero marcar como local
+- Si encuentra dirección física → SIEMPRE es local
 
 DEFINICIONES DE ENTITY_TYPE:
-- business: Vende productos o servicios comerciales (agencia, tienda, consultora, SaaS, restaurante, hotel).
-- media: Periódico, revista, portal de noticias, canal de TV.
-- institution: Gobierno, universidad, ONG, asociación.
-- blog: Blog personal o temático no comercial.
-- other: No encaja en los anteriores.
+- business: Vende productos o servicios comerciales
+- media: Periódico, revista, portal de noticias
+- institution: Gobierno, universidad, ONG
+- blog: Blog personal o temático no comercial
+- other: No encaja en los anteriores
 """
+
 
         try:
             response = await llm.generate_text(
                 prompt=prompt,
                 model="gpt-5-chat-latest",
-                max_tokens=300,
+                max_tokens=500,
                 temperature=0
             )
             
@@ -265,7 +300,13 @@ DEFINICIONES DE ENTITY_TYPE:
             response_text = response.text.strip()
             json_match = re.search(r'\{[^{}]*\}', response_text, re.DOTALL)
             if json_match:
-                return json.loads(json_match.group())
+                result = json.loads(json_match.group())
+                
+                # POST-AI HEURISTICS: Force local scope for service-based businesses
+                result = self._apply_local_business_heuristics(result, url)
+                
+                log_info("📊", f"Business info inferred: scope={result.get('business_scope')}, city={result.get('city')}, type={result.get('industry_specific')}")
+                return result
             
         except Exception as e:
             log_error("📄❌", f"Error inferring business info: {e}")
@@ -273,10 +314,58 @@ DEFINICIONES DE ENTITY_TYPE:
         return {
             "entity_type": "business",
             "industry": "Services",
+            "industry_specific": "",
+            "business_scope": "national",
+            "city": "",
             "services": [],
             "company_type": "unknown",
             "target_market": "unknown"
         }
+    
+    def _apply_local_business_heuristics(self, result: Dict[str, Any], url: str) -> Dict[str, Any]:
+        """
+        Apply heuristics to force local scope for certain business types.
+        Service-based businesses are almost always local unless proven otherwise.
+        """
+        industry_specific = result.get("industry_specific", "").lower()
+        industry = result.get("industry", "").lower()
+        current_scope = result.get("business_scope", "national")
+        
+        # Keywords that indicate LOCAL businesses (repair, personal services, food)
+        local_keywords = [
+            # Repair services
+            "reparación", "reparacion", "repair", "arreglo", "fix", "taller",
+            "servicio técnico", "servicio tecnico", "sat", "mantenimiento",
+            # Electronics repair
+            "móvil", "movil", "tablet", "ordenador", "pantalla", "iphone", "samsung",
+            # Personal services
+            "peluquería", "peluqueria", "barbería", "barberia", "estética", "estetica",
+            "spa", "masaje", "manicura", "pedicura",
+            # Health services
+            "clínica", "clinica", "dental", "veterinario", "veterinaria", "fisio",
+            "podólogo", "podologo", "óptica", "optica",
+            # Food services
+            "restaurante", "pizzería", "pizzeria", "bar", "cafetería", "cafeteria",
+            "panadería", "panaderia", "pastelería", "pasteleria",
+            # Home services
+            "fontanero", "electricista", "cerrajero", "pintor", "carpintero",
+            "limpieza", "mudanza", "reformas",
+            # Auto services
+            "taller mecánico", "taller mecanico", "lavadero", "autolavado",
+        ]
+        
+        # Check if the business matches local keywords
+        combined_text = f"{industry_specific} {industry}"
+        is_service_business = any(kw in combined_text for kw in local_keywords)
+        
+        # If it's a service business and currently marked as national, override to local
+        if is_service_business and current_scope in ["national", "international"]:
+            log_info("🏠", f"Heuristic override: '{industry_specific}' → forcing scope to LOCAL")
+            result["business_scope"] = "local"
+        
+        return result
+
+
 
     async def _filter_competitors_with_ai(
         self,
@@ -394,11 +483,15 @@ IMPORTANTE sobre el nombre:
         services: str = "",
         country: str = "ES",
         language: str = "es",
-        max_results: int = 10
+        max_results: int = 10,
+        business_scope: str = "national",
+        city: str = "",
+        industry_specific: str = ""
     ) -> List[Dict[str, Any]]:
         """
         Get competitors directly from LLM knowledge (no web search).
         The LLM knows about established companies from its training data.
+        Now considers business_scope to find appropriately sized competitors.
         """
         llm = await self._get_llm_service()
         if not llm:
@@ -407,16 +500,53 @@ IMPORTANTE sobre el nombre:
         lang_text = "español" if language == "es" else "English"
         country_text = f"en {country}" if country else ""
         
+        # Use industry_specific if available, fallback to industry
+        business_type = industry_specific if industry_specific else industry
+        
+        # Build scope-specific instructions
+        scope_instructions = ""
+        location_context = ""
+        
+        if business_scope == "local" and city:
+            scope_instructions = f"""
+IMPORTANTE - NEGOCIO LOCAL:
+- Este es un negocio LOCAL que opera solo en {city}
+- SOLO busca competidores que operen en {city} o alrededores
+- NO incluir cadenas nacionales ni grandes empresas
+- Busca tiendas/negocios pequeños similares en la misma zona
+- Si no conoces competidores locales específicos en {city}, devuelve array vacío []
+"""
+            location_context = f" en {city}"
+        elif business_scope == "regional" and city:
+            scope_instructions = f"""
+IMPORTANTE - NEGOCIO REGIONAL:
+- Este negocio opera a nivel regional cerca de {city}
+- Busca competidores regionales en la misma comunidad/provincia
+- Puedes incluir algunas cadenas regionales pero no multinacionales
+"""
+            location_context = f" en la región de {city}"
+        else:
+            scope_instructions = """
+NEGOCIO NACIONAL/INTERNACIONAL:
+- Busca competidores a nivel nacional o internacional
+- Puedes incluir grandes empresas y cadenas conocidas
+"""
+        
         prompt = f"""Eres un experto en análisis de mercado. Dame los principales competidores de esta empresa.
 
 EMPRESA:
 - Nombre: {brand_name}
+- Tipo de negocio: {business_type}
 - Industria: {industry}
 - Descripción: {description or 'No disponible'}
 - Servicios: {services or 'No especificados'}
 - País: {country}
+- Alcance: {business_scope.upper()}
+- Ciudad: {city or 'No especificada'}
 
-TAREA: Lista los {max_results} principales competidores directos {country_text}.
+{scope_instructions}
+
+TAREA: Lista los {max_results} principales competidores directos{location_context}.
 
 Responde SOLO con un JSON array así:
 [
@@ -430,11 +560,11 @@ REGLAS CRÍTICAS:
 - Competidores DIRECTOS que ofrezcan los MISMOS productos/servicios
 - NO incluir: redes sociales, directorios, páginas de reseñas, agregadores
 - Verifica que la empresa tenga presencia web real antes de incluirla
-- Para restaurantes: solo otros restaurantes similares en la misma zona
-- Para servicios locales: solo competidores en la misma área geográfica
 - Responde en {lang_text}
 - IMPORTANTE: Si no estás 100% seguro de que el dominio existe, NO lo incluyas. Prefiero menos resultados pero que funcionen.
-- NO inventes dominios (ej: no pongas "reparacionmovilesmalaga.com" si no existe)."""
+- NO inventes dominios (ej: no pongas "reparacionmovilesmalaga.com" si no existe).
+- Si es un negocio LOCAL y no conoces competidores específicos de esa ciudad, devuelve array vacío []"""
+
 
         try:
             response = await llm.generate_text(
@@ -494,10 +624,14 @@ REGLAS CRÍTICAS:
         entity_type: str = "business",
         country: str = "ES",
         language: str = "es",
-        max_results: int = 10
+        max_results: int = 10,
+        business_scope: str = "national",
+        city: str = "",
+        industry_specific: str = ""
     ) -> List[Dict[str, Any]]:
         """
         Get competitors from DuckDuckGo web search + AI validation.
+        Now considers business_scope to generate appropriate queries.
         """
         if not self.enabled:
             return []
@@ -511,11 +645,19 @@ REGLAS CRÍTICAS:
             elif isinstance(services, list):
                 service_list = services
             
-            # Build localized queries based on entity type
+            # Use industry_specific if available for more precise searches
+            search_term = industry_specific if industry_specific else industry
+            
+            # Build localized queries based on entity type AND business scope
             queries = []
             
-            # Localization helpers
-            loc_suffix = f" {country}" if country else ""
+            # Localization helpers - adjust based on scope
+            if business_scope == "local" and city:
+                loc_suffix = f" {city}"
+            elif business_scope == "regional" and city:
+                loc_suffix = f" {city} región"
+            else:
+                loc_suffix = f" {country}" if country else ""
             
             # Language-specific terms
             terms = {
@@ -523,13 +665,15 @@ REGLAS CRÍTICAS:
                     "news": "noticias", "digital_papers": "diarios digitales", "magazines": "revistas",
                     "orgs": "organismos", "associations": "asociaciones", "companies": "empresas",
                     "competitors": "competidores", "similar": "similar a", "alternatives": "alternativas a",
-                    "vs": "vs", "best": "mejores"
+                    "vs": "vs", "best": "mejores", "stores": "tiendas", "near": "cerca de",
+                    "local": "local", "zone": "zona"
                 },
                 "en": {
                     "news": "news", "digital_papers": "digital newspapers", "magazines": "magazines",
                     "orgs": "organizations", "associations": "associations", "companies": "companies",
                     "competitors": "competitors", "similar": "similar to", "alternatives": "alternatives to",
-                    "vs": "vs", "best": "best"
+                    "vs": "vs", "best": "best", "stores": "stores", "near": "near",
+                    "local": "local", "zone": "area"
                 }
             }
             t = terms.get(language, terms["en"])
@@ -542,20 +686,45 @@ REGLAS CRÍTICAS:
                 queries.append(f'{t["orgs"]} "{industry}"{loc_suffix}')
                 queries.append(f'{t["associations"]} "{industry}"')
             else:
-                # Business queries (standard)
-                if service_list:
-                    for service in service_list[:3]:
-                        queries.append(f'{t["companies"]} "{service}"{loc_suffix}')
-                        queries.append(f'{t["best"]} {t["companies"]} {service}{loc_suffix}')
-                
-                if industry:
-                    queries.append(f'{t["companies"]} "{industry}"{loc_suffix} {t["competitors"]}')
-                    queries.append(f'top {t["companies"]} {industry}{loc_suffix}')
-                
-                # Direct competitor discovery queries
-                queries.append(f'{t["similar"]} {brand_name}')
-                queries.append(f'{t["alternatives"]} {brand_name}')
-                queries.append(f'{brand_name} {t["vs"]}')
+                # Business queries - ADJUSTED FOR SCOPE
+                if business_scope == "local" and city:
+                    # LOCAL BUSINESS: Very specific local searches
+                    queries.append(f'{search_term} {city}')
+                    queries.append(f'{t["stores"]} {search_term} {city}')
+                    queries.append(f'{search_term} {t["near"]} {city}')
+                    queries.append(f'{t["best"]} {search_term} {city}')
+                    if service_list:
+                        for service in service_list[:2]:
+                            queries.append(f'{service} {city}')
+                    # Don't add generic "similar to" queries for local - they return national results
+                    log_info("🔍📍", f"Using LOCAL search strategy for {brand_name} in {city}")
+                    
+                elif business_scope == "regional" and city:
+                    # REGIONAL BUSINESS: Include region/province
+                    queries.append(f'{search_term} {city}')
+                    queries.append(f'{t["companies"]} {search_term} {city} región')
+                    if service_list:
+                        for service in service_list[:2]:
+                            queries.append(f'{service} {city}')
+                    queries.append(f'{t["similar"]} {brand_name}')
+                    log_info("🔍🗺️", f"Using REGIONAL search strategy for {brand_name} near {city}")
+                    
+                else:
+                    # NATIONAL/INTERNATIONAL: Original broad strategy
+                    if service_list:
+                        for service in service_list[:3]:
+                            queries.append(f'{t["companies"]} "{service}"{loc_suffix}')
+                            queries.append(f'{t["best"]} {t["companies"]} {service}{loc_suffix}')
+                    
+                    if industry:
+                        queries.append(f'{t["companies"]} "{industry}"{loc_suffix} {t["competitors"]}')
+                        queries.append(f'top {t["companies"]} {industry}{loc_suffix}')
+                    
+                    # Direct competitor discovery queries
+                    queries.append(f'{t["similar"]} {brand_name}')
+                    queries.append(f'{t["alternatives"]} {brand_name}')
+                    queries.append(f'{brand_name} {t["vs"]}')
+                    log_info("🔍🌍", f"Using NATIONAL/INTERNATIONAL search strategy for {brand_name}")
             
             # Fallback
             if not queries:
@@ -566,7 +735,8 @@ REGLAS CRÍTICAS:
             # We rely on post-filtering for strict exclusions
             queries = [f'{q} -site:wikipedia.org' for q in queries]
 
-            log_info("🔍🏢", f"Competitor search queries (Type: {entity_type}, Loc: {country}): {queries}")
+            log_info("🔍🏢", f"Competitor search queries (Type: {entity_type}, Scope: {business_scope}, Loc: {city or country}): {queries}")
+
             
             all_candidates = []
             seen_domains: Set[str] = set()
@@ -637,7 +807,10 @@ REGLAS CRÍTICAS:
         max_results: int = 10,
         entity_type: str = "business",
         country: str = "ES",
-        language: str = "es"
+        language: str = "es",
+        business_scope: str = "national",
+        city: str = "",
+        industry_specific: str = ""
     ) -> List[Dict[str, Any]]:
         """
         Search for competitors using multiple sources and combine results.
@@ -647,8 +820,9 @@ REGLAS CRÍTICAS:
         2. Web Search - Real-time search via DuckDuckGo + AI validation (medium confidence)
         
         Each competitor is tagged with its source for analytics.
+        Now considers business_scope for appropriately sized competitor suggestions.
         """
-        log_info("🔍🚀", f"Starting multi-source competitor discovery for: {brand_name}")
+        log_info("🔍🚀", f"Starting multi-source competitor discovery for: {brand_name} (scope: {business_scope}, city: {city})")
         
         # Run both searches in parallel
         llm_results, web_results = await asyncio.gather(
@@ -659,7 +833,10 @@ REGLAS CRÍTICAS:
                 services=services,
                 country=country,
                 language=language,
-                max_results=8
+                max_results=8,
+                business_scope=business_scope,
+                city=city,
+                industry_specific=industry_specific
             ),
             self._get_competitors_from_web_search(
                 brand_name=brand_name,
@@ -670,10 +847,14 @@ REGLAS CRÍTICAS:
                 entity_type=entity_type,
                 country=country,
                 language=language,
-                max_results=8
+                max_results=8,
+                business_scope=business_scope,
+                city=city,
+                industry_specific=industry_specific
             ),
             return_exceptions=True
         )
+
         
         # Handle exceptions
         if isinstance(llm_results, Exception):
@@ -857,12 +1038,13 @@ REGLAS CRÍTICAS:
             return []
     
     async def _search(self, query: str, max_results: int) -> List[Dict[str, Any]]:
-        """Provider-agnostic search wrapper with Tavily/Serper fallback to DuckDuckGo."""
-        provider = self.web_provider
+        """Run multi-provider search (Tavily + Serper + DuckDuckGo) and merge unique results."""
 
-        # Prefer Tavily when key present
-        if provider == "tavily" and self.tavily_api_key:
-            try:
+        tasks = []
+
+        # Tavily
+        if self.tavily_api_key:
+            async def tavily_call():
                 payload = {
                     "api_key": self.tavily_api_key,
                     "query": query,
@@ -870,30 +1052,30 @@ REGLAS CRÍTICAS:
                     "max_results": max_results,
                     "include_answer": False,
                 }
-                async with httpx.AsyncClient(timeout=10) as client:
+                log_info("🌐", f"Using Tavily for query: {query}")
+                async with httpx.AsyncClient(timeout=12) as client:
                     res = await client.post("https://api.tavily.com/search", json=payload)
                     res.raise_for_status()
                     data = res.json()
-                    tavily_results = data.get("results", [])
                     return [
                         {
                             "title": r.get("title", ""),
                             "href": r.get("url", ""),
                             "body": r.get("content", "") or r.get("snippet", ""),
                         }
-                        for r in tavily_results[:max_results]
+                        for r in data.get("results", [])[:max_results]
                     ]
-            except Exception as e:
-                log_warning("🌐⚠️", f"Tavily search failed, falling back to DuckDuckGo: {e}")
+            tasks.append(tavily_call())
 
-        # Serper (Google SERP)
-        if provider == "serper" and self.serper_api_key:
-            try:
+        # Serper (Google)
+        if self.serper_api_key:
+            async def serper_call():
                 headers = {
                     "X-API-KEY": self.serper_api_key,
                     "Content-Type": "application/json",
                 }
                 payload = {"q": query, "num": max_results}
+                log_info("🌐", f"Using Serper for query: {query}")
                 async with httpx.AsyncClient(timeout=10) as client:
                     res = await client.post("https://google.serper.dev/search", headers=headers, json=payload)
                     res.raise_for_status()
@@ -907,11 +1089,10 @@ REGLAS CRÍTICAS:
                         }
                         for r in organic[:max_results]
                     ]
-            except Exception as e:
-                log_warning("🌐⚠️", f"Serper search failed, falling back to DuckDuckGo: {e}")
+            tasks.append(serper_call())
 
-        # DuckDuckGo fallback
-        try:
+        # DuckDuckGo fallback (always add)
+        async def ddg_call():
             loop = asyncio.get_event_loop()
             return await loop.run_in_executor(
                 None,
@@ -919,9 +1100,30 @@ REGLAS CRÍTICAS:
                 query,
                 max_results,
             )
+        tasks.append(ddg_call())
+
+        results: List[Dict[str, Any]] = []
+        try:
+            provider_results = await asyncio.gather(*tasks, return_exceptions=True)
+            for res in provider_results:
+                if isinstance(res, Exception):
+                    log_warning("🌐⚠️", f"Search provider error: {res}")
+                    continue
+                results.extend(res or [])
         except Exception as e:
-            log_error("🦆❌", f"DuckDuckGo search failed for '{query}': {e}")
+            log_error("🌐❌", f"Search failed: {e}")
             return []
+
+        # Dedupe by href
+        seen = set()
+        deduped = []
+        for r in results:
+            href = r.get("href", "").strip()
+            if href and href not in seen:
+                seen.add(href)
+                deduped.append(r)
+
+        return deduped[:max_results]
 
     def _search_sync(self, query: str, max_results: int) -> List[Dict[str, Any]]:
         """Synchronous DuckDuckGo search (fallback)."""

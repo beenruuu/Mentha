@@ -104,11 +104,25 @@ class AnalysisService:
             self.llm_service = LLMServiceFactory.get_service(provider)
             self.web_search_service.set_llm_service(self.llm_service)
             
-            # Extract basic info
+            # Extract basic info from input_data (populated from brand during trigger)
             data = analysis.input_data or {}
             brand = data.get("brand", {})
             brand_name = brand.get('name', '')
             brand_url = brand.get('domain', '')
+            
+            # Extract discovery prompts configured during onboarding
+            discovery_prompts = data.get("discovery_prompts", [])
+            ai_providers = data.get("ai_providers", [])
+            
+            # Use industry from input_data if available (from onboarding)
+            onboarding_industry = brand.get("industry", "")
+            onboarding_description = brand.get("description", "")
+            entity_type_hint = brand.get("entity_type", "")
+            business_scope = brand.get("business_scope", "national")
+            city = brand.get("city", "")
+            
+            log_info("📋", f"Discovery prompts from onboarding: {len(discovery_prompts)}")
+            log_info("🤖", f"AI providers configured: {ai_providers}")
             
             print(f"\n{Colors.BOLD}{Colors.GREEN}{'═'*60}{Colors.RESET}")
             log_success("🚀", f"Starting analysis for {Colors.BOLD}{brand_name}{Colors.RESET}{Colors.GREEN} ({brand_url})")
@@ -130,8 +144,11 @@ class AnalysisService:
                 page_content=page_content.get('text', '')
             )
             
-            entity_type = business_info.get('entity_type', 'business')
-            industry = business_info.get('industry', 'Services')
+            # Prioritize onboarding data over inferred data
+            entity_type = entity_type_hint or business_info.get('entity_type', 'business')
+            industry = onboarding_industry or business_info.get('industry', 'Services')
+            # Use onboarding description if provided, otherwise use page description
+            description = onboarding_description or page_content.get('description', '')
             log_success("✅", f"Detected → Entity: {Colors.BOLD}{entity_type}{Colors.RESET}{Colors.GREEN} | Industry: {Colors.BOLD}{industry}{Colors.RESET}")
 
             # --- PHASE 2: REAL DATA ACQUISITION ---
@@ -146,7 +163,7 @@ class AnalysisService:
                 brand_name=brand_name,
                 domain=brand_url,
                 industry=industry,
-                description=page_content.get('description', ''),
+                description=description,
                 services=",".join(business_info.get('services', [])),
                 country=user_country,
                 language=preferred_language
@@ -161,12 +178,15 @@ class AnalysisService:
                 comps = await self.competitor_db.list(filters={"brand_id": str(analysis.brand_id)})
                 existing_competitors = [c.name for c in comps]
             
-            # 3. AI Visibility (Real API checks)
+            # 3. AI Visibility (Real API checks) - Use discovery prompts from onboarding
+            # Discovery prompts are used as additional queries for visibility measurement
             visibility_task = self.ai_visibility_service.measure_visibility(
                 brand_name=brand_name,
                 domain=brand_url,
                 industry=industry,
-                competitors=existing_competitors
+                keywords=discovery_prompts[:5] if discovery_prompts else None,  # Use prompts as keywords
+                competitors=existing_competitors,
+                language=preferred_language
             )
             
             content_task = self.content_structure_service.analyze_content_structure(url=brand_url)
@@ -181,15 +201,18 @@ class AnalysisService:
             )
             
             # 4. Keyword Metrics (Dependent on search context keywords)
-            # Extract initial keywords from search context + business info
+            # Extract initial keywords from search context + business info + discovery prompts
             initial_keywords = [brand_name] + business_info.get('services', [])
+            # Add discovery prompts from onboarding as keywords
+            if discovery_prompts:
+                initial_keywords.extend(discovery_prompts[:5])
             if search_context.get('keyword_results'):
                 initial_keywords.extend([k.get('title', '') for k in search_context['keyword_results'][:5]])
             
             # Clean and enrich keywords
             keywords_data = await self.keyword_metrics_service.enrich_keywords(
                 list(set(initial_keywords))[:10], # Limit to top 10 unique
-                language="es" # Default to Spanish for now, could be inferred
+                language=preferred_language
             )
 
             # --- PHASE 3: RESULT ASSEMBLY ---

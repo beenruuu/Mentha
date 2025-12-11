@@ -30,16 +30,16 @@ const COUNTRIES = [
 ]
 
 export default function CompanyStep() {
-    const { 
-        companyInfo, 
-        setCompanyInfo, 
+    const {
+        companyInfo,
+        setCompanyInfo,
         setBrandProfile,
         setCompetitors,
         setResearchPrompts,
-        isAnalyzing, 
-        setIsAnalyzing, 
-        nextStep, 
-        prevStep 
+        isAnalyzing,
+        setIsAnalyzing,
+        nextStep,
+        prevStep
     } = useOnboarding()
     const { lang } = useTranslations()
     const [error, setError] = useState('')
@@ -58,7 +58,7 @@ export default function CompanyStep() {
         analyzing: lang === 'es' ? 'Analizando sitio web...' : 'Analyzing website...',
         next: lang === 'es' ? 'Analizar y continuar' : 'Analyze & Continue',
         back: lang === 'es' ? 'Atrás' : 'Back',
-        step: lang === 'es' ? 'Paso 2 de 6' : 'Step 2 of 6',
+        step: lang === 'es' ? 'Paso 2 de 7' : 'Step 2 of 7',
         invalidUrl: lang === 'es' ? 'Por favor, introduce una URL válida' : 'Please enter a valid URL',
         corporateOnly: lang === 'es' ? 'Usuarios con el mismo dominio corporativo podrán unirse automáticamente' : 'Users with the same corporate domain can join automatically',
     }
@@ -137,16 +137,24 @@ export default function CompanyStep() {
                 services: string[]
                 businessModel: string
                 competitors?: Array<{ name: string; domain: string; logo?: string }>
+                // New scope-aware fields
+                businessScope?: string
+                city?: string
+                industrySpecific?: string
             }>(`/utils/brand-info?url=${encodeURIComponent(normalizedUrl)}`)
 
-            // Establecer el perfil de marca
+            // Establecer el perfil de marca with new scope-aware fields
             setBrandProfile({
                 logo: data.image || data.favicon || '',
                 name: companyName, // Usar el nombre introducido por el usuario
                 domain: data.domain || extractDomain(normalizedUrl),
                 category: data.industry || '',
-                description: data.description || ''
+                description: data.description || '',
+                businessScope: (data.businessScope as 'local' | 'regional' | 'national' | 'international') || 'national',
+                city: data.city || '',
+                industrySpecific: data.industrySpecific || ''
             })
+
 
             // Establecer dominio corporativo
             const domain = extractDomain(normalizedUrl)
@@ -166,59 +174,15 @@ export default function CompanyStep() {
                 })))
             }
 
-            // Generar prompts iniciales basados en la marca
-            const brandName = companyName
-            const industry = data.industry || ''
-            const location = companyInfo.location
-
-            const initialPrompts = [
-                // Non-branded prompts
-                {
-                    id: 'nb-1',
-                    text: lang === 'es' 
-                        ? `empresas de ${industry.toLowerCase()} en ${COUNTRIES.find(c => c.code === location)?.nameEs || location}`
-                        : `${industry.toLowerCase()} companies in ${COUNTRIES.find(c => c.code === location)?.name || location}`,
-                    type: 'non-branded' as const,
-                    isCustom: false
-                },
-                {
-                    id: 'nb-2',
-                    text: lang === 'es'
-                        ? `mejores servicios de ${industry.toLowerCase()}`
-                        : `best ${industry.toLowerCase()} services`,
-                    type: 'non-branded' as const,
-                    isCustom: false
-                },
-                // Branded prompts
-                {
-                    id: 'b-1',
-                    text: `${brandName} pricing`,
-                    type: 'branded' as const,
-                    isCustom: false
-                },
-                {
-                    id: 'b-2',
-                    text: `${brandName} reviews`,
-                    type: 'branded' as const,
-                    isCustom: false
-                },
-                {
-                    id: 'b-3',
-                    text: lang === 'es' 
-                        ? `opiniones ${brandName}`
-                        : `${brandName} opinions`,
-                    type: 'branded' as const,
-                    isCustom: false
-                },
-            ]
-
-            setResearchPrompts(initialPrompts)
+            // NOTE: Research prompts are now handled in the dedicated ResearchPromptsStep
+            // Users can add prompts manually or optionally generate them with AI
+            // No automatic prompts are pre-generated here
 
             nextStep()
         } catch (err) {
             console.error('Analysis failed:', err)
-            setError(lang === 'es' 
-                ? 'No se pudo analizar el sitio web. Por favor, verifica la URL.' 
+            setError(lang === 'es'
+                ? 'No se pudo analizar el sitio web. Por favor, verifica la URL.'
                 : 'Failed to analyze website. Please verify the URL.')
         } finally {
             setIsAnalyzing(false)
@@ -265,9 +229,9 @@ export default function CompanyStep() {
                             <div className="flex items-center h-10 px-4 bg-white/10 border border-r-0 border-white/10 rounded-l-md text-sm min-w-[120px]">
                                 <span className="flex items-center gap-2.5 text-white">
                                     {favicon ? (
-                                        <img 
-                                            src={favicon} 
-                                            alt="Site favicon" 
+                                        <img
+                                            src={favicon}
+                                            alt="Site favicon"
                                             className="w-4 h-4"
                                             onError={() => setFavicon(null)}
                                         />
@@ -300,8 +264,8 @@ export default function CompanyStep() {
                     </div>
 
                     <div className="flex items-center justify-between gap-3">
-                        <Label 
-                            htmlFor="allowAutoJoin" 
+                        <Label
+                            htmlFor="allowAutoJoin"
                             className="text-sm text-muted-foreground cursor-pointer leading-tight flex items-center gap-2"
                         >
                             <Building2 className="w-4 h-4 shrink-0" />

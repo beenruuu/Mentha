@@ -103,7 +103,7 @@ export default function OnboardingPage() {
   const StepIcon = stepContent.icon
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden grid lg:grid-cols-2">
+    <div className="min-h-screen bg-black text-white overflow-hidden grid lg:grid-cols-2 dark" data-theme="dark">
       {/* Left Column: Form Area */}
       <div className="flex flex-col justify-center p-4 lg:p-8 relative z-10 overflow-y-auto">
         {/* Logo */}
@@ -151,13 +151,13 @@ export default function OnboardingPage() {
 
         {/* Step progress indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2">
-          {['about-you', 'company', 'brand-profile', 'competitors', 'research-prompts', 'schedule'].map((step, index) => (
+          {['about-you', 'company', 'brand-profile', 'competitors', 'research-prompts', 'schedule', 'setup'].map((step, index) => (
             <div
               key={step}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
                 currentStep === step 
                   ? 'w-8 bg-primary' 
-                  : currentStep === 'setup' || Object.keys(STEP_CONTENT).indexOf(currentStep) > index
+                  : Object.keys(STEP_CONTENT).indexOf(currentStep) > index
                     ? 'bg-primary/50'
                     : 'bg-white/20'
               }`}

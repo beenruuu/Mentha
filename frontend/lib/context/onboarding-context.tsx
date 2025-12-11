@@ -29,6 +29,10 @@ export interface BrandProfile {
     domain: string
     category: string
     description: string
+    // New fields for scope-aware competitor discovery
+    businessScope?: 'local' | 'regional' | 'national' | 'international'
+    city?: string
+    industrySpecific?: string
 }
 
 export interface Competitor {
@@ -62,41 +66,41 @@ export interface ScheduleConfig {
 interface OnboardingContextType {
     currentStep: OnboardingStep
     setStep: (step: OnboardingStep) => void
-    
+
     // Paso 1
     userInfo: UserInfo
     setUserInfo: (info: UserInfo) => void
-    
+
     // Paso 2
     companyInfo: CompanyInfo
     setCompanyInfo: (info: CompanyInfo) => void
     isAnalyzing: boolean
     setIsAnalyzing: (analyzing: boolean) => void
-    
+
     // Paso 3
     brandProfile: BrandProfile
     setBrandProfile: (profile: BrandProfile) => void
-    
+
     // Paso 4
     competitors: Competitor[]
     setCompetitors: (competitors: Competitor[]) => void
-    
+
     // Paso 5
     researchPrompts: ResearchPrompt[]
     setResearchPrompts: (prompts: ResearchPrompt[]) => void
-    
+
     // Paso 6
     scheduleConfig: ScheduleConfig
     setScheduleConfig: (config: ScheduleConfig) => void
-    
+
     // Navegación
     nextStep: () => void
     prevStep: () => void
-    
+
     // Brand ID después de creación
     brandId?: string
     setBrandId: (id: string) => void
-    
+
     // Analysis status for tracking background analysis
     analysisStatus: 'idle' | 'analyzing' | 'completed' | 'error'
     setAnalysisStatus: (status: 'idle' | 'analyzing' | 'completed' | 'error') => void
@@ -127,7 +131,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         name: '',
         domain: '',
         category: '',
-        description: ''
+        description: '',
+        businessScope: 'national',
+        city: '',
+        industrySpecific: ''
     })
 
     // Paso 4 - Competidores
@@ -149,7 +156,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
     // Brand ID
     const [brandId, setBrandId] = useState<string | undefined>()
-    
+
     // Analysis status for tracking background analysis
     const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'completed' | 'error'>('idle')
 

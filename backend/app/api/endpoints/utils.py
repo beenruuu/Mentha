@@ -194,7 +194,11 @@ async def get_brand_info(
             "location": location,
             "services": business_info.get("services", []),
             "businessModel": business_model,
-            "companyType": business_info.get("company_type", "")
+            "companyType": business_info.get("company_type", ""),
+            # New scope-aware fields for better competitor discovery
+            "businessScope": business_info.get("business_scope", "national"),
+            "city": business_info.get("city", ""),
+            "industrySpecific": business_info.get("industry_specific", "")
         }
         
     except httpx.RequestError as e:
@@ -203,6 +207,7 @@ async def get_brand_info(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Error analyzing brand: {str(e)}")
+
 
 
 @router.post("/generate-research-prompts", response_model=GeneratePromptsResponse)

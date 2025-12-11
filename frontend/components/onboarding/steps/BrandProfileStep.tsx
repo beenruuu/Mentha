@@ -6,14 +6,15 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
-import { Globe, Building2, ImageIcon, Loader2, ChevronDown, X, Plus, Check } from 'lucide-react'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Globe, Building2, ImageIcon, Loader2, ChevronDown, X, Plus, Check, MapPin } from 'lucide-react'
 import { useTranslations } from '@/lib/i18n'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { fetchAPI } from '@/lib/api-client'
 
 // TODO: Move to database table `categories` for admin management
 // Helper to capitalize each word (Title Case)
-const toTitleCase = (str: string) => 
+const toTitleCase = (str: string) =>
     str.replace(/\b\w/g, (char) => char.toUpperCase())
 
 const DEFAULT_CATEGORIES = [
@@ -40,14 +41,13 @@ const DEFAULT_CATEGORIES = [
 ]
 
 export default function BrandProfileStep() {
-    const { 
-        brandProfile, 
-        setBrandProfile, 
-        nextStep, 
-        prevStep, 
-        companyInfo, 
-        userInfo,
-        setBrandId
+    const {
+        brandProfile,
+        setBrandProfile,
+        nextStep,
+        prevStep,
+        companyInfo,
+        userInfo
     } = useOnboarding()
     const { lang } = useTranslations()
     const [isCreating, setIsCreating] = useState(false)
@@ -58,6 +58,10 @@ export default function BrandProfileStep() {
     const [newCategory, setNewCategory] = useState('')
     const [isInitialized, setIsInitialized] = useState(false)
     const dropdownRef = useRef<HTMLDivElement>(null)
+
+    // Business scope state - default from brandProfile or 'national'
+    const [scope, setScope] = useState<'local' | 'regional' | 'national' | 'international'>(brandProfile.businessScope || 'national')
+    const [city, setCity] = useState(brandProfile.city || '')
 
     // Close dropdown when clicking outside
     useEffect(() => {
@@ -76,12 +80,12 @@ export default function BrandProfileStep() {
             const cats = brandProfile.category.split(',').map(c => c.trim()).filter(Boolean)
             const matchedIds: string[] = []
             const customCats: string[] = []
-            
+
             for (const cat of cats) {
                 // Try to find matching default category by id, name_es, or name_en
-                const match = DEFAULT_CATEGORIES.find(dc => 
-                    dc.id.toLowerCase() === cat.toLowerCase() || 
-                    dc.name_es.toLowerCase() === cat.toLowerCase() || 
+                const match = DEFAULT_CATEGORIES.find(dc =>
+                    dc.id.toLowerCase() === cat.toLowerCase() ||
+                    dc.name_es.toLowerCase() === cat.toLowerCase() ||
                     dc.name_en.toLowerCase() === cat.toLowerCase()
                 )
                 if (match) {
@@ -97,7 +101,7 @@ export default function BrandProfileStep() {
                     }
                 }
             }
-            
+
             setSelectedCategories(matchedIds)
             setCustomCategories(customCats)
             setIsInitialized(true)
@@ -120,8 +124,16 @@ export default function BrandProfileStep() {
         next: lang === 'es' ? 'Continuar' : 'Continue',
         creating: lang === 'es' ? 'Creando...' : 'Creating...',
         back: lang === 'es' ? 'Atrás' : 'Back',
-        step: lang === 'es' ? 'Paso 3 de 6' : 'Step 3 of 6',
+        step: lang === 'es' ? 'Paso 3 de 7' : 'Step 3 of 7',
         errorCreating: lang === 'es' ? 'Error al crear la marca' : 'Error creating brand',
+        // Scope translations
+        scopeLabel: lang === 'es' ? 'Alcance del negocio' : 'Business scope',
+        scopeLocal: lang === 'es' ? 'Local - Una ubicación/ciudad' : 'Local - Single location/city',
+        scopeRegional: lang === 'es' ? 'Regional - Varias ubicaciones en una región' : 'Regional - Multiple locations in a region',
+        scopeNational: lang === 'es' ? 'Nacional - Presencia en todo el país' : 'National - Presence across the country',
+        scopeInternational: lang === 'es' ? 'Internacional - Múltiples países' : 'International - Multiple countries',
+        cityLabel: lang === 'es' ? 'Ciudad o zona principal' : 'Main city or area',
+        cityPlaceholder: lang === 'es' ? 'Ej: Madrid, Barcelona...' : 'E.g: Madrid, Barcelona...',
     }
 
     // Get display name for a category
@@ -134,12 +146,12 @@ export default function BrandProfileStep() {
     // Sync categories to brandProfile when they change
     useEffect(() => {
         if (!isInitialized) return
-        
+
         const allLabels = [
             ...selectedCategories.map(id => getCategoryName(id)),
             ...customCategories
         ]
-        
+
         const newCategory = allLabels.join(', ')
         if (newCategory !== brandProfile.category) {
             setBrandProfile({ ...brandProfile, category: newCategory })
@@ -147,7 +159,7 @@ export default function BrandProfileStep() {
     }, [selectedCategories, customCategories, isInitialized])
 
     const toggleCategory = useCallback((id: string) => {
-        setSelectedCategories(prev => 
+        setSelectedCategories(prev =>
             prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
         )
     }, [])
@@ -163,14 +175,14 @@ export default function BrandProfileStep() {
     const addCustomCategory = () => {
         const trimmed = newCategory.trim()
         if (!trimmed) return
-        
+
         // Check if it matches a default category (case-insensitive)
-        const matchingDefault = DEFAULT_CATEGORIES.find(dc => 
-            dc.id.toLowerCase() === trimmed.toLowerCase() || 
-            dc.name_es.toLowerCase() === trimmed.toLowerCase() || 
+        const matchingDefault = DEFAULT_CATEGORIES.find(dc =>
+            dc.id.toLowerCase() === trimmed.toLowerCase() ||
+            dc.name_es.toLowerCase() === trimmed.toLowerCase() ||
             dc.name_en.toLowerCase() === trimmed.toLowerCase()
         )
-        
+
         if (matchingDefault) {
             // Select the default category instead of adding as custom
             if (!selectedCategories.includes(matchingDefault.id)) {
@@ -188,12 +200,19 @@ export default function BrandProfileStep() {
 
     const handleNext = async () => {
         if (!brandProfile.name || !brandProfile.domain) return
-        
+
         setIsCreating(true)
         setError('')
-        
+
+        // Update brandProfile with scope and city before proceeding
+        setBrandProfile({
+            ...brandProfile,
+            businessScope: scope,
+            city: (scope === 'local' || scope === 'regional') ? city : ''
+        })
+
         try {
-            // Update user profile first
+            // Update user profile first; brand creation is deferred to SetupStep
             await fetchAPI('/auth/me', {
                 method: 'PUT',
                 body: JSON.stringify({
@@ -201,24 +220,10 @@ export default function BrandProfileStep() {
                     seo_experience: userInfo.seoExperience || null,
                 })
             })
-            
-            // Create brand WITHOUT triggering analysis (that happens in SetupStep)
-            const brand = await fetchAPI<{ id: string }>('/brands/', {
-                method: 'POST',
-                body: JSON.stringify({
-                    domain: companyInfo.websiteUrl,
-                    name: brandProfile.name,
-                    industry: brandProfile.category,
-                    description: brandProfile.description,
-                    logo: brandProfile.logo,
-                    location: companyInfo.location,
-                })
-            })
-            
-            setBrandId(brand.id)
+
             nextStep()
         } catch (err: any) {
-            console.error('Failed to create brand:', err)
+            console.error('Failed to update user profile:', err)
             setError(err.message || t.errorCreating)
         } finally {
             setIsCreating(false)
@@ -282,7 +287,7 @@ export default function BrandProfileStep() {
                     {/* Row 2: Categories Dropdown */}
                     <div ref={dropdownRef} className="relative">
                         <Label className="text-xs text-gray-400 mb-1.5 block">{t.category}</Label>
-                        
+
                         {/* Dropdown trigger */}
                         <button
                             type="button"
@@ -290,7 +295,7 @@ export default function BrandProfileStep() {
                             className="w-full h-10 px-3 flex items-center justify-between bg-white/5 border border-white/10 rounded-md hover:border-white/20 transition-colors"
                         >
                             <span className="text-sm text-gray-400">
-                                {allSelected.length > 0 
+                                {allSelected.length > 0
                                     ? `${allSelected.length} ${lang === 'es' ? 'seleccionadas' : 'selected'}`
                                     : t.categoryPlaceholder
                                 }
@@ -304,11 +309,10 @@ export default function BrandProfileStep() {
                                 {allSelected.map(({ id, name, isCustom }) => (
                                     <span
                                         key={id}
-                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs ${
-                                            isCustom 
-                                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                                : 'bg-primary/20 text-primary border border-primary/30'
-                                        }`}
+                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs ${isCustom
+                                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                            : 'bg-primary/20 text-primary border border-primary/30'
+                                            }`}
                                     >
                                         {name}
                                         <button
@@ -335,15 +339,13 @@ export default function BrandProfileStep() {
                                                 key={cat.id}
                                                 type="button"
                                                 onClick={() => toggleCategory(cat.id)}
-                                                className={`flex items-center gap-1.5 px-2 py-1.5 rounded text-xs text-left transition-all ${
-                                                    isSelected
-                                                        ? 'bg-primary/20 text-primary'
-                                                        : 'text-gray-400 hover:bg-white/5 hover:text-gray-300'
-                                                }`}
+                                                className={`flex items-center gap-1.5 px-2 py-1.5 rounded text-xs text-left transition-all ${isSelected
+                                                    ? 'bg-primary/20 text-primary'
+                                                    : 'text-gray-400 hover:bg-white/5 hover:text-gray-300'
+                                                    }`}
                                             >
-                                                <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${
-                                                    isSelected ? 'bg-primary border-primary' : 'border-gray-500'
-                                                }`}>
+                                                <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary border-primary' : 'border-gray-500'
+                                                    }`}>
                                                     {isSelected && <Check className="w-2.5 h-2.5 text-black" />}
                                                 </div>
                                                 {lang === 'es' ? cat.name_es : cat.name_en}
@@ -385,6 +387,56 @@ export default function BrandProfileStep() {
                             rows={2}
                             className="bg-white/5 border-white/10 text-sm resize-none mt-1.5"
                         />
+                    </div>
+
+                    {/* Row 4: Business Scope */}
+                    <div className="space-y-3 pt-2 border-t border-white/5">
+                        <Label className="text-xs text-gray-400 flex items-center gap-1.5">
+                            <MapPin className="w-3.5 h-3.5" />
+                            {t.scopeLabel}
+                        </Label>
+                        <RadioGroup
+                            value={scope}
+                            onValueChange={(val) => setScope(val as typeof scope)}
+                            className="grid grid-cols-2 gap-2"
+                        >
+                            {[
+                                { value: 'local', label: t.scopeLocal },
+                                { value: 'regional', label: t.scopeRegional },
+                                { value: 'national', label: t.scopeNational },
+                                { value: 'international', label: t.scopeInternational },
+                            ].map((option) => (
+                                <label
+                                    key={option.value}
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all text-xs ${scope === option.value
+                                        ? 'bg-primary/10 border-primary/30 text-white'
+                                        : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20'
+                                        }`}
+                                >
+                                    <RadioGroupItem value={option.value} className="sr-only" />
+                                    <div className={`w-3 h-3 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === option.value ? 'border-primary' : 'border-gray-500'
+                                        }`}>
+                                        {scope === option.value && (
+                                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                        )}
+                                    </div>
+                                    {option.label}
+                                </label>
+                            ))}
+                        </RadioGroup>
+
+                        {/* Conditional city field for local/regional */}
+                        {(scope === 'local' || scope === 'regional') && (
+                            <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                                <Label className="text-xs text-gray-400">{t.cityLabel}</Label>
+                                <Input
+                                    value={city}
+                                    onChange={(e) => setCity(e.target.value)}
+                                    placeholder={t.cityPlaceholder}
+                                    className="h-9 mt-1 bg-white/5 border-white/10 text-sm"
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
 

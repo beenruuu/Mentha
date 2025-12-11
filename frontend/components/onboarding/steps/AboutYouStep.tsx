@@ -28,7 +28,7 @@ export default function AboutYouStep() {
         seoExperience: lang === 'es' ? 'Experiencia en SEO/IA (opcional)' : 'SEO/AI experience (optional)',
         selectExperience: lang === 'es' ? 'Selecciona tu nivel' : 'Select your level',
         next: lang === 'es' ? 'Continuar' : 'Continue',
-        step: lang === 'es' ? 'Paso 1 de 6' : 'Step 1 of 6',
+        step: lang === 'es' ? 'Paso 1 de 7' : 'Step 1 of 7',
     }
 
     const handleNext = () => {

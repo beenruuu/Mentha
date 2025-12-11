@@ -50,7 +50,7 @@ export default function ScheduleStep() {
             : 'This configuration is indicative. The credits and plans system is not defined.',
         next: lang === 'es' ? 'Continuar' : 'Continue',
         back: lang === 'es' ? 'Atrás' : 'Back',
-        step: lang === 'es' ? 'Paso 6 de 6' : 'Step 6 of 6',
+        step: lang === 'es' ? 'Paso 6 de 7' : 'Step 6 of 7',
         enabled: lang === 'es' ? 'Activado' : 'Enabled',
         disabled: lang === 'es' ? 'Desactivado' : 'Disabled',
     }

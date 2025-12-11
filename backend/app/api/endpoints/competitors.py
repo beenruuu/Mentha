@@ -33,6 +33,9 @@ async def create_competitor(
 ):
     data = competitor.dict(exclude_unset=True)
     data["user_id"] = current_user.id
+    # Convert UUID fields to strings for JSON serialization
+    if "brand_id" in data and data["brand_id"] is not None:
+        data["brand_id"] = str(data["brand_id"])
     return await service.create(data)
 
 @router.get("/{competitor_id}", response_model=Competitor)
@@ -156,6 +159,10 @@ class CompetitorDiscoveryRequest(BaseModel):
     services: List[str] = []
     country: str = "ES"
     language: str = "es"
+    # New fields for scope-aware competitor discovery
+    business_scope: str = "national"  # local, regional, national, international
+    city: str = ""  # City/location for local/regional businesses
+    industry_specific: str = ""  # e.g., "reparación de móviles" instead of generic "Tecnología"
 
 @router.post("/discover", response_model=List[dict])
 async def discover_competitors(
@@ -164,6 +171,7 @@ async def discover_competitors(
 ):
     """
     Discover potential competitors using web search.
+    Now supports business_scope for more accurate local/regional competitor detection.
     """
     from app.services.analysis.web_search_service import WebSearchService
     
@@ -180,7 +188,11 @@ async def discover_competitors(
         services=request.services,
         country=request.country,
         language=request.language,
-        max_results=10
+        max_results=10,
+        business_scope=request.business_scope,
+        city=request.city,
+        industry_specific=request.industry_specific
     )
     
     return competitors
+

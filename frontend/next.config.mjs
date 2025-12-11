@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: false,  // Disabled to prevent double-mounting issues with async setup flows
   typescript: {
     ignoreBuildErrors: true,
   },
