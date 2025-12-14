@@ -152,7 +152,7 @@ export default function SettingsPanel() {
 
   const sections = [
     { key: 'general', label: t.configuration, icon: <Settings className="w-4 h-4" /> },
-    { key: 'organization', label: 'Organización', icon: <Building2 className="w-4 h-4" /> },
+    { key: 'organization', label: t.organization, icon: <Building2 className="w-4 h-4" /> },
     { key: 'profile', label: t.profile || 'Perfil', icon: <User className="w-4 h-4" /> },
     { key: 'notifications', label: t.notifications || 'Notificaciones', icon: <Bell className="w-4 h-4" /> },
     { key: 'security', label: t.security || 'Seguridad', icon: <Lock className="w-4 h-4" /> },

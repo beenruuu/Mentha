@@ -1,8 +1,12 @@
+import logging
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.services.supabase.auth import SupabaseAuthService, get_auth_service
 from app.models.auth import UserProfile
 from uuid import UUID
+
+logger = logging.getLogger(__name__)
 
 security = HTTPBearer()
 
@@ -25,7 +29,7 @@ async def get_current_user(
                 }
                 auth_service.supabase.table("profiles").insert(profile_data).execute()
         except Exception as db_error:
-            print(f"Warning: Failed to ensure profile exists: {db_error}")
+            logger.warning(f"Failed to ensure profile exists: {db_error}")
 
         return UserProfile(
             id=str(user.id), 

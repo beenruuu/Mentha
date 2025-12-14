@@ -1,44 +1,62 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
+# Dependencies
 node_modules/
 **/node_modules/
-/.next/
-.next/
-frontend/.next/
-**/.next/
-**/__pycache__/
-*.pyc
 package-lock.json
 
-# next.js
+# Next.js
+.next/
+**/.next/
 /out/
-
-# production
 /build
 
-# debug
+# Python
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+*.egg-info/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.local.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
-.env*
-!.env.local.example
-
-# vercel
+# Vercel
 .vercel
 
-# typescript
+# TypeScript
 *.tsbuildinfo
 next-env.d.ts
 
-# SEO analyzer subprojects (separate repos)
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.git_changes.txt
+
+# Subprojects (separate repos)
 black-seo-analyzer/
 python-seo-analyzer/
-# Accidental embedded repos and temporary files
 firegeo/
 python-seo-analyzer.worktrees/
-.git_changes.txt

@@ -1,7 +1,3 @@
-"use client"
-
-import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Navbar from '@/components/landing/sections/Navbar'
 import Hero from '@/components/landing/sections/Hero'
 import LogoTicker from '@/components/landing/sections/LogoTicker'

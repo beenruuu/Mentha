@@ -11,41 +11,7 @@ from datetime import datetime
 from urllib.parse import urlparse
 import httpx  # For URL validation
 from app.core.config import settings
-
-
-# =============================================================================
-# ANSI Color Codes for Terminal Output
-# =============================================================================
-class Colors:
-    RED = "\033[91m"
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    BLUE = "\033[94m"
-    MAGENTA = "\033[95m"
-    CYAN = "\033[96m"
-    WHITE = "\033[97m"
-    BOLD = "\033[1m"
-    RESET = "\033[0m"
-
-
-def log_info(emoji: str, message: str):
-    """Log info message with emoji and cyan color."""
-    print(f"{Colors.CYAN}{emoji} {message}{Colors.RESET}")
-
-
-def log_success(emoji: str, message: str):
-    """Log success message with emoji and green color."""
-    print(f"{Colors.GREEN}{emoji} {message}{Colors.RESET}")
-
-
-def log_error(emoji: str, message: str):
-    """Log error message with emoji and red color."""
-    print(f"{Colors.RED}{emoji} {message}{Colors.RESET}")
-
-
-def log_warning(emoji: str, message: str):
-    """Log warning message with emoji and yellow color."""
-    print(f"{Colors.YELLOW}{emoji} {message}{Colors.RESET}")
+from app.core.logging import Colors, log_info, log_success, log_error, log_warning
 
 
 try:

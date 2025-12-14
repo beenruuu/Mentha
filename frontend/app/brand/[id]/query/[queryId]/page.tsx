@@ -8,6 +8,12 @@ import { brandsService, type Brand } from '@/lib/services/brands'
 import { useTranslations } from '@/lib/i18n'
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import { UserAvatarMenu } from '@/components/layout/user-avatar-menu'
+import { AppSidebar } from "@/components/layout/app-sidebar"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
+import { Card } from "@/components/ui/card"
 
 export default function QueryDetailPage({ params }: { params: Promise<{ id: string; queryId: string }> }) {
   const { t } = useTranslations()

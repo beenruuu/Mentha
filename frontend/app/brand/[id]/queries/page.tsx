@@ -100,27 +100,13 @@ export default function BrandQueriesPage({ isEmbedded = false }: { isEmbedded?: 
   if (!brandId) return null
 
   const Content = () => (
-    <div className={`bg-[#fdfdfc] dark:bg-[#050505] h-full flex flex-col ${isEmbedded ? '' : 'h-screen overflow-hidden'}`}>
+    <div className={`bg-[#FAFAFA] dark:bg-[#09090b] h-full flex flex-col ${isEmbedded ? '' : 'h-screen overflow-hidden'}`}>
       {/* Header - Only show if NOT embedded */}
       {!isEmbedded && (
-        <header className="flex items-center justify-between px-8 py-6 bg-[#fdfdfc] dark:bg-[#050505] border-b border-border/40">
+        <header className="flex items-center justify-between px-6 py-4 shrink-0">
           <div className="flex items-center gap-4">
             <SidebarTrigger className="-ml-1" />
-            <div className="w-10 h-10 rounded-lg bg-white dark:bg-zinc-800 border border-border/50 flex items-center justify-center overflow-hidden shadow-sm">
-              <img
-                src={`https://www.google.com/s2/favicons?domain=${brand?.domain}&sz=64`}
-                alt={brand?.name || ''}
-                className="w-6 h-6 object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement!.innerText = brand?.name.charAt(0).toUpperCase() || '';
-                }}
-              />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white tracking-tight">{t.queries}</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">Strategic queries for AI optimization</p>
-            </div>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{t.queries}</h1>
           </div>
           <div className="flex items-center gap-4">
             <Button className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm">
@@ -132,8 +118,8 @@ export default function BrandQueriesPage({ isEmbedded = false }: { isEmbedded?: 
         </header>
       )}
 
-      <main className={`flex-1 overflow-y-auto p-8 bg-[#fdfdfc] dark:bg-[#050505] ${isEmbedded ? '' : ''}`}>
-        <div className="max-w-7xl mx-auto space-y-8">
+      <main className={`flex-1 ${isEmbedded ? '' : 'bg-white dark:bg-black rounded-tl-3xl shadow-2xl'} overflow-y-auto p-6 md:p-8 relative z-10`}>
+        <div className="space-y-8">
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

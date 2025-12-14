@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle, RefreshCw, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
-import { api } from "@/lib/api";
+import { fetchAPI } from "@/lib/api-client";
 
 export function GoogleConnect() {
     // Check connection status
@@ -16,8 +16,8 @@ export function GoogleConnect() {
             // Temporary endpoint mock - real impl needs status endpoint
             // Assuming for now if we can fetch sites, we are connected
             try {
-                const res = await api.get("/gsc/sites");
-                return { connected: true, sites: res.data };
+                const sites = await fetchAPI<any[]>("/gsc/sites");
+                return { connected: true, sites };
             } catch (e) {
                 return { connected: false };
             }

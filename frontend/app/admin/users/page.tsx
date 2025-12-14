@@ -72,8 +72,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Textarea } from '@/components/ui/textarea'
 import { adminService, type UserListItem, type UserDetail, type PaginatedUsers, type UserFilters } from '@/lib/services/admin'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { es, enUS } from 'date-fns/locale'
 import { toast } from 'sonner'
+import { useTranslations } from '@/lib/i18n'
 
 export default function UsersPage() {
   const router = useRouter()
@@ -94,6 +95,8 @@ export default function UsersPage() {
   const [suspendReason, setSuspendReason] = useState('')
   const [actionUser, setActionUser] = useState<UserListItem | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
+  const { t, lang } = useTranslations()
+  const dateLocale = lang === 'es' ? es : enUS
 
   const fetchUsers = useCallback(async () => {
     setLoading(true)
@@ -102,7 +105,7 @@ export default function UsersPage() {
       setUsers(data)
     } catch (error) {
       console.error('Error fetching users:', error)
-      toast.error('Error al cargar usuarios')
+      toast.error(t.errorLoadingUsers)
     } finally {
       setLoading(false)
     }
@@ -126,23 +129,23 @@ export default function UsersPage() {
       setSelectedUser(detail)
       setShowUserDetail(true)
     } catch (error) {
-      toast.error('Error al cargar detalles del usuario')
+      toast.error(t.errorLoadingUserDetails)
     }
   }
 
   const handleSuspendUser = async () => {
     if (!actionUser || !suspendReason.trim()) return
-    
+
     setActionLoading(true)
     try {
       await adminService.suspendUser(actionUser.id, suspendReason)
-      toast.success('Usuario suspendido correctamente')
+      toast.success(t.userSuspendedSuccess)
       setShowSuspendDialog(false)
       setSuspendReason('')
       setActionUser(null)
       fetchUsers()
     } catch (error) {
-      toast.error('Error al suspender usuario')
+      toast.error(t.errorSuspendingUser)
     } finally {
       setActionLoading(false)
     }
@@ -151,25 +154,25 @@ export default function UsersPage() {
   const handleUnsuspendUser = async (user: UserListItem) => {
     try {
       await adminService.unsuspendUser(user.id)
-      toast.success('Usuario reactivado correctamente')
+      toast.success(t.userReactivatedSuccess)
       fetchUsers()
     } catch (error) {
-      toast.error('Error al reactivar usuario')
+      toast.error(t.errorReactivatingUser)
     }
   }
 
   const handleDeleteUser = async () => {
     if (!actionUser) return
-    
+
     setActionLoading(true)
     try {
       await adminService.deleteUser(actionUser.id)
-      toast.success('Usuario eliminado correctamente')
+      toast.success(t.userDeletedSuccess)
       setShowDeleteDialog(false)
       setActionUser(null)
       fetchUsers()
     } catch (error) {
-      toast.error('Error al eliminar usuario')
+      toast.error(t.errorDeletingUser)
     } finally {
       setActionLoading(false)
     }
@@ -185,7 +188,7 @@ export default function UsersPage() {
   }
 
   return (
-    <AdminPageWrapper title="Gestión de Usuarios" subtitle={`${users?.total || 0} usuarios`}>
+    <AdminPageWrapper title={t.adminUserManagement} subtitle={`${users?.total || 0} ${t.adminUsers}`}>
       {/* Filters */}
       <Card className="border-0 shadow-sm">
         <CardContent className="p-4">
@@ -194,7 +197,7 @@ export default function UsersPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Buscar por email o nombre..."
+                  placeholder={t.searchByEmailOrName}
                   className="pl-9"
                   onChange={(e) => handleSearch(e.target.value)}
                 />
@@ -203,10 +206,10 @@ export default function UsersPage() {
 
             <Select onValueChange={(v) => handleFilterChange('plan', v)}>
               <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Plan" />
+                <SelectValue placeholder={t.plan} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="all">{t.all}</SelectItem>
                 <SelectItem value="free">Free</SelectItem>
                 <SelectItem value="starter">Starter</SelectItem>
                 <SelectItem value="pro">Pro</SelectItem>
@@ -216,22 +219,22 @@ export default function UsersPage() {
 
             <Select onValueChange={(v) => handleFilterChange('is_suspended', v === 'true' ? true : v === 'false' ? false : undefined)}>
               <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Estado" />
+                <SelectValue placeholder={t.state} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="false">Activos</SelectItem>
-                <SelectItem value="true">Suspendidos</SelectItem>
+                <SelectItem value="all">{t.all}</SelectItem>
+                <SelectItem value="false">{t.actives}</SelectItem>
+                <SelectItem value="true">{t.suspended}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select onValueChange={(v) => handleFilterChange('sort_by', v)}>
               <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Ordenar por" />
+                <SelectValue placeholder={t.sortBy} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="created_at">Fecha registro</SelectItem>
-                <SelectItem value="last_login_at">Último login</SelectItem>
+                <SelectItem value="created_at">{t.registrationDate}</SelectItem>
+                <SelectItem value="last_login_at">{t.lastLogin}</SelectItem>
                 <SelectItem value="email">Email</SelectItem>
               </SelectContent>
             </Select>
@@ -245,14 +248,14 @@ export default function UsersPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50 dark:bg-gray-800/50">
-                <TableHead className="w-[300px]">Usuario</TableHead>
-                <TableHead>Plan</TableHead>
-                <TableHead>Marcas</TableHead>
-                <TableHead>País</TableHead>
-                <TableHead>Registro</TableHead>
-                <TableHead>Último login</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="text-right">Acciones</TableHead>
+                <TableHead className="w-[300px]">{t.userColumn}</TableHead>
+                <TableHead>{t.plan}</TableHead>
+                <TableHead>{t.brandsColumn}</TableHead>
+                <TableHead>{t.country}</TableHead>
+                <TableHead>{t.registration}</TableHead>
+                <TableHead>{t.lastLogin}</TableHead>
+                <TableHead>{t.state}</TableHead>
+                <TableHead className="text-right">{t.actionsColumn}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -267,7 +270,7 @@ export default function UsersPage() {
               ) : users?.users.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                    No se encontraron usuarios
+                    {t.noUsersFound}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -283,7 +286,7 @@ export default function UsersPage() {
                         </Avatar>
                         <div>
                           <p className="font-medium text-gray-900 dark:text-white">
-                            {user.full_name || 'Sin nombre'}
+                            {user.full_name || t.noName}
                           </p>
                           <p className="text-sm text-gray-500">{user.email}</p>
                         </div>
@@ -306,21 +309,21 @@ export default function UsersPage() {
                       ) : '-'}
                     </TableCell>
                     <TableCell className="text-gray-600 dark:text-gray-400">
-                      {format(new Date(user.created_at), 'dd MMM yyyy', { locale: es })}
+                      {format(new Date(user.created_at), 'dd MMM yyyy', { locale: dateLocale })}
                     </TableCell>
                     <TableCell className="text-gray-600 dark:text-gray-400">
-                      {user.last_login_at 
-                        ? format(new Date(user.last_login_at), 'dd MMM yyyy', { locale: es })
-                        : 'Nunca'}
+                      {user.last_login_at
+                        ? format(new Date(user.last_login_at), 'dd MMM yyyy', { locale: dateLocale })
+                        : t.never}
                     </TableCell>
                     <TableCell>
                       {user.is_suspended ? (
                         <Badge variant="destructive" className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                          Suspendido
+                          {t.suspendedStatus}
                         </Badge>
                       ) : (
                         <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                          Activo
+                          {t.activeStatus}
                         </Badge>
                       )}
                     </TableCell>
@@ -332,16 +335,16 @@ export default function UsersPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                          <DropdownMenuLabel>{t.actionsColumn}</DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => handleViewUser(user)}>
                             <Eye className="mr-2 h-4 w-4" />
-                            Ver detalles
+                            {t.viewDetails}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           {user.is_suspended ? (
                             <DropdownMenuItem onClick={() => handleUnsuspendUser(user)}>
                               <CheckCircle className="mr-2 h-4 w-4" />
-                              Reactivar cuenta
+                              {t.reactivateAccount}
                             </DropdownMenuItem>
                           ) : (
                             <DropdownMenuItem
@@ -352,7 +355,7 @@ export default function UsersPage() {
                               className="text-amber-600"
                             >
                               <Ban className="mr-2 h-4 w-4" />
-                              Suspender
+                              {t.suspend}
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem
@@ -363,7 +366,7 @@ export default function UsersPage() {
                             className="text-red-600"
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Eliminar
+                            {t.remove}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -378,8 +381,8 @@ export default function UsersPage() {
           {users && users.total_pages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-800">
               <p className="text-sm text-gray-500">
-                Mostrando {((filters.page || 1) - 1) * (filters.limit || 20) + 1} a{' '}
-                {Math.min((filters.page || 1) * (filters.limit || 20), users.total)} de {users.total} usuarios
+                {t.showing} {((filters.page || 1) - 1) * (filters.limit || 20) + 1} {t.to}{' '}
+                {Math.min((filters.page || 1) * (filters.limit || 20), users.total)} {t.ofTotal} {users.total} {t.usersLabel}
               </p>
               <div className="flex items-center gap-2">
                 <Button
@@ -391,7 +394,7 @@ export default function UsersPage() {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Página {filters.page} de {users.total_pages}
+                  {t.page} {filters.page} {t.ofPages} {users.total_pages}
                 </span>
                 <Button
                   variant="outline"
@@ -411,9 +414,9 @@ export default function UsersPage() {
       <Dialog open={showUserDetail} onOpenChange={setShowUserDetail}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Detalles del Usuario</DialogTitle>
+            <DialogTitle>{t.userDetails}</DialogTitle>
           </DialogHeader>
-          
+
           {selectedUser && (
             <div className="space-y-6">
               {/* User Info */}
@@ -426,7 +429,7 @@ export default function UsersPage() {
                 </Avatar>
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {selectedUser.full_name || 'Sin nombre'}
+                    {selectedUser.full_name || t.noName}
                   </h3>
                   <p className="text-gray-500">{selectedUser.email}</p>
                   <div className="flex items-center gap-2 mt-2">
@@ -434,7 +437,7 @@ export default function UsersPage() {
                       {selectedUser.plan}
                     </Badge>
                     {selectedUser.is_suspended && (
-                      <Badge variant="destructive">Suspendido</Badge>
+                      <Badge variant="destructive">{t.suspendedStatus}</Badge>
                     )}
                   </div>
                 </div>
@@ -444,19 +447,19 @@ export default function UsersPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500 flex items-center gap-2">
-                    <Building2 className="h-4 w-4" /> Empresa
+                    <Building2 className="h-4 w-4" /> {t.company}
                   </p>
                   <p className="font-medium">{selectedUser.company_name || '-'}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500 flex items-center gap-2">
-                    <Briefcase className="h-4 w-4" /> Industria
+                    <Briefcase className="h-4 w-4" /> {t.industry}
                   </p>
                   <p className="font-medium">{selectedUser.industry || '-'}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500 flex items-center gap-2">
-                    <Globe className="h-4 w-4" /> País
+                    <Globe className="h-4 w-4" /> {t.country}
                   </p>
                   <p className="font-medium">
                     {selectedUser.country ? (
@@ -469,16 +472,16 @@ export default function UsersPage() {
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500 flex items-center gap-2">
-                    <User className="h-4 w-4" /> Rol
+                    <User className="h-4 w-4" /> {t.role}
                   </p>
                   <p className="font-medium">{selectedUser.role || '-'}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-sm text-gray-500 flex items-center gap-2">
-                    <Calendar className="h-4 w-4" /> Registro
+                    <Calendar className="h-4 w-4" /> {t.registration}
                   </p>
                   <p className="font-medium">
-                    {format(new Date(selectedUser.created_at), 'PPP', { locale: es })}
+                    {format(new Date(selectedUser.created_at), 'PPP', { locale: dateLocale })}
                   </p>
                 </div>
                 <div className="space-y-1">
@@ -493,7 +496,7 @@ export default function UsersPage() {
 
               {/* Onboarding Status */}
               <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                <h4 className="font-medium mb-2">Estado del Onboarding</h4>
+                <h4 className="font-medium mb-2">{t.onboardingStatus}</h4>
                 <div className="flex items-center gap-4">
                   <div className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full">
                     <div
@@ -502,7 +505,7 @@ export default function UsersPage() {
                     />
                   </div>
                   <span className="text-sm text-gray-500">
-                    {selectedUser.onboarding_completed ? 'Completado' : `Paso ${selectedUser.onboarding_step}/7`}
+                    {selectedUser.onboarding_completed ? t.completed : `${t.step} ${selectedUser.onboarding_step}/7`}
                   </span>
                 </div>
               </div>
@@ -510,7 +513,7 @@ export default function UsersPage() {
               {/* Brands */}
               {selectedUser.brands.length > 0 && (
                 <div>
-                  <h4 className="font-medium mb-2">Marcas ({selectedUser.brands.length})</h4>
+                  <h4 className="font-medium mb-2">{t.brandsLabel} ({selectedUser.brands.length})</h4>
                   <div className="space-y-2">
                     {selectedUser.brands.map((brand) => (
                       <div
@@ -542,19 +545,19 @@ export default function UsersPage() {
       <Dialog open={showSuspendDialog} onOpenChange={setShowSuspendDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Suspender Usuario</DialogTitle>
+            <DialogTitle>{t.suspendUser}</DialogTitle>
             <DialogDescription>
-              El usuario no podrá acceder a la plataforma hasta que sea reactivado.
+              {t.suspendUserDescription}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Motivo de la suspensión
+                {t.suspendReason}
               </label>
               <Textarea
-                placeholder="Describe el motivo de la suspensión..."
+                placeholder={t.suspendReasonPlaceholder}
                 value={suspendReason}
                 onChange={(e) => setSuspendReason(e.target.value)}
                 className="mt-1"
@@ -564,14 +567,14 @@ export default function UsersPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowSuspendDialog(false)}>
-              Cancelar
+              {t.cancel}
             </Button>
             <Button
               variant="destructive"
               onClick={handleSuspendUser}
               disabled={!suspendReason.trim() || actionLoading}
             >
-              {actionLoading ? 'Suspendiendo...' : 'Suspender Usuario'}
+              {actionLoading ? t.suspending : t.suspendUser}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -581,20 +584,19 @@ export default function UsersPage() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar usuario permanentemente?</AlertDialogTitle>
+            <AlertDialogTitle>{t.deleteUserPermanently}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminarán todos los datos del usuario,
-              incluyendo sus marcas, análisis y configuraciones.
+              {t.deleteUserWarning}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteUser}
               className="bg-red-600 hover:bg-red-700"
               disabled={actionLoading}
             >
-              {actionLoading ? 'Eliminando...' : 'Eliminar Usuario'}
+              {actionLoading ? t.deleting : t.deleteUser}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -4,78 +4,117 @@ This document provides an overview of the frontend architecture, components, and
 
 ## Architecture Overview
 
-The frontend is built using Next.js, a React framework that enables server-side rendering, static site generation, and API routes. It uses Tailwind CSS for styling and integrates with the backend API for data access.
+The frontend is built using Next.js 15 with the App Router, React, and TypeScript. It uses Tailwind CSS with shadcn/ui components for styling and integrates with the backend API for data access.
 
 ### Tech Stack
-- **Next.js**: React framework with routing and server-side rendering
+- **Next.js 15**: React framework with App Router and server components
 - **Tailwind CSS**: Utility-first CSS framework
-- **Supabase Client**: For authentication and data storage
+- **shadcn/ui**: Accessible component library built on Radix UI
+- **Supabase Client**: For authentication
 - **TypeScript**: For type safety
+- **Lucide React**: Icon library
 
 ## Module Structure
 
 ```
 frontend/
-├── app/                      # Next.js app directory (App Router)
-│   ├── auth/                 # Authentication related routes
-│   │   └── callback/         # OAuth callback handler
-│   ├── dashboard/            # Protected dashboard page
+├── app/                      # Next.js App Router pages
+│   ├── (auth)/               # Authentication routes
+│   │   ├── login/
+│   │   └── register/
+│   ├── admin/                # Admin dashboard
+│   ├── brand/                # Brand management
+│   │   ├── [id]/             # Brand details, competitors
+│   │   └── new/              # Create new brand
+│   ├── dashboard/            # Main dashboard
+│   ├── keywords/             # Keyword tracking
+│   ├── notifications/        # User notifications
+│   ├── onboarding/           # Onboarding flow
+│   ├── settings/             # User settings
+│   ├── search/               # Search functionality
 │   ├── globals.css           # Global styles
-│   ├── layout.tsx            # Root layout component
-│   └── page.tsx              # Home page component
-├── components/               # Reusable components
+│   ├── layout.tsx            # Root layout
+│   └── page.tsx              # Landing page
+├── components/               # React components
 │   ├── auth/                 # Authentication components
-│   │   └── LoginForm.tsx     # Login form with social providers
-│   └── llm/                  # LLM integration components
-│       └── TextGenerator.tsx # Component for text generation
-├── services/                 # Service layer
-│   ├── llm.ts                # LLM API client
-│   └── supabase.ts           # Supabase client and auth utilities
+│   ├── brand/                # Brand-related components
+│   ├── dashboard/            # Dashboard widgets
+│   ├── landing/              # Landing page sections
+│   ├── layout/               # Layout components (sidebar, header)
+│   ├── onboarding/           # Onboarding flow steps
+│   │   └── steps/            # Individual step components
+│   ├── shared/               # Shared/common components
+│   └── ui/                   # shadcn/ui components
+├── hooks/                    # Custom React hooks
+├── lib/                      # Utilities and services
+│   ├── services/             # API service clients
+│   ├── supabase/             # Supabase client configuration
+│   ├── api.ts                # API client
+│   └── i18n.ts               # Internationalization
 ├── public/                   # Static assets
-├── Dockerfile                # Production Docker configuration
-├── Dockerfile.dev            # Development Docker configuration
-├── Makefile                  # Commands for development
-├── package.json              # Project dependencies
+├── middleware.ts             # Auth middleware
+├── next.config.js            # Next.js configuration
 ├── tailwind.config.js        # Tailwind CSS configuration
 └── tsconfig.json             # TypeScript configuration
 ```
 
-## Key Components
+## Key Pages
 
-### Authentication Flow
+| Route | Description |
+|-------|-------------|
+| `/` | Landing page with features, pricing, testimonials |
+| `/login` | User login |
+| `/register` | User registration |
+| `/onboarding` | 7-step onboarding flow |
+| `/dashboard` | Main dashboard with visibility metrics |
+| `/brand/[id]` | Brand details and analysis |
+| `/brand/[id]/competitors` | Competitor analysis |
+| `/keywords` | Keyword tracking and rankings |
+| `/notifications` | User notifications |
+| `/settings` | User and organization settings |
+| `/admin` | Admin panel (admin users only) |
 
-The application uses Supabase Authentication with the following flow:
-1. User clicks on a social login button (Google, LinkedIn)
-2. Supabase redirects to the provider's authentication page
-3. After successful login, the provider redirects back to the app's callback URL
-4. The callback handler exchanges the code for a session
-5. User is redirected to the dashboard
+## Onboarding Flow
 
-### LLM Text Generation
+The onboarding process consists of 7 steps:
+1. **AboutYouStep** - User information
+2. **CompanyStep** - Company URL and name
+3. **BrandProfileStep** - Brand profile and categories
+4. **CompetitorsStep** - Competitor discovery
+5. **ResearchPromptsStep** - AI research prompts
+6. **ScheduleStep** - AI model configuration
+7. **SetupStep** - Save and trigger initial analysis
 
-The text generation component provides a UI to interact with language models:
-1. User enters a prompt and selects settings (model, temperature, etc.)
-2. The frontend sends a request to the backend API
-3. The API proxies the request to the appropriate LLM provider
-4. The response is displayed to the user with usage statistics
+## Authentication Flow
+
+1. User visits login/register page
+2. Supabase Auth handles authentication (email or OAuth)
+3. On success, user is redirected to dashboard
+4. Middleware validates session on protected routes
+5. Session is managed via Supabase client
+
+## API Integration
+
+The frontend communicates with the backend via REST API:
+- API client in `lib/api.ts`
+- Service modules in `lib/services/`
+- Authentication headers managed automatically
 
 ## Environment Variables
 
-The following environment variables are required:
-- `NEXT_PUBLIC_SUPABASE_URL`: URL of your Supabase project
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Anon/Public key for Supabase
-- `NEXT_PUBLIC_API_URL`: URL of the backend API
+Required:
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anon/public key
+- `NEXT_PUBLIC_API_URL` - Backend API URL
 
-## Docker Setup
+## Internationalization
 
-- **Development**: Uses hot-reloading for faster development
-- **Production**: Multi-stage build for optimized bundle size
+The app supports English and Spanish via `lib/i18n.ts`. Language selection is stored in user preferences.
 
 ## Commands
 
-- `make install`: Install dependencies
-- `make dev`: Start development server
-- `make build`: Build for production
-- `make start`: Start production server
-- `make lint`: Run linter
-- `make clean`: Clean build artifacts
+- `pnpm install` - Install dependencies
+- `pnpm dev` - Start development server
+- `pnpm build` - Build for production
+- `pnpm start` - Start production server
+- `pnpm lint` - Run linter

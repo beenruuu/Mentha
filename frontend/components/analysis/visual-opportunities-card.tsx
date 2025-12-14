@@ -27,7 +27,7 @@ export function VisualOpportunitiesCard({ opportunities }: VisualOpportunitiesCa
     }
 
     return (
-        <Card className="h-full border-l-4 border-l-yellow-500">
+        <Card className="h-full border-border/50 shadow-sm rounded-xl border-l-4 border-l-yellow-500">
             <CardHeader>
                 <div className="flex items-center gap-2">
                     <Image className="h-5 w-5 text-yellow-500" />

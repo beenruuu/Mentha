@@ -38,6 +38,7 @@ import {
 import { AdminPageWrapper } from '@/components/admin/admin-page-wrapper'
 import { adminService, type Category, type CategoryCreate, type CategoryUpdate } from '@/lib/services/admin'
 import { toast } from 'sonner'
+import { useTranslations } from '@/lib/i18n'
 
 const PRESET_COLORS = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
@@ -60,6 +61,7 @@ export default function CategoriesPage() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
+  const { t } = useTranslations()
 
   // Form state
   const [formData, setFormData] = useState<CategoryCreate>({
@@ -81,7 +83,7 @@ export default function CategoriesPage() {
       setCategories(data)
     } catch (error) {
       console.error('Error fetching categories:', error)
-      toast.error('Error al cargar categorías')
+      toast.error(t.errorLoadingCategories)
     } finally {
       setLoading(false)
     }
@@ -89,19 +91,19 @@ export default function CategoriesPage() {
 
   const handleCreate = async () => {
     if (!formData.name || !formData.slug) {
-      toast.error('Nombre y slug son requeridos')
+      toast.error(t.nameAndSlugRequired)
       return
     }
 
     setActionLoading(true)
     try {
       await adminService.createCategory(formData)
-      toast.success('Categoría creada correctamente')
+      toast.success(t.categoryCreatedSuccess)
       setShowCreateDialog(false)
       resetForm()
       fetchCategories()
     } catch (error) {
-      toast.error('Error al crear categoría')
+      toast.error(t.errorCreatingCategory)
     } finally {
       setActionLoading(false)
     }
@@ -121,12 +123,12 @@ export default function CategoriesPage() {
         sort_order: formData.sort_order
       }
       await adminService.updateCategory(selectedCategory.id, updateData)
-      toast.success('Categoría actualizada correctamente')
+      toast.success(t.categoryUpdatedSuccess)
       setShowEditDialog(false)
       resetForm()
       fetchCategories()
     } catch (error) {
-      toast.error('Error al actualizar categoría')
+      toast.error(t.errorUpdatingCategory)
     } finally {
       setActionLoading(false)
     }
@@ -138,12 +140,12 @@ export default function CategoriesPage() {
     setActionLoading(true)
     try {
       await adminService.deleteCategory(selectedCategory.id)
-      toast.success('Categoría eliminada correctamente')
+      toast.success(t.categoryDeletedSuccess)
       setShowDeleteDialog(false)
       setSelectedCategory(null)
       fetchCategories()
     } catch (error) {
-      toast.error('Error al eliminar categoría')
+      toast.error(t.errorDeletingCategory)
     } finally {
       setActionLoading(false)
     }
@@ -152,10 +154,10 @@ export default function CategoriesPage() {
   const handleToggleActive = async (category: Category) => {
     try {
       await adminService.updateCategory(category.id, { is_active: !category.is_active })
-      toast.success(`Categoría ${!category.is_active ? 'activada' : 'desactivada'}`)
+      toast.success(!category.is_active ? t.categoryActivated : t.categoryDeactivated)
       fetchCategories()
     } catch (error) {
-      toast.error('Error al actualizar categoría')
+      toast.error(t.errorUpdatingCategory)
     }
   }
 
@@ -194,9 +196,9 @@ export default function CategoriesPage() {
   }
 
   return (
-    <AdminPageWrapper 
-      title="Categorías" 
-      subtitle={`${categories.length} categorías`}
+    <AdminPageWrapper
+      title={t.adminCategories}
+      subtitle={`${categories.length} ${t.categoriesCount}`}
       actions={
         <>
           <div className="hidden md:flex items-center gap-2 mr-2">
@@ -204,11 +206,11 @@ export default function CategoriesPage() {
               checked={showInactive}
               onCheckedChange={setShowInactive}
             />
-            <span className="text-sm text-gray-500">Inactivas</span>
+            <span className="text-sm text-gray-500">{t.inactive}</span>
           </div>
           <Button onClick={() => setShowCreateDialog(true)} size="sm" className="h-8">
             <Plus className="mr-2 h-4 w-4" />
-            Nueva
+            {t.newCategory}
           </Button>
         </>
       }
@@ -227,23 +229,22 @@ export default function CategoriesPage() {
           <div className="col-span-full text-center py-12">
             <Tags className="h-12 w-12 mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-              No hay categorías
+              {t.noCategories}
             </h3>
             <p className="text-gray-500 mb-4">
-              Crea tu primera categoría para el onboarding
+              {t.createFirstCategory}
             </p>
             <Button onClick={() => setShowCreateDialog(true)}>
               <Plus className="mr-2 h-4 w-4" />
-              Nueva Categoría
+              {t.newCategoryTitle}
             </Button>
           </div>
         ) : (
           categories.map((category) => (
             <Card
               key={category.id}
-              className={`border-0 shadow-sm transition-opacity ${
-                !category.is_active ? 'opacity-60' : ''
-              }`}
+              className={`border-0 shadow-sm transition-opacity ${!category.is_active ? 'opacity-60' : ''
+                }`}
             >
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
@@ -261,7 +262,7 @@ export default function CategoriesPage() {
                       <p className="text-sm text-gray-500">/{category.slug}</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
@@ -299,7 +300,7 @@ export default function CategoriesPage() {
                     />
                     <span className="text-xs text-gray-500">Orden: {category.sort_order}</span>
                   </div>
-                  
+
                   <Switch
                     checked={category.is_active}
                     onCheckedChange={() => handleToggleActive(category)}
@@ -362,11 +363,10 @@ export default function CategoriesPage() {
                   <button
                     key={color}
                     onClick={() => setFormData({ ...formData, color })}
-                    className={`w-8 h-8 rounded-full border-2 transition-transform ${
-                      formData.color === color
-                        ? 'border-gray-900 dark:border-white scale-110'
-                        : 'border-transparent'
-                    }`}
+                    className={`w-8 h-8 rounded-full border-2 transition-transform ${formData.color === color
+                      ? 'border-gray-900 dark:border-white scale-110'
+                      : 'border-transparent'
+                      }`}
                     style={{ backgroundColor: color }}
                   />
                 ))}
@@ -436,11 +436,10 @@ export default function CategoriesPage() {
                   <button
                     key={color}
                     onClick={() => setFormData({ ...formData, color })}
-                    className={`w-8 h-8 rounded-full border-2 transition-transform ${
-                      formData.color === color
-                        ? 'border-gray-900 dark:border-white scale-110'
-                        : 'border-transparent'
-                    }`}
+                    className={`w-8 h-8 rounded-full border-2 transition-transform ${formData.color === color
+                      ? 'border-gray-900 dark:border-white scale-110'
+                      : 'border-transparent'
+                      }`}
                     style={{ backgroundColor: color }}
                   />
                 ))}

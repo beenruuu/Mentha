@@ -1,10 +1,10 @@
 from app.core.celery_app import celery_app
+from app.core.async_utils import async_to_sync
 from app.services.firecrawl_service import FirecrawlService
 from app.services.processing.chunking_service import get_chunking_service
 from app.services.vectordb.qdrant_service import get_vector_db_service
 from app.services.analysis.ai_search_simulator_service import get_ai_search_simulator
 from app.services.notifications.alert_service import get_alert_service
-import asyncio
 import logging
 
 logger = logging.getLogger(__name__)
@@ -13,21 +13,6 @@ logger = logging.getLogger(__name__)
 def get_firecrawl_service():
     return FirecrawlService()
 
-# Wrapper to run async functions in Celery
-
-
-def async_to_sync(awaitable):
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-    if loop.is_running():
-        # If running (e.g. uvicorn), just create task (fire & forget for celery usually not ideal but safe here)
-        return loop.create_task(awaitable)
-    else:
-        return loop.run_until_complete(awaitable)
 
 @celery_app.task(name="crawl_and_index_site")
 def crawl_and_index_site_task(url: str, organization_id: str):

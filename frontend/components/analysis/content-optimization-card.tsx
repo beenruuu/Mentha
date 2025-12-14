@@ -9,7 +9,7 @@ interface ContentOptimizationCardProps {
 
 export function ContentOptimizationCard({ analysis }: ContentOptimizationCardProps) {
     return (
-        <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
+        <Card className="border-border/50 shadow-sm rounded-xl">
             <CardHeader>
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-blue-500" />

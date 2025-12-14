@@ -66,20 +66,19 @@ ask_for_key() {
 clear
 echo -e "${CYAN}"
 cat << "EOF"
-  _____      _ _     _____ _             _      ____        _ _                 _       _
- |  ___|   _| | |   / ____| |           | |    |  _ \      (_) |               | |     | |
- | |_ _  _| | | |  | (___ | |_ __ _  ___| | __ | |_) | ___  _| | ___ _ __ _ __ | | __ _| |_ ___
- |  _| |/ / | | |   \___ \| __/ _` |/ __| |/ / |  _ < / _ \| | |/ _ \ '__| '_ \| |/ _` | __/ _ \
- | | |   <| | | |   ____) | || (_| | (__|   <  | |_) | (_) | | |  __/ |  | |_) | | (_| | ||  __/
- |_| |_|\_\_|_|_|  |_____/ \__\__,_|\___|_|\_\ |____/ \___/|_|_|\___|_|  | .__/|_|\__,_|\__\___|
-                                                                         | |
-                                                                         |_|
+  __  __            _   _           
+ |  \/  | ___ _ __ | |_| |__   __ _ 
+ | |\/| |/ _ \ '_ \| __| '_ \ / _` |
+ | |  | |  __/ | | | |_| | | | (_| |
+ |_|  |_|\___|_| |_|\__|_| |_|\__,_|
+                                    
+  AI Engine Optimization Platform
 EOF
 echo -e "${NC}"
 
-print_header "Welcome to the First-Time Setup"
+print_header "Welcome to Mentha Setup"
 
-print_message "This script will help you set up your environment for the Full Stack Application Boilerplate."
+print_message "This script will help you configure your environment for Mentha."
 print_message "We'll generate the necessary .env files based on your inputs."
 echo
 
@@ -131,28 +130,29 @@ fi
 
 # Set up LLM keys
 print_header "LLM Configuration"
-print_message "The boilerplate supports OpenAI and Anthropic (Claude) models."
+print_message "Mentha supports multiple AI providers for analysis."
 
 openai_api_key=$(ask_for_key "OpenAI" true "your-openai-api-key")
 anthropic_api_key=$(ask_for_key "Anthropic (Claude)" true "your-anthropic-api-key")
+google_api_key=$(ask_for_key "Google (Gemini)" true "your-google-api-key")
 
 # Set up Qdrant
 print_header "Vector Database Configuration"
-print_message "The boilerplate uses Qdrant for vector database functionality."
-print_message "You can use a cloud Qdrant instance or a local instance will be started automatically."
+print_message "Mentha uses Qdrant for vector database functionality."
+print_message "You can use a cloud Qdrant instance or a local instance."
 
 if ask_yes_no "Do you want to use a cloud Qdrant instance?"; then
   read -p "Enter your Qdrant URL: " qdrant_url
   qdrant_api_key=$(ask_for_key "Qdrant" false "your-qdrant-api-key")
-  read -p "Enter your Qdrant collection name (default: default_collection): " qdrant_collection
+  read -p "Enter your Qdrant collection name (default: mentha_collection): " qdrant_collection
   if [ -z "$qdrant_collection" ]; then
-    qdrant_collection="default_collection"
+    qdrant_collection="mentha_collection"
   fi
 else
   print_message "Using local Qdrant instance. No configuration needed."
   qdrant_url=""
   qdrant_api_key=""
-  qdrant_collection="default_collection"
+  qdrant_collection="mentha_collection"
 fi
 
 # Generate .env file
@@ -168,6 +168,7 @@ SUPABASE_SERVICE_KEY=${supabase_service_key}
 # LLM configuration
 OPENAI_API_KEY=${openai_api_key}
 ANTHROPIC_API_KEY=${anthropic_api_key}
+GOOGLE_API_KEY=${google_api_key}
 
 # Vector Database configuration
 QDRANT_URL=${qdrant_url}
@@ -191,45 +192,37 @@ print_message "Environment files generated successfully!"
 print_message ".env - Root environment file for Docker Compose"
 print_message "frontend/.env.local - Frontend environment file"
 
-# Final instructions
-print_header "Setup Complete"
-print_message "Your environment is now ready to use!"
-
 # Database migrations information
-print_header "Database Migrations"
-print_message "The boilerplate supports database migrations using Supabase CLI."
-print_message "To use database migrations, you'll need to install Supabase CLI:"
+print_header "Database Setup"
+print_message "To set up the database, run the schema in Supabase SQL Editor:"
+echo -e "  ${GREEN}supabase/schema.sql${NC}"
+print_message "For migrations, install Supabase CLI:"
 echo -e "  ${GREEN}brew install supabase/tap/supabase${NC}  (macOS)"
 print_message "For other platforms, see: https://supabase.com/docs/guides/cli"
-print_message "After installing the CLI, you'll need to link to your Supabase project:"
+print_message "After installing the CLI:"
 echo -e "  ${GREEN}supabase login${NC}"
 echo -e "  ${GREEN}supabase link${NC}"
-print_message "Then you can manage migrations with these commands:"
-echo -e "  ${GREEN}make db-migration-new name=create_my_table${NC}  (Create a new migration)"
-echo -e "  ${GREEN}make db-apply${NC}                               (Apply migrations to remote)"
-echo -e "  ${GREEN}make db-status${NC}                              (Check migration status)"
-print_message "For more information, see the supabase/README.md file."
+echo -e "  ${GREEN}make db-apply${NC}  (Apply migrations)"
+
+# Final instructions
+print_header "Setup Complete"
 
 echo -e "${CYAN}"
 cat << "EOF"
- _   _            _     _____
-| | | | __ _  ___| | __/ ____|_ __ ___   __ _
-| |_| |/ _` |/ __| |/ / |   _| '_ ` _ \ / _` |
-|  _  | (_| | (__|   <| |  |_| | | | | | (_| |
-|_| |_|\__,_|\___|_|\_\\___|_\_| |_| |_|\__,_|
-
+  __  __            _   _           
+ |  \/  | ___ _ __ | |_| |__   __ _ 
+ | |\/| |/ _ \ '_ \| __| '_ \ / _` |
+ | |  | |  __/ | | | |_| | | | (_| |
+ |_|  |_|\___|_| |_|\__|_| |_|\__,_|
+                                    
+  Ready to optimize your AI visibility!
 EOF
 echo -e "${NC}"
 
 echo "To start the application in development mode, run:"
 echo -e "${GREEN}make dev${NC}"
 echo
-echo "This will start both the frontend and backend services."
-echo
 echo "For more commands, run:"
 echo -e "${GREEN}make help${NC}"
 echo
-echo "Happy coding!"
-
-# Make the script executable
-chmod +x first-time.sh
+echo "Happy optimizing!"

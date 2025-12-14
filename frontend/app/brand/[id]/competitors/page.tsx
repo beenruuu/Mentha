@@ -210,7 +210,7 @@ export default function BrandCompetitorsPage() {
                     </Dialog>
                 </header>
 
-                <main className="flex-1 bg-white dark:bg-black rounded-tl-3xl border-t border-l border-gray-200 dark:border-[#2A2A30] overflow-y-auto shadow-2xl relative z-10">
+                <main className="flex-1 bg-white dark:bg-black rounded-tl-3xl overflow-y-auto shadow-2xl relative z-10">
                     <div className="p-8 max-w-7xl mx-auto space-y-8">
 
                         {/* Stats Cards */}

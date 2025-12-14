@@ -33,9 +33,6 @@ class Settings(BaseSettings):
     WEB_SEARCH_ENABLED: bool = True
     WEB_SEARCH_PROVIDER: str = "duckduckgo"  # or "tavily", "serper", etc.
     
-    WEB_SEARCH_ENABLED: bool = True
-    WEB_SEARCH_PROVIDER: str = "duckduckgo"  # or "tavily", "serper", etc.
-    
     # Google Search Console Integration
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""

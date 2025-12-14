@@ -110,13 +110,13 @@ export default function NotificationsPage() {
         {/* Header */}
         <header className="flex items-center justify-between px-6 py-4 shrink-0">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{t.notificationsTitle}</h1>
             <SidebarTrigger className="-ml-1" />
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{t.notificationsTitle}</h1>
           </div>
           <UserAvatarMenu />
         </header>
 
-        <main className="flex-1 bg-white dark:bg-black rounded-tl-3xl border-t border-l border-gray-200 dark:border-[#2A2A30] overflow-hidden flex shadow-2xl relative z-10">
+        <main className="flex-1 bg-white dark:bg-black rounded-tl-3xl overflow-hidden flex shadow-2xl relative z-10">
           {filteredNotifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center w-full h-full text-center p-8 bg-white dark:bg-[#0C0C0E]">
               <div className="absolute top-6 right-6 flex gap-2">

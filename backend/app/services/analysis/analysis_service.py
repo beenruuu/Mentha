@@ -17,42 +17,8 @@ from app.services.analysis.ai_visibility_service import AIVisibilityService
 from app.services.analysis.content_structure_analyzer_service import ContentStructureAnalyzerService
 from app.services.analysis.knowledge_graph_service import KnowledgeGraphMonitorService
 from app.core.config import settings
+from app.core.logging import Colors, log_info, log_success, log_error, log_warning, log_phase
 
-# ANSI color codes for terminal output
-class Colors:
-    RESET = "\033[0m"
-    BOLD = "\033[1m"
-    # Colors
-    RED = "\033[91m"
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    BLUE = "\033[94m"
-    MAGENTA = "\033[95m"
-    CYAN = "\033[96m"
-    WHITE = "\033[97m"
-    GRAY = "\033[90m"
-
-def log_info(emoji: str, message: str, color: str = Colors.CYAN):
-    """Log an info message with emoji and color."""
-    print(f"{color}{emoji} {message}{Colors.RESET}")
-
-def log_success(emoji: str, message: str):
-    """Log a success message in green."""
-    print(f"{Colors.GREEN}{emoji} {message}{Colors.RESET}")
-
-def log_error(emoji: str, message: str):
-    """Log an error message in red."""
-    print(f"{Colors.RED}{emoji} {message}{Colors.RESET}")
-
-def log_warning(emoji: str, message: str):
-    """Log a warning message in yellow."""
-    print(f"{Colors.YELLOW}{emoji} {message}{Colors.RESET}")
-
-def log_phase(phase_num: int, phase_name: str):
-    """Log a phase header."""
-    print(f"\n{Colors.BOLD}{Colors.MAGENTA}{'─'*50}{Colors.RESET}")
-    print(f"{Colors.BOLD}{Colors.MAGENTA}📍 Phase {phase_num}: {phase_name}{Colors.RESET}")
-    print(f"{Colors.BOLD}{Colors.MAGENTA}{'─'*50}{Colors.RESET}")
 
 class AnalysisService:
     def __init__(self):
@@ -68,7 +34,6 @@ class AnalysisService:
         self.web_search_service = WebSearchService()
         self.technical_aeo_service = TechnicalAEOService()
         self.keyword_metrics_service = KeywordMetricsService()
-        self.ai_visibility_service = AIVisibilityService()
         self.ai_visibility_service = AIVisibilityService()
         self.content_structure_service = ContentStructureAnalyzerService()
         self.kg_service = KnowledgeGraphMonitorService()
