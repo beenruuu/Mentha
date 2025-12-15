@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, Bell, Settings, ChevronRight, X, Bot, Search as SearchIcon, TrendingUp, Users, LogOut, Plus, Trash2, Info } from "lucide-react"
+import { Search, Bell, Settings, ChevronRight, X, Bot, Search as SearchIcon, TrendingUp, Users, LogOut, Plus, Trash2, Info, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState, useEffect } from "react"
@@ -299,6 +299,16 @@ export function AppSidebar() {
                   }`}></div>
               </div>
               <span>{t.panel}</span>
+            </button>
+          </Link>
+
+          <Link href="/admin">
+            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === '/admin'
+              ? 'bg-secondary text-foreground font-medium'
+              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+              }`}>
+              <Shield className="w-4 h-4" />
+              <span>Admin</span>
             </button>
           </Link>
 

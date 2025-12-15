@@ -300,6 +300,39 @@ class PlatformOverview(BaseModel):
 
 
 # =====================================================
+# FINANCIAL ANALYTICS MODELS
+# =====================================================
+
+class FinancialStats(BaseModel):
+    """Financial statistics"""
+    total_revenue: float
+    total_cost: float
+    net_profit: float
+    margin: float
+    arpu: float  # Average Revenue Per User
+
+
+class FinancialOverview(BaseModel):
+    """Financial overview data"""
+    stats: FinancialStats
+    revenue_history: List[TrendPoint]
+    cost_history: List[TrendPoint]
+    profit_history: List[TrendPoint]
+
+
+class UserFinancials(BaseModel):
+    """Financial data for a specific user"""
+    user_id: str
+    email: str
+    plan: str
+    subscription_status: str
+    total_revenue: float
+    total_cost: float
+    net_profit: float
+    usage_breakdown: Dict[str, float]  # e.g., {"analyses": 1.50, "keywords": 0.50}
+
+
+# =====================================================
 # CATEGORY MODELS
 # =====================================================
 

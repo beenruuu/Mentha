@@ -773,6 +773,24 @@ const translations = {
     filter: 'Filtrar',
     pages: 'páginas',
 
+    // AEO Recommendations
+    rec_crawler_title: 'Bloqueo de Crawlers IA',
+    rec_crawler_desc: 'Algunos crawlers de IA están bloqueados en robots.txt. Permítelos para mejorar visibilidad.',
+    rec_faq_title: 'Agregar Schema FAQ',
+    rec_faq_desc: 'Implementa Schema FAQPage para aumentar posibilidades de ser citado en respuestas de preguntas.',
+    rec_howto_title: 'Agregar Schema HowTo',
+    rec_howto_desc: 'Añade Schema HowTo para contenido instructivo.',
+    rec_structured_title: 'Faltan Datos Estructurados',
+    rec_structured_desc: 'Implementa JSON-LD (Schema.org) para ayudar a la IA a entender tu contenido.',
+    rec_https_title: 'Habilitar HTTPS',
+    rec_https_desc: 'Cambia a HTTPS para seguridad y confianza de crawlers.',
+    rec_rss_title: 'Agregar Feed RSS',
+    rec_rss_desc: 'Provee un feed RSS/Atom para facilitar el descubrimiento de contenido.',
+    rec_speakable_title: 'Agregar Schema Speakable',
+    rec_speakable_desc: 'Implementa Schema Speakable para búsquedas por voz.',
+    rec_local_title: 'Schema LocalBusiness',
+    rec_local_desc: 'Esencial para búsquedas de voz tipo "cerca de mí".',
+
     // ==========================================
     // AUTH PAGES
     // ==========================================

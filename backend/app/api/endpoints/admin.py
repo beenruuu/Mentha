@@ -13,6 +13,7 @@ from app.crud.admin import AdminCRUD
 from app.models.admin import (
     UserAnalytics, PaginatedUsers, UserFilters, UserDetail, UserUpdate,
     SubscriptionOverview, OnboardingAnalytics, PlatformOverview,
+    FinancialOverview, UserFinancials,
     Category, CategoryCreate, CategoryUpdate, AuditLogEntry,
     AdminUser, AdminUserCreate
 )
@@ -128,6 +129,28 @@ async def get_onboarding_analytics(
 ):
     """Get onboarding funnel analytics"""
     return await admin_crud.get_onboarding_analytics()
+
+
+# =====================================================
+# FINANCIAL ANALYTICS
+# =====================================================
+
+@router.get("/analytics/financials/overview", response_model=FinancialOverview)
+async def get_financial_overview(
+    admin_id: str = Depends(verify_admin),
+    admin_crud: AdminCRUD = Depends(get_admin_crud)
+):
+    """Get financial overview analytics"""
+    return await admin_crud.get_financial_overview()
+
+
+@router.get("/analytics/financials/users", response_model=list[UserFinancials])
+async def get_user_financials(
+    admin_id: str = Depends(verify_admin),
+    admin_crud: AdminCRUD = Depends(get_admin_crud)
+):
+    """Get financial analytics per user"""
+    return await admin_crud.get_user_financials()
 
 
 # =====================================================

@@ -253,6 +253,36 @@ export interface AdminUser {
 }
 
 // =====================================================
+// FINANCIAL ANALYTICS TYPES
+// =====================================================
+
+export interface FinancialStats {
+  total_revenue: number
+  total_cost: number
+  net_profit: number
+  margin: number
+  arpu: number
+}
+
+export interface FinancialOverview {
+  stats: FinancialStats
+  revenue_history: TrendPoint[]
+  cost_history: TrendPoint[]
+  profit_history: TrendPoint[]
+}
+
+export interface UserFinancials {
+  user_id: string
+  email: string
+  plan: string
+  subscription_status: string
+  total_revenue: number
+  total_cost: number
+  net_profit: number
+  usage_breakdown: Record<string, number>
+}
+
+// =====================================================
 // ADMIN SERVICE
 // =====================================================
 
@@ -275,6 +305,15 @@ export const adminService = {
   // Onboarding Analytics
   async getOnboardingAnalytics(): Promise<OnboardingAnalytics> {
     return fetchAPI<OnboardingAnalytics>('/admin/analytics/onboarding')
+  },
+
+  // Financial Analytics
+  async getFinancialOverview(): Promise<FinancialOverview> {
+    return fetchAPI<FinancialOverview>('/admin/analytics/financials/overview')
+  },
+
+  async getUserFinancials(): Promise<UserFinancials[]> {
+    return fetchAPI<UserFinancials[]>('/admin/analytics/financials/users')
   },
 
   // User Management

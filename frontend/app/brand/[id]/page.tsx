@@ -268,14 +268,14 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                 <MetricTab
                   label={t.aeoReadiness}
                   value={`${Math.round(technicalAeo?.aeo_readiness_score || 0)}%`}
-                  trend={5}
+                  trend={0}
                   isActive={false}
                   onClick={() => { }}
                 />
                 <MetricTab
                   label={t.trackedKeywordsLabel}
                   value={keywords.length.toString()}
-                  trend={keywords.length > 0 ? 100 : 0}
+                  trend={0}
                   isActive={false}
                   onClick={() => { }}
                 />
@@ -321,21 +321,66 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                     <CardContent>
                       {technicalAeo?.recommendations && technicalAeo.recommendations.length > 0 ? (
                         <div className="space-y-3">
-                          {technicalAeo.recommendations.slice(0, 3).map((rec: any, i: number) => (
-                            <div key={i} className="group p-4 rounded-xl bg-white dark:bg-[#1E1E24] border border-border/40 hover:border-primary/30 transition-all">
-                              <div className="flex items-start gap-4">
-                                <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${rec.priority === 'critical' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' :
-                                  rec.priority === 'high' ? 'bg-orange-500' : 'bg-emerald-500'
-                                  }`} />
-                                <div>
-                                  <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
-                                    {rec.title}
-                                  </h4>
-                                  <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
+                          {technicalAeo.recommendations.map((rec: any, i: number) => {
+                            // Helper for legacy data translation
+                            const legacyTitleMap: Record<string, string> = {
+                              'AI Crawlers Blocked': 'rec_crawler_title',
+                              'Add FAQ Schema': 'rec_faq_title',
+                              'Add HowTo Schema': 'rec_howto_title',
+                              'No Structured Data Found': 'rec_structured_title',
+                              'Enable HTTPS': 'rec_https_title',
+                              'Add RSS Feed': 'rec_rss_title',
+                              'Add Speakable Schema': 'rec_speakable_title',
+                              'Local Business Schema': 'rec_local_title'
+                            };
+
+                            const legacyDescMap: Record<string, string> = {
+                              'Some AI crawlers are blocked in robots.txt. Allow them to improve visibility.': 'rec_crawler_desc',
+                              'Implement FAQPage schema to increase chances of being cited in question answering.': 'rec_faq_desc',
+                              'Add HowTo schema for instructional content.': 'rec_howto_desc',
+                              'Implement JSON-LD structured data (Schema.org) to help AI understand your content.': 'rec_structured_desc',
+                              'Switch to HTTPS for security and crawler trust.': 'rec_https_desc',
+                              'Provide an RSS/Atom feed for easier content discovery.': 'rec_rss_desc',
+                              'Implement speakable schema for voice search.': 'rec_speakable_desc',
+                              'Essential for "near me" voice searches.': 'rec_local_desc'
+                            };
+
+                            const getTitle = (r: any) => {
+                              if (r.translation_key && t[r.translation_key as keyof typeof t]) return t[r.translation_key as keyof typeof t];
+                              if (legacyTitleMap[r.title] && t[legacyTitleMap[r.title] as keyof typeof t]) return t[legacyTitleMap[r.title] as keyof typeof t];
+                              return r.title;
+                            };
+
+                            const getDesc = (r: any) => {
+                              if (r.translation_key_desc && t[r.translation_key_desc as keyof typeof t]) return t[r.translation_key_desc as keyof typeof t];
+                              // Try exact match on description or fallback to title-based mapping for description if description match fails
+                              if (legacyDescMap[r.description] && t[legacyDescMap[r.description] as keyof typeof t]) return t[legacyDescMap[r.description] as keyof typeof t];
+                              // Fallback: if we mapped the title, try to map the description using the same key convention (title_key -> desc_key)
+                              if (legacyTitleMap[r.title]) {
+                                const descKey = legacyTitleMap[r.title].replace('_title', '_desc');
+                                if (t[descKey as keyof typeof t]) return t[descKey as keyof typeof t];
+                              }
+                              return r.description;
+                            };
+
+                            return (
+                              <div key={i} className="group p-4 rounded-xl bg-white dark:bg-[#1E1E24] border border-border/40 hover:border-primary/30 transition-all">
+                                <div className="flex items-start gap-4">
+                                  <div className={`mt-1 w-2 h-2 rounded-full shrink-0 ${rec.priority === 'critical' ? 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]' :
+                                    rec.priority === 'high' ? 'bg-orange-500' : 'bg-emerald-500'
+                                    }`} />
+                                  <div>
+                                    <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                                      {getTitle(rec)}
+                                    </h4>
+                                    <p className="text-sm text-muted-foreground mt-1">
+                                      {getDesc(rec)}
+                                    </p>
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="text-center py-8 text-muted-foreground text-sm">

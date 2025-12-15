@@ -13,6 +13,7 @@ from app.models.admin import (
     SubscriptionOverview, OnboardingFunnelStep, OnboardingStats,
     OnboardingDataAggregated, OnboardingAnalytics, PlatformStats,
     PlatformOverview, PlatformTrends, TrendPoint, FeatureUsage,
+    FinancialStats, FinancialOverview, UserFinancials,
     Category, CategoryCreate, CategoryUpdate, AuditLogEntry,
     AdminUser, AdminUserCreate
 )
@@ -754,6 +755,205 @@ class AdminCRUD:
                 health_score=0
             )
     
+    # =====================================================
+    # FINANCIAL ANALYTICS
+    # =====================================================
+
+    async def get_financial_overview(self) -> FinancialOverview:
+        """Get financial overview (Estimated)"""
+        try:
+            # 1. Calculate Estimated Revenue
+            # Based on active subscriptions
+            subs_result = self.supabase.table("subscriptions").select("*").eq("status", "active").execute()
+            active_subs = subs_result.data or []
+            
+            plan_prices = {"starter": 49, "pro": 149, "enterprise": 499}
+            
+            total_revenue = 0
+            for sub in active_subs:
+                plan = sub.get("plan_name", "starter")
+                price = plan_prices.get(plan, 0)
+                # Adjust for billing interval
+                if sub.get("billing_interval") == "year":
+                    price = price * 0.8  # Monthly equivalent of yearly (20% off)
+                total_revenue += price
+            
+            # 2. Calculate Estimated Costs (Last 30 Days)
+            # Costs (EUR): Analysis (€0.05), Keyword (€0.01), Competitor (€0.05)
+            month_ago = (datetime.utcnow() - timedelta(days=30)).isoformat()
+            
+            # Count records created in last 30 days
+            analyses_count = (self.supabase.table("aeo_analyses")
+                .select("id", count="exact")
+                .gte("created_at", month_ago)
+                .execute().count or 0)
+                
+            keywords_count = (self.supabase.table("keywords")
+                .select("id", count="exact")
+                .gte("created_at", month_ago)
+                .execute().count or 0)
+                
+            competitors_count = (self.supabase.table("competitors")
+                .select("id", count="exact")
+                .gte("created_at", month_ago)
+                .execute().count or 0)
+            
+            # Unit costs in EUR
+            COST_ANALYSIS = 0.05
+            COST_KEYWORD = 0.01
+            COST_COMPETITOR = 0.05
+            
+            total_cost = (analyses_count * COST_ANALYSIS) + \
+                         (keywords_count * COST_KEYWORD) + \
+                         (competitors_count * COST_COMPETITOR)
+            
+            # 3. Aggregates
+            net_profit = total_revenue - total_cost
+            margin = (net_profit / total_revenue * 100) if total_revenue > 0 else 0
+            
+            # Count total paying users
+            paying_users = len(active_subs)
+            arpu = (total_revenue / paying_users) if paying_users > 0 else 0
+
+            # 4. Mock History (for chart visualization) - generating 30 days of data
+            # In a real app, this would be aggregated from daily logs
+            revenue_history = []
+            cost_history = []
+            profit_history = []
+            
+            for i in range(30):
+                date_str = (datetime.utcnow() - timedelta(days=29-i)).strftime("%Y-%m-%d")
+                
+                # Randomized variations for visualization
+                # Daily revenue is roughly total / 30
+                daily_rev = (total_revenue / 30) * (0.9 + (i % 3) * 0.1) 
+                
+                # Daily cost is roughly total / 30
+                daily_cost = (total_cost / 30) * (0.8 + (i % 4) * 0.1)
+                
+                revenue_history.append(TrendPoint(date=date_str, value=round(daily_rev, 2)))
+                cost_history.append(TrendPoint(date=date_str, value=round(daily_cost, 2)))
+                profit_history.append(TrendPoint(date=date_str, value=round(daily_rev - daily_cost, 2)))
+
+            return FinancialOverview(
+                stats=FinancialStats(
+                    total_revenue=round(total_revenue, 2),
+                    total_cost=round(total_cost, 2),
+                    net_profit=round(net_profit, 2),
+                    margin=round(margin, 2),
+                    arpu=round(arpu, 2)
+                ),
+                revenue_history=revenue_history,
+                cost_history=cost_history,
+                profit_history=profit_history
+            )
+            
+        except Exception as e:
+            print(f"Error getting financial overview: {e}")
+            return FinancialOverview(
+                stats=FinancialStats(total_revenue=0, total_cost=0, net_profit=0, margin=0, arpu=0),
+                revenue_history=[], cost_history=[], profit_history=[]
+            )
+
+    async def get_user_financials(self) -> List[UserFinancials]:
+        """Get financial data per user"""
+        try:
+            # Get all users with subscriptions
+            users = self.supabase.table("profiles").select(
+                "id, email, subscriptions(plan_name, status, billing_interval)"
+            ).execute().data or []
+            
+            # Get usage counts per user (all time for simplicity, ideally filtered by billing period)
+            # This is expensive, in production should be pre-aggregated
+            
+            # Getting basic counts per user
+            # We'll batch fetch or just loop since presumably user count is low for this mvp tool
+            # Optimization: Fetch all usage and map in memory
+            
+            # Fetch all recent usage (last 30d)
+            month_ago = (datetime.utcnow() - timedelta(days=30)).isoformat()
+            
+            analyses = self.supabase.table("aeo_analyses").select("user_id").gte("created_at", month_ago).execute().data or []
+            keywords = self.supabase.table("keywords").select("user_id").gte("created_at", month_ago).execute().data or []
+            competitors = self.supabase.table("competitors").select("user_id").gte("created_at", month_ago).execute().data or []
+            
+            user_analyses = {}
+            for a in analyses:
+                uid = a.get("user_id")
+                user_analyses[uid] = user_analyses.get(uid, 0) + 1
+                
+            user_keywords = {}
+            for k in keywords:
+                uid = k.get("user_id")
+                user_keywords[uid] = user_keywords.get(uid, 0) + 1
+                
+            user_competitors = {}
+            for c in competitors:
+                uid = c.get("user_id")
+                user_competitors[uid] = user_competitors.get(uid, 0) + 1
+            
+            # Plan prices
+            plan_prices = {"starter": 49, "pro": 149, "enterprise": 499, "free": 0}
+            COST_ANALYSIS = 0.05
+            COST_KEYWORD = 0.01
+            COST_COMPETITOR = 0.05
+            
+            financials = []
+            
+            for user in users:
+                user_id = user["id"]
+                email = user["email"]
+                
+                # Subscription
+                sub = user.get("subscriptions", [])
+                if isinstance(sub, list) and len(sub) > 0:
+                    sub = sub[0]
+                elif not isinstance(sub, dict):
+                    sub = {}
+                    
+                plan = sub.get("plan_name", "free")
+                status = sub.get("status", "none")
+                
+                revenue = plan_prices.get(plan, 0)
+                if sub.get("billing_interval") == "year":
+                    revenue = revenue * 0.8
+                
+                # Skip non-paying if desired, but we want to see free user costs too
+                if status != "active" and plan != "free":
+                    revenue = 0
+                
+                # Usage
+                a_count = user_analyses.get(user_id, 0)
+                k_count = user_keywords.get(user_id, 0)
+                c_count = user_competitors.get(user_id, 0)
+                
+                cost = (a_count * COST_ANALYSIS) + (k_count * COST_KEYWORD) + (c_count * COST_COMPETITOR)
+                
+                net = revenue - cost
+                
+                financials.append(UserFinancials(
+                    user_id=user_id,
+                    email=email,
+                    plan=plan,
+                    subscription_status=status,
+                    total_revenue=round(revenue, 2),
+                    total_cost=round(cost, 2),
+                    net_profit=round(net, 2),
+                    usage_breakdown={
+                        "analyses": round(a_count * COST_ANALYSIS, 2),
+                        "keywords": round(k_count * COST_KEYWORD, 2),
+                        "competitors": round(c_count * COST_COMPETITOR, 2)
+                    }
+                ))
+            
+            # Sort by total cost desc
+            financials.sort(key=lambda x: x.total_cost, reverse=True)
+            return financials
+            
+        except Exception as e:
+            print(f"Error getting user financials: {e}")
+            return []
+
     # =====================================================
     # CATEGORIES CRUD
     # =====================================================
