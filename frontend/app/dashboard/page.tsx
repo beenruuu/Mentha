@@ -38,11 +38,20 @@ import { ReasoningCard } from "@/components/dashboard/reasoning-card"
 import { GoogleConnect } from "@/components/integrations/GoogleConnect"
 
 const AI_PROVIDER_META = [
-  { id: 'chatgpt', name: 'ChatGPT', icon: '/providers/openai.svg' },
-  { id: 'claude', name: 'Claude', icon: '/providers/claude-color.svg' },
-  { id: 'perplexity', name: 'Perplexity', icon: '/providers/perplexity-color.svg' },
-  { id: 'gemini', name: 'Gemini', icon: '/providers/gemini-color.svg' },
+  { id: 'chatgpt', name: 'ChatGPT', icon: '/providers/openai.svg?v=3', color: '#10a37f' },
+  { id: 'claude', name: 'Claude', icon: '/providers/claude-color.svg?v=3', color: '#da7756' },
+  { id: 'perplexity', name: 'Perplexity', icon: '/providers/perplexity-color.svg?v=3', color: '#3b82f6' },
+  { id: 'gemini', name: 'Gemini', icon: '/providers/gemini-color.svg?v=3', color: '#4b5563' },
+  { id: 'google', name: 'Google Search', icon: '/providers/google.svg?v=3', color: '#ea4335' },
 ] as const
+
+const MODEL_ID_MAP: Record<string, string> = {
+  'openai': 'chatgpt',
+  'anthropic': 'claude',
+  'perplexity': 'perplexity',
+  'gemini': 'google', // Backend stores baseline/google_search as 'gemini'
+  'google_search': 'google'
+}
 
 export default function DashboardPage() {
   const { t } = useTranslations()
@@ -83,7 +92,9 @@ export default function DashboardPage() {
         if (visibilityData.latest_scores?.length > 0) {
           const scores: Record<string, number> = {}
           visibilityData.latest_scores.forEach((snapshot: VisibilitySnapshot) => {
-            scores[snapshot.ai_model] = snapshot.visibility_score
+            // Map backend model name to frontend ID
+            const frontendId = MODEL_ID_MAP[snapshot.ai_model] || snapshot.ai_model
+            scores[frontendId] = snapshot.visibility_score
           })
           setModelPerformance(scores)
         } else {
@@ -136,16 +147,56 @@ export default function DashboardPage() {
           // Fetch GEO visibility data for model performance
           try {
             const visibilityData = await geoAnalysisService.getVisibilityData(brand.id)
+
+            // Handle Latest Scores
             if (visibilityData.latest_scores && visibilityData.latest_scores.length > 0) {
               const scores: Record<string, number> = {}
               visibilityData.latest_scores.forEach((snapshot: VisibilitySnapshot) => {
-                scores[snapshot.ai_model] = snapshot.visibility_score
+                // Map backend model name to frontend ID
+                const frontendId = MODEL_ID_MAP[snapshot.ai_model] || snapshot.ai_model
+                scores[frontendId] = snapshot.visibility_score
               })
               setModelPerformance(scores)
+            } else {
+              setModelPerformance({})
+            }
+
+            // Handle History for Chart
+            if (visibilityData.history && visibilityData.history.length > 0) {
+              const historyMap = new Map<string, Record<string, number>>()
+
+              visibilityData.history.forEach((snapshot) => {
+                const dateKey = format(new Date(snapshot.measured_at || new Date().toISOString()), 'MM/dd')
+                if (!historyMap.has(dateKey)) {
+                  historyMap.set(dateKey, {})
+                }
+                const dayData = historyMap.get(dateKey)!
+                // Guard against undefined/null visibility scores
+                const frontendId = MODEL_ID_MAP[snapshot.ai_model] || snapshot.ai_model
+
+                // Add specific metrics per model
+                dayData[frontendId] = snapshot.visibility_score ?? 0
+                // We can also track position/inclusion per model if available, 
+                // but usually the visibility_score is the main "Rank/Score" we show.
+                // If we want position/inclusion per model, we'd prefix them:
+                dayData[`${frontendId}_position`] = snapshot.average_position ?? 0
+                dayData[`${frontendId}_inclusion`] = snapshot.inclusion_rate ?? 0
+              })
+
+              setChartData(prevData => {
+                // Map over the existing chart data (which comes from Analyses) and merge specific model scores if available for that date
+                // Note: If dates don't align perfectly, we might miss points. 
+                // But typically analysis and visibility snapshots happen similarly or we just show what matches.
+                return prevData.map(item => {
+                  const modelScores = historyMap.get(item.date) || {}
+                  return { ...item, ...modelScores }
+                })
+              })
             }
           } catch (error) {
             console.error('Error fetching GEO visibility data:', error)
           }
+
         }
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err)
@@ -163,17 +214,51 @@ export default function DashboardPage() {
         <div className="bg-popover/95 backdrop-blur-sm p-4 rounded-xl shadow-xl border border-border/50 text-sm ring-1 ring-black/5 dark:ring-white/10">
           <p className="font-medium text-foreground mb-2">{label}</p>
           <div className="flex flex-col gap-2">
-            {payload.map((entry: any, index: number) => (
-              <div key={index} className="flex items-center justify-between gap-8">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ color: entry.color, backgroundColor: entry.color }} />
-                  <span className="text-muted-foreground capitalize">
-                    {entry.name === 'rank' ? t.dashboardRankScore : entry.name === 'position' ? t.dashboardAvgPosition : t.dashboardInclusionRate}
-                  </span>
+            {payload.map((entry: any, index: number) => {
+              // Be selective about what to show based on activeMetric
+              // If we are showing 'rank', we might see 'chatgpt', 'claude' etc.
+              // If we are showing 'position', we might see 'chatgpt_position' etc.
+
+              // Filter out entries that don't match the current view mode if we want to be strict,
+              // or just clean up the names.
+              let displayName = entry.name
+              let value = entry.value
+              let isPercentage = true
+
+              if (activeMetric === 'rank') {
+                if (entry.name === 'rank') displayName = t.dashboardRankScore
+                // If it's a model ID (chatgpt, claude...), we show its name
+                const provider = AI_PROVIDER_META.find(p => p.id === entry.name)
+                if (provider) displayName = provider.name
+              } else if (activeMetric === 'position') {
+                if (entry.name === 'position') displayName = t.dashboardAvgPosition
+                if (entry.name.endsWith('_position')) {
+                  const modelId = entry.name.replace('_position', '')
+                  const provider = AI_PROVIDER_META.find(p => p.id === modelId)
+                  if (provider) displayName = provider.name
+                }
+                isPercentage = false
+              } else if (activeMetric === 'inclusion') {
+                if (entry.name === 'inclusion') displayName = t.dashboardInclusionRate
+                if (entry.name.endsWith('_inclusion')) {
+                  const modelId = entry.name.replace('_inclusion', '')
+                  const provider = AI_PROVIDER_META.find(p => p.id === modelId)
+                  if (provider) displayName = provider.name
+                }
+              }
+
+              return (
+                <div key={index} className="flex items-center justify-between gap-8">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ color: entry.color, backgroundColor: entry.color }} />
+                    <span className="text-muted-foreground capitalize">
+                      {displayName}
+                    </span>
+                  </div>
+                  <span className="font-mono font-medium text-foreground">{value}{isPercentage ? '%' : ''}</span>
                 </div>
-                <span className="font-mono font-medium text-foreground">{entry.value}{entry.name === 'position' ? '' : '%'}</span>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       )
@@ -182,7 +267,11 @@ export default function DashboardPage() {
   }
 
   // Calculate current metrics
-  const currentRank = analysis?.score ? Math.round(analysis.score) : 0
+  // Use model performance average for rank if available, otherwise fallback to analysis
+  const currentRank = Object.keys(modelPerformance).length > 0
+    ? Math.round(Object.values(modelPerformance).reduce((a, b) => a + b, 0) / Object.values(modelPerformance).length)
+    : (analysis?.score ? Math.round(analysis.score) : 0)
+
   const currentPosition = analysis?.avg_position ? Math.round(analysis.avg_position) : 0
   const currentInclusion = analysis?.inclusion_rate ? Math.round(analysis.inclusion_rate) : 0
 
@@ -304,16 +393,50 @@ export default function DashboardPage() {
                 {/* Main Chart Area */}
                 <div className="w-full">
                   <div className="mb-4">
-                    <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                      {activeMetric === 'rank' && `${currentRank}/100`}
-                      {activeMetric === 'position' && `#${currentPosition}`}
-                      {activeMetric === 'inclusion' && `${currentInclusion}%`}
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                          {activeMetric === 'rank' && `${currentRank}/100`}
+                          {activeMetric === 'position' && `#${currentPosition}`}
+                          {activeMetric === 'inclusion' && `${currentInclusion}%`}
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {activeMetric === 'rank' && t.dashboardOverallVisibility}
+                          {activeMetric === 'position' && t.dashboardAvgPositionDesc}
+                          {activeMetric === 'inclusion' && t.dashboardInclusionRateDesc}
+                        </p>
+                      </div>
+
+                      {/* Model Breakdown - Main Chart Header */}
+                      {activeMetric === 'rank' && Object.keys(modelPerformance).length > 0 && (
+                        <div className="flex items-center gap-3 mb-1">
+                          {AI_PROVIDER_META.map((provider) => {
+                            const score = modelPerformance[provider.id]
+                            if (score === undefined) return null
+                            return (
+                              <div key={provider.id} className="flex flex-col items-center gap-1 group relative">
+                                <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 p-1 flex items-center justify-center">
+                                  <Image
+                                    src={provider.icon}
+                                    alt={provider.name}
+                                    width={16}
+                                    height={16}
+                                    className={provider.icon.includes('openai.svg') ? 'w-full h-full object-contain dark:invert' : 'w-full h-full object-contain'}
+                                  />
+                                </div>
+                                <span className="text-[10px] font-mono font-medium text-gray-600 dark:text-gray-400">
+                                  {Math.round(score)}%
+                                </span>
+                                {/* Tooltip */}
+                                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-10">
+                                  {provider.name}: {Math.round(score)}%
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {activeMetric === 'rank' && t.dashboardOverallVisibility}
-                      {activeMetric === 'position' && t.dashboardAvgPositionDesc}
-                      {activeMetric === 'inclusion' && t.dashboardInclusionRateDesc}
-                    </p>
                   </div>
 
                   <div className="h-[300px]">
@@ -343,15 +466,41 @@ export default function DashboardPage() {
                             reversed={activeMetric === 'position'}
                           />
                           <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1, strokeDasharray: '5 5' }} />
-                          <Area
-                            type="monotone"
-                            dataKey={activeMetric}
-                            stroke="#10b981"
-                            strokeWidth={3}
-                            fillOpacity={1}
-                            fill="url(#colorMetric)"
-                            animationDuration={1000}
-                          />
+                          {/* Overall Metric Area (Background) - Only for non-rank or if no model data */}
+                          {(activeMetric !== 'rank' || Object.keys(modelPerformance).length === 0) && (
+                            <Area
+                              type="monotone"
+                              dataKey={activeMetric}
+                              stroke="#10b981"
+                              strokeWidth={3}
+                              fillOpacity={1}
+                              fill="url(#colorMetric)"
+                              animationDuration={1000}
+                            />
+                          )}
+
+
+                          {/* Individual Model Lines - For All Metrics */}
+                          {Object.keys(modelPerformance).length > 0 && AI_PROVIDER_META.map((provider) => {
+                            // Determine data key based on active metric
+                            let dataKey = provider.id
+                            if (activeMetric === 'position') dataKey = `${provider.id}_position`
+                            if (activeMetric === 'inclusion') dataKey = `${provider.id}_inclusion`
+
+                            return (
+                              <Area
+                                key={provider.id}
+                                type="monotone"
+                                dataKey={dataKey}
+                                stroke={provider.color}
+                                strokeWidth={2}
+                                fillOpacity={0.1}
+                                fill={provider.color}
+                                stackId={activeMetric === 'position' ? undefined : "1"} // Usually don't stack position
+                                connectNulls
+                              />
+                            )
+                          })}
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : (
@@ -413,14 +562,43 @@ export default function DashboardPage() {
                         </div>
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{comp.name}</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-24 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                          <div
-                            className="h-full bg-gray-900 dark:bg-white rounded-full"
-                            style={{ width: `${comp.visibility_score || 0}%` }}
-                          />
-                        </div>
-                        <span className="text-xs font-mono text-gray-500 w-8 text-right">{comp.visibility_score || 0}</span>
+                      <div className="flex flex-col gap-2 w-full max-w-[200px]">
+                        {comp.metrics_breakdown ? (
+                          // Show breakdown if available
+                          <div className="grid grid-cols-4 gap-1">
+                            {Object.entries(comp.metrics_breakdown).map(([modelKey, score]) => {
+                              const frontendId = MODEL_ID_MAP[modelKey] || modelKey
+                              const provider = AI_PROVIDER_META.find(p => p.id === frontendId)
+                              if (!provider) return null
+
+                              return (
+                                <div key={modelKey} className="flex flex-col items-center group/tooltip relative">
+                                  <div className="w-1 h-4 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden relative">
+                                    <div
+                                      className="w-full absolute bottom-0 left-0 rounded-full"
+                                      style={{ height: `${score}%`, backgroundColor: provider.color }}
+                                    />
+                                  </div>
+                                  {/* Simple Tooltip on hover */}
+                                  <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover/tooltip:block bg-black text-white text-[10px] px-1 rounded whitespace-nowrap z-10">
+                                    {provider.name}: {score}%
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          // Fallback to overall score
+                          <div className="flex items-center gap-3 justify-end">
+                            <div className="w-24 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gray-900 dark:bg-white rounded-full"
+                                style={{ width: `${comp.visibility_score || 0}%` }}
+                              />
+                            </div>
+                            <span className="text-xs font-mono text-gray-500 w-8 text-right">{comp.visibility_score || 0}%</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
@@ -443,21 +621,27 @@ export default function DashboardPage() {
                     return (
                       <div key={provider.id} className="flex items-center justify-between group p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-[#111114] transition-colors">
                         <div className="flex items-center gap-3">
-                          <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 p-1 text-gray-900 dark:text-white">
-                            <Image src={provider.icon} alt={provider.name} width={16} height={16} className={provider.icon.includes('openai.svg') ? 'w-full h-full object-contain dark:invert' : 'w-full h-full object-contain'} />
+                          <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 p-1.5 text-gray-900 dark:text-white flex items-center justify-center">
+                            <Image
+                              src={provider.icon}
+                              alt={provider.name}
+                              width={20}
+                              height={20}
+                              className={provider.icon.includes('openai.svg') ? 'w-full h-full object-contain dark:invert' : 'w-full h-full object-contain'}
+                            />
                           </div>
                           <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{provider.name}</span>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-1 justify-end max-w-[140px]">
                           {hasData ? (
                             <>
-                              <div className="w-20 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                              <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                                 <div
                                   className="h-full bg-emerald-500 rounded-full transition-all duration-500"
                                   style={{ width: `${score}%` }}
                                 />
                               </div>
-                              <span className="text-xs font-mono text-emerald-500 font-medium w-10 text-right">
+                              <span className="text-xs font-mono text-emerald-500 font-medium w-9 text-right">
                                 {Math.round(score)}%
                               </span>
                             </>

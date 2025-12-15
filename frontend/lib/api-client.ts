@@ -43,6 +43,18 @@ export async function fetchAPI<T>(endpoint: string, options: FetchOptions = {}):
     if (error.name === 'AbortError') {
       throw new Error('Request timed out');
     }
+
+    // Normalize network / fetch errors to a friendly, localised message
+    const isNetworkError =
+      error instanceof TypeError ||
+      String(error?.message).toLowerCase().includes('failed to fetch') ||
+      String(error?.code).toLowerCase().includes('econnrefused') ||
+      String(error?.message).toLowerCase().includes('networkerror');
+
+    if (isNetworkError) {
+      throw new Error('No se pudo conectar con el backend. Comprueba que el servidor esté levantado.');
+    }
+
     throw error;
   }
 }

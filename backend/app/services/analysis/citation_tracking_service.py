@@ -616,7 +616,7 @@ class CitationTrackingService:
         
         return list(set(signals))
     
-    async def check_authority_sources(self, brand_name: str, domain: str) -> List[Dict[str, Any]]:
+    async def check_authority_sources(self, brand_name: str, domain: str, known_urls: List[str] = None) -> List[Dict[str, Any]]:
         """
         Check for brand presence on specific high-authority domains.
         """
@@ -633,12 +633,28 @@ class CitationTrackingService:
         ]
         
         results = []
+        known_urls = known_urls or []
         
         try:
             from ddgs import DDGS
             
             with DDGS() as ddgs:
                 for source in authority_sources:
+                    # Check if we already found this source in known_urls
+                    found_url = next((url for url in known_urls if source["domain"] in url.lower()), None)
+                    
+                    if found_url:
+                        results.append({
+                            "source": source["name"],
+                            "type": source["type"],
+                            "authority": 90 if source["impact"] == "high" else 80 if source["impact"] == "medium" else 70,
+                            "status": "present",
+                            "impact": source["impact"],
+                            "url": found_url
+                        })
+                        continue
+
+                    # Otherwise search for it
                     query = f'site:{source["domain"]} "{brand_name}"'
                     try:
                         # Quick check - just need 1 result

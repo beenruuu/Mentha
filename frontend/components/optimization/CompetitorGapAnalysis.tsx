@@ -45,7 +45,12 @@ const componentTranslations = {
         winningTopics: 'Temas Ganadores',
         noWinningTopics: 'Aún no hay temas ganadores.',
         gap: 'Brecha',
-        industryAvg: 'Promedio Industria'
+        industryAvg: 'Promedio Industria',
+        noDataAvailable: 'No hay datos de análisis disponibles',
+        runAnalysisFirst: 'Ejecuta un análisis de visibilidad para ver las brechas de contenido con tus competidores.',
+        backendUnavailable: 'No se pudo conectar con el servidor de análisis.',
+        retryLater: 'Intenta de nuevo más tarde o verifica que el backend esté activo.',
+        noCompetitors: 'Añade competidores para ver el análisis comparativo.'
     },
     en: {
         loadingAnalysis: 'Loading analysis...',
@@ -59,7 +64,12 @@ const componentTranslations = {
         winningTopics: 'Winning Topics',
         noWinningTopics: 'No winning topics yet.',
         gap: 'Gap',
-        industryAvg: 'Industry Avg'
+        industryAvg: 'Industry Avg',
+        noDataAvailable: 'No analysis data available',
+        runAnalysisFirst: 'Run a visibility analysis to see content gaps with your competitors.',
+        backendUnavailable: 'Could not connect to the analysis server.',
+        retryLater: 'Try again later or verify that the backend is running.',
+        noCompetitors: 'Add competitors to see comparative analysis.'
     }
 }
 
@@ -71,6 +81,8 @@ export function CompetitorGapAnalysis({ brandName, brandId, competitors }: Compe
     const [winningTopics, setWinningTopics] = useState<GapAnalysisData[]>([])
     const [loading, setLoading] = useState(true)
     const [mounted, setMounted] = useState(false)
+    const [error, setError] = useState<string | null>(null)
+    const [noData, setNoData] = useState(false)
 
     useEffect(() => {
         setMounted(true)
@@ -80,47 +92,80 @@ export function CompetitorGapAnalysis({ brandName, brandId, competitors }: Compe
         const fetchGapAnalysis = async () => {
             if (!brandId) return
 
+            // If no competitors, show appropriate message
+            if (!competitors || competitors.length === 0) {
+                setNoData(true)
+                setLoading(false)
+                return
+            }
+
             try {
                 setLoading(true)
+                setError(null)
+                setNoData(false)
+
                 // Fetch real analysis from backend
                 const response = await fetchAPI<GapAnalysisResponse>(`/analysis/gap/${brandId}`)
 
-                if (response && response.topics) {
+                if (response && response.topics && response.topics.length > 0) {
                     setData(response.topics)
                     setCriticalGaps(response.critical_gaps || [])
                     setWinningTopics(response.winning_topics || [])
                 } else {
-                    // Fallback to mock data if no analysis exists yet
-                    generateMockData()
+                    // No data available yet - show empty state
+                    setNoData(true)
+                    setData([])
+                    setCriticalGaps([])
+                    setWinningTopics([])
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error("Failed to fetch gap analysis:", error)
-                generateMockData()
+                // Check if it's a connection error
+                if (error.message?.includes('backend') || error.message?.includes('connect')) {
+                    setError('connection')
+                } else {
+                    // Just show empty state for other errors
+                    setNoData(true)
+                }
+                setData([])
+                setCriticalGaps([])
+                setWinningTopics([])
             } finally {
                 setLoading(false)
             }
         }
 
-        const generateMockData = () => {
-            const mockTopics: GapAnalysisData[] = [
-                { topic: lang === 'es' ? 'Precios' : 'Pricing', brand_coverage: 10, competitor_avg: 85, gap: -75, status: 'critical' },
-                { topic: lang === 'es' ? 'Documentación API' : 'API Docs', brand_coverage: 0, competitor_avg: 60, gap: -60, status: 'critical' },
-                { topic: lang === 'es' ? 'Casos de Éxito' : 'Case Studies', brand_coverage: 30, competitor_avg: 70, gap: -40, status: 'warning' },
-                { topic: lang === 'es' ? 'Seguridad' : 'Security', brand_coverage: 90, competitor_avg: 80, gap: 10, status: 'good' },
-                { topic: lang === 'es' ? 'Integraciones' : 'Integrations', brand_coverage: 20, competitor_avg: 50, gap: -30, status: 'warning' },
-            ]
-            setData(mockTopics)
-            setCriticalGaps(mockTopics.filter(t => t.status === 'critical'))
-            setWinningTopics(mockTopics.filter(t => t.gap > 0))
-        }
-
         fetchGapAnalysis()
-    }, [brandId, lang])
+    }, [brandId, competitors, lang])
 
     if (!mounted) return null
 
     if (loading) {
         return <div className="flex items-center justify-center h-full text-muted-foreground">{texts.loadingAnalysis}</div>
+    }
+
+    // Show error state if backend unavailable
+    if (error === 'connection') {
+        return (
+            <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+                <AlertCircle className="w-12 h-12 text-amber-500 mb-4" />
+                <h3 className="text-sm font-medium text-foreground mb-2">{texts.backendUnavailable}</h3>
+                <p className="text-xs text-muted-foreground max-w-sm">{texts.retryLater}</p>
+            </div>
+        )
+    }
+
+    // Show empty state if no data
+    if (noData || data.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+                <BarChart3 className="w-12 h-12 text-muted-foreground/50 mb-4" />
+                <h3 className="text-sm font-medium text-foreground mb-2">{texts.noDataAvailable}</h3>
+                <p className="text-xs text-muted-foreground max-w-sm">
+                    {!competitors || competitors.length === 0 ? texts.noCompetitors : texts.runAnalysisFirst}
+                </p>
+            </div>
+        )
     }
 
     return (

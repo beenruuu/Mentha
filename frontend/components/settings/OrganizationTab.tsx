@@ -6,6 +6,7 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
+import { fetchAPI } from "@/lib/api-client"
 
 type Member = {
     id: string
@@ -20,14 +21,16 @@ interface OrganizationTabProps {
 }
 
 export function OrganizationTab({ t }: OrganizationTabProps) {
-    const { data: members, isLoading: isLoadingMembers } = useQuery({
+    const { data: members, isLoading: isLoadingMembers } = useQuery<Member[]>({
         queryKey: ["orgMembers"],
         queryFn: async () => {
-            // Mock data until endpoint is fully linked
-            return [
-                { id: "1", full_name: "Rubén (Tú)", email: "ruben@mentha.ai", role: "owner", avatar_url: "" },
-                { id: "2", full_name: "Demo User", email: "demo@mentha.ai", role: "viewer", avatar_url: "" }
-            ] as Member[]
+            try {
+                const data = await fetchAPI<Member[]>("/organization/members");
+                return data;
+            } catch (error) {
+                console.error("Failed to fetch members", error);
+                return [];
+            }
         }
     })
 

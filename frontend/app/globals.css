@@ -84,33 +84,63 @@ body {
   overflow-x: hidden;
 }
 
+/* ============================================
+   SCROLLBAR STYLING - Mentha Green Color
+   ============================================ */
+
+/* WebKit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2DD4BF;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #14b8a6;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: #0d9488;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: #16a085;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #1abc9c;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2DD4BF transparent;
+}
+
+.dark * {
+  scrollbar-color: #16a085 transparent;
+}
+
 @layer utilities {
-
-  /* Webkit browsers (Chrome, Safari, Edge) */
-  *::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  *::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  *::-webkit-scrollbar-thumb {
-    background: rgba(var(--mentha-rgb), 0.5);
-    border-radius: 9999px;
-    transition: background 0.2s ease;
-  }
-
-  *::-webkit-scrollbar-thumb:hover {
-    background: var(--mentha);
-  }
-
-  /* Firefox */
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: rgba(var(--mentha-rgb), 0.5) transparent;
-  }
 
   /* Settings panel blur effect - only blur main content area (the rounded container) */
   body[data-settings-open="true"] main.dashboard-main {

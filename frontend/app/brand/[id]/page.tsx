@@ -1,8 +1,8 @@
 'use client'
 
-import { use, useEffect, useState } from 'react'
+import { use, useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
-import { Building2, Globe, Trash2, ArrowRight, Activity, Search, ShieldCheck, Sparkles, Network, PieChart as PieChartIcon, Mic, BookOpen } from 'lucide-react'
+import { Building2, Globe, Trash2, ArrowRight, Activity, Search, ShieldCheck, Sparkles, Network, PieChart as PieChartIcon, Mic, BookOpen, Play, Loader2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -15,6 +15,7 @@ import { keywordsService, Keyword } from "@/lib/services/keywords"
 import { analysisService, Analysis } from "@/lib/services/analysis"
 import { technicalAeoService, TechnicalAEO } from "@/lib/services/technical-aeo"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,9 +45,14 @@ import { BrandPageSkeleton } from "@/components/skeletons/brand-page-skeleton"
 import { ContentOptimizationCard } from "@/components/analysis/content-optimization-card"
 import { VisualOpportunitiesCard } from "@/components/analysis/visual-opportunities-card"
 import { AuthoritySourcesCard } from "@/components/analysis/authority-sources-card"
+import { SentimentAnalysisCard } from "@/components/analysis/SentimentAnalysisCard"
+import { PromptTracker } from "@/components/analysis/PromptTracker"
+import { ExportButton } from "@/components/shared/ExportButton"
+import { fetchAPI } from "@/lib/api-client"
 
 export default function BrandPage({ params }: { params: Promise<{ id: string }> }) {
   const { t } = useTranslations()
+  const { toast } = useToast()
   const { id } = use(params)
   const router = useRouter()
   const [brand, setBrand] = useState<Brand | null>(null)
@@ -56,35 +62,112 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
   const [technicalAeo, setTechnicalAeo] = useState<TechnicalAEO | null>(null)
   const [loading, setLoading] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isAnalyzing, setIsAnalyzing] = useState(false)
 
+  /* State for coordinating updates across components */
+  const [lastUpdated, setLastUpdated] = useState<number>(Date.now())
+
+  /* Polling logic to check for analysis updates */
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [brandData, competitorsData, keywordsData, analysesData, technicalAeoData] = await Promise.all([
-          brandsService.getById(id),
-          competitorsService.getAll(id),
-          keywordsService.getAll(id),
-          analysisService.getAll(id),
-          technicalAeoService.getLatestByBrandId(id)
-        ])
-        setBrand(brandData)
-        setCompetitors(competitorsData)
-        setKeywords(keywordsData)
-        setTechnicalAeo(technicalAeoData)
+    let intervalId: NodeJS.Timeout;
 
-        if (analysesData.length > 0) {
-          analysesData.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-          setAnalysis(analysesData[0])
+    // Check if we need to poll (if analysis is pending/processing or if we just triggered one)
+    const shouldPoll = isAnalyzing || (analysis && ['pending', 'processing'].includes(analysis.status));
+
+    if (shouldPoll) {
+      intervalId = setInterval(async () => {
+        try {
+          const latestAnalyses = await analysisService.getAll(id);
+          if (latestAnalyses.length > 0) {
+            latestAnalyses.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+            const latest = latestAnalyses[0];
+
+            // If status changed or it's a new analysis, update state
+            if (!analysis || latest.id !== analysis.id || latest.status !== analysis.status) {
+              setAnalysis(latest);
+              setLastUpdated(Date.now()); // Trigger updates in child components
+
+              // Also refresh other data that might have changed
+              const [competitorsData, keywordsData, technicalAeoData] = await Promise.all([
+                competitorsService.getAll(id),
+                keywordsService.getAll(id),
+                technicalAeoService.getLatestByBrandId(id)
+              ]);
+              setCompetitors(competitorsData);
+              setKeywords(keywordsData);
+              setTechnicalAeo(technicalAeoData);
+            }
+
+            // Stop analyzing state if completed
+            if (['completed', 'failed'].includes(latest.status)) {
+              setIsAnalyzing(false);
+            }
+          }
+        } catch (error) {
+          console.error('Polling error:', error);
         }
-      } catch (error) {
-        console.error('Failed to fetch brand data:', error)
-      } finally {
-        setLoading(false)
-      }
+      }, 3000); // Poll every 3 seconds
     }
 
-    fetchData()
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, [id, isAnalyzing, analysis]);
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [brandData, competitorsData, keywordsData, analysesData, technicalAeoData] = await Promise.all([
+        brandsService.getById(id),
+        competitorsService.getAll(id),
+        keywordsService.getAll(id),
+        analysisService.getAll(id),
+        technicalAeoService.getLatestByBrandId(id)
+      ])
+      setBrand(brandData)
+      setCompetitors(competitorsData)
+      setKeywords(keywordsData)
+      setTechnicalAeo(technicalAeoData)
+
+      if (analysesData.length > 0) {
+        analysesData.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        const latest = analysesData[0]
+        setAnalysis(latest)
+
+        // If the latest analysis is still running, make sure we're in analyzing mode
+        if (['pending', 'processing'].includes(latest.status)) {
+          setIsAnalyzing(true)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch brand data:', error)
+    } finally {
+      setLoading(false)
+    }
   }, [id])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  const handleRunAnalysis = async () => {
+    setIsAnalyzing(true)
+    try {
+      await fetchAPI(`/analysis/trigger/${id}`, { method: 'POST' })
+      toast({
+        title: t.analysisTriggered,
+        description: t.analysisTriggeredDesc,
+      })
+      // The polling effect will pick up the new analysis status automatically
+    } catch (error) {
+      console.error('Failed to trigger analysis:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to start analysis. Please try again.',
+        variant: 'destructive',
+      })
+      setIsAnalyzing(false)
+    }
+  }
 
   const handleDeleteBrand = async () => {
     setIsDeleting(true)
@@ -113,10 +196,15 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
               <img
                 src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`}
                 alt={`${brand.name} logo`}
-                className="w-6 h-6 object-contain"
+                className="w-6 h-6 object-contain m-auto"
+                style={{ display: 'block' }}
                 onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.parentElement!.innerText = brand.name.charAt(0).toUpperCase();
+                  const target = e.currentTarget;
+                  const parent = target.parentElement;
+                  if (parent) {
+                    target.remove();
+                    parent.innerHTML = `<span class="text-lg font-bold text-primary flex items-center justify-center w-full h-full">${brand.name.charAt(0).toUpperCase()}</span>`;
+                  }
                 }}
               />
             </div>
@@ -131,6 +219,20 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              onClick={handleRunAnalysis}
+              disabled={isAnalyzing}
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2"
+            >
+              {isAnalyzing ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
+              {isAnalyzing ? t.analyzingBrand : t.runAnalysis}
+            </Button>
+            <ExportButton brandId={id} brandName={brand.name} />
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900/30">
@@ -164,21 +266,21 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
               {/* Quick Stats */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <MetricTab
-                  label="AEO Readiness"
+                  label={t.aeoReadiness}
                   value={`${Math.round(technicalAeo?.aeo_readiness_score || 0)}%`}
                   trend={5}
                   isActive={false}
                   onClick={() => { }}
                 />
                 <MetricTab
-                  label="Tracked Keywords"
+                  label={t.trackedKeywordsLabel}
                   value={keywords.length.toString()}
                   trend={keywords.length > 0 ? 100 : 0}
                   isActive={false}
                   onClick={() => { }}
                 />
                 <MetricTab
-                  label="Competitors"
+                  label={t.competitors}
                   value={competitors.length.toString()}
                   trend={0}
                   isActive={false}
@@ -203,7 +305,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                             <DialogTrigger asChild>
                               <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5 text-purple-600 border-purple-200 hover:bg-purple-50 dark:border-purple-900/50 dark:text-purple-400 dark:hover:bg-purple-900/20">
                                 <Sparkles className="w-3 h-3" />
-                                Simulate Answer
+                                {t.simulateAnswer}
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-2xl h-[600px] flex flex-col p-0 gap-0 overflow-hidden">
@@ -211,7 +313,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                             </DialogContent>
                           </Dialog>
                           <Badge variant="secondary" className="bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">
-                            {technicalAeo?.recommendations?.length || 0} Pending
+                            {technicalAeo?.recommendations?.length || 0} {t.pendingBadge}
                           </Badge>
                         </div>
                       </div>
@@ -237,7 +339,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                         </div>
                       ) : (
                         <div className="text-center py-8 text-muted-foreground text-sm">
-                          No pending actions. Great job!
+                          {t.noPendingActions}
                         </div>
                       )}
                     </CardContent>
@@ -249,10 +351,10 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-lg font-semibold flex items-center gap-2">
                           <Search className="w-5 h-5 text-blue-500" />
-                          Top Performing Keywords
+                          {t.topPerformingKeywords}
                         </CardTitle>
                         <Button variant="ghost" size="sm" className="text-xs" asChild>
-                          <Link href={`/brand/${id}/keywords`}>View All <ArrowRight className="w-3 h-3 ml-1" /></Link>
+                          <Link href={`/brand/${id}/keywords`}>{t.viewAll} <ArrowRight className="w-3 h-3 ml-1" /></Link>
                         </Button>
                       </div>
                     </CardHeader>
@@ -272,7 +374,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                         ))}
                         {keywords.length === 0 && (
                           <div className="text-center py-8 text-muted-foreground text-sm">
-                            No keywords tracked yet.
+                            {t.noKeywordsTracked}
                           </div>
                         )}
                       </div>
@@ -284,19 +386,19 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                     <CardHeader className="pb-2">
                       <div className="flex items-center justify-between">
                         <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
-                          Authority Nexus
+                          {t.authorityNexus}
                         </CardTitle>
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-7 text-xs">
-                              View Strategy
+                              {t.viewStrategy}
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="max-w-4xl h-[600px] flex flex-col">
                             <DialogHeader>
-                              <DialogTitle>Authority Nexus Strategy</DialogTitle>
+                              <DialogTitle>{t.authorityNexusStrategy}</DialogTitle>
                               <DialogDescription>
-                                Build your brand's authority graph to dominate AI citations.
+                                {t.buildAuthorityGraph}
                               </DialogDescription>
                             </DialogHeader>
                             <div className="flex-1 overflow-hidden mt-4">
@@ -314,7 +416,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                       <div className="grid grid-cols-2 gap-6">
                         <div>
                           <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">
-                            Authority Score
+                            {t.authorityScore}
                           </span>
                           <div className="flex items-end gap-1 mt-1">
                             <span className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -325,13 +427,13 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                         </div>
                         <div>
                           <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-medium">
-                            Missing Citations
+                            {t.missingCitations}
                           </span>
                           <div className="flex items-end gap-1 mt-1">
                             <span className="text-3xl font-bold text-red-500">
                               {analysis?.results?.authority_nexus?.citations?.filter((c: any) => c.status === 'missing' && c.impact === 'high').length || 0}
                             </span>
-                            <span className="text-sm text-gray-400 mb-1">critical</span>
+                            <span className="text-sm text-gray-400 mb-1">{t.critical}</span>
                           </div>
                         </div>
                       </div>
@@ -342,11 +444,15 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                   <Card className="border-border/50 shadow-sm rounded-xl">
                     <CardHeader className="pb-2">
                       <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
-                        Share of Model
+                        {t.shareOfModel}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ShareOfModel brandName={brand.name} brandId={brand.id} />
+                      <ShareOfModel
+                        brandName={brand.name}
+                        brandId={brand.id}
+                        lastUpdated={lastUpdated}
+                      />
                     </CardContent>
                   </Card>
 
@@ -359,7 +465,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                   <Card className="border-border/50 shadow-sm rounded-xl">
                     <CardHeader>
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-base font-semibold">Competitors</CardTitle>
+                        <CardTitle className="text-base font-semibold">{t.competitors}</CardTitle>
                         <div className="flex items-center gap-1">
                           <Dialog>
                             <DialogTrigger asChild>
@@ -369,9 +475,9 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-[90vw] max-w-[95vw] w-[90vw] h-[85vh] flex flex-col">
                               <DialogHeader>
-                                <DialogTitle>Competitor Content Gap Analysis</DialogTitle>
+                                <DialogTitle>{t.competitorContentGapAnalysis}</DialogTitle>
                                 <DialogDescription>
-                                  See where your competitors are outperforming you in content coverage.
+                                  {t.competitorsOutperforming}
                                 </DialogDescription>
                               </DialogHeader>
                               <div className="flex-1 overflow-hidden mt-4">
@@ -414,7 +520,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                         ))}
                         {competitors.length === 0 && (
                           <div className="text-center py-4 text-muted-foreground text-xs">
-                            No competitors added.
+                            {t.noCompetitorsAdded}
                           </div>
                         )}
                       </div>
@@ -426,7 +532,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                     <CardHeader>
                       <CardTitle className="text-base font-semibold flex items-center gap-2">
                         <ShieldCheck className="w-4 h-4 text-purple-500" />
-                        Technical Health
+                        {t.technicalHealth}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -434,12 +540,12 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                         <div className="space-y-4">
                           <div>
                             <div className="flex items-center justify-between text-sm mb-1">
-                              <span className="text-muted-foreground">AEO Readiness</span>
+                              <span className="text-muted-foreground">{t.aeoReadiness}</span>
                               <span className={`font-medium ${technicalAeo.aeo_readiness_score >= 80 ? 'text-emerald-600' :
                                 technicalAeo.aeo_readiness_score >= 50 ? 'text-yellow-600' : 'text-red-600'
                                 }`}>
-                                {technicalAeo.aeo_readiness_score >= 80 ? 'Excellent' :
-                                  technicalAeo.aeo_readiness_score >= 50 ? 'Good' : 'Needs Work'}
+                                {technicalAeo.aeo_readiness_score >= 80 ? t.excellent :
+                                  technicalAeo.aeo_readiness_score >= 50 ? t.good : t.needsWork}
                               </span>
                             </div>
                             <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
@@ -456,13 +562,13 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                             <div className="flex items-center justify-between text-sm mb-1">
                               <span className="text-muted-foreground flex items-center gap-1.5">
                                 <Mic className="w-3.5 h-3.5" />
-                                Voice Readiness
+                                {t.voiceReadiness}
                               </span>
                               <span className={`font-medium ${technicalAeo.voice_readiness_score && technicalAeo.voice_readiness_score >= 80 ? 'text-emerald-600' :
                                 technicalAeo.voice_readiness_score && technicalAeo.voice_readiness_score >= 50 ? 'text-yellow-600' : 'text-red-600'
                                 }`}>
-                                {technicalAeo.voice_readiness_score && technicalAeo.voice_readiness_score >= 80 ? 'Excellent' :
-                                  technicalAeo.voice_readiness_score && technicalAeo.voice_readiness_score >= 50 ? 'Good' : 'Needs Work'}
+                                {technicalAeo.voice_readiness_score && technicalAeo.voice_readiness_score >= 80 ? t.excellent :
+                                  technicalAeo.voice_readiness_score && technicalAeo.voice_readiness_score >= 50 ? t.good : t.needsWork}
                               </span>
                             </div>
                             <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
@@ -477,23 +583,23 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
 
                           <div>
                             <div className="flex items-center justify-between text-sm mb-1">
-                              <span className="text-muted-foreground">Schema Markup</span>
+                              <span className="text-muted-foreground">{t.schemaMarkup}</span>
                               <div className="flex items-center gap-2">
                                 <span className={`font-medium ${technicalAeo.total_schemas && technicalAeo.total_schemas > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                  {technicalAeo.total_schemas && technicalAeo.total_schemas > 0 ? `${technicalAeo.total_schemas} Types` : 'Missing'}
+                                  {technicalAeo.total_schemas && technicalAeo.total_schemas > 0 ? `${technicalAeo.total_schemas} ${t.types}` : t.missing}
                                 </span>
                                 {(!technicalAeo.total_schemas || technicalAeo.total_schemas === 0) && (
                                   <Dialog>
                                     <DialogTrigger asChild>
                                       <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 border-purple-200 text-purple-700 hover:bg-purple-50 hover:text-purple-800 dark:border-purple-900/50 dark:text-purple-400 dark:hover:bg-purple-900/20">
-                                        Fix it
+                                        {t.fixIt}
                                       </Button>
                                     </DialogTrigger>
                                     <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
                                       <DialogHeader>
-                                        <DialogTitle>Schema Generator</DialogTitle>
+                                        <DialogTitle>{t.schemaGenerator}</DialogTitle>
                                         <DialogDescription>
-                                          Generate the missing JSON-LD code to help AI understand your brand.
+                                          {t.generateMissingCode}
                                         </DialogDescription>
                                       </DialogHeader>
                                       <div className="flex-1 overflow-hidden mt-4">
@@ -544,7 +650,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                         </div>
                       ) : (
                         <div className="text-center py-4 text-muted-foreground text-xs">
-                          No technical audit data available.
+                          {t.noTechnicalData}
                         </div>
                       )}
                     </CardContent>
@@ -569,6 +675,21 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                   {analysis?.results?.visual_suggestions && (
                     <VisualOpportunitiesCard opportunities={analysis.results.visual_suggestions} />
                   )}
+
+                  {/* Sentiment Analysis - NEW */}
+                  <SentimentAnalysisCard
+                    brandId={id}
+                    brandName={brand.name}
+                    lastUpdated={lastUpdated}
+                  />
+
+                  {/* Prompt Tracking - NEW */}
+                  <PromptTracker
+                    brandId={id}
+                    brandName={brand.name}
+                    competitors={competitors.map(c => c.name)}
+                    lastUpdated={lastUpdated}
+                  />
                 </div>
               </div>
             </div>

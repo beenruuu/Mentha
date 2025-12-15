@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Image, Copy, Sparkles } from "lucide-react"
 import { toast } from "sonner"
+import { useTranslations } from "@/lib/i18n"
 
 interface VisualOpportunity {
     type: string
@@ -19,11 +20,12 @@ interface VisualOpportunitiesCardProps {
 }
 
 export function VisualOpportunitiesCard({ opportunities }: VisualOpportunitiesCardProps) {
+    const { t } = useTranslations()
     if (!opportunities || opportunities.length === 0) return null
 
     const handleCopyPrompt = (prompt: string) => {
         navigator.clipboard.writeText(prompt)
-        toast.success("Prompt copied to clipboard!")
+        toast.success(t.promptCopied)
     }
 
     return (
@@ -31,11 +33,11 @@ export function VisualOpportunitiesCard({ opportunities }: VisualOpportunitiesCa
             <CardHeader>
                 <div className="flex items-center gap-2">
                     <Image className="h-5 w-5 text-yellow-500" />
-                    <CardTitle>SGE Visual Opportunities</CardTitle>
+                    <CardTitle>{t.sgeVisualOpportunities}</CardTitle>
                 </div>
                 <CardDescription>
-                    Add these visuals to improve your chances of appearing in AI snapshots.
-                    Prompts optimized for <strong>Nano Banana</strong> (Gemini 2.5 Flash Image).
+                    {t.addVisualsDescription}
+                    {' '}{t.promptsOptimizedFor} <strong>Nano Banana</strong> (Gemini 2.5 Flash Image).
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -43,10 +45,10 @@ export function VisualOpportunitiesCard({ opportunities }: VisualOpportunitiesCa
                     <div key={index} className="p-4 bg-muted/30 rounded-lg border border-border/50 space-y-3">
                         <div className="flex items-center justify-between">
                             <Badge variant="outline" className="bg-background">
-                                {opp.location || "General Section"}
+                                {opp.location || t.generalSection}
                             </Badge>
                             <Badge variant="secondary" className="text-xs">
-                                Missing Visual
+                                {t.missingVisual}
                             </Badge>
                         </div>
 
@@ -57,7 +59,7 @@ export function VisualOpportunitiesCard({ opportunities }: VisualOpportunitiesCa
                         <div className="space-y-2">
                             <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                                 <Sparkles className="h-3 w-3 text-yellow-500" />
-                                <span>Suggested Prompt (Nano Banana):</span>
+                                <span>{t.suggestedPrompt} (Nano Banana):</span>
                             </div>
                             <div className="relative group">
                                 <div className="p-3 bg-background border rounded-md text-sm font-mono text-muted-foreground pr-10">

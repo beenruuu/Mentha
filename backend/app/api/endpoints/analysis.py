@@ -282,7 +282,7 @@ async def get_share_of_model(
         filters={"brand_id": str(brand_id), "status": "completed"},
         order_by="created_at",
         order_desc=True,
-        limit=1
+        limit=2
     )
     
     if not brand_analyses:
@@ -298,9 +298,50 @@ async def get_share_of_model(
     visibility = results.get("visibility_findings", {})
     
     brand_mentions = visibility.get("mention_count", 0)
-    competitor_mentions = visibility.get("competitor_mentions", {})
     
-    # Calculate total mentions (Brand + All Competitors)
+    # Calculate global mention counts (brand + all competitors)
+    # This logic seems to need adjustment as 'visibility' structure might not have competitor info directly.
+    # Usually Share of Model is calculated during analysis generation.
+    # Check AnalysisService.run_analysis -> generates result structure.
+    # Assuming 'share_of_model' is directly in results or derived.
+    
+    # If share_of_model is pre-calculated in analysis.results
+    share_of_model_data = results.get("share_of_model", {})
+    if not share_of_model_data:
+        # Fallback to visibility data
+        sov = visibility.get("share_of_voice", 0)
+        competitor_mentions = visibility.get("competitor_mentions", {})
+    else:
+        sov = share_of_model_data.get("share_of_voice", 0)
+        brand_mentions = share_of_model_data.get("brand_mentions", brand_mentions)
+        competitor_mentions = share_of_model_data.get("competitor_mentions", visibility.get("competitor_mentions", {}))
+
+    # Fallback Calculation: If SOV is 0 but we have mentions, calculate it dynamically
+    # This fixes the issue where dashboard shows 0% even with data
+    total_mentions_count = brand_mentions + sum(competitor_mentions.values())
+    if sov == 0 and total_mentions_count > 0:
+        sov = round((brand_mentions / total_mentions_count) * 100, 1)
+
+    # Calculate Trend
+    trend = "stable"
+    if len(brand_analyses) > 1:
+        prev_analysis = brand_analyses[1]
+        prev_results = prev_analysis.results or {}
+        prev_sov = prev_results.get("share_of_model", {}).get("share_of_voice", 
+                   prev_results.get("visibility_findings", {}).get("share_of_voice", 0))
+        
+        if sov > prev_sov + 2: # 2% threshold
+            trend = "up"
+        elif sov < prev_sov - 2:
+            trend = "down"
+    
+    return {
+        "brand_mentions": brand_mentions,
+        "competitor_mentions": competitor_mentions,
+        "total_mentions": brand_mentions + sum(competitor_mentions.values()),
+        "share_of_voice": sov,
+        "trend": trend
+    }
     total_comp_mentions = sum(competitor_mentions.values())
     total_mentions = brand_mentions + total_comp_mentions
     

@@ -9,6 +9,7 @@ export interface Competitor {
   visibility_score?: number;
   favicon?: string;
   tracked: boolean;
+  metrics_breakdown?: Record<string, number>;
   created_at: string;
   updated_at: string;
 }

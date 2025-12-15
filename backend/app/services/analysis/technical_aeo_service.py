@@ -250,6 +250,7 @@ class TechnicalAEOService:
         )
         
         return {
+            "enabled": True,
             'domain': domain,
             'ai_crawler_permissions': crawler_permissions,
             'structured_data': structured_data,

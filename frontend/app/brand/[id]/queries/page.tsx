@@ -155,7 +155,7 @@ export default function BrandQueriesPage({ isEmbedded = false }: { isEmbedded?: 
               <div className="relative flex-1 max-w-sm">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search queries..."
+                  placeholder={t.queriesSearchPlaceholder || "Search queries..."}
                   className="pl-9 bg-white dark:bg-zinc-900/50 border-border/40"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -164,11 +164,11 @@ export default function BrandQueriesPage({ isEmbedded = false }: { isEmbedded?: 
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" className="h-9 border-border/40">
                   <Filter className="w-4 h-4 mr-2" />
-                  Filter
+                  {t.filter}
                 </Button>
                 <Button variant="outline" size="sm" className="h-9 border-border/40">
                   <ArrowUpDown className="w-4 h-4 mr-2" />
-                  Sort
+                  {t.queriesSort || 'Sort'}
                 </Button>
               </div>
             </div>
@@ -177,18 +177,18 @@ export default function BrandQueriesPage({ isEmbedded = false }: { isEmbedded?: 
               <Table>
                 <TableHeader className="bg-secondary/30">
                   <TableRow className="hover:bg-transparent border-border/40">
-                    <TableHead className="w-[300px]">Query</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Frequency</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="w-[300px]">{t.queriesQuery || 'Query'}</TableHead>
+                    <TableHead>{t.queriesCategory || 'Category'}</TableHead>
+                    <TableHead>{t.queriesPriority || 'Priority'}</TableHead>
+                    <TableHead>{t.queriesFrequency || 'Frequency'}</TableHead>
+                    <TableHead className="text-right">{t.queriesActions || 'Actions'}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredQueries.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                        No queries found.
+                        {t.queriesNoFound || 'No queries found.'}
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -232,13 +232,13 @@ export default function BrandQueriesPage({ isEmbedded = false }: { isEmbedded?: 
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuLabel>{t.queriesActions || 'Actions'}</DropdownMenuLabel>
                                 <DropdownMenuItem onClick={() => handleCopy(query.question)}>
-                                  Copy Query
+                                  {t.copyQuery}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem>Edit Query</DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-600">Delete Query</DropdownMenuItem>
+                                <DropdownMenuItem>{t.editQuery}</DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-600">{t.deleteQuery}</DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>

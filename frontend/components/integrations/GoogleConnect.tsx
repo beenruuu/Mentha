@@ -13,7 +13,7 @@ export function GoogleConnect() {
     const { data: status, isLoading, refetch } = useQuery({
         queryKey: ["gscStatus"],
         queryFn: async () => {
-            // Temporary endpoint mock - real impl needs status endpoint
+            // Fetch sites from Google Search Console API
             // Assuming for now if we can fetch sites, we are connected
             try {
                 const sites = await fetchAPI<any[]>("/gsc/sites");

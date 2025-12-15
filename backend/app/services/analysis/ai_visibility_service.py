@@ -191,6 +191,34 @@ class AIVisibilityService:
             total_weight += weight
             total_mentions += mentions
         
+            total_mentions += mentions
+        
+        # Calculate scores for competitor breakdown
+        # results["competitor_breakdown"] is a dict: {comp_name: {model_name: count}}
+        # We need to convert counts to scores (mention rate %)
+        results["competitor_models"] = {}
+        competitor_list = competitors or []
+        
+        for comp in competitor_list:
+            results["competitor_models"][comp] = {}
+            for model_name, model_data in results["models"].items():
+                if not model_data or not model_data.get("enabled"):
+                    continue
+                
+                # Get mentions for this competitor in this model
+                comp_mentions = model_data.get("competitor_mentions", {}).get(comp, 0)
+                responses_analyzed = model_data.get("responses_analyzed", 0)
+                
+                # Calculate score
+                if responses_analyzed > 0:
+                    score = round((comp_mentions / responses_analyzed) * 100, 1)
+                    # Limit to 100% just in case
+                    score = min(score, 100.0)
+                else:
+                    score = 0
+                    
+                results["competitor_models"][comp][model_name] = score
+
         # Calculate overall score
         if total_weight > 0:
             results["overall_score"] = round(total_weighted_score / total_weight, 1)

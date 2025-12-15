@@ -73,7 +73,7 @@ export default function SearchPerformancePage() {
                                 </>
                             )}
                             <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">
-                                Search Performance
+                                {t.searchPerformance}
                             </h1>
                         </div>
                     </div>
@@ -87,9 +87,9 @@ export default function SearchPerformancePage() {
                         ) : (
                             <Tabs defaultValue="keywords" className="space-y-6">
                                 <TabsList className="bg-gray-100 dark:bg-zinc-800">
-                                    <TabsTrigger value="keywords">Keywords</TabsTrigger>
-                                    <TabsTrigger value="queries">Search Queries</TabsTrigger>
-                                    <TabsTrigger value="crawlers">AI Crawlers</TabsTrigger>
+                                    <TabsTrigger value="keywords">{t.keywords}</TabsTrigger>
+                                    <TabsTrigger value="queries">{t.searchQueries}</TabsTrigger>
+                                    <TabsTrigger value="crawlers">{t.aiCrawlers}</TabsTrigger>
                                 </TabsList>
 
                                 <TabsContent value="keywords" className="mt-0">

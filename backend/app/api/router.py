@@ -21,7 +21,12 @@ from app.api.endpoints import (
     admin,
     cms, 
     gsc, 
-    lab
+    lab,
+    prompt_tracking,
+    export,
+    export,
+    sentiment,
+    organization
 )
 
 api_router = APIRouter()
@@ -48,3 +53,9 @@ api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
 api_router.include_router(cms.router, prefix="/cms", tags=["CMS"])
 api_router.include_router(gsc.router, prefix="/gsc", tags=["GSC"])
 api_router.include_router(lab.router, prefix="/lab", tags=["Lab"])
+
+# New AEO Feature endpoints
+api_router.include_router(prompt_tracking.router, tags=["Prompt Tracking"])
+api_router.include_router(export.router, tags=["Export"])
+api_router.include_router(sentiment.router, tags=["Sentiment Analysis"])
+api_router.include_router(organization.router, prefix="/organization", tags=["Organization"])

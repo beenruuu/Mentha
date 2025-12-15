@@ -14,8 +14,10 @@ class CompetitorBase(BaseModel):
     tracked: bool = True
     favicon: Optional[str] = None
     insight: Optional[str] = None
+    insight: Optional[str] = None
     source: Optional[str] = None  # llm_knowledge, web_search, manual, analysis
     confidence: Optional[str] = None  # high, medium, low
+    metrics_breakdown: Optional[dict] = None  # JSON breakdown of visibility scores by model
 
 class CompetitorCreate(CompetitorBase):
     pass
@@ -28,7 +30,9 @@ class CompetitorUpdate(BaseModel):
     favicon: Optional[str] = None
     insight: Optional[str] = None
     source: Optional[str] = None
+    source: Optional[str] = None
     confidence: Optional[str] = None
+    metrics_breakdown: Optional[dict] = None
 
 class Competitor(CompetitorBase):
     id: UUID

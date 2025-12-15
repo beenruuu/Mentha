@@ -50,21 +50,24 @@ function BrandItem({ id, name, domain, onDeleted }: { id: string; name: string; 
           onClick={() => setExpanded(!expanded)}
           className="flex-1 flex items-center gap-3 overflow-hidden"
         >
-          <div className="w-5 h-5 rounded-md overflow-hidden bg-white flex items-center justify-center border border-border shrink-0 shadow-sm">
+          <div className="w-5 h-5 rounded-md overflow-hidden bg-white dark:bg-zinc-800 flex items-center justify-center border border-border shrink-0 shadow-sm">
             <img
               src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
               alt={`${name} logo`}
-              className="w-3.5 h-3.5 object-contain"
+              className="w-3.5 h-3.5 object-contain m-auto"
+              style={{ display: 'block' }}
               onError={(e) => {
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                const target = e.currentTarget;
+                const parent = target.parentElement;
+                if (parent) {
+                  target.remove();
+                  const fallback = document.createElement('span');
+                  fallback.className = 'text-[8px] font-bold text-primary flex items-center justify-center w-full h-full';
+                  fallback.textContent = name.charAt(0).toUpperCase();
+                  parent.appendChild(fallback);
+                }
               }}
             />
-            <div className="hidden w-full h-full bg-primary flex items-center justify-center">
-              <span className="text-[8px] font-bold text-primary-foreground">
-                {name.charAt(0).toUpperCase()}
-              </span>
-            </div>
           </div>
           <span className="truncate font-medium text-foreground/80 group-hover:text-foreground transition-colors">{name}</span>
         </button>
@@ -134,7 +137,7 @@ function BrandItem({ id, name, domain, onDeleted }: { id: string; name: string; 
             <button className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item">
               <span className="flex items-center gap-2">
                 <SearchIcon className="w-3 h-3 opacity-70" />
-                Search Performance
+                {t.searchPerformance}
               </span>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -166,7 +169,7 @@ function BrandItem({ id, name, domain, onDeleted }: { id: string; name: string; 
             <button className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item">
               <span className="flex items-center gap-2">
                 <Bot className="w-3 h-3 opacity-70" />
-                Crawlers Monitor
+                {t.crawlersMonitor}
               </span>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -328,9 +331,9 @@ export function AppSidebar() {
             </div>
             <div className="space-y-0.5">
               {loading ? (
-                <div className="px-3 py-2 text-xs text-muted-foreground animate-pulse">Loading...</div>
+                <div className="px-3 py-2 text-xs text-muted-foreground animate-pulse">{t.loadingText}</div>
               ) : brands.length === 0 ? (
-                <div className="px-3 py-2 text-xs text-muted-foreground">No brands yet</div>
+                <div className="px-3 py-2 text-xs text-muted-foreground">{t.noBrandsYet}</div>
               ) : (
                 brands.map((brand) => {
                   return (

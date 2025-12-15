@@ -16,6 +16,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 import { Shield, ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useTranslations } from "@/lib/i18n"
 
 interface AuthoritySource {
     source: string
@@ -56,6 +57,7 @@ const defaultSources: AuthoritySource[] = [
 ]
 
 export function AuthoritySourcesCard({ sources, className }: AuthoritySourcesCardProps) {
+    const { t } = useTranslations()
     const displaySources = sources && sources.length > 0 ? sources : defaultSources
 
     const presentCount = displaySources.filter(s => s.status === 'present').length
@@ -68,7 +70,7 @@ export function AuthoritySourcesCard({ sources, className }: AuthoritySourcesCar
                 <div className="flex items-center justify-between">
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
                         <Shield className="w-4 h-4 text-emerald-500" />
-                        Authority Sources
+                        {t.authoritySources}
                     </CardTitle>
                     <Badge
                         variant="secondary"
@@ -78,7 +80,7 @@ export function AuthoritySourcesCard({ sources, className }: AuthoritySourcesCar
                                 : "bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400"
                         )}
                     >
-                        {presentCount}/{totalCount} verified
+                        {presentCount}/{totalCount} {t.verified}
                     </Badge>
                 </div>
             </CardHeader>
@@ -136,20 +138,20 @@ export function AuthoritySourcesCard({ sources, className }: AuthoritySourcesCar
                                                     "font-medium",
                                                     isPresent ? "text-emerald-600" : "text-red-500"
                                                 )}>
-                                                    {isPresent ? 'Present' : 'Not Found'}
+                                                    {isPresent ? t.present : t.notFound}
                                                 </span>
                                                 <span className="text-muted-foreground">•</span>
                                                 <span className={cn(
                                                     source.impact === 'high' ? "text-red-500" :
                                                         source.impact === 'medium' ? "text-amber-500" : "text-muted-foreground"
                                                 )}>
-                                                    {source.impact} impact
+                                                    {source.impact} {t.impact}
                                                 </span>
                                             </div>
                                             {isPresent && source.url && (
                                                 <div className="flex items-center gap-1 text-xs text-primary">
                                                     <ExternalLink className="w-3 h-3" />
-                                                    Click to view
+                                                    {t.clickToView}
                                                 </div>
                                             )}
                                         </div>
@@ -163,7 +165,7 @@ export function AuthoritySourcesCard({ sources, className }: AuthoritySourcesCar
                 {/* Summary bar */}
                 <div className="mt-4 pt-3 border-t border-border/40">
                     <div className="flex items-center justify-between text-xs mb-1.5">
-                        <span className="text-muted-foreground">Authority Coverage</span>
+                        <span className="text-muted-foreground">{t.authorityCoverage}</span>
                         <span className={cn(
                             "font-medium",
                             presencePercentage >= 50 ? "text-emerald-600" : "text-amber-600"

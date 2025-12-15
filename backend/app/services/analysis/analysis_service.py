@@ -16,6 +16,7 @@ from app.services.analysis.keyword_metrics_service import KeywordMetricsService
 from app.services.analysis.ai_visibility_service import AIVisibilityService
 from app.services.analysis.content_structure_analyzer_service import ContentStructureAnalyzerService
 from app.services.analysis.knowledge_graph_service import KnowledgeGraphMonitorService
+from app.services.analysis.sentiment_analysis_service import get_sentiment_analysis_service
 from app.core.config import settings
 from app.core.logging import Colors, log_info, log_success, log_error, log_warning, log_phase
 
@@ -37,6 +38,7 @@ class AnalysisService:
         self.ai_visibility_service = AIVisibilityService()
         self.content_structure_service = ContentStructureAnalyzerService()
         self.kg_service = KnowledgeGraphMonitorService()
+        self.sentiment_service = get_sentiment_analysis_service()
         from app.services.analysis.citation_tracking_service import CitationTrackingService
         self.citation_service = CitationTrackingService()
 
@@ -167,6 +169,33 @@ class AnalysisService:
                 search_task, technical_task, visibility_task, content_task, kg_task
             )
             
+            # --- SENTIMENT ANALYSIS ---
+            # Collect context snippets from visibility data and search context
+            context_snippets = []
+            
+            # 1. From AI Visibility
+            if visibility_data.get("models"):
+                for model_data in visibility_data["models"].values():
+                    if model_data.get("context_snippets"):
+                        context_snippets.extend(model_data["context_snippets"])
+            
+            # 2. From Search Context (descriptions/snippets)
+            if search_context.get("competitor_results"):
+                for result in search_context["competitor_results"]:
+                    if result.get("description"):
+                        context_snippets.append(result["description"])
+            
+            # Run Sentiment Analysis
+            sentiment_analysis = await self.sentiment_service.analyze_sentiment(
+                brand_name=brand_name,
+                context_snippets=list(set(context_snippets))[:10], # Limit and deduplicate
+                language=preferred_language
+            )
+            
+            # Persist sentiment analysis
+            if analysis.brand_id:
+                await self.sentiment_service._persist_sentiment_analysis(str(analysis.brand_id), sentiment_analysis)
+            
             # 4. Keyword Metrics (Dependent on search context keywords)
             # Extract initial keywords from search context + business info + discovery prompts
             initial_keywords = [brand_name] + business_info.get('services', [])
@@ -206,7 +235,11 @@ class AnalysisService:
                 "content_analysis": content_data,
                 "knowledge_graph": kg_data,
                 "visual_suggestions": visual_suggestions,
-                "authority_nexus": await self._calculate_authority_nexus(brand_name, brand_url),
+                "visual_suggestions": visual_suggestions,
+                "authority_nexus": await self._calculate_authority_nexus(brand_name, brand_url, search_context),
+                "sentiment_analysis": sentiment_analysis,
+                
+                "notifications": [],
                 
                 # Placeholders for LLM Synthesis
                 "summary": "",
@@ -216,6 +249,24 @@ class AnalysisService:
                 "market_position": "Analyzing...",
                 "voice_search_readiness": "Analyzing..."
             }
+            
+            # --- DETECT NEW COMPETITORS ---
+            new_competitors_found = []
+            if existing_competitors:
+                existing_names_set = {n.lower() for n in existing_competitors}
+                
+                for comp in search_context.get('competitor_results', []):
+                    comp_name = comp.get('name', '').strip()
+                    if comp_name and comp_name.lower() not in existing_names_set:
+                        new_competitors_found.append(comp_name)
+            
+            if new_competitors_found:
+                results["notifications"].append({
+                    "title": "Nuevos Competidores Detectados",
+                    "message": f"Se han detectado {len(new_competitors_found)} nuevos competidores: {', '.join(new_competitors_found[:3])}{'...' if len(new_competitors_found) > 3 else ''}.",
+                    "type": "system",
+                    "severity": "info"
+                })
             
             # --- PHASE 4: SYNTHESIS ---
             log_phase(4, "Synthesis (LLM)")
@@ -752,25 +803,41 @@ OUTPUT JSON FORMAT:
         except Exception as e:
             print(f"Failed to create recommendation: {e}")
 
-    async def _calculate_authority_nexus(self, brand_name: str, brand_url: str) -> Dict[str, Any]:
+    async def _calculate_authority_nexus(self, brand_name: str, brand_url: str, search_context: Dict[str, Any] = None) -> Dict[str, Any]:
         """
         Calculate authority nexus data including score and citations.
         """
-        citations = await self.citation_service.check_authority_sources(brand_name, brand_url)
+        # Extract known URLs from search context to help citation service
+        known_urls = []
+        if search_context and search_context.get("competitor_results"):
+            # Check if any "competitor" result is actually an authority profile for our brand
+            # This happens often (e.g. LinkedIn profile showing up in search)
+            for res in search_context["competitor_results"]:
+                if isinstance(res, dict) and res.get("url"):
+                    known_urls.append(res["url"])
+                    
+        citations = await self.citation_service.check_authority_sources(brand_name, brand_url, known_urls)
         
-        # Calculate score based on citations
-        # 10 points for each 'present' citation
-        # Max score 100
-        present_count = sum(1 for c in citations if c.get('status') == 'present')
-        score = min(present_count * 10, 100)
+        # Calculate authority score based on citations
+        score = 0
+        total_weight = 0
         
-        # Bonus for high impact sources
-        high_impact_bonus = sum(5 for c in citations if c.get('status') == 'present' and c.get('impact') == 'high')
-        score = min(score + high_impact_bonus, 100)
+        for citation in citations:
+            if citation["status"] == "present":
+                weight = citation["authority"] / 100.0
+                score += citation["authority"] * weight
+                total_weight += weight
+                
+        if total_weight > 0:
+            score = round(score / total_weight)
         
+        # Normalize score to 0-100 scale more generously
+        # Having 2-3 high authority links should give a good score
+        final_score = min(score * 1.2, 100)
+            
         return {
             "citations": citations,
-            "score": score
+            "score": round(final_score)
         }
 
     async def _update_competitor_visibility(self, analysis: Analysis, preferred_language: str = "es") -> None:
@@ -825,6 +892,67 @@ OUTPUT JSON FORMAT:
             
         except Exception as e:
             log_error("❌", f"Failed to update competitor visibility: {e}")
+
+    async def _update_competitor_visibility(
+        self,
+        analysis: Analysis,
+        preferred_language: str
+    ):
+        """Update competitor visibility scores based on analysis findings."""
+        if not analysis.brand_id:
+            return
+            
+        results = analysis.results or {}
+        visibility_data = results.get("visibility_findings", {})
+        
+        # Aggregate logic is already done in ai_visibility_service, but we used to just grab 'competitor_mentions'
+        # Now we want specific scores per model if available, or at least the breakdown
+        
+        competitor_models = visibility_data.get("competitor_models", {})
+        
+        # Get all competitors for this brand
+        competitors = await self.competitor_db.list(filters={"brand_id": str(analysis.brand_id)})
+        comp_map = {c.name.lower(): c for c in competitors}
+        
+        # We also have the aggregated counts in 'competitor_mentions' to calculate an overall visibility
+        # But 'ai_visibility_service' doesn't calculate an 'overall_score' for competitors, only for the main brand.
+        # We can calculate it here similar to how the brand score is calculated.
+        
+        # Model weights (should match ai_visibility_service)
+        weights = {
+            "openai": 0.35,
+            "anthropic": 0.30,
+            "perplexity": 0.25,
+            "google_search": 0.10,
+            "baseline": 0.10
+        }
+        
+        for comp_name, model_scores in competitor_models.items():
+            comp_db = comp_map.get(comp_name.lower())
+            if not comp_db:
+                # Might be a new competitor not yet in DB, skipping for now or handled by new competitor detection
+                continue
+            
+            # Calculate overall weighted score for this competitor
+            total_weighted_score = 0
+            total_weight = 0
+            
+            for model, score in model_scores.items():
+                w = weights.get(model, 0.1)
+                total_weighted_score += score * w
+                total_weight += w
+            
+            final_visibility = 0
+            if total_weight > 0:
+                final_visibility = round(total_weighted_score / total_weight, 1)
+            
+            # Update competitor in DB
+            await self.competitor_db.update(str(comp_db.id), {
+                "visibility_score": final_visibility,
+                "metrics_breakdown": model_scores, # Persist the breakdown!
+                "updated_at": datetime.utcnow().isoformat()
+            })
+            log_info("📊", f"Updated visibility for competitor {comp_name}: {final_visibility}%")
 
     async def _update_keyword_visibility(
         self, 

@@ -43,3 +43,8 @@ async def get_current_user(
             detail=f"Invalid authentication credentials: {str(e)}",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+
+async def get_current_user_id(user: UserProfile = Depends(get_current_user)) -> str:
+    """Dependency that returns the current user's id as a string."""
+    return user.id
