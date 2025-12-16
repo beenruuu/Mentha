@@ -13,6 +13,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useDemo } from "@/lib/demo-context"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -195,6 +196,15 @@ export function AppSidebar() {
   const [brands, setBrands] = useState<Brand[]>([])
   const [loading, setLoading] = useState(true)
 
+  // Check if in demo mode to hide admin
+  let isDemoMode = false
+  try {
+    const demo = useDemo()
+    isDemoMode = demo.isDemoMode
+  } catch {
+    // Context not available
+  }
+
   useEffect(() => {
     const fetchBrands = async () => {
       try {
@@ -255,7 +265,7 @@ export function AppSidebar() {
 
       {/* Sidebar */}
       <aside className={`${openMobile ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 fixed left-0 top-0 h-screen w-64 bg-background flex flex-col z-50 transition-transform duration-300 ease-in-out`}>
+        } md:translate-x-0 fixed left-0 ${isDemoMode ? 'top-[40px] h-[calc(100vh-40px)]' : 'top-0 h-screen'} w-64 bg-background flex flex-col z-50 transition-transform duration-300 ease-in-out`}>
         {/* Logo and Close Button */}
         <div className="p-4 flex items-center justify-between">
           <Link href="/">
@@ -302,15 +312,18 @@ export function AppSidebar() {
             </button>
           </Link>
 
-          <Link href="/admin">
-            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === '/admin'
-              ? 'bg-secondary text-foreground font-medium'
-              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-              }`}>
-              <Shield className="w-4 h-4" />
-              <span>Admin</span>
-            </button>
-          </Link>
+          {/* Admin - Hidden in demo mode */}
+          {!isDemoMode && (
+            <Link href="/admin">
+              <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === '/admin'
+                ? 'bg-secondary text-foreground font-medium'
+                : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                }`}>
+                <Shield className="w-4 h-4" />
+                <span>Admin</span>
+              </button>
+            </Link>
+          )}
 
           <Link href="/notifications">
             <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === '/notifications'

@@ -6,8 +6,9 @@ import { useTranslations } from "@/lib/i18n";
 
 export default function Footer() {
     const { t } = useTranslations();
-    
+
     const footerLinks = [
+        { href: "/legal/aviso-legal", label: t.footerLegalNotice },
         { href: "/legal/privacy", label: t.footerPrivacy },
         { href: "/legal/terms", label: t.footerTerms },
         { href: "/blog", label: t.footerBlog },

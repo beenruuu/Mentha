@@ -49,8 +49,8 @@ const MODEL_ID_MAP: Record<string, string> = {
   'openai': 'chatgpt',
   'anthropic': 'claude',
   'perplexity': 'perplexity',
-  'gemini': 'google', // Backend stores baseline/google_search as 'gemini'
-  'google_search': 'google'
+  'gemini': 'gemini',  // Keep gemini as gemini for Gemini AI
+  'google_search': 'google'  // Map google_search to google for Google Search
 }
 
 export default function DashboardPage() {
@@ -224,17 +224,18 @@ export default function DashboardPage() {
               let displayName = entry.name
               let value = entry.value
               let isPercentage = true
+              let provider: typeof AI_PROVIDER_META[number] | undefined
 
               if (activeMetric === 'rank') {
                 if (entry.name === 'rank') displayName = t.dashboardRankScore
                 // If it's a model ID (chatgpt, claude...), we show its name
-                const provider = AI_PROVIDER_META.find(p => p.id === entry.name)
+                provider = AI_PROVIDER_META.find(p => p.id === entry.name)
                 if (provider) displayName = provider.name
               } else if (activeMetric === 'position') {
                 if (entry.name === 'position') displayName = t.dashboardAvgPosition
                 if (entry.name.endsWith('_position')) {
                   const modelId = entry.name.replace('_position', '')
-                  const provider = AI_PROVIDER_META.find(p => p.id === modelId)
+                  provider = AI_PROVIDER_META.find(p => p.id === modelId)
                   if (provider) displayName = provider.name
                 }
                 isPercentage = false
@@ -242,7 +243,7 @@ export default function DashboardPage() {
                 if (entry.name === 'inclusion') displayName = t.dashboardInclusionRate
                 if (entry.name.endsWith('_inclusion')) {
                   const modelId = entry.name.replace('_inclusion', '')
-                  const provider = AI_PROVIDER_META.find(p => p.id === modelId)
+                  provider = AI_PROVIDER_META.find(p => p.id === modelId)
                   if (provider) displayName = provider.name
                 }
               }
@@ -250,8 +251,18 @@ export default function DashboardPage() {
               return (
                 <div key={index} className="flex items-center justify-between gap-8">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ color: entry.color, backgroundColor: entry.color }} />
-                    <span className="text-muted-foreground capitalize">
+                    {provider ? (
+                      <Image
+                        src={provider.icon}
+                        alt={provider.name}
+                        width={14}
+                        height={14}
+                        className={provider.icon.includes('openai.svg') ? 'dark:invert' : ''}
+                      />
+                    ) : (
+                      <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ color: entry.color, backgroundColor: entry.color }} />
+                    )}
+                    <span className="text-muted-foreground">
                       {displayName}
                     </span>
                   </div>
@@ -494,9 +505,8 @@ export default function DashboardPage() {
                                 dataKey={dataKey}
                                 stroke={provider.color}
                                 strokeWidth={2}
-                                fillOpacity={0.1}
+                                fillOpacity={0.05}
                                 fill={provider.color}
-                                stackId={activeMetric === 'position' ? undefined : "1"} // Usually don't stack position
                                 connectNulls
                               />
                             )
@@ -564,8 +574,8 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex flex-col gap-2 w-full max-w-[200px]">
                         {comp.metrics_breakdown ? (
-                          // Show breakdown if available
-                          <div className="grid grid-cols-4 gap-1">
+                          // Show breakdown with SVG icons
+                          <div className="flex items-center gap-2">
                             {Object.entries(comp.metrics_breakdown).map(([modelKey, score]) => {
                               const frontendId = MODEL_ID_MAP[modelKey] || modelKey
                               const provider = AI_PROVIDER_META.find(p => p.id === frontendId)
@@ -573,14 +583,18 @@ export default function DashboardPage() {
 
                               return (
                                 <div key={modelKey} className="flex flex-col items-center group/tooltip relative">
-                                  <div className="w-1 h-4 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden relative">
-                                    <div
-                                      className="w-full absolute bottom-0 left-0 rounded-full"
-                                      style={{ height: `${score}%`, backgroundColor: provider.color }}
+                                  <div className="w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-800 p-0.5 flex items-center justify-center">
+                                    <Image
+                                      src={provider.icon}
+                                      alt={provider.name}
+                                      width={14}
+                                      height={14}
+                                      className={provider.icon.includes('openai.svg') ? 'w-full h-full object-contain dark:invert' : 'w-full h-full object-contain'}
                                     />
                                   </div>
-                                  {/* Simple Tooltip on hover */}
-                                  <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover/tooltip:block bg-black text-white text-[10px] px-1 rounded whitespace-nowrap z-10">
+                                  <span className="text-[9px] font-mono text-gray-500 mt-0.5">{score}%</span>
+                                  {/* Tooltip on hover */}
+                                  <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover/tooltip:block bg-black text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
                                     {provider.name}: {score}%
                                   </div>
                                 </div>

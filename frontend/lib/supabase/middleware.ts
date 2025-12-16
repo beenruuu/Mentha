@@ -1,9 +1,18 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Cookie name for demo mode (must match demo-context.tsx)
+const DEMO_MODE_COOKIE = 'mentha_demo_mode'
+
 export async function updateSession(request: NextRequest) {
-  // Nota: se eliminó el bypass de "demo mode" para forzar autenticación.
-  // Si antes se usaba `NEXT_PUBLIC_DEMO_MODE=true`, ahora se ignora.
+  // Check if user is in demo mode via cookie or localStorage simulation
+  // Note: We check cookies here since localStorage is not available in middleware
+  const isDemoMode = request.cookies.get(DEMO_MODE_COOKIE)?.value === 'true'
+
+  // If in demo mode, allow access to protected routes
+  if (isDemoMode) {
+    return NextResponse.next()
+  }
 
   // Verificar que las variables de entorno estén configuradas
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

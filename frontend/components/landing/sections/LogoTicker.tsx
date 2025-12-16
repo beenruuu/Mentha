@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "@/lib/i18n";
+
 import Image from "next/image";
 import { motion } from "framer-motion";
 import React from "react";
@@ -16,7 +18,7 @@ export default function LogoTicker() {
         <section className="py-24 overflow-x-clip">
             <div className="container max-w-5xl mx-auto px-4">
                 <h3 className="text-center text-gray-500 dark:text-white/50 text-xl">
-                    Optimized for all major AI Engines
+                    {useTranslations().t.logoTickerTitle}
                 </h3>
                 <div className="flex overflow-hidden mt-12 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
                     <motion.div

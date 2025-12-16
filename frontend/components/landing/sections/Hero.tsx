@@ -25,7 +25,7 @@ export default function Hero() {
     }, [leftAnimate, leftScope, rightAnimate, rightScope]);
 
     return (
-        <section className="py-24 overflow-x-clip">
+        <section className="pt-32 pb-24 overflow-x-clip">
             <div className="container max-w-5xl mx-auto px-4 relative">
                 {/* Decorative elements */}
                 <motion.div

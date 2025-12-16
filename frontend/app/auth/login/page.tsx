@@ -8,6 +8,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useTranslations } from '@/lib/i18n'
+import { setDemoMode } from '@/lib/demo-context'
+import { FlaskConical } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -17,6 +19,11 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
   const { t } = useTranslations()
+
+  const handleDemoAccess = () => {
+    setDemoMode(true)
+    router.push('/dashboard')
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -190,6 +197,18 @@ export default function LoginPage() {
             />
           </svg>
           Google
+        </Button>
+
+        {/* Demo Access Button */}
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full border-amber-500/50 text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/20 h-11"
+          onClick={handleDemoAccess}
+          disabled={loading}
+        >
+          <FlaskConical className="mr-2 h-4 w-4" />
+          {t.demoAccess || 'Acceso Demo'}
         </Button>
       </div>
     </div>

@@ -26,7 +26,10 @@ from app.api.endpoints import (
     export,
     export,
     sentiment,
-    organization
+    export,
+    sentiment,
+    organization,
+    compliance
 )
 
 api_router = APIRouter()
@@ -59,3 +62,4 @@ api_router.include_router(prompt_tracking.router, tags=["Prompt Tracking"])
 api_router.include_router(export.router, tags=["Export"])
 api_router.include_router(sentiment.router, tags=["Sentiment Analysis"])
 api_router.include_router(organization.router, prefix="/organization", tags=["Organization"])
+api_router.include_router(compliance.router, prefix="/compliance", tags=["Compliance"])

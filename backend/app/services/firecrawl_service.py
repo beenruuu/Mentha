@@ -5,6 +5,7 @@ Based on implementation patterns from firegeo project.
 import httpx
 from typing import Dict, Any, List, Optional
 from app.core.config import settings
+from app.services.processing.pii_service import PiiService
 import logging
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ class FirecrawlService:
             },
             timeout=120.0  # Increased timeout for crawl operations
         )
+        self.pii_service = PiiService()
 
     async def scrape_url(
         self, 
@@ -77,10 +79,16 @@ class FirecrawlService:
             data = response.json()
             
             # v1 API returns data directly in response
+            markdown = data.get("data", {}).get("markdown", "")
+            
+            # Redact PII
+            if markdown:
+                markdown = self.pii_service.anonymize_text(markdown)
+            
             return {
                 "success": data.get("success", True),
                 "data": data.get("data", {}),
-                "markdown": data.get("data", {}).get("markdown", ""),
+                "markdown": markdown,
                 "metadata": data.get("data", {}).get("metadata", {})
             }
         except httpx.HTTPStatusError as e:
@@ -229,7 +237,18 @@ class FirecrawlService:
                 "status": data.get("status"),  # "scraping", "completed", "failed"
                 "total": data.get("total", 0),
                 "completed": data.get("completed", 0),
-                "data": data.get("data", [])  # Array of scraped pages when complete
+            # Process/Redact PII from crawled pages
+            crawled_data = data.get("data", [])
+            for page in crawled_data:
+                if "markdown" in page and page["markdown"]:
+                    page["markdown"] = self.pii_service.anonymize_text(page["markdown"])
+
+            return {
+                "success": True,
+                "status": data.get("status"),  # "scraping", "completed", "failed"
+                "total": data.get("total", 0),
+                "completed": data.get("completed", 0),
+                "data": crawled_data  # Array of scraped pages when complete
             }
         except httpx.HTTPStatusError as e:
             logger.error(f"Firecrawl status HTTP error: {e.response.status_code}")

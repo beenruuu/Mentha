@@ -2,6 +2,8 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { DemoProvider } from "@/lib/demo-context";
+import { DemoBanner } from "@/components/shared/demo-banner";
 
 export function RootProvider({ children }: { children: React.ReactNode }) {
     const [queryClient] = useState(() => new QueryClient({
@@ -15,7 +17,11 @@ export function RootProvider({ children }: { children: React.ReactNode }) {
 
     return (
         <QueryClientProvider client={queryClient}>
-            {children}
+            <DemoProvider>
+                <DemoBanner />
+                {children}
+            </DemoProvider>
         </QueryClientProvider>
     );
 }
+

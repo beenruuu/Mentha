@@ -14,10 +14,10 @@ const translations = {
     // ==========================================
 
     // Navbar
-    navFeatures: 'Funcionalidades',
-    navAIEngines: 'Motores IA',
+    navFeatures: 'Producto',
+    navAIEngines: 'Motores',
     navPricing: 'Precios',
-    navFAQs: 'Preguntas frecuentes',
+    navFAQs: 'FAQs',
     navLogin: 'Iniciar sesión',
     navSignUp: 'Registrarse',
 
@@ -60,8 +60,9 @@ const translations = {
     // Integrations
     integrationsTag: 'Motores IA',
     integrationsTitle: 'Optimizado para',
-    integrationsTitleHighlight: 'todas',
-    integrationsTitleSuffix: "las principales IA's",
+    integrationsTitleHighlight: 'todos',
+    integrationsTitleSuffix: "los principales motores de IA",
+    logoTickerTitle: "Optimizado para todos los principales motores de IA",
     integrationsDescription: 'Mentha analiza cómo aparece tu marca en las principales plataformas de IA. Rastrea tu visibilidad donde más importa.',
     integrationOpenAI: 'Búsqueda y respuestas impulsadas por ChatGPT y GPT-4o.',
     integrationClaude: 'Asistente de IA avanzado de Anthropic con comprensión matizada.',
@@ -125,6 +126,7 @@ const translations = {
     footerPrivacy: 'Política de Privacidad',
     footerTerms: 'Términos y Condiciones',
     footerBlog: 'Blog',
+    footerLegalNotice: 'Aviso Legal',
     footerRights: 'Todos los derechos reservados.',
 
     // Privacy Policy Page
@@ -418,8 +420,18 @@ const translations = {
     cookieTitle: 'Valoramos tu privacidad',
     cookieDescription: 'Utilizamos cookies para mejorar tu experiencia, analizar el tráfico y personalizar el contenido. Al hacer clic en "Aceptar", consientes el uso de todas las cookies. Puedes leer más en nuestra ',
     cookiePolicy: 'Política de Cookies',
-    cookieAccept: 'Aceptar',
-    cookieDecline: 'Rechazar',
+    cookieAccept: 'Aceptar todas',
+    cookieDecline: 'Solo esenciales',
+    showDetails: 'Personalizar',
+    hideDetails: 'Ocultar detalles',
+    essentialCookies: 'Esenciales',
+    alwaysActive: 'Siempre activas',
+    essentialCookiesDesc: 'Necesarias para el funcionamiento básico del sitio, autenticación y seguridad.',
+    analyticsCookies: 'Analíticas',
+    analyticsCookiesDesc: 'Nos ayudan a entender cómo usas el sitio para mejorar la experiencia.',
+    functionalCookies: 'Funcionales',
+    functionalCookiesDesc: 'Permiten recordar tus preferencias como idioma y tema.',
+    savePreferences: 'Guardar preferencias',
 
     // Command Palette
     cmdDashboard: 'Ir al Dashboard',
@@ -1023,6 +1035,14 @@ const translations = {
     errorDeletingCategory: 'Error al eliminar categoría',
     categoryActivated: 'Categoría activada',
     categoryDeactivated: 'Categoría desactivada',
+
+    // ==========================================
+    // DEMO MODE
+    // ==========================================
+    demoAccess: 'Acceso Demo',
+    demoModeActive: 'Estás en modo demo',
+    demoDescription: 'Explora la plataforma con datos de ejemplo',
+    exitDemo: 'Salir del demo',
   },
   en: {
     // ==========================================
@@ -1077,7 +1097,8 @@ const translations = {
     integrationsTag: 'AI Engines',
     integrationsTitle: 'Optimized for',
     integrationsTitleHighlight: 'all',
-    integrationsTitleSuffix: 'major AI',
+    integrationsTitleSuffix: 'major AI Engines',
+    logoTickerTitle: 'Optimized for all major AI Engines',
     integrationsDescription: 'Mentha analyzes how your brand appears across the leading AI platforms. Track your visibility where it matters most.',
     integrationOpenAI: 'ChatGPT and GPT-4o powered search and responses.',
     integrationClaude: "Anthropic's advanced AI assistant with nuanced understanding.",
@@ -1141,6 +1162,7 @@ const translations = {
     footerPrivacy: 'Privacy Policy',
     footerTerms: 'Terms & Conditions',
     footerBlog: 'Blog',
+    footerLegalNotice: 'Legal Notice',
     footerRights: 'All rights reserved.',
 
     // Privacy Policy Page
@@ -1862,8 +1884,18 @@ const translations = {
     cookieTitle: 'We value your privacy',
     cookieDescription: 'We use cookies to improve your experience, analyze traffic, and personalize content. By clicking "Accept", you consent to the use of all cookies. You can read more in our ',
     cookiePolicy: 'Cookie Policy',
-    cookieAccept: 'Accept',
-    cookieDecline: 'Decline',
+    cookieAccept: 'Accept all',
+    cookieDecline: 'Essential only',
+    showDetails: 'Customize',
+    hideDetails: 'Hide details',
+    essentialCookies: 'Essential',
+    alwaysActive: 'Always active',
+    essentialCookiesDesc: 'Required for basic site functionality, authentication, and security.',
+    analyticsCookies: 'Analytics',
+    analyticsCookiesDesc: 'Help us understand how you use the site to improve your experience.',
+    functionalCookies: 'Functional',
+    functionalCookiesDesc: 'Allow us to remember your preferences like language and theme.',
+    savePreferences: 'Save preferences',
 
     // Command Palette
     cmdDashboard: 'Go to Dashboard',
@@ -2021,6 +2053,14 @@ const translations = {
     errorDeletingCategory: 'Error deleting category',
     categoryActivated: 'Category activated',
     categoryDeactivated: 'Category deactivated',
+
+    // ==========================================
+    // DEMO MODE
+    // ==========================================
+    demoAccess: 'Demo Access',
+    demoModeActive: 'You are in demo mode',
+    demoDescription: 'Explore the platform with sample data',
+    exitDemo: 'Exit demo',
   },
 } as const
 

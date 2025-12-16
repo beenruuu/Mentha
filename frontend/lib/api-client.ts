@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
+import { isDemoModeActive } from '@/lib/demo-context';
+import { handleDemoRequest } from '@/lib/demo-api-handler';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
 
@@ -7,6 +9,13 @@ interface FetchOptions extends RequestInit {
 }
 
 export async function fetchAPI<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+  // Check if we're in demo mode - return mock data
+  if (isDemoModeActive()) {
+    // Simulate network delay for realism
+    await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
+    return handleDemoRequest(endpoint, options) as T;
+  }
+
   const supabase = createClient();
   const { data: { session } } = await supabase.auth.getSession();
 
@@ -21,7 +30,7 @@ export async function fetchAPI<T>(endpoint: string, options: FetchOptions = {}):
 
   const controller = new AbortController();
   // Increased timeout to 90s because competitor discovery and analysis can be slow
-  const timeoutId = setTimeout(() => controller.abort(), 90000); 
+  const timeoutId = setTimeout(() => controller.abort(), 90000);
 
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
@@ -58,3 +67,4 @@ export async function fetchAPI<T>(endpoint: string, options: FetchOptions = {}):
     throw error;
   }
 }
+

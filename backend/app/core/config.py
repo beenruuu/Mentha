@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     
     # Admin access control - comma-separated list of allowed admin emails
     ADMIN_EMAILS: str = ""
+    
+    # GDPR / Data Privacy
+    ENABLE_PII_REDACTION: bool = True
 
     # Redis / Celery
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"

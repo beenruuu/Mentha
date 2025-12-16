@@ -16,6 +16,7 @@ const AI_PROVIDER_META = [
 interface ShareOfModelProps {
     brandName: string
     brandId: string
+    lastUpdated?: number
 }
 
 interface ShareOfModelData {
@@ -77,7 +78,7 @@ export function ShareOfModel({ brandName, brandId }: ShareOfModelProps) {
         )
     }
 
-    if (!data || data.total_mentions === 0) {
+    if (!data || data.total_mentions === 0 || !data.competitor_mentions) {
         return (
             <div className="h-[200px] flex flex-col items-center justify-center text-center">
                 <BarChart3 className="w-10 h-10 text-gray-300 dark:text-zinc-700 mb-3" />
@@ -88,12 +89,12 @@ export function ShareOfModel({ brandName, brandId }: ShareOfModelProps) {
     }
 
     // Get top competitors sorted by mentions
-    const topCompetitors = Object.entries(data.competitor_mentions)
+    const topCompetitors = Object.entries(data.competitor_mentions || {})
         .sort(([, a], [, b]) => b - a)
         .slice(0, 5)
 
     // Calculate max for progress bars
-    const maxMentions = Math.max(data.brand_mentions, ...Object.values(data.competitor_mentions))
+    const maxMentions = Math.max(data.brand_mentions, ...Object.values(data.competitor_mentions || {}))
 
     // Determine trend from backend data
     const trend = data.trend || 'stable'

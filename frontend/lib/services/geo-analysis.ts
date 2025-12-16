@@ -69,7 +69,7 @@ export interface Recommendation {
 export interface VisibilitySnapshot {
     id: string
     brand_id: string
-    ai_model: 'openai' | 'anthropic' | 'perplexity' | 'gemini'
+    ai_model: 'openai' | 'anthropic' | 'perplexity' | 'gemini' | 'google_search'
     visibility_score: number
     mention_count: number
     sentiment?: string
