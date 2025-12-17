@@ -1,6 +1,6 @@
 # Mentha - AI Engine Optimization Platform
 
-[Mentha Dashboard Preview](#file:mentha-preview.png)
+![Mentha Dashboard Preview](frontend/public/mentha-preview.png)
 
 A complete SaaS platform for optimizing brand visibility in AI search engines and conversational assistants. Analyze, track, and improve your presence across ChatGPT, Claude, Perplexity, Gemini, and other AI models with actionable insights powered by advanced AI analysis.
 
