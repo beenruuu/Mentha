@@ -4,7 +4,7 @@ import { Search, Bell, Settings, ChevronRight, X, Bot, Search as SearchIcon, Tre
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState, useEffect } from "react"
-import { useRouter, usePathname } from "next/navigation"
+import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { useSidebar } from "@/components/ui/sidebar"
 import { useTranslations } from "@/lib/i18n"
 import { brandsService, Brand } from "@/lib/services/brands"
@@ -195,6 +195,14 @@ export function AppSidebar() {
   const { t } = useTranslations()
   const [brands, setBrands] = useState<Brand[]>([])
   const [loading, setLoading] = useState(true)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+
+  // Initialize settings open state
+  useEffect(() => {
+    if (pathname.startsWith('/settings')) {
+      setIsSettingsOpen(true)
+    }
+  }, [pathname])
 
   // Check if in demo mode to hide admin
   let isDemoMode = false
@@ -236,6 +244,9 @@ export function AppSidebar() {
       router.push('/auth/login')
     }
   }
+
+  const searchParams = useSearchParams()
+  const currentTab = searchParams.get('tab')
 
   // Helper to generate consistent colors based on brand name
   const getBrandColors = (name: string) => {
@@ -334,15 +345,89 @@ export function AppSidebar() {
               <span>{t.notifications}</span>
             </button>
           </Link>
-          <Link href="/settings">
-            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === '/settings' || pathname.startsWith('/settings')
-              ? 'bg-secondary text-foreground font-medium'
-              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-              }`}>
-              <Settings className="w-4 h-4" />
-              <span>{t.settings}</span>
+          {/* Settings Section */}
+          <div className="mb-0.5">
+            <button
+              onClick={() => {
+                if (pathname === '/settings') {
+                  setIsSettingsOpen(!isSettingsOpen)
+                } else {
+                  router.push('/settings')
+                  // It will auto-open due to useEffect if we add one, or we can just toggle
+                  setIsSettingsOpen(true)
+                }
+              }}
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors group ${pathname.startsWith('/settings')
+                ? 'bg-secondary text-foreground font-medium'
+                : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                }`}
+            >
+              <div className="flex items-center gap-3">
+                <Settings className="w-4 h-4" />
+                <span>{t.configuration || "Configuración"}</span>
+              </div>
+              <ChevronRight
+                className={`w-4 h-4 transition-transform duration-200 ${isSettingsOpen ? 'rotate-90' : ''}`}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsSettingsOpen(!isSettingsOpen)
+                }}
+              />
             </button>
-          </Link>
+
+            {isSettingsOpen && (
+              <div className="ml-4 pl-3 border-l border-border/50 mt-1 space-y-0.5">
+                <Link href="/settings?tab=organization">
+                  <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${pathname === '/settings' && (!currentTab || currentTab === 'organization')
+                    ? 'text-foreground bg-secondary/50 font-medium'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                    }`}>
+                    <span>{t.organization || "Organización"}</span>
+                  </button>
+                </Link>
+                <Link href="/settings?tab=profile">
+                  <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${pathname === '/settings' && currentTab === 'profile'
+                    ? 'text-foreground bg-secondary/50 font-medium'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                    }`}>
+                    <span>{t.profile || "Perfil"}</span>
+                  </button>
+                </Link>
+                <Link href="/settings?tab=security">
+                  <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${pathname === '/settings' && currentTab === 'security'
+                    ? 'text-foreground bg-secondary/50 font-medium'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                    }`}>
+                    <span>{t.security || "Seguridad"}</span>
+                  </button>
+                </Link>
+                <Link href="/settings?tab=notifications">
+                  <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${pathname === '/settings' && currentTab === 'notifications'
+                    ? 'text-foreground bg-secondary/50 font-medium'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                    }`}>
+                    <span>{t.notifications || "Notificaciones"}</span>
+                  </button>
+                </Link>
+                <Link href="/settings?tab=billing">
+                  <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${pathname === '/settings' && currentTab === 'billing'
+                    ? 'text-foreground bg-secondary/50 font-medium'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                    }`}>
+                    <span>{t.billing || "Facturación"}</span>
+                  </button>
+                </Link>
+                <Link href="/settings?tab=appearance">
+                  <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${pathname === '/settings' && currentTab === 'appearance'
+                    ? 'text-foreground bg-secondary/50 font-medium'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                    }`}>
+                    <span>{t.appearance || "Apariencia"}</span>
+                  </button>
+                </Link>
+              </div>
+            )}
+          </div>
 
           {/* Brands Section */}
           <div className="pt-4 mt-2 border-t border-border/40">

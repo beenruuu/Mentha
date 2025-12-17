@@ -117,34 +117,15 @@ export default function SettingsPage() {
 
         <main className="flex-1 bg-white dark:bg-black rounded-tl-3xl overflow-hidden flex flex-col shadow-2xl relative z-10">
           <div className="flex-1 overflow-y-auto p-6 md:p-8">
-            <div className="max-w-4xl mx-auto">
-              <Tabs defaultValue={defaultTab} className="space-y-8">
-                <TabsList className="bg-secondary/50 p-1 rounded-xl border border-border/40">
-                  <TabsTrigger value="organization" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-[#1E1E24] data-[state=active]:shadow-sm">
-                    <Building2 className="w-4 h-4 mr-2" />
-                    {t.organization}
-                  </TabsTrigger>
-                  <TabsTrigger value="profile" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-[#1E1E24] data-[state=active]:shadow-sm">
-                    <User className="w-4 h-4 mr-2" />
-                    {t.profile}
-                  </TabsTrigger>
-                  <TabsTrigger value="security" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-[#1E1E24] data-[state=active]:shadow-sm">
-                    <Shield className="w-4 h-4 mr-2" />
-                    {t.security}
-                  </TabsTrigger>
-                  <TabsTrigger value="notifications" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-[#1E1E24] data-[state=active]:shadow-sm">
-                    <Bell className="w-4 h-4 mr-2" />
-                    {t.notifications}
-                  </TabsTrigger>
-                  <TabsTrigger value="billing" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-[#1E1E24] data-[state=active]:shadow-sm">
-                    <CreditCard className="w-4 h-4 mr-2" />
-                    {t.billing}
-                  </TabsTrigger>
-                  <TabsTrigger value="appearance" className="rounded-lg data-[state=active]:bg-white dark:data-[state=active]:bg-[#1E1E24] data-[state=active]:shadow-sm">
-                    <Palette className="w-4 h-4 mr-2" />
-                    {t.appearance}
-                  </TabsTrigger>
-                </TabsList>
+            <div className="mx-auto w-full">
+              <Tabs
+                value={defaultTab}
+                onValueChange={(value) => {
+                  router.push(`/settings?tab=${value}`)
+                }}
+                className="space-y-8"
+              >
+
 
                 <TabsContent value="organization">
                   <OrganizationTab t={t} />
