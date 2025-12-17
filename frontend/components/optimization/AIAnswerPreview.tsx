@@ -22,16 +22,24 @@ export function AIAnswerPreview({ brandName, defaultKeyword = '' }: AIAnswerPrev
         setIsGenerating(true)
         setResult(null)
 
+        // Sanitize input to prevent XSS
+        const safeQuery = query
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;")
+
         // Simulate API delay
         setTimeout(() => {
-            const simulatedResponse = `Based on my analysis of the top options, **${brandName}** stands out as a leading choice for **${query}**. 
+            const simulatedResponse = `Based on my analysis of the top options, **${brandName}** stands out as a leading choice for **${safeQuery}**. 
 
 They are frequently cited for their comprehensive approach and reliability. Users often praise their user-friendly interface and robust feature set compared to competitors.
 
 Key highlights for ${brandName}:
 *   **High Authority:** Recognized by industry experts.
 *   **Positive Sentiment:** Consistent 4.5+ star reviews.
-*   **Relevance:** Directly addresses the needs for ${query}.
+*   **Relevance:** Directly addresses the needs for ${safeQuery}.
 
 Other notable mentions in this space include Competitor A and Competitor B, but ${brandName} appears to offer the best value proposition currently.`
 

@@ -157,11 +157,11 @@ export default function ResearchPromptsStep() {
 
     return (
         <div className="w-full flex justify-center animate-in fade-in duration-500">
-            <Card className="w-full max-w-2xl p-6 shadow-2xl border-white/10 bg-black/40 backdrop-blur-xl">
+            <Card className="w-full max-w-2xl p-6 shadow-2xl border-border bg-card/50 dark:bg-black/40 backdrop-blur-xl">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h1 className="text-2xl font-bold text-white">{t.title}</h1>
+                        <h1 className="text-2xl font-bold text-foreground">{t.title}</h1>
                         <p className="text-sm text-muted-foreground mt-1">{t.subtitle}</p>
                     </div>
                     <span className="text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
@@ -367,13 +367,14 @@ export default function ResearchPromptsStep() {
                     <Button
                         variant="ghost"
                         onClick={prevStep}
-                        className="text-muted-foreground hover:text-white h-10"
+                        className="text-muted-foreground hover:text-foreground"
                     >
                         {t.back}
                     </Button>
                     <Button
                         onClick={nextStep}
-                        className="bg-white text-black hover:bg-white/90 px-8 h-10 font-medium"
+                        disabled={researchPrompts.length === 0}
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-10 font-medium transition-all disabled:opacity-50"
                     >
                         {t.next}
                     </Button>

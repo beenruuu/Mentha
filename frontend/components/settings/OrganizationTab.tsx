@@ -109,7 +109,7 @@ export function OrganizationTab({ t }: OrganizationTabProps) {
                                     <div className="flex items-center gap-4">
                                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${member.role === 'owner' ? 'bg-primary/10 text-primary' : 'bg-secondary text-secondary-foreground'}`}>
                                             {member.role === 'owner' && <Shield className="w-3 h-3" />}
-                                            {member.role.toUpperCase()}
+                                            {(member.role || 'member').toUpperCase()}
                                         </span>
                                         {member.role !== 'owner' && (
                                             <Button variant="ghost" size="sm" className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8">

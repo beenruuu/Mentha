@@ -56,7 +56,7 @@ export default function CompetitorsStep() {
 
     // Discover competitors using web search (fast, no full analysis)
     useEffect(() => {
-        // If we already have competitors loaded, don't search again
+        // Initial discovery - only run if empty to avoid overwriting user edits
         if (competitors.length > 0) {
             setIsLoading(false)
             return
@@ -79,7 +79,7 @@ export default function CompetitorsStep() {
                     method: 'POST',
                     body: JSON.stringify({
                         brand_name: brandProfile.name,
-                        industry: brandProfile.category || '',
+                        industry: brandProfile.category || 'Technology', // Fallback to generic to ensure discovery runs
                         domain: brandProfile.domain,
                         description: brandProfile.description || '',
                         services: [],
@@ -168,7 +168,7 @@ export default function CompetitorsStep() {
 
     return (
         <div className="w-full flex justify-center animate-in fade-in duration-500">
-            <Card className="w-full max-w-2xl p-6 md:p-8 space-y-4 shadow-2xl border-white/10 bg-black/40 backdrop-blur-xl">
+            <Card className="w-full max-w-2xl p-6 md:p-8 space-y-4 shadow-2xl border-border bg-card/50 dark:bg-black/40 backdrop-blur-xl">
                 {/* Step indicator */}
                 <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
@@ -177,7 +177,7 @@ export default function CompetitorsStep() {
                 </div>
 
                 <div className="space-y-2 text-left">
-                    <h1 className="text-3xl font-bold tracking-tight text-white">
+                    <h1 className="text-2xl font-bold text-foreground">
                         {t.title}
                     </h1>
                     <p className="text-muted-foreground">{t.subtitle}</p>
@@ -372,7 +372,7 @@ export default function CompetitorsStep() {
                         variant="ghost"
                         onClick={prevStep}
                         disabled={isLoading}
-                        className="text-muted-foreground hover:text-white"
+                        className="text-muted-foreground hover:text-foreground"
                     >
                         {t.back}
                     </Button>
@@ -389,7 +389,7 @@ export default function CompetitorsStep() {
                         <Button
                             onClick={nextStep}
                             disabled={isLoading}
-                            className="bg-white text-black hover:bg-white/90 px-8 h-10 rounded-md font-medium transition-all"
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-10 font-medium"
                         >
                             {t.next}
                         </Button>

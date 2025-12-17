@@ -33,20 +33,20 @@ export default function ScheduleStep() {
 
     const t = {
         title: lang === 'es' ? 'Configuración de seguimiento' : 'Tracking Configuration',
-        subtitle: lang === 'es' 
-            ? 'Selecciona los modelos de IA a monitorizar y los días de análisis' 
+        subtitle: lang === 'es'
+            ? 'Selecciona los modelos de IA a monitorizar y los días de análisis'
             : 'Select AI models to monitor and analysis days',
         aiModels: lang === 'es' ? 'Modelos de IA' : 'AI Models',
-        aiModelsDesc: lang === 'es' 
-            ? 'Selecciona qué motores de IA quieres trackear' 
+        aiModelsDesc: lang === 'es'
+            ? 'Selecciona qué motores de IA quieres trackear'
             : 'Select which AI engines you want to track',
         credits: lang === 'es' ? 'créditos/día' : 'credits/day',
         schedule: lang === 'es' ? 'Días de análisis' : 'Analysis Days',
-        scheduleDesc: lang === 'es' 
-            ? 'Días en los que se generará y revisará data' 
+        scheduleDesc: lang === 'es'
+            ? 'Días en los que se generará y revisará data'
             : 'Days when data will be generated and reviewed',
-        placeholder: lang === 'es' 
-            ? 'Esta configuración es orientativa. El sistema de créditos y planes no está definido.' 
+        placeholder: lang === 'es'
+            ? 'Esta configuración es orientativa. El sistema de créditos y planes no está definido.'
             : 'This configuration is indicative. The credits and plans system is not defined.',
         next: lang === 'es' ? 'Continuar' : 'Continue',
         back: lang === 'es' ? 'Atrás' : 'Back',
@@ -58,7 +58,7 @@ export default function ScheduleStep() {
     const toggleModel = (modelId: string) => {
         setScheduleConfig({
             ...scheduleConfig,
-            models: scheduleConfig.models.map(m => 
+            models: scheduleConfig.models.map(m =>
                 m.modelId === modelId ? { ...m, enabled: !m.enabled } : m
             )
         })
@@ -79,7 +79,7 @@ export default function ScheduleStep() {
 
     return (
         <div className="w-full flex justify-center animate-in fade-in duration-500">
-            <Card className="w-full max-w-2xl p-6 md:p-8 space-y-4 shadow-2xl border-white/10 bg-black/40 backdrop-blur-xl">
+            <Card className="w-full max-w-2xl p-6 md:p-8 space-y-4 shadow-2xl border-border bg-card/50 dark:bg-black/40 backdrop-blur-xl">
                 {/* Step indicator */}
                 <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
@@ -88,7 +88,7 @@ export default function ScheduleStep() {
                 </div>
 
                 <div className="space-y-2 text-left">
-                    <h1 className="text-3xl font-bold tracking-tight text-white">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
                         {t.title}
                     </h1>
                     <p className="text-muted-foreground">{t.subtitle}</p>
@@ -108,15 +108,15 @@ export default function ScheduleStep() {
                             <Label className="text-sm font-medium text-white">{t.aiModels}</Label>
                         </div>
                         <p className="text-xs text-muted-foreground">{t.aiModelsDesc}</p>
-                        
+
                         <div className="grid grid-cols-2 gap-2">
                             {scheduleConfig.models.map((model) => (
-                                <div 
+                                <div
                                     key={model.modelId}
                                     className={cn(
                                         "flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer",
-                                        model.enabled 
-                                            ? "bg-primary/10 border-primary/30" 
+                                        model.enabled
+                                            ? "bg-primary/10 border-primary/30"
                                             : "bg-white/5 border-white/10 hover:border-white/20"
                                     )}
                                     onClick={() => toggleModel(model.modelId)}
@@ -144,7 +144,7 @@ export default function ScheduleStep() {
                                             )}
                                         </div>
                                     </div>
-                                    <Switch 
+                                    <Switch
                                         checked={model.enabled}
                                         onCheckedChange={() => toggleModel(model.modelId)}
                                     />
@@ -160,7 +160,7 @@ export default function ScheduleStep() {
                             <Label className="text-sm font-medium text-white">{t.schedule}</Label>
                         </div>
                         <p className="text-xs text-muted-foreground">{t.scheduleDesc}</p>
-                        
+
                         <div className="flex gap-2 justify-center">
                             {DAYS.map((day) => {
                                 const isActive = scheduleConfig.activeDays.includes(day.id)
@@ -170,8 +170,8 @@ export default function ScheduleStep() {
                                         onClick={() => toggleDay(day.id)}
                                         className={cn(
                                             "w-9 h-9 rounded-lg font-medium text-sm transition-all",
-                                            isActive 
-                                                ? "bg-primary text-primary-foreground" 
+                                            isActive
+                                                ? "bg-primary text-primary-foreground"
                                                 : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white border border-white/10"
                                         )}
                                     >

@@ -129,6 +129,14 @@ const translations = {
     footerLegalNotice: 'Aviso Legal',
     footerRights: 'Todos los derechos reservados.',
 
+    // Prompt Input
+    promptPlaceholder: 'Ingresa tu sitio web para analizar...',
+    creditsRemaining: 'Análisis gratuitos restantes',
+    upgrade: 'Mejorar Plan',
+    mic: 'Usar Micrófono',
+    magicTools: 'Herramientas Mágicas',
+    attachFile: 'Adjuntar Archivo',
+
     // Privacy Policy Page
     privacyPolicy: 'Política de Privacidad',
     privacyLastUpdated: 'Última actualización:',
@@ -724,7 +732,7 @@ const translations = {
     promptCopied: '¡Prompt copiado al portapapeles!',
 
     // Sidebar & Search Performance
-    searchPerformance: 'Rendimiento de Búsqueda',
+    searchPerformance: 'SEO Comparativo',
     crawlersMonitor: 'Monitor de Crawlers',
     loadingText: 'Cargando...',
     noBrandsYet: 'Aún no hay marcas',
@@ -802,6 +810,34 @@ const translations = {
     rec_speakable_desc: 'Implementa Schema Speakable para búsquedas por voz.',
     rec_local_title: 'Schema LocalBusiness',
     rec_local_desc: 'Esencial para búsquedas de voz tipo "cerca de mí".',
+
+    // Platform Detection
+    platformDetected: 'Plataforma Detectada',
+    platformConfidence: 'Confianza',
+    platformWordpress: 'WordPress',
+    platformShopify: 'Shopify',
+    platformWix: 'Wix',
+    platformSquarespace: 'Squarespace',
+    platformWebflow: 'Webflow',
+    platformPrestashop: 'PrestaShop',
+    platformMagento: 'Magento',
+    platformDrupal: 'Drupal',
+    platformJoomla: 'Joomla',
+    platformCustom: 'Código Personalizado',
+    platformUnknown: 'Desconocido',
+    difficultyEasy: 'Fácil',
+    difficultyMedium: 'Intermedio',
+    difficultyHard: 'Avanzado',
+    estimatedTime: 'Tiempo estimado',
+    feasibleForPlatform: 'Viable en esta plataforma',
+    notFeasibleForPlatform: 'No viable - requiere desarrollador',
+    viewTutorial: 'Ver tutorial',
+    manualOverride: 'Cambiar plataforma manualmente',
+    implementationMethod: 'Método de implementación',
+    methodPlugin: 'Via plugin',
+    methodApp: 'Via app/extensión',
+    methodCode: 'Modificar código',
+    methodLimited: 'Limitado en esta plataforma',
 
     // ==========================================
     // AUTH PAGES
@@ -1043,6 +1079,41 @@ const translations = {
     demoModeActive: 'Estás en modo demo',
     demoDescription: 'Explora la plataforma con datos de ejemplo',
     exitDemo: 'Salir del demo',
+
+    // Advanced AEO Features
+    hallucinationDetection: 'Detección de Alucinaciones',
+    hallucinationDesc: 'Detectar claims falsos sobre tu marca en respuestas de IA',
+    hallucination: 'Alucinación',
+    hallucinations: 'Alucinaciones',
+    accurate: 'Preciso',
+    unverified: 'No verificado',
+    analyzing: 'Analizando...',
+    checkNow: 'Verificar ahora',
+    clickToAnalyze: 'Haz clic en "Verificar ahora" para analizar respuestas de IA',
+    analyzedClaims: 'Claims analizados',
+
+    entityTracking: 'Tracking de Entidades',
+    entityTrackingDesc: 'Rastrea la visibilidad de productos, servicios y personas en IA',
+    trackEntities: 'Rastrear Entidades',
+    clickToTrack: 'Haz clic para descubrir y rastrear entidades',
+    products: 'Productos',
+    services: 'Servicios',
+    people: 'Personas',
+    features: 'Características',
+    visibilityByEntity: 'Visibilidad por Entidad',
+    noEntitiesFound: 'No se encontraron entidades para rastrear',
+
+    promptDiscovery: 'Descubrimiento de Prompts',
+    promptDiscoveryDesc: 'Descubre qué prompts activan menciones de tu marca en IA',
+    testPrompts: 'Probar prompts',
+    discovering: 'Descubriendo...',
+    discover: 'Descubrir',
+    discoverInfo: 'Descubre qué prompts de IA mencionan tu marca',
+    effectivePrompts: 'Prompts Efectivos',
+    ineffectivePrompts: 'Prompts de Baja Visibilidad',
+    promptCopied: '¡Prompt copiado!',
+    advancedAeoIntelligence: 'Inteligencia AEO Avanzada',
+    advancedAeoDesc: 'Análisis profundo de tu presencia en respuestas de IA',
   },
   en: {
     // ==========================================
@@ -1164,6 +1235,14 @@ const translations = {
     footerBlog: 'Blog',
     footerLegalNotice: 'Legal Notice',
     footerRights: 'All rights reserved.',
+
+    // Prompt Input
+    promptPlaceholder: 'Enter your website to analyze...',
+    creditsRemaining: 'Free analyses remaining',
+    upgrade: 'Upgrade Plan',
+    mic: 'Use Microphone',
+    magicTools: 'Magic Tools',
+    attachFile: 'Attach File',
 
     // Privacy Policy Page
     privacyPolicy: 'Privacy Policy',
@@ -1705,7 +1784,7 @@ const translations = {
     promptCopied: 'Prompt copied to clipboard!',
 
     // Sidebar & Search Performance
-    searchPerformance: 'Search Performance',
+    searchPerformance: 'Comparative SEO',
     crawlersMonitor: 'Crawlers Monitor',
     loadingText: 'Loading...',
     noBrandsYet: 'No brands yet',
@@ -1765,6 +1844,52 @@ const translations = {
     nextExecution: 'Next execution',
     filter: 'Filter',
     pages: 'pages',
+
+    // AEO Recommendations
+    rec_crawler_title: 'AI Crawlers Blocked',
+    rec_crawler_desc: 'Some AI crawlers are blocked in robots.txt. Allow them to improve visibility.',
+    rec_faq_title: 'Add FAQ Schema',
+    rec_faq_desc: 'Implement FAQPage schema to increase chances of being cited in Q&A queries.',
+    rec_howto_title: 'Add HowTo Schema',
+    rec_howto_desc: 'Add HowTo schema for instructional content.',
+    rec_structured_title: 'Missing Structured Data',
+    rec_structured_desc: 'Implement JSON-LD (Schema.org) to help AI understand your content.',
+    rec_https_title: 'Enable HTTPS',
+    rec_https_desc: 'Switch to HTTPS for security and crawler trust.',
+    rec_rss_title: 'Add RSS Feed',
+    rec_rss_desc: 'Provide an RSS/Atom feed for content discovery.',
+    rec_speakable_title: 'Add Speakable Schema',
+    rec_speakable_desc: 'Implement Speakable schema for voice search.',
+    rec_local_title: 'LocalBusiness Schema',
+    rec_local_desc: 'Essential for "near me" voice queries.',
+
+    // Platform Detection
+    platformDetected: 'Detected Platform',
+    platformConfidence: 'Confidence',
+    platformWordpress: 'WordPress',
+    platformShopify: 'Shopify',
+    platformWix: 'Wix',
+    platformSquarespace: 'Squarespace',
+    platformWebflow: 'Webflow',
+    platformPrestashop: 'PrestaShop',
+    platformMagento: 'Magento',
+    platformDrupal: 'Drupal',
+    platformJoomla: 'Joomla',
+    platformCustom: 'Custom Code',
+    platformUnknown: 'Unknown',
+    difficultyEasy: 'Easy',
+    difficultyMedium: 'Medium',
+    difficultyHard: 'Advanced',
+    estimatedTime: 'Estimated time',
+    feasibleForPlatform: 'Feasible on this platform',
+    notFeasibleForPlatform: 'Not feasible - requires developer',
+    viewTutorial: 'View tutorial',
+    manualOverride: 'Change platform manually',
+    implementationMethod: 'Implementation method',
+    methodPlugin: 'Via plugin',
+    methodApp: 'Via app/extension',
+    methodCode: 'Edit code',
+    methodLimited: 'Limited on this platform',
 
     // ==========================================
     // AUTH PAGES
@@ -2061,6 +2186,41 @@ const translations = {
     demoModeActive: 'You are in demo mode',
     demoDescription: 'Explore the platform with sample data',
     exitDemo: 'Exit demo',
+
+    // Advanced AEO Features
+    hallucinationDetection: 'Hallucination Detection',
+    hallucinationDesc: 'Detect false claims about your brand in AI responses',
+    hallucination: 'Hallucination',
+    hallucinations: 'Hallucinations',
+    accurate: 'Accurate',
+    unverified: 'Unverified',
+    analyzing: 'Analyzing...',
+    checkNow: 'Check Now',
+    clickToAnalyze: 'Click "Check Now" to analyze AI responses',
+    analyzedClaims: 'Analyzed Claims',
+
+    entityTracking: 'Entity Tracking',
+    entityTrackingDesc: 'Track product, service & people visibility in AI',
+    trackEntities: 'Track Entities',
+    clickToTrack: 'Click to discover and track entities',
+    products: 'Products',
+    services: 'Services',
+    people: 'People',
+    features: 'Features',
+    visibilityByEntity: 'Visibility by Entity',
+    noEntitiesFound: 'No entities found to track',
+
+    promptDiscovery: 'Prompt Discovery',
+    promptDiscoveryDesc: 'Discover which prompts trigger your brand in AI responses',
+    testPrompts: 'Test prompts',
+    discovering: 'Discovering...',
+    discover: 'Discover',
+    discoverInfo: 'Find out which AI prompts mention your brand',
+    effectivePrompts: 'Effective Prompts',
+    ineffectivePrompts: 'Low Visibility Prompts',
+    promptCopied: 'Prompt copied!',
+    advancedAeoIntelligence: 'Advanced AEO Intelligence',
+    advancedAeoDesc: 'Deep analysis of your AI response presence',
   },
 } as const
 

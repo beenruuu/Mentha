@@ -549,6 +549,270 @@ class PromptTrackingService:
             "results": results,
             "checked_at": datetime.utcnow().isoformat() + "Z"
         }
+    
+    async def discover_effective_prompts(
+        self,
+        brand_name: str,
+        industry: str = "",
+        products: List[str] = None,
+        services: List[str] = None,
+        test_count: int = 10
+    ) -> Dict[str, Any]:
+        """
+        Discover which types of prompts trigger brand mentions.
+        
+        Tests various prompt patterns and identifies which ones
+        result in brand visibility.
+        
+        Args:
+            brand_name: Brand to check visibility for
+            industry: Industry context
+            products: Product names to include in prompts
+            services: Service names to include in prompts
+            test_count: Number of prompts to test (default 10)
+            
+        Returns:
+            Discovery results with effective vs ineffective prompts
+        """
+        results = {
+            "brand_name": brand_name,
+            "tested_at": datetime.utcnow().isoformat() + "Z",
+            "prompts_tested": 0,
+            "effective_prompts": [],
+            "ineffective_prompts": [],
+            "effectiveness_by_category": {},
+            "recommendations": []
+        }
+        
+        # Generate test prompts
+        test_prompts = self._generate_test_prompts(
+            brand_name, industry, products or [], services or []
+        )[:test_count]
+        
+        category_stats = {}
+        
+        for prompt_data in test_prompts:
+            prompt = prompt_data["prompt"]
+            category = prompt_data["category"]
+            
+            # Test prompt on available models
+            models_to_test = []
+            if self.openai_key:
+                models_to_test.append("openai")
+            if self.anthropic_key:
+                models_to_test.append("anthropic")
+            
+            if not models_to_test:
+                continue
+            
+            mention_count = 0
+            total_tests = 0
+            
+            for model in models_to_test:
+                try:
+                    if model == "openai":
+                        result = await self._check_openai(prompt, brand_name)
+                    else:
+                        result = await self._check_anthropic(prompt, brand_name)
+                    
+                    total_tests += 1
+                    if result.get("brand_mentioned"):
+                        mention_count += 1
+                        
+                except Exception as e:
+                    print(f"Prompt test failed: {e}")
+            
+            results["prompts_tested"] += 1
+            
+            # Classify prompt effectiveness
+            effectiveness = (mention_count / total_tests * 100) if total_tests > 0 else 0
+            
+            prompt_result = {
+                "prompt": prompt,
+                "category": category,
+                "effectiveness": round(effectiveness, 1),
+                "mentions": mention_count,
+                "tests": total_tests
+            }
+            
+            if effectiveness >= 50:
+                results["effective_prompts"].append(prompt_result)
+            else:
+                results["ineffective_prompts"].append(prompt_result)
+            
+            # Track by category
+            if category not in category_stats:
+                category_stats[category] = {"effective": 0, "total": 0}
+            category_stats[category]["total"] += 1
+            if effectiveness >= 50:
+                category_stats[category]["effective"] += 1
+        
+        # Calculate category effectiveness
+        for category, stats in category_stats.items():
+            rate = (stats["effective"] / stats["total"] * 100) if stats["total"] > 0 else 0
+            results["effectiveness_by_category"][category] = {
+                "rate": round(rate, 1),
+                "effective": stats["effective"],
+                "total": stats["total"]
+            }
+        
+        # Generate recommendations
+        results["recommendations"] = self._generate_prompt_recommendations(
+            results["effective_prompts"],
+            results["ineffective_prompts"],
+            results["effectiveness_by_category"]
+        )
+        
+        # Sort by effectiveness
+        results["effective_prompts"].sort(key=lambda x: -x["effectiveness"])
+        
+        return results
+    
+    def _generate_test_prompts(
+        self,
+        brand_name: str,
+        industry: str,
+        products: List[str],
+        services: List[str]
+    ) -> List[Dict[str, str]]:
+        """Generate diverse test prompts for discovery."""
+        prompts = []
+        
+        # Category: Direct brand queries
+        prompts.extend([
+            {"prompt": f"What is {brand_name}?", "category": "direct"},
+            {"prompt": f"Tell me about {brand_name}", "category": "direct"},
+            {"prompt": f"Who is {brand_name}?", "category": "direct"},
+        ])
+        
+        # Category: Comparative queries
+        if industry:
+            prompts.extend([
+                {"prompt": f"Best {industry} companies", "category": "comparative"},
+                {"prompt": f"Top {industry} solutions to consider", "category": "comparative"},
+                {"prompt": f"Compare {industry} providers", "category": "comparative"},
+            ])
+        
+        # Category: Problem-solving queries
+        if industry:
+            prompts.extend([
+                {"prompt": f"I need help with {industry}, what solutions exist?", "category": "problem_solving"},
+                {"prompt": f"How do I choose a {industry} provider?", "category": "problem_solving"},
+            ])
+        
+        # Category: Product queries
+        for product in products[:3]:
+            prompts.extend([
+                {"prompt": f"What is {product}?", "category": "product"},
+                {"prompt": f"Tell me about {product} by {brand_name}", "category": "product"},
+            ])
+        
+        # Category: Service queries  
+        for service in services[:3]:
+            prompts.extend([
+                {"prompt": f"Who offers {service}?", "category": "service"},
+                {"prompt": f"Best companies for {service}", "category": "service"},
+            ])
+        
+        # Category: Review/opinion queries
+        prompts.extend([
+            {"prompt": f"Reviews of {brand_name}", "category": "review"},
+            {"prompt": f"Is {brand_name} reliable?", "category": "review"},
+            {"prompt": f"What do people say about {brand_name}?", "category": "review"},
+        ])
+        
+        # Category: Expert queries
+        prompts.extend([
+            {"prompt": f"Expert opinions on {brand_name}", "category": "expert"},
+            {"prompt": f"What do analysts think of {brand_name}?", "category": "expert"},
+        ])
+        
+        return prompts
+    
+    def _generate_prompt_recommendations(
+        self,
+        effective: List[Dict],
+        ineffective: List[Dict],
+        by_category: Dict[str, Dict]
+    ) -> List[str]:
+        """Generate recommendations based on discovery results."""
+        recommendations = []
+        
+        # Identify best categories
+        best_categories = sorted(
+            by_category.items(),
+            key=lambda x: -x[1]["rate"]
+        )[:2]
+        
+        worst_categories = sorted(
+            by_category.items(),
+            key=lambda x: x[1]["rate"]
+        )[:2]
+        
+        if best_categories:
+            cat = best_categories[0][0]
+            rate = best_categories[0][1]["rate"]
+            recommendations.append(
+                f"✅ Focus on '{cat}' prompts - {rate}% effectiveness"
+            )
+        
+        if worst_categories and worst_categories[0][1]["rate"] < 30:
+            cat = worst_categories[0][0]
+            recommendations.append(
+                f"⚠️ Improve visibility for '{cat}' queries - currently low"
+            )
+        
+        if len(effective) == 0:
+            recommendations.append(
+                "❌ Low AI visibility - consider building more brand awareness"
+            )
+        elif len(effective) > len(ineffective):
+            recommendations.append(
+                f"🎯 Good visibility! {len(effective)}/{len(effective)+len(ineffective)} prompts trigger mentions"
+            )
+        
+        return recommendations
+    
+    async def suggest_prompts_for_tracking(
+        self,
+        brand_name: str,
+        industry: str = "",
+        existing_prompts: List[str] = None
+    ) -> List[Dict[str, str]]:
+        """
+        Suggest strategic prompts to track based on brand and industry.
+        
+        Returns prompts that are likely to be valuable for monitoring.
+        """
+        suggestions = []
+        existing = set(existing_prompts or [])
+        
+        # Strategic prompt templates
+        templates = [
+            # High-intent queries
+            {"template": f"Best {industry} software for small business", "category": "high_intent", "reason": "Purchase-intent query"},
+            {"template": f"{industry} tools comparison", "category": "comparative", "reason": "Comparison shopping"},
+            {"template": f"Alternative to [competitor] in {industry}", "category": "competitive", "reason": "Competitor comparison"},
+            
+            # Brand queries
+            {"template": f"Is {brand_name} good?", "category": "reputation", "reason": "Reputation check"},
+            {"template": f"{brand_name} vs competitors", "category": "competitive", "reason": "Direct comparison"},
+            {"template": f"{brand_name} pricing", "category": "purchase", "reason": "Purchase consideration"},
+            
+            # Problem queries
+            {"template": f"How to solve [problem] in {industry}", "category": "problem", "reason": "Problem-solution match"},
+            {"template": f"What tool to use for [task]", "category": "task", "reason": "Task-based search"},
+        ]
+        
+        for t in templates:
+            if t["template"] not in existing:
+                suggestions.append({
+                    "prompt": t["template"],
+                    "category": t["category"],
+                    "reason": t["reason"]
+                })
+        
+        return suggestions[:10]
 
 
 # Singleton instance

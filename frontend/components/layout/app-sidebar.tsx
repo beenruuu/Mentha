@@ -212,7 +212,7 @@ export function AppSidebar() {
         setBrands(data)
 
         // Onboarding check: If no brands and not on onboarding/creation pages, redirect
-        if (data.length === 0 && !pathname.startsWith('/brand/new') && !pathname.startsWith('/onboarding')) {
+        if (!isDemoMode && data.length === 0 && !pathname.startsWith('/brand/new') && !pathname.startsWith('/onboarding')) {
           router.push('/onboarding')
         }
       } catch (error) {
@@ -265,7 +265,7 @@ export function AppSidebar() {
 
       {/* Sidebar */}
       <aside className={`${openMobile ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 fixed left-0 ${isDemoMode ? 'top-[40px] h-[calc(100vh-40px)]' : 'top-0 h-screen'} w-64 bg-background flex flex-col z-50 transition-transform duration-300 ease-in-out`}>
+        } md:translate-x-0 fixed left-0 top-0 h-screen w-64 bg-background flex flex-col z-50 transition-transform duration-300 ease-in-out`}>
         {/* Logo and Close Button */}
         <div className="p-4 flex items-center justify-between">
           <Link href="/">

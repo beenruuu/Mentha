@@ -18,7 +18,7 @@ export function RootProvider({ children }: { children: React.ReactNode }) {
     return (
         <QueryClientProvider client={queryClient}>
             <DemoProvider>
-                <DemoBanner />
+                {/* <DemoBanner /> - Disabled by user request */}
                 {children}
             </DemoProvider>
         </QueryClientProvider>

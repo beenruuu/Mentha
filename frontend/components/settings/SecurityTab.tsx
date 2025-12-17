@@ -1,13 +1,24 @@
 'use client'
 
 import { useState } from "react"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
 import { createClient } from '@/lib/supabase/client'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface SecurityTabProps {
     t: Record<string, string>
@@ -22,6 +33,36 @@ export function SecurityTab({ t }: SecurityTabProps) {
     const [showCurrentPassword, setShowCurrentPassword] = useState(false)
     const [showNewPassword, setShowNewPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
+
+    const handleDeleteAccount = async () => {
+        setIsDeleting(true)
+        try {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session) return
+
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/compliance/account`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`
+                }
+            })
+
+            if (!response.ok) throw new Error('Deletion failed')
+
+            await supabase.auth.signOut()
+            toast.success("Tu cuenta ha sido eliminada permanentemente")
+
+            // Redirect to home/login
+            window.location.href = '/'
+
+        } catch (error) {
+            console.error('Delete account error:', error)
+            toast.error("Error al eliminar la cuenta. Por favor contacta con soporte.")
+        } finally {
+            setIsDeleting(false)
+        }
+    }
 
     const handleUpdatePassword = async () => {
         if (!newPassword || !confirmPassword) {
@@ -131,6 +172,52 @@ export function SecurityTab({ t }: SecurityTabProps) {
                     </div>
                 </CardContent>
             </Card>
-        </div>
+
+            <Card className="border-red-200 shadow-sm bg-red-50/50 dark:bg-red-900/10">
+                <CardHeader>
+                    <CardTitle className="text-red-600 dark:text-red-400 flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5" />
+                        Zona de Peligro
+                    </CardTitle>
+                    <CardDescription>
+                        Acciones irreversibles sobre tu cuenta y datos personales.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Eliminar Cuenta</h4>
+                            <p className="text-sm text-muted-foreground">
+                                Elimina permanentemente tu cuenta y todos tus datos (GDPR Art. 17).
+                                No podrás recuperar esta información.
+                            </p>
+                        </div>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive">
+                                    {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                                    Eliminar mi cuenta
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. Esto eliminará permanentemente tu cuenta
+                                        de Mentha y borrará tus datos de nuestros servidores en cumplimiento con la GDPR.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleDeleteAccount} className="bg-red-600 hover:bg-red-700">
+                                        Sí, eliminar mi cuenta
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                </CardContent>
+            </Card>
+        </div >
     )
 }

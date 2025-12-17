@@ -34,7 +34,7 @@ export default function SetupStep() {
     const router = useRouter()
     const { lang } = useTranslations()
     const setupStarted = useRef(false)
-    
+
     // Use ref to store brandId during async operations to avoid re-renders
     const brandIdRef = useRef<string | undefined>(brandId)
 
@@ -114,7 +114,7 @@ export default function SetupStep() {
         if (missingData) return
 
         console.log('[SetupStep] useEffect triggered, setupStarted.current:', setupStarted.current)
-        
+
         if (setupStarted.current) {
             console.log('[SetupStep] Setup already started, skipping')
             return
@@ -142,7 +142,7 @@ export default function SetupStep() {
 
                 if (!resolvedBrandId) {
                     addLog(lang === 'es' ? '🔍 Verificando marca...' : '🔍 Checking brand...')
-                    
+
                     // Normalize domain helper
                     const normalizeDomain = (input?: string | null) => {
                         if (!input) return ''
@@ -253,7 +253,7 @@ export default function SetupStep() {
                 // FASE 2: CONFIGURACIÓN DE ANÁLISIS
                 // ──────────────────────────────────────────────
                 addLog(lang === 'es' ? '📍 FASE 2: Configuración de análisis' : '📍 PHASE 2: Analysis Configuration')
-                
+
                 // Step 2a: Save research prompts
                 const promptsToProcess = Array.isArray(researchPrompts) ? researchPrompts : []
 
@@ -337,7 +337,7 @@ export default function SetupStep() {
                     for (let i = 0; i < safeCompetitors.length; i++) {
                         const competitor = safeCompetitors[i]
                         console.log(`[SetupStep] Saving competitor ${i + 1}/${safeCompetitors.length}:`, competitor.name)
-                        
+
                         try {
                             await fetchAPI(`/competitors/`, {
                                 method: 'POST',
@@ -356,7 +356,7 @@ export default function SetupStep() {
                             // Ignore duplicate errors
                             console.warn('Failed to add competitor:', competitor.name, e)
                         }
-                        
+
                         if (!isMounted) {
                             console.warn('[SetupStep] Component unmounted during competitor saving')
                             return
@@ -481,7 +481,7 @@ export default function SetupStep() {
 
     return (
         <div className="w-full flex justify-center animate-in fade-in duration-500">
-            <Card className="w-full max-w-2xl p-6 md:p-8 space-y-6 shadow-2xl border-white/10 bg-black/40 backdrop-blur-xl">
+            <Card className="w-full max-w-2xl p-6 md:p-8 space-y-6 shadow-2xl border-border bg-card/50 dark:bg-black/40 backdrop-blur-xl">
                 {/* Header with animated spinner */}
                 <div className="text-center space-y-4">
                     <div className="relative w-20 h-20 mx-auto">
@@ -493,7 +493,7 @@ export default function SetupStep() {
                         </div>
                     </div>
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight text-white">
+                        <h2 className="text-2xl font-bold tracking-tight text-foreground">
                             {t.title}
                         </h2>
                         <p className="text-muted-foreground mt-1 text-sm">
@@ -528,7 +528,7 @@ export default function SetupStep() {
                                     isRunning && "bg-emerald-500/10 border border-emerald-500/20 scale-[1.02]",
                                     isCompleted && "bg-green-500/5 border border-green-500/10",
                                     isError && "bg-red-500/10 border border-red-500/20",
-                                    isSkipped && "bg-white/5 border border-white/5",
+                                    isSkipped && "bg-background/50 dark:bg-white/5 border border-input",
                                     isPending && "opacity-40"
                                 )}
                             >
@@ -538,8 +538,8 @@ export default function SetupStep() {
                                     isRunning && "bg-emerald-500/20 text-emerald-500",
                                     isCompleted && "bg-green-500/20 text-green-500",
                                     isError && "bg-red-500/20 text-red-500",
-                                    isSkipped && "bg-white/10 text-white/50",
-                                    isPending && "bg-white/5 text-white/30"
+                                    isSkipped && "bg-background/50 dark:bg-white/10 text-muted-foreground",
+                                    isPending && "bg-background/50 dark:bg-white/5 text-muted-foreground/30"
                                 )}>
                                     {isCompleted ? (
                                         <CheckCircle2 className="w-3.5 h-3.5" />
@@ -557,11 +557,11 @@ export default function SetupStep() {
                                 {/* Message */}
                                 <p className={cn(
                                     "text-sm font-medium flex-1",
-                                    isRunning && "text-white",
-                                    isCompleted && "text-green-400",
+                                    isRunning && "text-foreground",
+                                    isCompleted && "text-green-500/80",
                                     isError && "text-red-400",
-                                    isSkipped && "text-white/50",
-                                    isPending && "text-white/50"
+                                    isSkipped && "text-muted-foreground",
+                                    isPending && "text-muted-foreground/50"
                                 )}>
                                     {lang === 'es' ? task.messageEs : task.message}
                                     {isSkipped && <span className="text-xs text-muted-foreground ml-2">({t.skipped})</span>}
@@ -572,14 +572,18 @@ export default function SetupStep() {
                 </div>
 
                 {/* Logs Section */}
-                <div className="mt-4 p-3 bg-black/50 rounded-lg border border-white/5 h-32 overflow-y-auto font-mono text-xs text-muted-foreground">
+                <div className="mt-4 p-3 bg-black/5 dark:bg-black/50 rounded-lg border border-border h-32 overflow-y-auto font-mono text-xs text-muted-foreground">
                     {logs.map((log, i) => (
                         <div key={i} className="mb-1 last:mb-0">
                             <span className="text-emerald-500/50 mr-2">{'>'}</span>
                             {log}
                         </div>
                     ))}
-                    <div ref={(el) => { if (el && logs.length > 0) el.scrollIntoView({ behavior: 'smooth' }) }} />
+                    <div ref={(el) => {
+                        if (el && logs.length > 0) {
+                            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+                        }
+                    }} />
                 </div>
 
                 {/* Error message */}

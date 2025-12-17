@@ -21,7 +21,7 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts'
-import { format } from "date-fns"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
@@ -32,10 +32,12 @@ import { brandsService, type Brand } from "@/lib/services/brands"
 import { analysisService, type Analysis } from "@/lib/services/analysis"
 import { competitorsService, type Competitor } from "@/lib/services/competitors"
 import { geoAnalysisService, type VisibilitySnapshot } from "@/lib/services/geo-analysis"
-import { MetricTab } from "@/components/dashboard/metric-tab"
-import { ActionItem } from "@/components/dashboard/action-item"
-import { ReasoningCard } from "@/components/dashboard/reasoning-card"
+
+
 import { GoogleConnect } from "@/components/integrations/GoogleConnect"
+import { DateRangePicker } from "@/components/ui/date-range-picker"
+import { subDays, isAfter, startOfDay, format } from "date-fns"
+import { DateRange } from "react-day-picker"
 
 const AI_PROVIDER_META = [
   { id: 'chatgpt', name: 'ChatGPT', icon: '/providers/openai.svg?v=3', color: '#10a37f' },
@@ -63,15 +65,30 @@ export default function DashboardPage() {
   const [modelPerformance, setModelPerformance] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [activeMetric, setActiveMetric] = useState<'rank' | 'position' | 'inclusion'>('rank')
+
+  // Date Range State
+  const [selectedDays, setSelectedDays] = useState(30)
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: subDays(new Date(), 30),
+    to: new Date(),
+  })
+
   const router = useRouter()
 
-  // Handler to change selected brand
-  const handleBrandChange = async (brand: Brand) => {
-    setSelectedBrand(brand)
+  // Common fetch function
+  const fetchDataForBrand = async (brand: Brand, days: number) => {
     setLoading(true)
     try {
       const analyses = await analysisService.getAll(brand.id)
-      const processedChartData = analyses
+
+      // Filter analyses based on date range
+      const startDate = dateRange?.from || subDays(new Date(), days)
+      const filteredAnalyses = analyses.filter(a => {
+        const date = new Date(a.created_at)
+        return isAfter(date, startOfDay(startDate)) || date.toDateString() === startDate.toDateString()
+      })
+
+      const processedChartData = filteredAnalyses
         .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
         .map(a => ({
           date: format(new Date(a.created_at), 'MM/dd'),
@@ -80,25 +97,63 @@ export default function DashboardPage() {
           inclusion: a.inclusion_rate ? Math.round(a.inclusion_rate) : 0,
         }))
       setChartData(processedChartData)
+
       if (analyses.length > 0) {
         setAnalysis(analyses[analyses.length - 1])
       } else {
         setAnalysis(null)
       }
+
       const comps = await competitorsService.getAll(brand.id)
       setCompetitors(comps)
+
       try {
-        const visibilityData = await geoAnalysisService.getVisibilityData(brand.id)
+        const visibilityData = await geoAnalysisService.getVisibilityData(brand.id, undefined, days)
         if (visibilityData.latest_scores?.length > 0) {
           const scores: Record<string, number> = {}
           visibilityData.latest_scores.forEach((snapshot: VisibilitySnapshot) => {
-            // Map backend model name to frontend ID
             const frontendId = MODEL_ID_MAP[snapshot.ai_model] || snapshot.ai_model
             scores[frontendId] = snapshot.visibility_score
           })
           setModelPerformance(scores)
         } else {
           setModelPerformance({})
+        }
+
+        // Handle History for Chart
+        if (visibilityData.history && visibilityData.history.length > 0) {
+          const historyMap = new Map<string, Record<string, number>>()
+
+          visibilityData.history.forEach((snapshot) => {
+            const dateKey = format(new Date(snapshot.measured_at || new Date().toISOString()), 'MM/dd')
+            if (!historyMap.has(dateKey)) {
+              historyMap.set(dateKey, {})
+            }
+            const dayData = historyMap.get(dateKey)!
+            const frontendId = MODEL_ID_MAP[snapshot.ai_model] || snapshot.ai_model
+
+            dayData[frontendId] = snapshot.visibility_score ?? 0
+            dayData[`${frontendId}_position`] = snapshot.average_position ?? 0
+            dayData[`${frontendId}_inclusion`] = snapshot.inclusion_rate ?? 0
+          })
+
+          setChartData(prevData => {
+            // If prevData is empty (no analysis), create from history
+            if (prevData.length === 0) {
+              return Array.from(historyMap.entries()).sort().map(([date, scores]) => ({
+                date,
+                rank: 0,
+                position: 0,
+                inclusion: 0,
+                ...scores
+              }))
+            }
+
+            return prevData.map(item => {
+              const modelScores = historyMap.get(item.date) || {}
+              return { ...item, ...modelScores }
+            })
+          })
         }
       } catch {
         setModelPerformance({})
@@ -110,8 +165,31 @@ export default function DashboardPage() {
     }
   }
 
+  // Handler to change selected brand
+  const handleBrandChange = async (brand: Brand) => {
+    setSelectedBrand(brand)
+    await fetchDataForBrand(brand, selectedDays)
+  }
+
+  const handleDateRangeChange = (range: DateRange | undefined) => {
+    setDateRange(range)
+    if (range?.from && range?.to) {
+      const diffTime = Math.abs(range.to.getTime() - range.from.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setSelectedDays(diffDays || 1) // limit must be at least 1
+    }
+  }
+
+  // Refetch when selectedDays changes
   useEffect(() => {
-    const fetchData = async () => {
+    if (selectedBrand) {
+      fetchDataForBrand(selectedBrand, selectedDays)
+    }
+  }, [selectedDays]) // Only depend on selectedDays and rely on selectedBrand being stable enough or check it
+
+
+  useEffect(() => {
+    const initData = async () => {
       try {
         const brandsData = await brandsService.getAll()
         setBrands(brandsData)
@@ -119,84 +197,8 @@ export default function DashboardPage() {
         if (brandsData.length > 0) {
           const brand = brandsData[0]
           setSelectedBrand(brand)
-
-          // Fetch analysis
-          const analyses = await analysisService.getAll(brand.id)
-
-          // Process chart data from analyses history
-          const processedChartData = analyses
-            .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-            .map(a => ({
-              date: format(new Date(a.created_at), 'MM/dd'),
-              rank: a.score ? Math.round(a.score) : 0,
-              position: a.avg_position ? Math.round(a.avg_position) : 0,
-              inclusion: a.inclusion_rate ? Math.round(a.inclusion_rate) : 0,
-            }))
-
-          setChartData(processedChartData)
-
-          if (analyses.length > 0) {
-            // Use the most recent analysis
-            setAnalysis(analyses[analyses.length - 1])
-          }
-
-          // Fetch competitors
-          const comps = await competitorsService.getAll(brand.id)
-          setCompetitors(comps)
-
-          // Fetch GEO visibility data for model performance
-          try {
-            const visibilityData = await geoAnalysisService.getVisibilityData(brand.id)
-
-            // Handle Latest Scores
-            if (visibilityData.latest_scores && visibilityData.latest_scores.length > 0) {
-              const scores: Record<string, number> = {}
-              visibilityData.latest_scores.forEach((snapshot: VisibilitySnapshot) => {
-                // Map backend model name to frontend ID
-                const frontendId = MODEL_ID_MAP[snapshot.ai_model] || snapshot.ai_model
-                scores[frontendId] = snapshot.visibility_score
-              })
-              setModelPerformance(scores)
-            } else {
-              setModelPerformance({})
-            }
-
-            // Handle History for Chart
-            if (visibilityData.history && visibilityData.history.length > 0) {
-              const historyMap = new Map<string, Record<string, number>>()
-
-              visibilityData.history.forEach((snapshot) => {
-                const dateKey = format(new Date(snapshot.measured_at || new Date().toISOString()), 'MM/dd')
-                if (!historyMap.has(dateKey)) {
-                  historyMap.set(dateKey, {})
-                }
-                const dayData = historyMap.get(dateKey)!
-                // Guard against undefined/null visibility scores
-                const frontendId = MODEL_ID_MAP[snapshot.ai_model] || snapshot.ai_model
-
-                // Add specific metrics per model
-                dayData[frontendId] = snapshot.visibility_score ?? 0
-                // We can also track position/inclusion per model if available, 
-                // but usually the visibility_score is the main "Rank/Score" we show.
-                // If we want position/inclusion per model, we'd prefix them:
-                dayData[`${frontendId}_position`] = snapshot.average_position ?? 0
-                dayData[`${frontendId}_inclusion`] = snapshot.inclusion_rate ?? 0
-              })
-
-              setChartData(prevData => {
-                // Map over the existing chart data (which comes from Analyses) and merge specific model scores if available for that date
-                // Note: If dates don't align perfectly, we might miss points. 
-                // But typically analysis and visibility snapshots happen similarly or we just show what matches.
-                return prevData.map(item => {
-                  const modelScores = historyMap.get(item.date) || {}
-                  return { ...item, ...modelScores }
-                })
-              })
-            }
-          } catch (error) {
-            console.error('Error fetching GEO visibility data:', error)
-          }
-
+          // Initial fetch with default 30 days
+          await fetchDataForBrand(brand, 30)
         }
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err)
@@ -205,7 +207,7 @@ export default function DashboardPage() {
       }
     }
 
-    fetchData()
+    initData()
   }, [])
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -248,19 +250,27 @@ export default function DashboardPage() {
                 }
               }
 
+              // Skip the overall metric entry (rank, position, inclusion) to show only model data
+              if (['rank', 'position', 'inclusion'].includes(entry.name)) return null
+
               return (
                 <div key={index} className="flex items-center justify-between gap-8">
                   <div className="flex items-center gap-2">
                     {provider ? (
-                      <Image
-                        src={provider.icon}
-                        alt={provider.name}
-                        width={14}
-                        height={14}
-                        className={provider.icon.includes('openai.svg') ? 'dark:invert' : ''}
-                      />
+                      <div
+                        className="w-5 h-5 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: provider.color }}
+                      >
+                        <Image
+                          src={provider.icon}
+                          alt={provider.name}
+                          width={12}
+                          height={12}
+                          className="brightness-0 invert"
+                        />
+                      </div>
                     ) : (
-                      <div className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]" style={{ color: entry.color, backgroundColor: entry.color }} />
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
                     )}
                     <span className="text-muted-foreground">
                       {displayName}
@@ -344,7 +354,15 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+
           <div className="flex items-center gap-3">
+            {/* Date Range Picker */}
+            <DateRangePicker
+              date={dateRange}
+              onDateChange={handleDateRangeChange}
+              onDaysChange={setSelectedDays}
+            />
+
             {selectedBrand && (
               <Link href={`/brand/${selectedBrand.id}`}>
                 <Button variant="outline" size="sm" className="gap-2 text-xs">
@@ -477,24 +495,12 @@ export default function DashboardPage() {
                             reversed={activeMetric === 'position'}
                           />
                           <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1, strokeDasharray: '5 5' }} />
-                          {/* Overall Metric Area (Background) - Only for non-rank or if no model data */}
-                          {(activeMetric !== 'rank' || Object.keys(modelPerformance).length === 0) && (
-                            <Area
-                              type="monotone"
-                              dataKey={activeMetric}
-                              stroke="#10b981"
-                              strokeWidth={3}
-                              fillOpacity={1}
-                              fill="url(#colorMetric)"
-                              animationDuration={1000}
-                            />
-                          )}
 
 
-                          {/* Individual Model Lines - For All Metrics */}
+                          {/* Individual Model Lines - Overlaid on top */}
                           {Object.keys(modelPerformance).length > 0 && AI_PROVIDER_META.map((provider) => {
                             // Determine data key based on active metric
-                            let dataKey = provider.id
+                            let dataKey: string = provider.id
                             if (activeMetric === 'position') dataKey = `${provider.id}_position`
                             if (activeMetric === 'inclusion') dataKey = `${provider.id}_inclusion`
 
@@ -505,8 +511,8 @@ export default function DashboardPage() {
                                 dataKey={dataKey}
                                 stroke={provider.color}
                                 strokeWidth={2}
-                                fillOpacity={0.05}
-                                fill={provider.color}
+                                fillOpacity={0}
+                                fill="transparent"
                                 connectNulls
                               />
                             )
@@ -519,6 +525,8 @@ export default function DashboardPage() {
                       </div>
                     )}
                   </div>
+
+
                 </div>
               </div>
 

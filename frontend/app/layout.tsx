@@ -53,7 +53,7 @@ export default function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className={`min-h-screen bg-black antialiased font-sans ${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+      <body className={`min-h-screen bg-background antialiased font-sans ${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
         <LanguageInit />
         <ThemeInit />
 

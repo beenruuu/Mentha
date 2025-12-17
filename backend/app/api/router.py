@@ -24,12 +24,11 @@ from app.api.endpoints import (
     lab,
     prompt_tracking,
     export,
-    export,
-    sentiment,
-    export,
     sentiment,
     organization,
-    compliance
+    compliance,
+    hallucinations,
+    entities
 )
 
 api_router = APIRouter()
@@ -63,3 +62,8 @@ api_router.include_router(export.router, tags=["Export"])
 api_router.include_router(sentiment.router, tags=["Sentiment Analysis"])
 api_router.include_router(organization.router, prefix="/organization", tags=["Organization"])
 api_router.include_router(compliance.router, prefix="/compliance", tags=["Compliance"])
+
+# Advanced AEO Services
+api_router.include_router(hallucinations.router, tags=["Hallucinations"])
+api_router.include_router(entities.router, tags=["Entity Tracking"])
+

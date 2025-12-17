@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
+import { Download } from "lucide-react"
 
 interface ProfileTabProps {
     t: Record<string, string>
@@ -34,6 +35,44 @@ export function ProfileTab({
     const supabase = createClient()
     const [isSavingProfile, setIsSavingProfile] = useState(false)
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+    const [isExporting, setIsExporting] = useState(false)
+
+    const handleExportData = async () => {
+        setIsExporting(true)
+        try {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (!session) return
+
+            const apiUrl = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/compliance/export?format=json`
+            console.log('Fetching export from:', apiUrl)
+
+            const response = await fetch(apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`
+                }
+            })
+
+            if (!response.ok) throw new Error('Export failed')
+
+            const blob = await response.blob()
+            const url = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `mentha-export-${new Date().toISOString().split('T')[0]}.json`
+            document.body.appendChild(a)
+            a.click()
+            window.URL.revokeObjectURL(url)
+            document.body.removeChild(a)
+
+            toast.success("Datos exportados correctamente")
+
+        } catch (error) {
+            console.error('Export error:', error)
+            toast.error("Error al exportar datos")
+        } finally {
+            setIsExporting(false)
+        }
+    }
 
     const compressImage = (file: File): Promise<Blob> => {
         return new Promise((resolve, reject) => {
@@ -216,6 +255,27 @@ export function ProfileTab({
                         <Button onClick={handleSaveProfile} disabled={isSavingProfile}>
                             {isSavingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             {t.saveChanges}
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
+                <CardHeader>
+                    <CardTitle>Tus Datos</CardTitle>
+                    <CardDescription>Gestiona tus datos personales y portabilidad (GDPR/LOPD)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                            <h4 className="text-sm font-medium">Exportar Datos</h4>
+                            <p className="text-sm text-muted-foreground">
+                                Descarga una copia de todos tus datos personales en formato JSON.
+                            </p>
+                        </div>
+                        <Button variant="outline" onClick={handleExportData} disabled={isExporting}>
+                            {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
+                            Exportar mis datos
                         </Button>
                     </div>
                 </CardContent>

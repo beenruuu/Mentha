@@ -148,12 +148,17 @@ export default function CompanyStep() {
                 logo: data.image || data.favicon || '',
                 name: companyName, // Usar el nombre introducido por el usuario
                 domain: data.domain || extractDomain(normalizedUrl),
-                category: data.industry || '',
+                category: data.industry || 'Other',
                 description: data.description || '',
                 businessScope: (data.businessScope as 'local' | 'regional' | 'national' | 'international') || 'national',
                 city: data.city || '',
                 industrySpecific: data.industrySpecific || ''
             })
+
+            // If category is "Other" or empty, trigger a silent re-analysis or prompt user
+            if (!data.industry || data.industry === 'Other') {
+                console.warn('Category detection low confidence, defaulting to Other')
+            }
 
 
             // Establecer dominio corporativo
@@ -191,7 +196,7 @@ export default function CompanyStep() {
 
     return (
         <div className="w-full flex justify-center animate-in fade-in duration-500">
-            <Card className="w-full max-w-2xl p-6 md:p-8 space-y-5 shadow-2xl border-white/10 bg-black/40 backdrop-blur-xl">
+            <Card className="w-full max-w-2xl p-6 md:p-8 space-y-5 shadow-2xl border-border bg-card/50 dark:bg-black/40 backdrop-blur-xl">
                 {/* Step indicator */}
                 <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
@@ -200,7 +205,7 @@ export default function CompanyStep() {
                 </div>
 
                 <div className="space-y-2 text-left">
-                    <h1 className="text-3xl font-bold tracking-tight text-white">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
                         {t.title}
                     </h1>
                     <p className="text-muted-foreground">{t.subtitle}</p>
@@ -208,26 +213,26 @@ export default function CompanyStep() {
 
                 <div className="space-y-4">
                     <div className="space-y-1.5">
-                        <Label htmlFor="companyName" className="text-sm font-medium text-gray-300">
-                            {t.companyName} <span className="text-red-500">*</span>
+                        <Label htmlFor="companyName" className="text-sm font-medium text-foreground">
+                            {t.companyName} <span className="text-destructive">*</span>
                         </Label>
                         <Input
                             id="companyName"
                             value={companyName}
                             onChange={(e) => setCompanyName(e.target.value)}
                             placeholder={lang === 'es' ? 'Acme Inc.' : 'Acme Inc.'}
-                            className="h-10 bg-white/5 border-white/10 focus:border-primary/50 transition-all"
+                            className="h-10 bg-background/50 dark:bg-white/5 border-input focus:border-primary/50 transition-all text-foreground"
                             disabled={isAnalyzing}
                         />
                     </div>
 
                     <div className="space-y-1.5">
-                        <Label htmlFor="websiteUrl" className="text-sm font-medium text-gray-300">
-                            {t.websiteUrl} <span className="text-red-500">*</span>
+                        <Label htmlFor="websiteUrl" className="text-sm font-medium text-foreground">
+                            {t.websiteUrl} <span className="text-destructive">*</span>
                         </Label>
                         <div className="relative flex">
-                            <div className="flex items-center h-10 px-4 bg-white/10 border border-r-0 border-white/10 rounded-l-md text-sm min-w-[120px]">
-                                <span className="flex items-center gap-2.5 text-white">
+                            <div className="flex items-center h-10 px-4 bg-background/50 dark:bg-white/10 border border-r-0 border-input rounded-l-md text-sm min-w-[120px]">
+                                <span className="flex items-center gap-2.5 text-foreground">
                                     {favicon ? (
                                         <img
                                             src={favicon}
@@ -247,7 +252,7 @@ export default function CompanyStep() {
                                     value={urlWithoutProtocol}
                                     onChange={(e) => setUrlWithoutProtocol(e.target.value.replace(/^https?:\/\//, ''))}
                                     placeholder="example.com"
-                                    className="h-10 rounded-l-none rounded-r-md bg-white/5 border-white/10 focus:border-primary/50 transition-all pr-10 text-white"
+                                    className="h-10 rounded-l-none rounded-r-md bg-background/50 dark:bg-white/5 border-input focus:border-primary/50 transition-all pr-10 text-foreground"
                                     disabled={isAnalyzing}
                                 />
                                 {favicon && (
@@ -280,15 +285,15 @@ export default function CompanyStep() {
                     </div>
 
                     <div className="space-y-1.5">
-                        <Label htmlFor="location" className="text-sm font-medium text-gray-300">
-                            {t.location} <span className="text-red-500">*</span>
+                        <Label htmlFor="location" className="text-sm font-medium text-foreground">
+                            {t.location} <span className="text-destructive">*</span>
                         </Label>
                         <Select
                             value={companyInfo.location}
                             onValueChange={(value) => setCompanyInfo({ ...companyInfo, location: value })}
                             disabled={isAnalyzing}
                         >
-                            <SelectTrigger className="h-10 bg-white/5 border-white/10 focus:border-primary/50 text-white">
+                            <SelectTrigger className="h-10 bg-background/50 dark:bg-white/5 border-input focus:border-primary/50 text-foreground">
                                 <SelectValue placeholder={t.selectLocation} />
                             </SelectTrigger>
                             <SelectContent>
@@ -314,14 +319,14 @@ export default function CompanyStep() {
                         variant="ghost"
                         onClick={prevStep}
                         disabled={isAnalyzing}
-                        className="text-muted-foreground hover:text-white"
+                        className="text-muted-foreground hover:text-foreground"
                     >
                         {t.back}
                     </Button>
                     <Button
                         onClick={handleAnalyze}
                         disabled={isAnalyzing || !companyName || !urlWithoutProtocol || !companyInfo.location}
-                        className="bg-white text-black hover:bg-white/90 px-8 h-10 rounded-md font-medium transition-all disabled:opacity-50"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-10 rounded-md font-medium transition-all disabled:opacity-50"
                     >
                         {isAnalyzing ? (
                             <>

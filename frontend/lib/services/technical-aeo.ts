@@ -44,6 +44,17 @@ export interface TechnicalAEO {
     }>;
     last_audit?: string;
     created_at: string;
+    // Platform detection
+    detected_platform?: 'wordpress' | 'shopify' | 'wix' | 'squarespace' | 'webflow' | 'prestashop' | 'magento' | 'drupal' | 'joomla' | 'custom' | 'unknown';
+    platform_confidence?: number;
+    platform_capabilities?: {
+        can_edit_html: boolean;
+        can_add_plugins: boolean;
+        can_add_schema: boolean;
+        schema_method: string;
+        difficulty_base: string;
+        tutorial_url?: string;
+    };
 }
 
 export const technicalAeoService = {

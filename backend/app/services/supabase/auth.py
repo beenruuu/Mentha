@@ -33,8 +33,16 @@ class SupabaseAuthService:
 
         return response.session.access_token
 
+    async def delete_user(self, user_id: str):
+        """Delete a user from Supabase Auth (Admin only)."""
+        # Using the service key client allows admin operations
+        response = self.supabase.auth.admin.delete_user(user_id)
+        return response
+
 
 # Dependency to get the auth service
 def get_auth_service() -> SupabaseAuthService:
     """Return an instance of the Supabase auth service."""
     return SupabaseAuthService()
+
+

@@ -538,6 +538,187 @@ class CitationTrackingService:
         
         return snippet
     
+    def classify_citation_type(
+        self,
+        ai_response: str,
+        original_content: str,
+        brand_name: str
+    ) -> Dict[str, Any]:
+        """
+        Classify citation type: exact_quote, paraphrase, or mention.
+        
+        Args:
+            ai_response: The AI model's response containing the citation
+            original_content: The original content from the brand's website
+            brand_name: Brand name
+            
+        Returns:
+            Dict with citation_type, similarity_score, matched_text
+        """
+        from difflib import SequenceMatcher
+        
+        ai_lower = ai_response.lower()
+        brand_lower = brand_name.lower()
+        
+        # Find where brand is mentioned
+        brand_idx = ai_lower.find(brand_lower)
+        if brand_idx == -1:
+            return {
+                "citation_type": "none",
+                "similarity_score": 0,
+                "matched_text": None,
+                "explanation": "Brand not found in response"
+            }
+        
+        # Get the sentence containing the brand mention
+        start = ai_response.rfind('.', 0, brand_idx) + 1
+        end = ai_response.find('.', brand_idx)
+        if end == -1:
+            end = len(ai_response)
+        
+        citation_sentence = ai_response[start:end].strip()
+        
+        if not original_content:
+            return {
+                "citation_type": "mention",
+                "similarity_score": 0,
+                "matched_text": citation_sentence,
+                "explanation": "No original content to compare"
+            }
+        
+        # Split original content into sentences for comparison
+        original_sentences = [s.strip() for s in original_content.split('.') if len(s.strip()) > 20]
+        
+        best_match = {
+            "similarity": 0,
+            "original_sentence": "",
+            "type": "mention"
+        }
+        
+        for orig_sentence in original_sentences:
+            # Calculate similarity
+            similarity = SequenceMatcher(
+                None, 
+                citation_sentence.lower(), 
+                orig_sentence.lower()
+            ).ratio()
+            
+            if similarity > best_match["similarity"]:
+                best_match["similarity"] = similarity
+                best_match["original_sentence"] = orig_sentence
+                
+                # Classify based on similarity
+                if similarity > 0.9:
+                    best_match["type"] = "exact_quote"
+                elif similarity > 0.5:
+                    best_match["type"] = "paraphrase"
+                else:
+                    best_match["type"] = "mention"
+        
+        return {
+            "citation_type": best_match["type"],
+            "similarity_score": round(best_match["similarity"] * 100, 1),
+            "matched_text": citation_sentence,
+            "original_text": best_match["original_sentence"][:200] if best_match["original_sentence"] else None,
+            "explanation": self._get_citation_type_explanation(best_match["type"], best_match["similarity"])
+        }
+    
+    def _get_citation_type_explanation(self, citation_type: str, similarity: float) -> str:
+        """Get human-readable explanation for citation type."""
+        if citation_type == "exact_quote":
+            return f"Cita textual ({similarity*100:.0f}% similitud) - El contenido se repite casi literalmente"
+        elif citation_type == "paraphrase":
+            return f"Paráfrasis ({similarity*100:.0f}% similitud) - La IA reformuló tu contenido"
+        else:
+            return "Mención simple - Solo nombra la marca sin citar contenido"
+    
+    async def analyze_citation_types(
+        self,
+        brand_name: str,
+        domain: str,
+        original_content: str = None
+    ) -> Dict[str, Any]:
+        """
+        Analyze what types of citations (exact/paraphrase/mention) AIs use for a brand.
+        
+        Returns breakdown of citation types across AI models.
+        """
+        results = {
+            "brand_name": brand_name,
+            "analyzed_at": datetime.utcnow().isoformat() + "Z",
+            "citation_breakdown": {
+                "exact_quotes": 0,
+                "paraphrases": 0,
+                "mentions": 0
+            },
+            "by_model": {},
+            "examples": []
+        }
+        
+        # Fetch original content if not provided
+        if not original_content:
+            try:
+                async with httpx.AsyncClient(timeout=20.0) as client:
+                    url = f"https://{domain}" if not domain.startswith("http") else domain
+                    response = await client.get(url, follow_redirects=True)
+                    if response.status_code == 200:
+                        original_content = response.text[:10000]  # First 10k chars
+            except Exception as e:
+                logger.warning(f"Could not fetch original content: {e}")
+                original_content = ""
+        
+        # Query AIs and analyze citation types
+        queries = [
+            f"What does {brand_name} do?",
+            f"Summarize {brand_name}'s main services",
+        ]
+        
+        for query in queries:
+            # Query OpenAI
+            if self.openai_key:
+                try:
+                    async with httpx.AsyncClient(timeout=30.0) as client:
+                        response = await client.post(
+                            "https://api.openai.com/v1/chat/completions",
+                            headers={
+                                "Authorization": f"Bearer {self.openai_key}",
+                                "Content-Type": "application/json"
+                            },
+                            json={
+                                "model": "gpt-3.5-turbo",
+                                "messages": [{"role": "user", "content": query}],
+                                "max_tokens": 300
+                            }
+                        )
+                        
+                        if response.status_code == 200:
+                            data = response.json()
+                            content = data["choices"][0]["message"]["content"]
+                            
+                            classification = self.classify_citation_type(
+                                content, original_content, brand_name
+                            )
+                            
+                            # Update counts
+                            ct = classification["citation_type"]
+                            if ct == "exact_quote":
+                                results["citation_breakdown"]["exact_quotes"] += 1
+                            elif ct == "paraphrase":
+                                results["citation_breakdown"]["paraphrases"] += 1
+                            else:
+                                results["citation_breakdown"]["mentions"] += 1
+                            
+                            results["examples"].append({
+                                "model": "openai",
+                                "query": query,
+                                **classification
+                            })
+                            
+                except Exception as e:
+                    logger.warning(f"OpenAI citation type analysis failed: {e}")
+        
+        return results
+    
     def _calculate_citation_score(self, results: Dict[str, Any]) -> float:
         """
         Calculate overall citation score (0-100).

@@ -64,6 +64,7 @@
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.60.0",
     "react-resizable-panels": "^2.1.7",
+    "react-textarea-autosize": "^8.5.9",
     "recharts": "2.15.4",
     "sonner": "^1.7.4",
     "stripe": "^19.1.0",

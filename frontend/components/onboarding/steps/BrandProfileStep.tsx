@@ -238,11 +238,11 @@ export default function BrandProfileStep() {
 
     return (
         <div className="w-full flex justify-center animate-in fade-in duration-500">
-            <Card className="w-full max-w-2xl p-6 shadow-2xl border-white/10 bg-black/40 backdrop-blur-xl">
+            <Card className="w-full max-w-2xl p-6 shadow-2xl border-border bg-card/50 dark:bg-black/40 backdrop-blur-xl">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-5">
                     <div>
-                        <h1 className="text-2xl font-bold text-white">{t.title}</h1>
+                        <h1 className="text-2xl font-bold text-foreground">{t.title}</h1>
                         <p className="text-sm text-muted-foreground">{t.subtitle}</p>
                     </div>
                     <span className="text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
@@ -253,7 +253,7 @@ export default function BrandProfileStep() {
                 <div className="space-y-4">
                     {/* Row 1: Logo + Name + Domain */}
                     <div className="flex gap-4 items-end">
-                        <div className="w-14 h-14 shrink-0 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden">
+                        <div className="w-14 h-14 shrink-0 rounded-lg bg-background/50 dark:bg-white/5 border border-border flex items-center justify-center overflow-hidden">
                             {brandProfile.logo ? (
                                 <img src={brandProfile.logo} alt="Logo" className="w-full h-full object-contain p-1.5" />
                             ) : (
@@ -261,24 +261,24 @@ export default function BrandProfileStep() {
                             )}
                         </div>
                         <div className="flex-1">
-                            <Label className="text-xs text-gray-400">{t.companyName} *</Label>
+                            <Label className="text-xs text-muted-foreground">{t.companyName} *</Label>
                             <div className="relative">
                                 <Building2 className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <Input
                                     value={brandProfile.name}
                                     onChange={(e) => setBrandProfile({ ...brandProfile, name: e.target.value })}
-                                    className="h-10 pl-9 bg-white/5 border-white/10"
+                                    className="h-10 pl-9 bg-background/50 dark:bg-white/5 border-input text-foreground"
                                 />
                             </div>
                         </div>
                         <div className="flex-1">
-                            <Label className="text-xs text-gray-400">{t.domain} *</Label>
+                            <Label className="text-xs text-muted-foreground">{t.domain} *</Label>
                             <div className="relative">
                                 <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                                 <Input
                                     value={brandProfile.domain}
                                     onChange={(e) => setBrandProfile({ ...brandProfile, domain: e.target.value })}
-                                    className="h-10 pl-9 bg-white/5 border-white/10"
+                                    className="h-10 pl-9 bg-background/50 dark:bg-white/5 border-input text-foreground"
                                 />
                             </div>
                         </div>
@@ -286,21 +286,21 @@ export default function BrandProfileStep() {
 
                     {/* Row 2: Categories Dropdown */}
                     <div ref={dropdownRef} className="relative">
-                        <Label className="text-xs text-gray-400 mb-1.5 block">{t.category}</Label>
+                        <Label className="text-xs text-muted-foreground mb-1.5 block">{t.category}</Label>
 
                         {/* Dropdown trigger */}
                         <button
                             type="button"
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="w-full h-10 px-3 flex items-center justify-between bg-white/5 border border-white/10 rounded-md hover:border-white/20 transition-colors"
+                            className="w-full h-10 px-3 flex items-center justify-between bg-background/50 dark:bg-white/5 border border-input rounded-md hover:border-ring transition-colors"
                         >
-                            <span className="text-sm text-gray-400">
+                            <span className="text-sm text-muted-foreground">
                                 {allSelected.length > 0
                                     ? `${allSelected.length} ${lang === 'es' ? 'seleccionadas' : 'selected'}`
                                     : t.categoryPlaceholder
                                 }
                             </span>
-                            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
 
                         {/* Selected tags */}
@@ -310,7 +310,7 @@ export default function BrandProfileStep() {
                                     <span
                                         key={id}
                                         className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs ${isCustom
-                                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                                            ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
                                             : 'bg-primary/20 text-primary border border-primary/30'
                                             }`}
                                     >
@@ -318,7 +318,7 @@ export default function BrandProfileStep() {
                                         <button
                                             type="button"
                                             onClick={(e) => { e.stopPropagation(); removeCategory(id, isCustom) }}
-                                            className="hover:text-white"
+                                            className="hover:text-foreground"
                                         >
                                             <X className="w-3 h-3" />
                                         </button>
@@ -329,7 +329,7 @@ export default function BrandProfileStep() {
 
                         {/* Dropdown menu */}
                         {isDropdownOpen && (
-                            <div className="absolute z-50 w-full mt-1 p-3 bg-black border border-white/10 rounded-lg shadow-xl">
+                            <div className="absolute z-50 w-full mt-1 p-3 bg-popover border border-border rounded-lg shadow-xl">
                                 {/* Categories grid - 3 columns */}
                                 <div className="grid grid-cols-3 gap-1 mb-3">
                                     {DEFAULT_CATEGORIES.map((cat) => {
@@ -341,10 +341,10 @@ export default function BrandProfileStep() {
                                                 onClick={() => toggleCategory(cat.id)}
                                                 className={`flex items-center gap-1.5 px-2 py-1.5 rounded text-xs text-left transition-all ${isSelected
                                                     ? 'bg-primary/20 text-primary'
-                                                    : 'text-gray-400 hover:bg-white/5 hover:text-gray-300'
+                                                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                                                     }`}
                                             >
-                                                <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary border-primary' : 'border-gray-500'
+                                                <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary border-primary' : 'border-input'
                                                     }`}>
                                                     {isSelected && <Check className="w-2.5 h-2.5 text-black" />}
                                                 </div>
@@ -355,12 +355,12 @@ export default function BrandProfileStep() {
                                 </div>
 
                                 {/* Add custom category */}
-                                <div className="flex gap-2 pt-2 border-t border-white/10">
+                                <div className="flex gap-2 pt-2 border-t border-border">
                                     <Input
                                         value={newCategory}
                                         onChange={(e) => setNewCategory(e.target.value)}
                                         placeholder={t.addCategoryPlaceholder}
-                                        className="h-8 text-xs bg-white/5 border-white/10 flex-1"
+                                        className="h-8 text-xs bg-background/50 dark:bg-white/5 border-input flex-1 text-foreground"
                                         onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomCategory())}
                                     />
                                     <Button
@@ -379,19 +379,19 @@ export default function BrandProfileStep() {
 
                     {/* Row 3: Description */}
                     <div>
-                        <Label className="text-xs text-gray-400">{t.description}</Label>
+                        <Label className="text-xs text-muted-foreground">{t.description}</Label>
                         <Textarea
                             value={brandProfile.description}
                             onChange={(e) => setBrandProfile({ ...brandProfile, description: e.target.value })}
                             placeholder={t.descriptionPlaceholder}
                             rows={2}
-                            className="bg-white/5 border-white/10 text-sm resize-none mt-1.5"
+                            className="bg-background/50 dark:bg-white/5 border-input text-sm resize-none mt-1.5 text-foreground"
                         />
                     </div>
 
                     {/* Row 4: Business Scope */}
-                    <div className="space-y-3 pt-2 border-t border-white/5">
-                        <Label className="text-xs text-gray-400 flex items-center gap-1.5">
+                    <div className="space-y-3 pt-2 border-t border-border">
+                        <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
                             <MapPin className="w-3.5 h-3.5" />
                             {t.scopeLabel}
                         </Label>
@@ -409,12 +409,12 @@ export default function BrandProfileStep() {
                                 <label
                                     key={option.value}
                                     className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all text-xs ${scope === option.value
-                                        ? 'bg-primary/10 border-primary/30 text-white'
-                                        : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20'
+                                        ? 'bg-primary/10 border-primary/30 text-foreground'
+                                        : 'bg-background/50 dark:bg-white/5 border-input text-muted-foreground hover:border-ring'
                                         }`}
                                 >
                                     <RadioGroupItem value={option.value} className="sr-only" />
-                                    <div className={`w-3 h-3 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === option.value ? 'border-primary' : 'border-gray-500'
+                                    <div className={`w-3 h-3 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === option.value ? 'border-primary' : 'border-input'
                                         }`}>
                                         {scope === option.value && (
                                             <div className="w-1.5 h-1.5 rounded-full bg-primary" />
@@ -428,19 +428,19 @@ export default function BrandProfileStep() {
                         {/* Conditional city field for local/regional */}
                         {(scope === 'local' || scope === 'regional') && (
                             <div className="animate-in fade-in slide-in-from-top-2 duration-200">
-                                <Label className="text-xs text-gray-400">{t.cityLabel}</Label>
+                                <Label className="text-xs text-muted-foreground">{t.cityLabel}</Label>
                                 <Input
                                     value={city}
                                     onChange={(e) => setCity(e.target.value)}
                                     placeholder={t.cityPlaceholder}
-                                    className="h-9 mt-1 bg-white/5 border-white/10 text-sm"
+                                    className="h-9 mt-1 bg-background/50 dark:bg-white/5 border-input text-sm text-foreground"
                                 />
                             </div>
                         )}
                     </div>
                 </div>
 
-                {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
+                {error && <p className="text-sm text-destructive mt-3">{error}</p>}
 
                 {/* Actions */}
                 <div className="flex justify-between mt-5">
@@ -448,14 +448,14 @@ export default function BrandProfileStep() {
                         variant="ghost"
                         onClick={prevStep}
                         disabled={isCreating}
-                        className="text-muted-foreground hover:text-white h-10"
+                        className="text-muted-foreground hover:text-foreground h-10"
                     >
                         {t.back}
                     </Button>
                     <Button
                         onClick={handleNext}
                         disabled={!brandProfile.name || !brandProfile.domain || isCreating}
-                        className="bg-white text-black hover:bg-white/90 px-8 h-10 font-medium"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-10 font-medium"
                     >
                         {isCreating ? (
                             <>

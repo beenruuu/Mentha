@@ -39,7 +39,7 @@ export default function AboutYouStep() {
 
     return (
         <div className="w-full flex justify-center animate-in fade-in duration-500">
-            <Card className="w-full max-w-2xl p-6 md:p-8 space-y-5 shadow-2xl border-white/10 bg-black/40 backdrop-blur-xl">
+            <Card className="w-full max-w-2xl p-6 md:p-8 space-y-5 shadow-2xl border-border bg-card/50 dark:bg-black/40 backdrop-blur-xl">
                 {/* Step indicator */}
                 <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
@@ -48,7 +48,7 @@ export default function AboutYouStep() {
                 </div>
 
                 <div className="space-y-2 text-left">
-                    <h1 className="text-3xl font-bold tracking-tight text-white">
+                    <h1 className="text-3xl font-bold tracking-tight text-foreground">
                         {t.title}
                     </h1>
                     <p className="text-muted-foreground">{t.subtitle}</p>
@@ -57,40 +57,40 @@ export default function AboutYouStep() {
                 <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-1.5">
-                            <Label htmlFor="firstName" className="text-sm font-medium text-gray-300">
-                                {t.firstName} <span className="text-red-500">*</span>
+                            <Label htmlFor="firstName" className="text-sm font-medium text-foreground">
+                                {t.firstName} <span className="text-destructive">*</span>
                             </Label>
                             <Input
                                 id="firstName"
                                 value={userInfo.firstName}
                                 onChange={(e) => setUserInfo({ ...userInfo, firstName: e.target.value })}
                                 placeholder="John"
-                                className="h-10 bg-white/5 border-white/10 focus:border-primary/50 transition-all"
+                                className="h-10 bg-background/50 dark:bg-white/5 border-input focus:border-primary/50 transition-all text-foreground"
                             />
                         </div>
                         <div className="space-y-1.5">
-                            <Label htmlFor="lastName" className="text-sm font-medium text-gray-300">
-                                {t.lastName} <span className="text-red-500">*</span>
+                            <Label htmlFor="lastName" className="text-sm font-medium text-foreground">
+                                {t.lastName} <span className="text-destructive">*</span>
                             </Label>
                             <Input
                                 id="lastName"
                                 value={userInfo.lastName}
                                 onChange={(e) => setUserInfo({ ...userInfo, lastName: e.target.value })}
                                 placeholder="Doe"
-                                className="h-10 bg-white/5 border-white/10 focus:border-primary/50 transition-all"
+                                className="h-10 bg-background/50 dark:bg-white/5 border-input focus:border-primary/50 transition-all text-foreground"
                             />
                         </div>
                     </div>
 
                     <div className="space-y-1.5">
-                        <Label htmlFor="seoExperience" className="text-sm font-medium text-gray-300">
+                        <Label htmlFor="seoExperience" className="text-sm font-medium text-foreground">
                             {t.seoExperience}
                         </Label>
                         <Select
                             value={userInfo.seoExperience || ''}
                             onValueChange={(value) => setUserInfo({ ...userInfo, seoExperience: value })}
                         >
-                            <SelectTrigger className="h-10 bg-white/5 border-white/10 focus:border-primary/50 text-white">
+                            <SelectTrigger className="h-10 bg-background/50 dark:bg-white/5 border-input focus:border-primary/50 text-foreground">
                                 <SelectValue placeholder={t.selectExperience} />
                             </SelectTrigger>
                             <SelectContent>
@@ -108,7 +108,7 @@ export default function AboutYouStep() {
                     <Button
                         onClick={handleNext}
                         disabled={!userInfo.firstName || !userInfo.lastName}
-                        className="bg-white text-black hover:bg-white/90 px-8 h-10 rounded-md font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-10 rounded-md font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {t.next}
                     </Button>

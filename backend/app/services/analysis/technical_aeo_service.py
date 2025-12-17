@@ -226,6 +226,7 @@ class TechnicalAEOService:
         """
         Perform complete technical AEO audit for a domain.
         Now scans multiple pages to aggregate structured data stats.
+        Also detects platform/CMS and adapts recommendations accordingly.
         
         Args:
             domain: Domain to audit (e.g., 'example.com')
@@ -238,6 +239,16 @@ class TechnicalAEOService:
             domain = f'https://{domain}'
         
         logger.info(f"Starting technical AEO audit for: {domain}")
+        
+        # 0. Detect Platform/CMS
+        platform_info = {"detected_platform": "unknown", "platform_confidence": 0}
+        try:
+            from app.services.analysis.platform_detection_service import get_platform_detection_service
+            platform_service = get_platform_detection_service()
+            platform_info = await platform_service.detect_platform(domain)
+            logger.info(f"Detected platform: {platform_info.get('detected_platform')} (confidence: {platform_info.get('platform_confidence')}%)")
+        except Exception as e:
+            logger.warning(f"Platform detection failed: {e}")
         
         # 1. Check Technical Signals (Robots, etc.) on Homepage
         crawler_permissions = await self._check_robots_txt(domain)
@@ -310,18 +321,38 @@ class TechnicalAEOService:
             technical_signals
         )
         
+        # 4. Generate and filter recommendations by platform
+        raw_recommendations = self._generate_recommendations(
+            crawler_permissions, aggregated_schemas, technical_signals, voice_score
+        )
+        
+        # Enrich recommendations with platform-specific difficulty
+        enriched_recommendations = raw_recommendations
+        detected_platform = platform_info.get("detected_platform", "unknown")
+        try:
+            from app.services.analysis.platform_detection_service import get_platform_detection_service
+            platform_service = get_platform_detection_service()
+            enriched_recommendations = platform_service.filter_recommendations(
+                raw_recommendations,
+                detected_platform,
+                include_unfeasible=True  # Show all but mark unfeasible
+            )
+        except Exception as e:
+            logger.warning(f"Failed to enrich recommendations: {e}")
+        
         return {
             "enabled": True,
             'domain': domain,
             'pages_scanned': len(pages_to_scan),
+            'detected_platform': detected_platform,
+            'platform_confidence': platform_info.get('platform_confidence', 0),
+            'platform_capabilities': platform_info.get('capabilities'),
             'ai_crawler_permissions': crawler_permissions,
             'structured_data': aggregated_schemas,
             'technical_signals': technical_signals,
             'aeo_readiness_score': aeo_score,
             'voice_readiness_score': voice_score,
-            'recommendations': self._generate_recommendations(
-                crawler_permissions, aggregated_schemas, technical_signals, voice_score
-            )
+            'recommendations': enriched_recommendations
         }
     
     async def _check_robots_txt(self, domain: str) -> Dict[str, Any]:

@@ -74,6 +74,8 @@ const STEP_CONTENT = {
   },
 }
 
+import { ThemeToggleSimple } from '@/components/shared/theme-toggle-simple'
+
 export default function OnboardingPage() {
   const { currentStep } = useOnboarding()
   const { lang } = useTranslations()
@@ -103,7 +105,12 @@ export default function OnboardingPage() {
   const StepIcon = stepContent.icon
 
   return (
-    <div className="min-h-screen bg-black text-white overflow-hidden grid lg:grid-cols-2 dark" data-theme="dark">
+    <div className="min-h-screen bg-background text-foreground overflow-hidden grid lg:grid-cols-2 transition-colors duration-300">
+      {/* Theme Toggle */}
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggleSimple />
+      </div>
+
       {/* Left Column: Form Area */}
       <div className="flex flex-col justify-center p-4 lg:p-8 relative z-10 overflow-y-auto">
         {/* Logo */}
@@ -113,7 +120,7 @@ export default function OnboardingPage() {
             alt="Mentha"
             width={32}
             height={32}
-            className="h-8 w-8"
+            className="h-8 w-8 invert dark:invert-0 transition-all"
             priority
           />
         </div>
@@ -126,41 +133,40 @@ export default function OnboardingPage() {
       </div>
 
       {/* Right Column: Decorative Area */}
-      <div className="hidden lg:flex flex-col justify-center items-center relative bg-zinc-900 overflow-hidden border-l border-white/5">
+      <div className="hidden lg:flex flex-col justify-center items-center relative bg-zinc-50 dark:bg-zinc-900 overflow-hidden border-l border-border transition-colors duration-300">
         {/* Background Gradients */}
         <div className="absolute inset-0 z-0 pointer-events-none">
-          <div className="absolute top-[-20%] right-[-10%] w-[80%] h-[80%] bg-emerald-500/20 rounded-full blur-[150px] animate-pulse duration-[10s]" />
-          <div className="absolute bottom-[-20%] left-[-10%] w-[80%] h-[80%] bg-emerald-500/15 rounded-full blur-[150px] animate-pulse duration-[10s] delay-2000" />
+          <div className="absolute top-[-20%] right-[-10%] w-[80%] h-[80%] bg-emerald-500/10 dark:bg-emerald-500/20 rounded-full blur-[150px] animate-pulse duration-[10s]" />
+          <div className="absolute bottom-[-20%] left-[-10%] w-[80%] h-[80%] bg-emerald-500/10 dark:bg-emerald-500/15 rounded-full blur-[150px] animate-pulse duration-[10s] delay-2000" />
         </div>
 
         {/* Content */}
         <div className="relative z-10 text-center space-y-6 p-12 max-w-lg">
-          <div className="w-24 h-24 bg-white/5 rounded-3xl flex items-center justify-center mx-auto backdrop-blur-xl border border-white/10 shadow-2xl">
+          <div className="w-24 h-24 bg-white dark:bg-white/5 rounded-3xl flex items-center justify-center mx-auto backdrop-blur-xl border border-zinc-200 dark:border-white/10 shadow-2xl dark:shadow-none transition-colors duration-300">
             <StepIcon className="w-12 h-12 text-primary" />
           </div>
-          <h2 className="text-4xl font-bold tracking-tight">
+          <h2 className="text-4xl font-bold tracking-tight text-foreground transition-colors duration-300">
             {lang === 'es' ? stepContent.titleEs : stepContent.titleEn}
           </h2>
-          <p className="text-lg text-muted-foreground leading-relaxed">
+          <p className="text-lg text-muted-foreground leading-relaxed transition-colors duration-300">
             {lang === 'es' ? stepContent.descriptionEs : stepContent.descriptionEn}
           </p>
         </div>
 
         {/* Decorative Grid/Pattern */}
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
+        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center opacity-40 dark:opacity-100 [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]" />
 
         {/* Step progress indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2">
           {['about-you', 'company', 'brand-profile', 'competitors', 'research-prompts', 'schedule', 'setup'].map((step, index) => (
             <div
               key={step}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                currentStep === step 
-                  ? 'w-8 bg-primary' 
+              className={`w-2 h-2 rounded-full transition-all duration-300 ${currentStep === step
+                  ? 'w-8 bg-primary'
                   : Object.keys(STEP_CONTENT).indexOf(currentStep) > index
                     ? 'bg-primary/50'
-                    : 'bg-white/20'
-              }`}
+                    : 'bg-zinc-300 dark:bg-white/20'
+                }`}
             />
           ))}
         </div>
@@ -168,3 +174,4 @@ export default function OnboardingPage() {
     </div>
   )
 }
+

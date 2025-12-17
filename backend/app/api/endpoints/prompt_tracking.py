@@ -163,3 +163,59 @@ async def check_all_prompts(
         competitors=request.competitors
     )
     return result
+
+
+class PromptDiscoverRequest(BaseModel):
+    brand_name: str
+    industry: Optional[str] = ""
+    products: Optional[List[str]] = None
+    services: Optional[List[str]] = None
+    test_count: int = 10
+
+
+class PromptSuggestRequest(BaseModel):
+    brand_name: str
+    industry: Optional[str] = ""
+    existing_prompts: Optional[List[str]] = None
+
+
+@router.post("/discover")
+async def discover_effective_prompts(
+    request: PromptDiscoverRequest,
+    user_id: str = Depends(get_current_user_id)
+):
+    """
+    Discover which prompts trigger brand mentions.
+    
+    Tests various prompt patterns against AI models and identifies
+    which ones result in brand visibility.
+    """
+    service = get_prompt_tracking_service()
+    result = await service.discover_effective_prompts(
+        brand_name=request.brand_name,
+        industry=request.industry,
+        products=request.products,
+        services=request.services,
+        test_count=request.test_count
+    )
+    return result
+
+
+@router.post("/suggest")
+async def suggest_prompts(
+    request: PromptSuggestRequest,
+    user_id: str = Depends(get_current_user_id)
+):
+    """
+    Get AI-powered suggestions for prompts to track.
+    
+    Returns strategic prompt suggestions based on brand and industry.
+    """
+    service = get_prompt_tracking_service()
+    suggestions = await service.suggest_prompts_for_tracking(
+        brand_name=request.brand_name,
+        industry=request.industry,
+        existing_prompts=request.existing_prompts
+    )
+    return {"suggestions": suggestions, "count": len(suggestions)}
+

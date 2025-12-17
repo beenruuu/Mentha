@@ -7,7 +7,7 @@ type Theme = 'light' | 'dark' | 'system'
 
 function applyTheme(theme: Theme) {
   if (typeof window === 'undefined') return
-  
+
   if (theme === 'dark') {
     document.documentElement.classList.add('dark')
   } else if (theme === 'light') {
@@ -32,36 +32,37 @@ export function ThemeToggleSimple({ className }: { className?: string }) {
     }
   })
 
-  const [isDark, setIsDark] = useState(false)
+  // Start with null to prevent hydration mismatch
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    applyTheme(theme)
-    try {
-      localStorage.setItem('theme', theme)
-    } catch (_) {}
-    
-    // Check if currently dark
-    setIsDark(document.documentElement.classList.contains('dark'))
-  }, [theme])
+    setMounted(true)
+    const current = localStorage.getItem('theme') as Theme || 'system'
+    setTheme(current)
+    applyTheme(current)
+  }, [])
 
   const toggleTheme = () => {
-    const currentlyDark = document.documentElement.classList.contains('dark')
-    const newTheme = currentlyDark ? 'light' : 'dark'
+    const isDark = document.documentElement.classList.contains('dark')
+    const newTheme = isDark ? 'light' : 'dark'
+
     setTheme(newTheme)
-    setIsDark(!currentlyDark)
+    applyTheme(newTheme)
+    localStorage.setItem('theme', newTheme)
   }
+
+  // Prevent flash by rendering a placeholder or default storage state if possible
+  // heavily depends on theme-script.tsx working correctly.
 
   return (
     <button
       onClick={toggleTheme}
-      className={`p-2 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-white/10 ${className}`}
+      className={`relative inline-flex items-center justify-center w-10 h-10 rounded-full transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring ${className}`}
       aria-label="Toggle theme"
     >
-      {isDark ? (
-        <Sun className="w-5 h-5 text-gray-600 dark:text-white/70" />
-      ) : (
-        <Moon className="w-5 h-5 text-gray-600 dark:text-white/70" />
-      )}
+      <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
     </button>
   )
 }
+

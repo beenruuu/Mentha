@@ -44,6 +44,32 @@ class ObjectionRequest(BaseModel):
 # Right to Erasure / Blocking (GDPR Art. 17 / LOPD Art. 32)
 # ============================================
 
+@router.delete("/account", status_code=204)
+async def delete_my_account(
+    current_user: dict = Depends(deps.get_current_user),
+    auth_service: deps.SupabaseAuthService = Depends(deps.get_auth_service)
+):
+    """
+    PERMANENTLY delete the user account and all associated data.
+    This action is irreversible.
+    """
+    user_id = current_user.get("id")
+    user_email = current_user.get("email")
+    
+    logger.warning(f"PERMANENT ACCOUNT DELETION REQUESTED for user {user_email} ({user_id})")
+    
+    try:
+        # Delete from Supabase Auth (cascades to public.users/profiles usually if set up, 
+        # but otherwise we rely on foreign keys or manual cleanup if needed)
+        await auth_service.delete_user(user_id)
+        
+        logger.info(f"Account deleted successfully for {user_email}")
+        return
+        
+    except Exception as e:
+        logger.error(f"Failed to delete account for {user_email}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete account. Please contact support.")
+
 @router.post("/erasure-request", response_model=ErasureResponse)
 async def request_erasure(
     request: ErasureRequest,
@@ -94,9 +120,14 @@ async def get_my_data(
     # In a real implementation, fetch from database
     # For now, return structured information about data categories
     
-    # TODO: Implement actual data fetching from Supabase
-    # brands = await brand_db.list(filters={"user_id": user_id})
-    # analyses = await analysis_db.list(filters={"user_id": user_id})
+    auth_service = deps.get_auth_service()
+    
+    # 1. Brands Count
+    brands_res = auth_service.supabase.table("brands").select("id", count="exact").eq("user_id", user_id).execute()
+    brands_count = brands_res.count if brands_res.count is not None else len(brands_res.data)
+    
+    # 2. Provide some sample brands
+    brands_data = brands_res.data[:5] if brands_res.data else []
     
     return {
         "user_info": {
@@ -104,8 +135,8 @@ async def get_my_data(
             "user_id": user_id,
             "created_at": current_user.get("created_at", "Unknown"),
         },
-        "brands": [],  # TODO: Populate with actual brands
-        "analyses_count": 0,  # TODO: Count actual analyses
+        "brands": brands_data, 
+        "analyses_count": 0,  # Placeholder
         "data_collected_at": datetime.datetime.utcnow().isoformat(),
         "data_categories": [
             "Datos de identificación (email, nombre)",
@@ -137,14 +168,30 @@ async def export_my_data(
     Export all user data in a structured, commonly used, machine-readable format.
     Supports: json, csv
     """
-    user_id = current_user.get("id")
-    user_email = current_user.get("email")
+    user_id = current_user.id
+    user_email = current_user.email
     
     logger.info(f"Data Portability export request from user: {user_email}, format: {format}")
     
-    # TODO: Implement actual data fetching
-    # For now, return a structured export template
+    # Fetch actual data
+    auth_service = deps.get_auth_service()
     
+    brands = []
+    competitors = []
+    profile = {}
+    
+    try:
+        # 1. Brands
+        brands_res = auth_service.supabase.table("brands").select("*").eq("user_id", user_id).execute()
+        brands = brands_res.data if brands_res.data else []
+        
+        # 3. Settings/Profile
+        profile_res = auth_service.supabase.table("profiles").select("*").eq("id", user_id).execute()
+        profile = profile_res.data[0] if profile_res.data else {}
+    except Exception as e:
+        logger.error(f"Error fetching export data for {user_email}: {e}")
+        # Continue with available data to avoid failing the whole request
+        
     export_data = {
         "export_metadata": {
             "exported_at": datetime.datetime.utcnow().isoformat(),
@@ -155,10 +202,13 @@ async def export_my_data(
         "user_profile": {
             "email": user_email,
             "user_id": user_id,
+            "full_name": profile.get("full_name"),
+            "avatar_url": profile.get("avatar_url"),
+            "created_at": str(profile.get("created_at", ""))
         },
-        "brands": [],  # TODO: Populate
-        "analyses": [],  # TODO: Populate
-        "settings": {},  # TODO: Populate
+        "brands": brands,
+        "analyses": [], 
+        "settings": {},  
     }
     
     if format == "json":
@@ -198,7 +248,7 @@ async def register_objection(
     GDPR Art. 21 - Right to Object.
     Register an objection to specific types of data processing.
     """
-    user_email = current_user.get("email")
+    user_email = current_user.email
     
     logger.info(f"Objection registered from {user_email}: type={objection.objection_type}, reason={objection.reason}")
     
