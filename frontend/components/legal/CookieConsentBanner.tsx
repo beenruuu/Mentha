@@ -100,10 +100,10 @@ export default function CookieConsentBanner() {
                         <Cookie className="w-6 h-6 text-emerald-500 flex-shrink-0 mt-1" />
                         <div>
                             <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                                {t.cookieConsentTitle || 'Utilizamos cookies'}
+                                {t.cookieTitle || 'Utilizamos cookies'}
                             </h3>
                             <p className="text-sm text-gray-600 dark:text-gray-300">
-                                {t.cookieConsentDescription || 'Usamos cookies para mejorar tu experiencia. Puedes aceptar todas, solo las esenciales, o personalizar tus preferencias.'}
+                                {t.cookieDescription || 'Usamos cookies para mejorar tu experiencia. Puedes aceptar todas, solo las esenciales, o personalizar tus preferencias.'}
                             </p>
                             <button
                                 onClick={() => setShowDetails(!showDetails)}
@@ -121,14 +121,14 @@ export default function CookieConsentBanner() {
                             onClick={rejectNonEssential}
                             className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-lg transition-colors"
                         >
-                            {t.rejectNonEssential || 'Solo esenciales'}
+                            {t.cookieDecline || 'Solo esenciales'}
                         </button>
                         <button
                             onClick={acceptAll}
                             className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors flex items-center gap-1"
                         >
                             <Check className="w-4 h-4" />
-                            {t.acceptAllCookies || 'Aceptar todas'}
+                            {t.cookieAccept || 'Aceptar todas'}
                         </button>
                     </div>
                 </div>

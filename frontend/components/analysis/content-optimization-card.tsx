@@ -36,7 +36,7 @@ export function ContentOptimizationCard({ analysis }: ContentOptimizationCardPro
                         {t.contentOptimization}
                     </CardTitle>
                     <Badge variant="outline" className="font-normal text-xs">
-                        {analysis ? t.analyzed : t.noData}
+                        {analysis ? t.analyzed : t.dashboardNoData}
                     </Badge>
                 </div>
             </CardHeader>

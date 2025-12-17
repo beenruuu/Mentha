@@ -12,21 +12,37 @@ interface LLMOptimizationCardProps {
     analysis: any
 }
 
+type EEATScores = {
+    notability: number
+    experience: number
+    expertise: number
+    authority: number
+    trust: number
+}
+
 export function LLMOptimizationCard({ analysis }: LLMOptimizationCardProps) {
     const { t } = useTranslations()
 
     // Safely extract scores with fallbacks
-    const neeat = analysis?.llm_readiness?.neeat_scores || {
+    const neeat: EEATScores = (analysis?.llm_readiness?.neeat_scores as Partial<EEATScores> | undefined)
+        ? {
+            notability: Number(analysis.llm_readiness.neeat_scores.notability ?? 0),
+            experience: Number(analysis.llm_readiness.neeat_scores.experience ?? 0),
+            expertise: Number(analysis.llm_readiness.neeat_scores.expertise ?? 0),
+            authority: Number(analysis.llm_readiness.neeat_scores.authority ?? 0),
+            trust: Number(analysis.llm_readiness.neeat_scores.trust ?? 0)
+        }
+        : {
         notability: 0,
         experience: 0,
         expertise: 0,
         authority: 0,
         trust: 0
-    }
+        }
 
     // Calculate average E-E-A-T score
     const eeatScore = Math.round(
-        Object.values(neeat).reduce((a: any, b: any) => a + b, 0) / 5
+        Object.values(neeat).reduce((sum, value) => sum + value, 0) / 5
     )
 
     const conversationReady = analysis?.llm_readiness?.conversation_readiness?.score || 0
