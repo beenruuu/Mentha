@@ -71,8 +71,8 @@ export default function BrandQueriesPage({ isEmbedded = false }: { isEmbedded?: 
 
   const filteredQueries = useMemo(() => {
     return queries.filter(q =>
-      q.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      q.question.toLowerCase().includes(searchTerm.toLowerCase())
+      (q.title || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (q.question || '').toLowerCase().includes(searchTerm.toLowerCase())
     )
   }, [queries, searchTerm])
 
@@ -99,10 +99,148 @@ export default function BrandQueriesPage({ isEmbedded = false }: { isEmbedded?: 
 
   if (!brandId) return null
 
-  const Content = () => (
-    <div className={`bg-[#FAFAFA] dark:bg-[#09090b] h-full flex flex-col ${isEmbedded ? '' : 'h-screen overflow-hidden'}`}>
-      {/* Header - Only show if NOT embedded */}
-      {!isEmbedded && (
+  const Content = () => {
+    const InnerContent = () => (
+      <div className="space-y-8">
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-sm">
+            <CardContent className="p-6">
+              <p className="text-sm font-medium text-muted-foreground mb-2">{t.totalQueries}</p>
+              <div className="text-3xl font-bold text-foreground">{stats.total}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-sm">
+            <CardContent className="p-6">
+              <p className="text-sm font-medium text-muted-foreground mb-2">{t.activeQueries}</p>
+              <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{stats.highPriority}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-sm">
+            <CardContent className="p-6">
+              <p className="text-sm font-medium text-muted-foreground mb-2">{t.categories}</p>
+              <div className="text-3xl font-bold text-foreground">{stats.categories}</div>
+            </CardContent>
+          </Card>
+          <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-sm">
+            <CardContent className="p-6">
+              <p className="text-sm font-medium text-muted-foreground mb-2">{t.weekly}</p>
+              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.weekly}</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Main Content */}
+        <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
+          <div className="p-4 border-b border-border/40 flex items-center justify-between gap-4">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={t.queriesSearchPlaceholder || "Search queries..."}
+                className="pl-9 bg-white dark:bg-zinc-900/50 border-border/40"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="h-9 border-border/40">
+                <Filter className="w-4 h-4 mr-2" />
+                {t.filter}
+              </Button>
+              <Button variant="outline" size="sm" className="h-9 border-border/40">
+                <ArrowUpDown className="w-4 h-4 mr-2" />
+                {t.queriesSort || 'Sort'}
+              </Button>
+            </div>
+          </div>
+
+          <div className="rounded-md border-border/40">
+            <Table>
+              <TableHeader className="bg-secondary/30">
+                <TableRow className="hover:bg-transparent border-border/40">
+                  <TableHead className="w-[300px]">{t.queriesQuery || 'Query'}</TableHead>
+                  <TableHead>{t.queriesCategory || 'Category'}</TableHead>
+                  <TableHead>{t.queriesPriority || 'Priority'}</TableHead>
+                  <TableHead>{t.queriesFrequency || 'Frequency'}</TableHead>
+                  <TableHead className="text-right">{t.queriesActions || 'Actions'}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredQueries.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                      {t.queriesNoFound || 'No queries found.'}
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredQueries.map((query) => (
+                    <TableRow key={query.id} className="hover:bg-secondary/20 border-border/40 transition-colors">
+                      <TableCell className="font-medium">
+                        <div>
+                          <div className="text-sm font-semibold text-foreground">{query.title}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{query.question}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
+                          {query.category}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className={`${query.priority === 'high' ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800' :
+                          query.priority === 'medium' ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800' :
+                            'bg-secondary text-muted-foreground'
+                          }`}>
+                          {query.priority}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center text-xs text-muted-foreground">
+                          <Calendar className="w-3 h-3 mr-1.5" />
+                          {query.frequency}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleCopy(query.question)}>
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>{t.queriesActions || 'Actions'}</DropdownMenuLabel>
+                              <DropdownMenuItem onClick={() => handleCopy(query.question)}>
+                                {t.copyQuery}
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem>{t.editQuery}</DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600">{t.deleteQuery}</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </Card>
+      </div>
+    )
+
+    if (isEmbedded) {
+      return <InnerContent />
+    }
+
+    return (
+      <div className="bg-[#FAFAFA] dark:bg-[#09090b] h-full flex flex-col h-screen overflow-hidden">
         <header className="flex items-center justify-between px-6 py-4 shrink-0">
           <div className="flex items-center gap-4">
             <SidebarTrigger className="-ml-1" />
@@ -116,144 +254,13 @@ export default function BrandQueriesPage({ isEmbedded = false }: { isEmbedded?: 
             <UserAvatarMenu />
           </div>
         </header>
-      )}
 
-      <main className={`flex-1 ${isEmbedded ? '' : 'bg-white dark:bg-black rounded-tl-3xl shadow-2xl'} overflow-y-auto p-6 md:p-8 relative z-10`}>
-        <div className="space-y-8">
-
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-sm">
-              <CardContent className="p-6">
-                <p className="text-sm font-medium text-muted-foreground mb-2">{t.totalQueries}</p>
-                <div className="text-3xl font-bold text-foreground">{stats.total}</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-sm">
-              <CardContent className="p-6">
-                <p className="text-sm font-medium text-muted-foreground mb-2">{t.activeQueries}</p>
-                <div className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">{stats.highPriority}</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-sm">
-              <CardContent className="p-6">
-                <p className="text-sm font-medium text-muted-foreground mb-2">{t.categories}</p>
-                <div className="text-3xl font-bold text-foreground">{stats.categories}</div>
-              </CardContent>
-            </Card>
-            <Card className="bg-card/50 backdrop-blur-sm border-border/40 shadow-sm">
-              <CardContent className="p-6">
-                <p className="text-sm font-medium text-muted-foreground mb-2">{t.weekly}</p>
-                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">{stats.weekly}</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Main Content */}
-          <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm overflow-hidden">
-            <div className="p-4 border-b border-border/40 flex items-center justify-between gap-4">
-              <div className="relative flex-1 max-w-sm">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder={t.queriesSearchPlaceholder || "Search queries..."}
-                  className="pl-9 bg-white dark:bg-zinc-900/50 border-border/40"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" className="h-9 border-border/40">
-                  <Filter className="w-4 h-4 mr-2" />
-                  {t.filter}
-                </Button>
-                <Button variant="outline" size="sm" className="h-9 border-border/40">
-                  <ArrowUpDown className="w-4 h-4 mr-2" />
-                  {t.queriesSort || 'Sort'}
-                </Button>
-              </div>
-            </div>
-
-            <div className="rounded-md border-border/40">
-              <Table>
-                <TableHeader className="bg-secondary/30">
-                  <TableRow className="hover:bg-transparent border-border/40">
-                    <TableHead className="w-[300px]">{t.queriesQuery || 'Query'}</TableHead>
-                    <TableHead>{t.queriesCategory || 'Category'}</TableHead>
-                    <TableHead>{t.queriesPriority || 'Priority'}</TableHead>
-                    <TableHead>{t.queriesFrequency || 'Frequency'}</TableHead>
-                    <TableHead className="text-right">{t.queriesActions || 'Actions'}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredQueries.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                        {t.queriesNoFound || 'No queries found.'}
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredQueries.map((query) => (
-                      <TableRow key={query.id} className="hover:bg-secondary/20 border-border/40 transition-colors">
-                        <TableCell className="font-medium">
-                          <div>
-                            <div className="text-sm font-semibold text-foreground">{query.title}</div>
-                            <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{query.question}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800">
-                            {query.category}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={`${query.priority === 'high' ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800' :
-                            query.priority === 'medium' ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800' :
-                              'bg-secondary text-muted-foreground'
-                            }`}>
-                            {query.priority}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <Calendar className="w-3 h-3 mr-1.5" />
-                            {query.frequency}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-2">
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => handleCopy(query.question)}>
-                              <Copy className="w-4 h-4" />
-                            </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <span className="sr-only">Open menu</span>
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>{t.queriesActions || 'Actions'}</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => handleCopy(query.question)}>
-                                  {t.copyQuery}
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem>{t.editQuery}</DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-600">{t.deleteQuery}</DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </Card>
-        </div>
-      </main>
-    </div>
-  )
+        <main className="flex-1 bg-white dark:bg-black rounded-tl-3xl shadow-2xl overflow-y-auto p-6 md:p-8 relative z-10">
+          <InnerContent />
+        </main>
+      </div>
+    )
+  }
 
   if (loading || !brand) {
     if (isEmbedded) {

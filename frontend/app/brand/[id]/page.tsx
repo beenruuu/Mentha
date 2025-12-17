@@ -54,6 +54,7 @@ import { PromptTracker } from "@/components/analysis/PromptTracker"
 import { HallucinationCard } from "@/components/analysis/HallucinationCard"
 import { EntityTracker } from "@/components/analysis/EntityTracker"
 import { PromptDiscovery } from "@/components/analysis/PromptDiscovery"
+import { LLMOptimizationCard } from "@/components/analysis/LLMOptimizationCard"
 import { ExportButton } from "@/components/shared/ExportButton"
 import { fetchAPI } from "@/lib/api-client"
 
@@ -468,6 +469,16 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                   </CardContent>
                 </Card>
 
+                {/* Authority Sources & Content Optimization Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <AuthoritySourcesCard
+                    sources={analysis?.results?.authority_nexus?.citations || []}
+                  />
+                  <ContentOptimizationCard
+                    analysis={analysis}
+                  />
+                </div>
+
                 {/* Advanced AEO Intelligence Section - Moved to Main Column */}
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 mb-2">
@@ -481,6 +492,8 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <LLMOptimizationCard analysis={analysis} />
+
                     <HallucinationCard
                       brandId={id}
                       brandName={brand.name}

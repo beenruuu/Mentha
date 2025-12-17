@@ -11,7 +11,9 @@ import {
     MediumIcon,
     ProductHuntIcon,
     TrustpilotIcon,
-    LinkedInIcon
+    LinkedInIcon,
+    RedditIcon,
+    QuoraIcon
 } from "@/components/shared/authority-icons"
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip"
 import { Shield, ExternalLink } from "lucide-react"
@@ -42,6 +44,8 @@ const sourceIconMap: Record<string, React.ComponentType<{ className?: string }>>
     'ProductHunt': ProductHuntIcon,
     'Trustpilot': TrustpilotIcon,
     'LinkedIn': LinkedInIcon,
+    'Reddit': RedditIcon,
+    'Quora': QuoraIcon,
 }
 
 // Default sources when no data available
@@ -54,6 +58,8 @@ const defaultSources: AuthoritySource[] = [
     { source: 'Medium', type: 'Blog', authority: 75, status: 'missing', impact: 'low' },
     { source: 'ProductHunt', type: 'Community', authority: 80, status: 'missing', impact: 'medium' },
     { source: 'Trustpilot', type: 'Review Platform', authority: 88, status: 'missing', impact: 'medium' },
+    { source: 'Reddit', type: 'Community', authority: 75, status: 'missing', impact: 'high' },
+    { source: 'Quora', type: 'Community', authority: 70, status: 'missing', impact: 'high' },
 ]
 
 export function AuthoritySourcesCard({ sources, className }: AuthoritySourcesCardProps) {
@@ -86,7 +92,7 @@ export function AuthoritySourcesCard({ sources, className }: AuthoritySourcesCar
             </CardHeader>
             <CardContent>
                 <TooltipProvider>
-                    <div className="grid grid-cols-4 gap-2">
+                    <div className="grid grid-cols-5 gap-2">
                         {displaySources.map((source) => {
                             const IconComponent = sourceIconMap[source.source]
                             const isPresent = source.status === 'present'

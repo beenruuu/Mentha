@@ -811,6 +811,8 @@ class CitationTrackingService:
             {"name": "ProductHunt", "domain": "producthunt.com", "type": "Community", "impact": "medium"},
             {"name": "Trustpilot", "domain": "trustpilot.com", "type": "Review Platform", "impact": "medium"},
             {"name": "LinkedIn", "domain": "linkedin.com", "type": "Social", "impact": "low"},
+            {"name": "Reddit", "domain": "reddit.com", "type": "Community", "impact": "high"},
+            {"name": "Quora", "domain": "quora.com", "type": "Community", "impact": "high"},
         ]
         
         results = []

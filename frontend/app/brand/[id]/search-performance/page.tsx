@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
@@ -37,6 +37,8 @@ export default function SearchPerformancePage() {
     const { t } = useTranslations()
     const [brand, setBrand] = useState<Brand | null>(null)
     const [loading, setLoading] = useState(true)
+    const searchParams = useSearchParams()
+    const activeTab = searchParams.get('tab') || 'keywords'
 
     useEffect(() => {
         if (!brandId) return
@@ -85,23 +87,23 @@ export default function SearchPerformancePage() {
                         {loading ? (
                             <SearchPerformanceSkeleton />
                         ) : (
-                            <Tabs defaultValue="keywords" className="space-y-6">
-                                <TabsList className="bg-gray-100 dark:bg-zinc-800">
-                                    <TabsTrigger value="keywords">{t.keywords}</TabsTrigger>
-                                    <TabsTrigger value="queries">{t.searchQueries}</TabsTrigger>
-                                    <TabsTrigger value="crawlers">{t.aiCrawlers}</TabsTrigger>
-                                </TabsList>
-
-                                <TabsContent value="keywords" className="mt-0">
-                                    <BrandKeywordsPage isEmbedded={true} />
-                                </TabsContent>
-                                <TabsContent value="queries" className="mt-0">
-                                    <BrandQueriesPage isEmbedded={true} />
-                                </TabsContent>
-                                <TabsContent value="crawlers" className="mt-0">
-                                    <CrawlersPage isEmbedded={true} />
-                                </TabsContent>
-                            </Tabs>
+                            <div className="w-full">
+                                {activeTab === 'keywords' && (
+                                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                                        <BrandKeywordsPage isEmbedded={true} />
+                                    </div>
+                                )}
+                                {activeTab === 'queries' && (
+                                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                                        <BrandQueriesPage isEmbedded={true} />
+                                    </div>
+                                )}
+                                {activeTab === 'crawlers' && (
+                                    <div className="animate-in fade-in slide-in-from-right-4 duration-300">
+                                        <CrawlersPage isEmbedded={true} />
+                                    </div>
+                                )}
+                            </div>
                         )}
                     </div>
                 </main>
