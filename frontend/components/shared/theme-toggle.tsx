@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from '@/lib/i18n'
 
 type Theme = 'light' | 'dark' | 'system'
 
 function applyTheme(theme: Theme) {
   if (typeof window === 'undefined') return
-  
+
   if (theme === 'dark') {
     document.documentElement.classList.add('dark')
   } else if (theme === 'light') {
@@ -25,6 +26,7 @@ function applyTheme(theme: Theme) {
 
 export function ThemeToggle() {
   const router = useRouter()
+  const { t } = useTranslations()
   const [theme, setTheme] = useState<Theme>(() => {
     if (typeof window === 'undefined') return 'system'
     try {
@@ -55,7 +57,7 @@ export function ThemeToggle() {
           return () => mql.removeEventListener('change', listener)
         }
       }
-    } catch (_) {}
+    } catch (_) { }
   }, [theme])
 
   const handleThemeChange = (newTheme: Theme) => {
@@ -64,41 +66,15 @@ export function ThemeToggle() {
     router.refresh()
   }
 
-  // Get language from localStorage or default to 'es'
-  const [lang, setLang] = useState(() => {
-    if (typeof window === 'undefined') return 'es'
-    try {
-      return localStorage.getItem('language') || 'es'
-    } catch {
-      return 'es'
-    }
-  })
-
-  const translations = {
-    es: {
-      light: 'Claro',
-      dark: 'Oscuro',
-      system: 'Sistema'
-    },
-    en: {
-      light: 'Light',
-      dark: 'Dark',
-      system: 'System'
-    }
-  }
-
-  const t = translations[lang as keyof typeof translations] || translations.es
-
   return (
     <div className="grid grid-cols-3 gap-3">
       <button
         aria-pressed={theme === 'light'}
         onClick={() => handleThemeChange('light')}
-        className={`p-4 border-2 rounded-lg transition-colors ${
-          theme === 'light'
+        className={`p-4 border-2 rounded-lg transition-colors ${theme === 'light'
             ? 'border-black dark:border-white bg-white dark:bg-black text-gray-900 dark:text-white'
             : 'border-gray-200 dark:border-[#2A2A30] bg-white dark:bg-black hover:border-gray-300 dark:hover:border-[#3A3A40] text-gray-700 dark:text-gray-300'
-        }`}
+          }`}
       >
         <div className="w-full h-12 bg-white border border-gray-200 rounded mb-2" />
         <p className="text-xs font-medium">{t.light}</p>
@@ -106,11 +82,10 @@ export function ThemeToggle() {
       <button
         aria-pressed={theme === 'dark'}
         onClick={() => handleThemeChange('dark')}
-        className={`p-4 border-2 rounded-lg transition-colors ${
-          theme === 'dark'
+        className={`p-4 border-2 rounded-lg transition-colors ${theme === 'dark'
             ? 'border-black dark:border-white bg-[#0A0A0A] dark:bg-black text-white'
             : 'border-gray-200 dark:border-[#2A2A30] bg-white dark:bg-black hover:border-gray-300 dark:hover:border-[#3A3A40] text-gray-700 dark:text-gray-300'
-        }`}
+          }`}
       >
         <div className="w-full h-12 bg-[#0A0A0A] border border-[#2A2A30] rounded mb-2" />
         <p className="text-xs font-medium">{t.dark}</p>
@@ -118,11 +93,10 @@ export function ThemeToggle() {
       <button
         aria-pressed={theme === 'system'}
         onClick={() => handleThemeChange('system')}
-        className={`p-4 border-2 rounded-lg transition-colors ${
-          theme === 'system'
+        className={`p-4 border-2 rounded-lg transition-colors ${theme === 'system'
             ? 'border-black dark:border-white bg-white dark:bg-black text-gray-900 dark:text-white'
             : 'border-gray-200 dark:border-[#2A2A30] bg-white dark:bg-black hover:border-gray-300 dark:hover:border-[#3A3A40] text-gray-700 dark:text-gray-300'
-        }`}
+          }`}
       >
         <div className="w-full h-12 bg-gradient-to-r from-white via-gray-400 to-[#0A0A0A] rounded mb-2" />
         <p className="text-xs font-medium">{t.system}</p>

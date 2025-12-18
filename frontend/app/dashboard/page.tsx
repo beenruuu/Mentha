@@ -36,6 +36,10 @@ import { geoAnalysisService, type VisibilitySnapshot } from "@/lib/services/geo-
 
 import { GoogleConnect } from "@/components/integrations/GoogleConnect"
 import { DateRangePicker } from "@/components/ui/date-range-picker"
+import { InsightsCard } from "@/components/dashboard/InsightsCard"
+import { LanguageComparisonCard } from "@/components/dashboard/LanguageComparisonCard"
+import { RegionalComparisonCard } from "@/components/dashboard/RegionalComparisonCard"
+import { IndustryComparisonCard } from "@/components/dashboard/IndustryComparisonCard"
 import { subDays, isAfter, startOfDay, format } from "date-fns"
 import { DateRange } from "react-day-picker"
 
@@ -380,7 +384,7 @@ export default function DashboardPage() {
           <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
 
             {/* Top Section: Metrics & Chart */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
               {/* Left Column: Metrics & Chart (8 cols) */}
               <div className="lg:col-span-8 space-y-6">
@@ -468,7 +472,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <div className="h-[300px]">
+                  <div className="h-[200px]">
                     {chartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={chartData} margin={{ top: 10, right: 0, bottom: 0, left: -20 }}>
@@ -526,29 +530,47 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-
                 </div>
               </div>
 
-              {/* Right Column: Upgrade CTA (Notable Changes removed - will be replaced with real GEO insights) */}
-              <div className="lg:col-span-4 space-y-6 pl-0 lg:pl-6 border-l border-transparent lg:border-gray-100 dark:lg:border-[#1A1A20]">
+              {/* Right Column: All insights in compact format */}
+              <div className="lg:col-span-4 space-y-8 pl-0 lg:pl-6 border-l border-transparent lg:border-gray-100 dark:lg:border-[#1A1A20]">
 
-                <div className="pt-6">
-                  <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">{t.dashboardUnlockTracking}</h3>
-                  <div className="mb-6">
-                    <GoogleConnect />
-                  </div>
+                {/* Dynamic Insights Panel */}
+                {selectedBrand && (
+                  <InsightsCard brandId={selectedBrand.id} />
+                )}
 
-                  {/* Upgrade Banner (Smaller) */}
-                  <div className="p-4 rounded-xl bg-gradient-to-br from-gray-900 to-black dark:from-[#111114] dark:to-black border border-gray-800 text-white relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
-                    <p className="text-sm text-gray-300 mb-4 relative z-10">
-                      {t.dashboardUpgradeMessage}
-                    </p>
-                    <Button className="w-full bg-white text-black hover:bg-gray-100 border-0 font-medium">
-                      {t.upgradePlan}
-                    </Button>
+                {/* Language & Regional in 2-col grid */}
+                {selectedBrand && (
+                  <div className="grid grid-cols-2 gap-6">
+                    <LanguageComparisonCard brandId={selectedBrand.id} />
+                    <RegionalComparisonCard brandId={selectedBrand.id} />
                   </div>
+                )}
+
+                {/* Industry Comparison */}
+                {selectedBrand && (
+                  <IndustryComparisonCard brandId={selectedBrand.id} />
+                )}
+
+                {/* Google Connect */}
+                <div>
+                  <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                    {t.dashboardUnlockTracking}
+                  </h3>
+                  <GoogleConnect />
+                </div>
+
+                {/* Upgrade Banner */}
+                <div className="p-4 rounded-xl bg-gradient-to-br from-gray-900 to-black dark:from-[#111114] dark:to-black border border-gray-800 text-white relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-3xl -mr-12 -mt-12" />
+                  <p className="text-sm text-gray-300 mb-3 relative z-10">
+                    {t.dashboardUpgradeMessage}
+                  </p>
+                  <Button className="w-full bg-white text-black hover:bg-gray-100 border-0 font-medium text-sm">
+                    {t.upgradePlan}
+                  </Button>
                 </div>
 
               </div>

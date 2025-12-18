@@ -10,7 +10,11 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
 
     # CORS
-    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000"]
+    CORS_ORIGINS: Union[List[str], str] = [
+        "http://localhost:3000",
+        "https://mentha-three.vercel.app",
+        "https://mentha.vercel.app"
+    ]
 
     # Supabase
     SUPABASE_URL: str

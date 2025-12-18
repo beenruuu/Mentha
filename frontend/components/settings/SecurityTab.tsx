@@ -51,14 +51,14 @@ export function SecurityTab({ t }: SecurityTabProps) {
             if (!response.ok) throw new Error('Deletion failed')
 
             await supabase.auth.signOut()
-            toast.success("Tu cuenta ha sido eliminada permanentemente")
+            toast.success(t.accountDeleted)
 
             // Redirect to home/login
             window.location.href = '/'
 
         } catch (error) {
             console.error('Delete account error:', error)
-            toast.error("Error al eliminar la cuenta. Por favor contacta con soporte.")
+            toast.error(t.errorDeletingAccount)
         } finally {
             setIsDeleting(false)
         }
@@ -177,40 +177,38 @@ export function SecurityTab({ t }: SecurityTabProps) {
                 <CardHeader>
                     <CardTitle className="text-red-600 dark:text-red-400 flex items-center gap-2">
                         <AlertTriangle className="h-5 w-5" />
-                        Zona de Peligro
+                        {t.dangerZone}
                     </CardTitle>
                     <CardDescription>
-                        Acciones irreversibles sobre tu cuenta y datos personales.
+                        {t.dangerZoneDesc}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Eliminar Cuenta</h4>
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">{t.deleteAccountTitle}</h4>
                             <p className="text-sm text-muted-foreground">
-                                Elimina permanentemente tu cuenta y todos tus datos (GDPR Art. 17).
-                                No podrás recuperar esta información.
+                                {t.deleteAccountDesc}
                             </p>
                         </div>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button variant="destructive">
                                     {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                    Eliminar mi cuenta
+                                    {t.deleteAccountBtn}
                                 </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                                 <AlertDialogHeader>
-                                    <AlertDialogTitle>¿Estás absolutamente seguro?</AlertDialogTitle>
+                                    <AlertDialogTitle>{t.deleteAccountConfirm}</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                        Esta acción no se puede deshacer. Esto eliminará permanentemente tu cuenta
-                                        de Mentha y borrará tus datos de nuestros servidores en cumplimiento con la GDPR.
+                                        {t.deleteAccountWarningText}
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
                                     <AlertDialogAction onClick={handleDeleteAccount} className="bg-red-600 hover:bg-red-700">
-                                        Sí, eliminar mi cuenta
+                                        {t.yesDeleteAccount}
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>

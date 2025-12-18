@@ -236,6 +236,7 @@ const translations = {
     brandOverview: 'Resumen de Marca',
     competitorOverview: 'Resumen de Competidores',
     notableChanges: 'Cambios Notables',
+    noInsightsYet: 'Aún no hay suficientes datos para generar insights.',
     rankingImproved: 'Ranking mejorado para',
     newMention: 'Nueva mención detectada para',
     performanceImprovement: 'Mejora de rendimiento para',
@@ -779,9 +780,21 @@ const translations = {
     // Additional crawlers translations
     activityTimeline: 'Timeline de Actividad (Últimas 24h)',
     indexedPages: 'Indexó {n} páginas nuevas',
-    visitedHomepage: 'Visited homepage',
+    visitedHomepage: 'Visitó la página principal',
     scannedDocumentation: 'Escaneó documentación',
     deepCrawling: 'Crawling profundo',
+
+    // Google Connect / SEO Comparativo
+    seoComparative: 'SEO Comparativo',
+    seoComparativeDesc: 'Compara tu rendimiento en búsqueda tradicional vs IA.',
+    connected: 'Conectado',
+    disconnected: 'Desconectado',
+    syncingDataFor: 'Sincronizando datos para',
+    properties: 'propiedades',
+    syncNow: 'Sincronizar Ahora',
+    syncStarted: 'Sincronización iniciada en segundo plano...',
+    connectGoogleDesc: 'Conecta tu cuenta para importar automáticamente palabras clave y detectar oportunidades de contenido basadas en tráfico real.',
+    connectGoogleAccount: 'Conectar cuenta de Google',
 
     // Additional queries translations
     queryBuilder: 'Query Builder',
@@ -804,6 +817,42 @@ const translations = {
     nextExecution: 'Próxima ejecución',
     filter: 'Filtrar',
     pages: 'páginas',
+
+    // Competitors page (additional translations)
+    addCompetitorBtn: 'Agregar Competidor',
+    addNewCompetitorTitle: 'Agregar Nuevo Competidor',
+    addNewCompetitorDesc: 'Ingresa los detalles del competidor que quieres rastrear.',
+    competitorAddedSuccess: 'Competidor agregado',
+    competitorAddedSuccessDesc: 'se ha añadido al seguimiento',
+    enterBothFields: 'Por favor ingresa nombre y dominio',
+    failedToLoadData: 'Error al cargar datos',
+    competitorDeleted: 'Competidor eliminado',
+    competitorDeletedDesc: 'El competidor ha sido eliminado del seguimiento',
+    failedToDeleteCompetitor: 'Error al eliminar competidor',
+    trackedCompetitorsLabel: 'Competidores Rastreados',
+    avgVisibilityScore: 'Puntuación de Visibilidad Prom.',
+    keywordOverlap: 'Superposición de Keywords',
+    fullAnalysis: 'Análisis Completo',
+    detailedComparison: 'Comparación Detallada',
+    manageCompetitors: 'Gestiona tus competidores directos e indirectos',
+    noCompetitorsTrackedMsg: 'No hay competidores rastreados. Agrega uno para comenzar a monitorear.',
+    deleteCompetitorTitle: '¿Eliminar Competidor?',
+    deleteCompetitorDesc: '¿Estás seguro de que quieres dejar de rastrear a {name}? Esta acción no se puede deshacer.',
+    risingTrend: 'En alza',
+    stableTrend: 'Estable',
+    overlapLabel: 'Superposición',
+
+    // Security page (additional translations)
+    dangerZone: 'Zona de Peligro',
+    dangerZoneDesc: 'Acciones irreversibles sobre tu cuenta y datos personales.',
+    deleteAccountTitle: 'Eliminar Cuenta',
+    deleteAccountDesc: 'Elimina permanentemente tu cuenta y todos tus datos (GDPR Art. 17). No podrás recuperar esta información.',
+    deleteAccountBtn: 'Eliminar mi cuenta',
+    deleteAccountConfirm: '¿Estás absolutamente seguro?',
+    deleteAccountWarningText: 'Esta acción no se puede deshacer. Esto eliminará permanentemente tu cuenta de Mentha y borrará tus datos de nuestros servidores en cumplimiento con la GDPR.',
+    yesDeleteAccount: 'Sí, eliminar mi cuenta',
+    accountDeleted: 'Tu cuenta ha sido eliminada permanentemente',
+    errorDeletingAccount: 'Error al eliminar la cuenta. Por favor contacta con soporte.',
 
     // AEO Recommendations
     rec_crawler_title: 'Bloqueo de Crawlers IA',
@@ -940,6 +989,24 @@ const translations = {
     dashboardRecentActivityDescription: 'Últimos rastreos de crawlers de IA',
     dashboardNoCrawlerActivity: 'Sin actividad reciente de crawlers.',
     dashboardNotifications: 'Notificaciones',
+
+    // Language Comparison
+    languageComparison: 'Visibilidad por Idioma',
+    noLanguageData: 'Aún no hay datos de visibilidad por idioma.',
+
+    // Regional Comparison  
+    regionalComparison: 'Visibilidad por Región',
+    noRegionalData: 'Aún no hay datos de visibilidad por región.',
+
+    // Industry Comparison
+    industryComparison: 'Comparación de Industria',
+    noIndustryData: 'Establece una industria para comparar.',
+    brandsInIndustry: 'marcas',
+    yourScore: 'Tu puntuación',
+    industryAverage: 'Media industria',
+    aboveAverage: 'sobre la media',
+    belowAverage: 'bajo la media',
+    topPerformers: 'Líderes del sector',
 
     // ==========================================
     // AEO ANALYSIS
@@ -1355,6 +1422,7 @@ const translations = {
     brandOverview: 'Brand Overview',
     competitorOverview: 'Competitor Overview',
     notableChanges: 'Notable Changes',
+    noInsightsYet: 'Not enough data yet to generate insights.',
     rankingImproved: 'Ranking improved for',
     newMention: 'New mention detected for',
     performanceImprovement: 'Performance improvement for',
@@ -1869,7 +1937,56 @@ const translations = {
     filter: 'Filter',
     pages: 'pages',
 
+    // Google Connect / Comparative SEO
+    seoComparative: 'Comparative SEO',
+    seoComparativeDesc: 'Compare your performance in traditional search vs AI.',
+    connected: 'Connected',
+    disconnected: 'Disconnected',
+    syncingDataFor: 'Syncing data for',
+    properties: 'properties',
+    syncNow: 'Sync Now',
+    syncStarted: 'Sync started in background...',
+    connectGoogleDesc: 'Connect your account to automatically import keywords and detect content opportunities based on real traffic.',
+    connectGoogleAccount: 'Connect Google Account',
+
+    // Competitors page (additional translations)
+    addCompetitorBtn: 'Add Competitor',
+    addNewCompetitorTitle: 'Add New Competitor',
+    addNewCompetitorDesc: 'Enter the details of the competitor you want to track.',
+    competitorAddedSuccess: 'Competitor added',
+    competitorAddedSuccessDesc: 'has been added to tracking',
+    enterBothFields: 'Please enter both name and domain',
+    failedToLoadData: 'Failed to load data',
+    competitorDeleted: 'Competitor deleted',
+    competitorDeletedDesc: 'Competitor has been removed from tracking',
+    failedToDeleteCompetitor: 'Failed to delete competitor',
+    trackedCompetitorsLabel: 'Tracked Competitors',
+    avgVisibilityScore: 'Avg. Visibility Score',
+    keywordOverlap: 'Keyword Overlap',
+    fullAnalysis: 'Full Analysis',
+    detailedComparison: 'Detailed Comparison',
+    manageCompetitors: 'Manage your direct and indirect competitors',
+    noCompetitorsTrackedMsg: 'No competitors tracked. Add one to start monitoring.',
+    deleteCompetitorTitle: 'Delete Competitor?',
+    deleteCompetitorDesc: 'Are you sure you want to stop tracking {name}? This action cannot be undone.',
+    risingTrend: 'Rising',
+    stableTrend: 'Stable',
+    overlapLabel: 'Overlap',
+
+    // Security page (additional translations)
+    dangerZone: 'Danger Zone',
+    dangerZoneDesc: 'Irreversible actions on your account and personal data.',
+    deleteAccountTitle: 'Delete Account',
+    deleteAccountDesc: 'Permanently delete your account and all your data (GDPR Art. 17). You will not be able to recover this information.',
+    deleteAccountBtn: 'Delete my account',
+    deleteAccountConfirm: 'Are you absolutely sure?',
+    deleteAccountWarningText: 'This action cannot be undone. This will permanently delete your Mentha account and erase your data from our servers in compliance with GDPR.',
+    yesDeleteAccount: 'Yes, delete my account',
+    accountDeleted: 'Your account has been permanently deleted',
+    errorDeletingAccount: 'Error deleting account. Please contact support.',
+
     // AEO Recommendations
+
     rec_crawler_title: 'AI Crawlers Blocked',
     rec_crawler_desc: 'Some AI crawlers are blocked in robots.txt. Allow them to improve visibility.',
     rec_faq_title: 'Add FAQ Schema',
@@ -2003,6 +2120,25 @@ const translations = {
     dashboardRecentActivity: 'Recent Activity',
     dashboardRecentActivityDescription: 'Latest AI crawler visits',
     dashboardNoCrawlerActivity: 'No recent crawler activity.',
+
+    // Language Comparison
+    languageComparison: 'Visibility by Language',
+    noLanguageData: 'No language visibility data yet.',
+
+    // Regional Comparison
+    regionalComparison: 'Visibility by Region',
+    noRegionalData: 'No regional visibility data yet.',
+
+    // Industry Comparison
+    industryComparison: 'Industry Comparison',
+    noIndustryData: 'Set an industry to compare.',
+    brandsInIndustry: 'brands',
+    yourScore: 'Your score',
+    industryAverage: 'Industry average',
+    aboveAverage: 'above average',
+    belowAverage: 'below average',
+    topPerformers: 'Industry leaders',
+
     settingsDescription: 'Manage your account and preferences',
     personalInformation: 'Personal Information',
     personalInfoDescription: 'Update your personal details and public profile.',
@@ -2321,6 +2457,9 @@ export function setGeoLanguage(lang: Language) {
  * Detect user's country and set language accordingly
  * Spain (ES) -> Spanish
  * Rest of the world -> English
+ * 
+ * Uses internal proxy endpoint to avoid CORS issues
+ * Proxy caches responses for 1 hour for performance
  */
 export async function detectAndSetGeoLanguage(): Promise<Language> {
   if (typeof window === 'undefined') return 'es'
@@ -2330,27 +2469,31 @@ export async function detectAndSetGeoLanguage(): Promise<Language> {
     return getLanguage()
   }
 
+  // Get browser language as fallback hint
+  const browserLang = navigator.language?.toLowerCase() || ''
+  const isSpanishBrowser = browserLang.startsWith('es')
+
   try {
-    // Use a geolocation API to detect country
-    const response = await fetch('https://ipapi.co/json/', {
-      signal: AbortSignal.timeout(5000) // 5 second timeout
+    // Use our internal proxy endpoint (no CORS issues, cached, edge-optimized)
+    const response = await fetch('/api/geo', {
+      signal: AbortSignal.timeout(5000)
     })
 
-    if (!response.ok) throw new Error('Failed to fetch geolocation')
-
-    const data = await response.json()
-    const countryCode = data.country_code
-
-    // Spain -> Spanish, rest of the world -> English
-    const detectedLang: Language = countryCode === 'ES' ? 'es' : 'en'
-    setGeoLanguage(detectedLang)
-
-    return detectedLang
-  } catch (error) {
-    // If geolocation fails, default to Spanish
-    console.warn('Geolocation detection failed, defaulting to Spanish:', error)
-    return getLanguage()
+    if (response.ok) {
+      const data = await response.json()
+      const countryCode = data.country_code
+      const detectedLang: Language = countryCode === 'ES' ? 'es' : 'en'
+      setGeoLanguage(detectedLang)
+      return detectedLang
+    }
+  } catch {
+    // If proxy fails, fall back to browser language
   }
+
+  // Fallback: Use browser language preference
+  const detectedLang: Language = isSpanishBrowser ? 'es' : 'en'
+  setGeoLanguage(detectedLang)
+  return detectedLang
 }
 
 // Hook para usar traducciones en componentes

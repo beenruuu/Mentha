@@ -316,15 +316,15 @@ export default function CategoriesPage() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Nueva Categoría</DialogTitle>
+            <DialogTitle>{t.newCategoryTitle}</DialogTitle>
             <DialogDescription>
-              Crea una nueva categoría de industria
+              {t.createNewIndustryCategory}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Nombre</label>
+              <label className="text-sm font-medium">{t.categoryName}</label>
               <Input
                 value={formData.name}
                 onChange={(e) => {
@@ -334,30 +334,30 @@ export default function CategoriesPage() {
                     slug: generateSlug(e.target.value)
                   })
                 }}
-                placeholder="Ej: Technology"
+                placeholder={t.categoryNamePlaceholder}
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium">Slug</label>
+              <label className="text-sm font-medium">{t.slug}</label>
               <Input
                 value={formData.slug}
                 onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                placeholder="Ej: technology"
+                placeholder={t.slugPlaceholder}
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium">Descripción</label>
+              <label className="text-sm font-medium">{t.descriptionLabel}</label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Descripción de la categoría..."
+                placeholder={t.descriptionPlaceholder}
               />
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Color</label>
+              <label className="text-sm font-medium mb-2 block">{t.color}</label>
               <div className="flex flex-wrap gap-2">
                 {PRESET_COLORS.map((color) => (
                   <button
@@ -374,7 +374,7 @@ export default function CategoriesPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Orden</label>
+              <label className="text-sm font-medium">{t.order}</label>
               <Input
                 type="number"
                 value={formData.sort_order}
@@ -385,10 +385,10 @@ export default function CategoriesPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
-              Cancelar
+              {t.cancel}
             </Button>
             <Button onClick={handleCreate} disabled={actionLoading}>
-              {actionLoading ? 'Creando...' : 'Crear Categoría'}
+              {actionLoading ? t.creating : t.createCategory}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -398,15 +398,15 @@ export default function CategoriesPage() {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar Categoría</DialogTitle>
+            <DialogTitle>{t.editCategory}</DialogTitle>
             <DialogDescription>
-              Modifica los detalles de la categoría
+              {t.modifyCategoryDetails}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Nombre</label>
+              <label className="text-sm font-medium">{t.categoryName}</label>
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -414,7 +414,7 @@ export default function CategoriesPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Slug</label>
+              <label className="text-sm font-medium">{t.slug}</label>
               <Input
                 value={formData.slug}
                 onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
@@ -422,7 +422,7 @@ export default function CategoriesPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Descripción</label>
+              <label className="text-sm font-medium">{t.descriptionLabel}</label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
@@ -430,7 +430,7 @@ export default function CategoriesPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium mb-2 block">Color</label>
+              <label className="text-sm font-medium mb-2 block">{t.color}</label>
               <div className="flex flex-wrap gap-2">
                 {PRESET_COLORS.map((color) => (
                   <button
@@ -447,7 +447,7 @@ export default function CategoriesPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Orden</label>
+              <label className="text-sm font-medium">{t.order}</label>
               <Input
                 type="number"
                 value={formData.sort_order}
@@ -458,10 +458,10 @@ export default function CategoriesPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowEditDialog(false)}>
-              Cancelar
+              {t.cancel}
             </Button>
             <Button onClick={handleUpdate} disabled={actionLoading}>
-              {actionLoading ? 'Guardando...' : 'Guardar Cambios'}
+              {actionLoading ? t.saving : t.saveChangesBtn}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -471,19 +471,19 @@ export default function CategoriesPage() {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar categoría?</AlertDialogTitle>
+            <AlertDialogTitle>{t.deleteCategory}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. La categoría "{selectedCategory?.name}" será eliminada permanentemente.
+              {t.deleteCategoryWarning.replace('{name}', selectedCategory?.name || '')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"
               disabled={actionLoading}
             >
-              {actionLoading ? 'Eliminando...' : 'Eliminar'}
+              {actionLoading ? t.deleting : t.delete}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

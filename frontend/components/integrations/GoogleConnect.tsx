@@ -7,8 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle, RefreshCw, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { fetchAPI } from "@/lib/api-client";
+import { useTranslations } from "@/lib/i18n";
 
 export function GoogleConnect() {
+    const { t } = useTranslations();
+
     // Check connection status
     const { data: status, isLoading, refetch } = useQuery({
         queryKey: ["gscStatus"],
@@ -30,7 +33,7 @@ export function GoogleConnect() {
     };
 
     const handleSync = () => {
-        toast.info("Sincronización iniciada en segundo plano...");
+        toast.info(t.syncStarted);
     }
 
     if (isLoading) return <div className="h-20 flex items-center justify-center"><Loader2 className="animate-spin text-muted-foreground" /></div>;
@@ -48,17 +51,17 @@ export function GoogleConnect() {
                             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
                         </svg>
                         <div>
-                            <CardTitle className="text-lg">SEO Comparativo</CardTitle>
-                            <CardDescription>Compara tu rendimiento en búsqueda tradicional vs IA.</CardDescription>
+                            <CardTitle className="text-lg">{t.seoComparative}</CardTitle>
+                            <CardDescription>{t.seoComparativeDesc}</CardDescription>
                         </div>
                     </div>
                     {status?.connected ? (
                         <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1">
-                            <CheckCircle className="w-3 h-3" /> Conectado
+                            <CheckCircle className="w-3 h-3" /> {t.connected}
                         </Badge>
                     ) : (
                         <Badge variant="outline" className="bg-slate-50 text-slate-500 gap-1">
-                            <AlertCircle className="w-3 h-3" /> Desconectado
+                            <AlertCircle className="w-3 h-3" /> {t.disconnected}
                         </Badge>
                     )}
                 </div>
@@ -67,19 +70,19 @@ export function GoogleConnect() {
                 {status?.connected ? (
                     <div className="flex flex-col gap-4">
                         <div className="bg-slate-50 dark:bg-slate-900 p-3 rounded text-sm text-slate-600 dark:text-slate-400">
-                            Sincronizando datos para <strong>{status.sites?.length || 1} propiedades</strong>.
+                            {t.syncingDataFor} <strong>{status.sites?.length || 1} {t.properties}</strong>.
                         </div>
                         <Button variant="outline" size="sm" onClick={handleSync} className="w-fit">
-                            <RefreshCw className="w-4 h-4 mr-2" /> Sincronizar Ahora
+                            <RefreshCw className="w-4 h-4 mr-2" /> {t.syncNow}
                         </Button>
                     </div>
                 ) : (
                     <div className="flex flex-col gap-4">
                         <p className="text-sm text-muted-foreground">
-                            Conecta tu cuenta para importar automáticamente palabras clave y detectar oportunidades de contenido basadas en tráfico real.
+                            {t.connectGoogleDesc}
                         </p>
                         <Button onClick={handleConnect} className="w-fit bg-emerald-600 hover:bg-emerald-700 text-white">
-                            Conectar cuenta de Google
+                            {t.connectGoogleAccount}
                         </Button>
                     </div>
                 )}

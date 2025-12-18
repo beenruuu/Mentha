@@ -28,7 +28,8 @@ from app.api.endpoints import (
     organization,
     compliance,
     hallucinations,
-    entities
+    entities,
+    insights
 )
 
 api_router = APIRouter()
@@ -66,4 +67,4 @@ api_router.include_router(compliance.router, prefix="/compliance", tags=["Compli
 # Advanced AEO Services
 api_router.include_router(hallucinations.router, tags=["Hallucinations"])
 api_router.include_router(entities.router, tags=["Entity Tracking"])
-
+api_router.include_router(insights.router, prefix="/insights", tags=["Insights"])

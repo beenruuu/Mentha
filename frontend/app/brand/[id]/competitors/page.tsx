@@ -82,7 +82,7 @@ export default function BrandCompetitorsPage() {
             console.error('Failed to load data:', error)
             toast({
                 title: t.errorTitle,
-                description: "Failed to load brand data",
+                description: t.failedToLoadData,
                 variant: 'destructive',
             })
         } finally {
@@ -94,7 +94,7 @@ export default function BrandCompetitorsPage() {
         if (!newCompetitorName.trim() || !newCompetitorDomain.trim()) {
             toast({
                 title: t.errorTitle,
-                description: "Please enter both name and domain",
+                description: t.enterBothFields,
                 variant: 'destructive',
             })
             return
@@ -109,8 +109,8 @@ export default function BrandCompetitorsPage() {
             })
 
             toast({
-                title: "Competitor added",
-                description: `${newCompetitorName} has been added to tracking`,
+                title: t.competitorAddedSuccess,
+                description: `${newCompetitorName} ${t.competitorAddedSuccessDesc}`,
             })
 
             setNewCompetitorName('')
@@ -120,7 +120,7 @@ export default function BrandCompetitorsPage() {
         } catch (error) {
             toast({
                 title: t.errorTitle,
-                description: "Failed to add competitor",
+                description: t.failedToAddCompetitor,
                 variant: 'destructive',
             })
         }
@@ -130,14 +130,14 @@ export default function BrandCompetitorsPage() {
         try {
             await competitorsService.delete(id)
             toast({
-                title: "Competitor deleted",
-                description: "Competitor has been removed from tracking",
+                title: t.competitorDeleted,
+                description: t.competitorDeletedDesc,
             })
             loadData()
         } catch (error) {
             toast({
                 title: t.errorTitle,
-                description: "Failed to delete competitor",
+                description: t.failedToDeleteCompetitor,
                 variant: 'destructive',
             })
         }
@@ -174,17 +174,17 @@ export default function BrandCompetitorsPage() {
                         <DialogTrigger asChild>
                             <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20">
                                 <Plus className="mr-2 h-4 w-4" />
-                                Add Competitor
+                                {t.addCompetitorBtn}
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
                             <DialogHeader>
-                                <DialogTitle>Add New Competitor</DialogTitle>
-                                <DialogDescription>Enter the details of the competitor you want to track.</DialogDescription>
+                                <DialogTitle>{t.addNewCompetitorTitle}</DialogTitle>
+                                <DialogDescription>{t.addNewCompetitorDesc}</DialogDescription>
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="name">Name</Label>
+                                    <Label htmlFor="name">{t.name}</Label>
                                     <Input
                                         id="name"
                                         placeholder="e.g. Competitor Inc."
@@ -193,7 +193,7 @@ export default function BrandCompetitorsPage() {
                                     />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="domain">Domain</Label>
+                                    <Label htmlFor="domain">{t.domain}</Label>
                                     <Input
                                         id="domain"
                                         placeholder="e.g. competitor.com"
@@ -203,8 +203,8 @@ export default function BrandCompetitorsPage() {
                                 </div>
                             </div>
                             <DialogFooter>
-                                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                                <Button onClick={handleAddCompetitor}>Add</Button>
+                                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>{t.cancel}</Button>
+                                <Button onClick={handleAddCompetitor}>{t.add}</Button>
                             </DialogFooter>
                         </DialogContent>
                     </Dialog>
@@ -223,7 +223,7 @@ export default function BrandCompetitorsPage() {
                                         </div>
                                     </div>
                                     <p className="text-3xl font-bold text-gray-900 dark:text-white mb-1">{competitors.length}</p>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Tracked Competitors</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">{t.trackedCompetitorsLabel}</p>
                                 </CardContent>
                             </Card>
                             <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10 border-emerald-100 dark:border-emerald-900/20 shadow-sm">
@@ -238,7 +238,7 @@ export default function BrandCompetitorsPage() {
                                             ? Math.round(competitors.reduce((acc, c) => acc + (c.visibility_score || 0), 0) / competitors.length)
                                             : 0}%
                                     </div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Avg. Visibility Score</p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">{t.avgVisibilityScore}</p>
                                 </CardContent>
                             </Card>
                             <Card className="bg-white dark:bg-[#161619] border-gray-200 dark:border-[#2A2A30] shadow-sm">
@@ -248,8 +248,8 @@ export default function BrandCompetitorsPage() {
                                             <ArrowUpRight className="w-5 h-5" />
                                         </div>
                                     </div>
-                                    <div className="text-3xl font-bold text-gray-900 dark:text-white">High</div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Keyword Overlap</p>
+                                    <div className="text-3xl font-bold text-gray-900 dark:text-white">{t.high}</div>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">{t.keywordOverlap}</p>
                                 </CardContent>
                             </Card>
                         </div>
@@ -287,7 +287,7 @@ export default function BrandCompetitorsPage() {
                                             <div className="space-y-4 mt-2">
                                                 <div className="space-y-1.5">
                                                     <div className="flex justify-between text-xs">
-                                                        <span className="text-gray-500 dark:text-gray-400">Keyword Overlap</span>
+                                                        <span className="text-gray-500 dark:text-gray-400">{t.keywordOverlap}</span>
                                                         <span className="font-medium text-gray-900 dark:text-white">{comp.overlapScore}%</span>
                                                     </div>
                                                     <div className="h-1.5 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
@@ -299,7 +299,7 @@ export default function BrandCompetitorsPage() {
                                                 </div>
                                                 <div className="pt-2 flex justify-end">
                                                     <Button variant="ghost" size="sm" className="text-xs h-7 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20">
-                                                        Full Analysis <ArrowRight className="w-3 h-3 ml-1" />
+                                                        {t.fullAnalysis} <ArrowRight className="w-3 h-3 ml-1" />
                                                     </Button>
                                                 </div>
                                             </div>
@@ -314,15 +314,15 @@ export default function BrandCompetitorsPage() {
                             <CardHeader className="border-b border-gray-200 dark:border-[#2A2A30] bg-gray-50/30 dark:bg-white/5">
                                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                                     <div>
-                                        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Detailed Comparison</CardTitle>
+                                        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">{t.detailedComparison}</CardTitle>
                                         <CardDescription className="text-gray-500 dark:text-gray-400">
-                                            Manage your direct and indirect competitors
+                                            {t.manageCompetitors}
                                         </CardDescription>
                                     </div>
                                     <div className="relative w-full md:w-64">
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                         <Input
-                                            placeholder="Search competitors..."
+                                            placeholder={t.searchCompetitors}
                                             className="pl-9 bg-white dark:bg-black/20 border-gray-200 dark:border-gray-800 focus:bg-white dark:focus:bg-black/40 transition-colors"
                                         />
                                     </div>
@@ -332,18 +332,18 @@ export default function BrandCompetitorsPage() {
                                 <Table>
                                     <TableHeader className="bg-gray-50/50 dark:bg-white/5">
                                         <TableRow className="hover:bg-transparent border-gray-200 dark:border-white/5">
-                                            <TableHead className="w-[300px]">Competitor</TableHead>
-                                            <TableHead>Visibility</TableHead>
-                                            <TableHead className="w-[200px]">Overlap</TableHead>
-                                            <TableHead>Trend</TableHead>
-                                            <TableHead className="text-right">Actions</TableHead>
+                                            <TableHead className="w-[300px]">{t.competitor}</TableHead>
+                                            <TableHead>{t.visibility}</TableHead>
+                                            <TableHead className="w-[200px]">{t.overlapLabel}</TableHead>
+                                            <TableHead>{t.trend}</TableHead>
+                                            <TableHead className="text-right">{t.actions}</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {competitors.length === 0 ? (
                                             <TableRow>
                                                 <TableCell colSpan={5} className="text-center py-12 text-gray-500 dark:text-gray-400">
-                                                    No competitors tracked. Add one to start monitoring.
+                                                    {t.noCompetitorsTrackedMsg}
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
@@ -391,12 +391,12 @@ export default function BrandCompetitorsPage() {
                                                         {comp.trend === 'up' ? (
                                                             <div className="flex items-center text-emerald-600 text-xs font-medium bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-full w-fit">
                                                                 <TrendingUp className="w-3 h-3 mr-1" />
-                                                                Rising
+                                                                {t.risingTrend}
                                                             </div>
                                                         ) : (
                                                             <div className="flex items-center text-gray-500 text-xs font-medium bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full w-fit">
                                                                 <TrendingUp className="w-3 h-3 mr-1 rotate-90" />
-                                                                Stable
+                                                                {t.stableTrend}
                                                             </div>
                                                         )}
                                                     </TableCell>
@@ -409,15 +409,15 @@ export default function BrandCompetitorsPage() {
                                                             </AlertDialogTrigger>
                                                             <AlertDialogContent>
                                                                 <AlertDialogHeader>
-                                                                    <AlertDialogTitle>Delete Competitor?</AlertDialogTitle>
+                                                                    <AlertDialogTitle>{t.deleteCompetitorTitle}</AlertDialogTitle>
                                                                     <AlertDialogDescription>
-                                                                        Are you sure you want to stop tracking {comp.name}? This action cannot be undone.
+                                                                        {t.deleteCompetitorDesc.replace('{name}', comp.name)}
                                                                     </AlertDialogDescription>
                                                                 </AlertDialogHeader>
                                                                 <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
                                                                     <AlertDialogAction onClick={() => handleDeleteCompetitor(comp.id)} className="bg-red-600 hover:bg-red-700">
-                                                                        Delete
+                                                                        {t.delete}
                                                                     </AlertDialogAction>
                                                                 </AlertDialogFooter>
                                                             </AlertDialogContent>

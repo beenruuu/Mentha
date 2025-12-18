@@ -551,3 +551,88 @@ export const demoUser = {
     seo_experience: 'intermediate',
     created_at: daysAgo(90),
 }
+
+// ============ INSIGHTS ============
+export const demoInsights = {
+    brand_id: DEMO_BRAND_ID,
+    generated_at: new Date().toISOString(),
+    insights: [
+        {
+            type: 'consecutive_improvement',
+            icon: '📈',
+            title: 'Tendencia positiva',
+            description: 'La puntuación mejoró 4 días consecutivos',
+            priority: 'high',
+            data: { days: 4, direction: 'up' }
+        },
+        {
+            type: 'leading_model',
+            icon: '🏆',
+            title: 'Claude lidera',
+            description: 'Claude lidera con una puntuación de 78/100',
+            priority: 'medium',
+            data: { model: 'anthropic', score: 78 }
+        },
+        {
+            type: 'score_increase',
+            icon: '⬆️',
+            title: 'Puntuación subió',
+            description: 'La puntuación subió 5 puntos a 67/100',
+            priority: 'high',
+            data: { change: 5, current: 67 }
+        },
+        {
+            type: 'new_competitors',
+            icon: '👥',
+            title: 'Nuevos competidores',
+            description: '2 nuevos competidores en los últimos 15 días',
+            priority: 'medium',
+            data: { count: 2, period_days: 15 }
+        }
+    ]
+}
+
+// ============ LANGUAGE COMPARISON ============
+export const demoLanguageComparison = {
+    brand_id: DEMO_BRAND_ID,
+    languages: [
+        { language: 'es', score: 78, mention_count: 34 },
+        { language: 'en', score: 65, mention_count: 28 },
+        { language: 'fr', score: 42, mention_count: 12 },
+        { language: 'de', score: 38, mention_count: 8 },
+        { language: 'pt', score: 55, mention_count: 18 },
+    ],
+    primary_language: 'es',
+    generated_at: new Date().toISOString()
+}
+
+// ============ REGIONAL COMPARISON ============
+export const demoRegionalComparison = {
+    brand_id: DEMO_BRAND_ID,
+    regions: [
+        { region: 'ES', score: 78, mention_count: 42 },
+        { region: 'US', score: 52, mention_count: 24 },
+        { region: 'MX', score: 61, mention_count: 18 },
+        { region: 'FR', score: 45, mention_count: 14 },
+        { region: 'DE', score: 38, mention_count: 10 },
+    ],
+    primary_region: 'ES',
+    generated_at: new Date().toISOString()
+}
+
+// ============ INDUSTRY COMPARISON ============
+export const demoIndustryComparison = {
+    brand_id: DEMO_BRAND_ID,
+    industry: 'Technology',
+    brand_score: 67,
+    industry_average: 52,
+    percentile: 78,
+    rank: 3,
+    total_brands: 14,
+    top_performers: [
+        { name: 'Paradigma Digital', score: 82 },
+        { name: 'Plain Concepts', score: 75 },
+        { name: 'Sngular', score: 71 },
+    ],
+    generated_at: new Date().toISOString()
+}
