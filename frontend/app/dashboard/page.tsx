@@ -10,7 +10,8 @@ import {
   CheckCircle2,
   ChevronDown,
   Building2,
-  Plus
+  Plus,
+  Info
 } from "lucide-react"
 import {
   AreaChart,
@@ -34,14 +35,17 @@ import { competitorsService, type Competitor } from "@/lib/services/competitors"
 import { geoAnalysisService, type VisibilitySnapshot } from "@/lib/services/geo-analysis"
 
 
-import { GoogleConnect } from "@/components/integrations/GoogleConnect"
 import { DateRangePicker } from "@/components/ui/date-range-picker"
 import { InsightsCard } from "@/components/dashboard/InsightsCard"
 import { LanguageComparisonCard } from "@/components/dashboard/LanguageComparisonCard"
 import { RegionalComparisonCard } from "@/components/dashboard/RegionalComparisonCard"
-import { IndustryComparisonCard } from "@/components/dashboard/IndustryComparisonCard"
 import { subDays, isAfter, startOfDay, format } from "date-fns"
 import { DateRange } from "react-day-picker"
+import {
+  Tooltip as TooltipUI,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 const AI_PROVIDER_META = [
   { id: 'chatgpt', name: 'ChatGPT', icon: '/providers/openai.svg?v=3', color: '#10a37f' },
@@ -138,7 +142,7 @@ export default function DashboardPage() {
 
             dayData[frontendId] = snapshot.visibility_score ?? 0
             dayData[`${frontendId}_position`] = snapshot.average_position ?? 0
-            dayData[`${frontendId}_inclusion`] = snapshot.inclusion_rate ?? 0
+            dayData[`${frontendId}_inclusion`] = (snapshot.inclusion_rate ?? 0) * 100
           })
 
           setChartData(prevData => {
@@ -280,7 +284,9 @@ export default function DashboardPage() {
                       {displayName}
                     </span>
                   </div>
-                  <span className="font-mono font-medium text-foreground">{value}{isPercentage ? '%' : ''}</span>
+                  <span className="font-mono font-medium text-foreground">
+                    {isPercentage ? `${Math.round(value)}%` : `#${Math.round(value)}`}
+                  </span>
                 </div>
               )
             })}
@@ -298,7 +304,7 @@ export default function DashboardPage() {
     : (analysis?.score ? Math.round(analysis.score) : 0)
 
   const currentPosition = analysis?.avg_position ? Math.round(analysis.avg_position) : 0
-  const currentInclusion = analysis?.inclusion_rate ? Math.round(analysis.inclusion_rate) : 0
+  const currentInclusion = analysis?.inclusion_rate ? Math.round(analysis.inclusion_rate * 100) : 0
 
   return (
     <SidebarProvider>
@@ -371,7 +377,7 @@ export default function DashboardPage() {
               <Link href={`/brand/${selectedBrand.id}`}>
                 <Button variant="outline" size="sm" className="gap-2 text-xs">
                   <Building2 className="h-3.5 w-3.5" />
-                  Ver detalle
+                  {t.viewDetails}
                 </Button>
               </Link>
             )}
@@ -381,13 +387,13 @@ export default function DashboardPage() {
 
         {/* Main Content Panel with Rounded Top-Left Corner */}
         <main className="dashboard-main flex-1 bg-white dark:bg-black rounded-tl-3xl overflow-hidden flex flex-col shadow-2xl relative z-10">
-          <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
+          <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-4">
 
             {/* Top Section: Metrics & Chart */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
               {/* Left Column: Metrics & Chart (8 cols) */}
-              <div className="lg:col-span-8 space-y-6">
+              <div className="lg:col-span-8 space-y-3">
 
                 {/* Metrics Tabs */}
                 <div className="flex items-center gap-2 border-b border-gray-100 dark:border-[#1A1A20] pb-1">
@@ -448,16 +454,16 @@ export default function DashboardPage() {
                             if (score === undefined) return null
                             return (
                               <div key={provider.id} className="flex flex-col items-center gap-1 group relative">
-                                <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-800 p-1 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 p-1.5 flex items-center justify-center">
                                   <Image
                                     src={provider.icon}
                                     alt={provider.name}
-                                    width={16}
-                                    height={16}
+                                    width={20}
+                                    height={20}
                                     className={provider.icon.includes('openai.svg') ? 'w-full h-full object-contain dark:invert' : 'w-full h-full object-contain'}
                                   />
                                 </div>
-                                <span className="text-[10px] font-mono font-medium text-gray-600 dark:text-gray-400">
+                                <span className="text-xs font-mono font-medium text-gray-600 dark:text-gray-400">
                                   {Math.round(score)}%
                                 </span>
                                 {/* Tooltip */}
@@ -472,7 +478,7 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <div className="h-[200px]">
+                  <div className="h-[280px]">
                     {chartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={chartData} margin={{ top: 10, right: 0, bottom: 0, left: -20 }}>
@@ -494,9 +500,11 @@ export default function DashboardPage() {
                             axisLine={false}
                             tickLine={false}
                             tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                            tickFormatter={(value) => activeMetric === 'position' ? `#${value}` : `${value}%`}
-                            domain={activeMetric === 'position' ? ['auto', 'auto'] : [0, 100]}
+                            tickFormatter={(value) => activeMetric === 'position' ? `#${Math.round(value)}` : `${Math.round(value)}%`}
+                            domain={activeMetric === 'position' ? [1, 5] : [0, 100]}
+                            ticks={activeMetric === 'position' ? [1, 2, 3, 4, 5] : undefined}
                             reversed={activeMetric === 'position'}
+                            allowDecimals={false}
                           />
                           <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1, strokeDasharray: '5 5' }} />
 
@@ -534,7 +542,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Right Column: All insights in compact format */}
-              <div className="lg:col-span-4 space-y-8 pl-0 lg:pl-6 border-l border-transparent lg:border-gray-100 dark:lg:border-[#1A1A20]">
+              <div className="lg:col-span-4 space-y-4 pl-0 lg:pl-6 border-l border-transparent lg:border-gray-100 dark:lg:border-[#1A1A20]">
 
                 {/* Dynamic Insights Panel */}
                 {selectedBrand && (
@@ -549,26 +557,15 @@ export default function DashboardPage() {
                   </div>
                 )}
 
-                {/* Industry Comparison */}
-                {selectedBrand && (
-                  <IndustryComparisonCard brandId={selectedBrand.id} />
-                )}
 
-                {/* Google Connect */}
-                <div>
-                  <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
-                    {t.dashboardUnlockTracking}
-                  </h3>
-                  <GoogleConnect />
-                </div>
 
                 {/* Upgrade Banner */}
-                <div className="p-4 rounded-xl bg-gradient-to-br from-gray-900 to-black dark:from-[#111114] dark:to-black border border-gray-800 text-white relative overflow-hidden">
+                <div className="p-4 rounded-xl bg-white dark:bg-gradient-to-br dark:from-[#111114] dark:to-black border border-gray-200 dark:border-gray-800 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/10 rounded-full blur-3xl -mr-12 -mt-12" />
-                  <p className="text-sm text-gray-300 mb-3 relative z-10">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 relative z-10">
                     {t.dashboardUpgradeMessage}
                   </p>
-                  <Button className="w-full bg-white text-black hover:bg-gray-100 border-0 font-medium text-sm">
+                  <Button className="w-full bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100 border-0 font-medium text-sm">
                     {t.upgradePlan}
                   </Button>
                 </div>
@@ -583,6 +580,14 @@ export default function DashboardPage() {
               <div className="lg:col-span-2 space-y-4">
                 <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                   {t.dashboardCompetitionPerformance}
+                  <TooltipUI>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3.5 h-3.5 cursor-help opacity-70 hover:opacity-100 transition-opacity" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[200px]">
+                      {t.dashboardCompetitionPerformanceTooltip}
+                    </TooltipContent>
+                  </TooltipUI>
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">{t.dashboardLive}</span>
                 </h3>
                 <div className="space-y-3">
@@ -613,16 +618,16 @@ export default function DashboardPage() {
 
                               return (
                                 <div key={modelKey} className="flex flex-col items-center group/tooltip relative">
-                                  <div className="w-5 h-5 rounded-full bg-gray-100 dark:bg-gray-800 p-0.5 flex items-center justify-center">
+                                  <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 p-1.5 flex items-center justify-center">
                                     <Image
                                       src={provider.icon}
                                       alt={provider.name}
-                                      width={14}
-                                      height={14}
+                                      width={20}
+                                      height={20}
                                       className={provider.icon.includes('openai.svg') ? 'w-full h-full object-contain dark:invert' : 'w-full h-full object-contain'}
                                     />
                                   </div>
-                                  <span className="text-[9px] font-mono text-gray-500 mt-0.5">{score}%</span>
+                                  <span className="text-xs font-mono text-gray-500 mt-0.5">{score}%</span>
                                   {/* Tooltip on hover */}
                                   <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover/tooltip:block bg-black text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
                                     {provider.name}: {score}%
@@ -656,6 +661,14 @@ export default function DashboardPage() {
               <div className="lg:col-span-2 space-y-4">
                 <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
                   {t.dashboardModelPerformance}
+                  <TooltipUI>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3.5 h-3.5 cursor-help opacity-70 hover:opacity-100 transition-opacity" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[200px]">
+                      {t.dashboardModelPerformanceTooltip}
+                    </TooltipContent>
+                  </TooltipUI>
                 </h3>
                 <div className="space-y-3">
                   {AI_PROVIDER_META.map((provider) => {

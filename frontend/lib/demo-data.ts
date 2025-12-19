@@ -162,24 +162,53 @@ function generateVisibilityHistory(): VisibilitySnapshot[] {
     // Generate 30 days of history for each model
     for (let day = 30; day >= 0; day--) {
         models.forEach((model, index) => {
-            // Base scores with some variance per model
-            const baseScores: Record<string, number> = { openai: 62, anthropic: 70, perplexity: 58, gemini: 65, google_search: 55 }
-            // Add gradual improvement over time with some random variance
-            const trend = (30 - day) * 0.3 // Gradual improvement
-            const variance = Math.sin(day * 0.5 + index) * 5 // Some daily variance
-            const score = Math.min(100, Math.max(0, baseScores[model] + trend + variance))
+            // Base scores with wider gaps per model
+            const baseScores: Record<string, number> = {
+                openai: 58,
+                anthropic: 75,
+                perplexity: 24,
+                gemini: 62,
+                google_search: 50
+            }
+
+            // Add more aggressive trend and volatility
+            // Perplexity is struggling, so it has no growth trend
+            const isPerplexity = model === 'perplexity'
+            const trend = isPerplexity ? 0 : (30 - day) * 0.5
+
+            // High frequency variance
+            const variance = Math.sin(day * 0.8 + index) * 8
+            // Add some "shocks" (unexpected spikes or drops)
+            const shock = (day % 7 === 0) ? (Math.random() > 0.5 ? 12 : -15) : 0
+            // Random noise
+            const noise = (Math.random() - 0.5) * 6
+
+            let score = Math.min(95, Math.max(5, baseScores[model] + trend + variance + shock + noise))
+
+            // Force exactly 25 for perplexity on the last day if needed, 
+            // but let's just make it very likely to be around 25
+            if (isPerplexity && day === 0) score = 25
+
+            // Independent volatility for inclusion rate and position
+            const inclusionBase = score / 100
+            const inclusionNoise = (Math.random() - 0.5) * 0.15
+            const inclusionRate = Math.min(0.95, Math.max(0.05, inclusionBase + inclusionNoise))
+
+            const positionBase = 1 + (100 - score) / 20
+            const positionNoise = (Math.random() - 0.5) * 1.5
+            const averagePosition = Math.min(5, Math.max(1, positionBase + positionNoise))
 
             snapshots.push({
                 id: `snapshot-${model}-${day}`,
                 brand_id: DEMO_BRAND_ID,
                 ai_model: model,
                 visibility_score: Math.round(score),
-                mention_count: Math.floor(5 + Math.random() * 10),
-                sentiment: score > 60 ? 'positive' : 'neutral',
+                mention_count: Math.floor(5 + Math.random() * 20),
+                sentiment: score > 65 ? 'positive' : score < 40 ? 'negative' : 'neutral',
                 measured_at: daysAgo(day),
                 query_count: 15,
-                inclusion_rate: score / 100 * 0.8,
-                average_position: 1 + (100 - score) / 25,
+                inclusion_rate: inclusionRate,
+                average_position: averagePosition,
                 metadata: {}
             })
         })
@@ -195,65 +224,65 @@ export const demoLatestScores: VisibilitySnapshot[] = [
         id: 'latest-openai',
         brand_id: DEMO_BRAND_ID,
         ai_model: 'openai',
-        visibility_score: 71,
-        mention_count: 12,
-        sentiment: 'positive',
+        visibility_score: 64,
+        mention_count: 14,
+        sentiment: 'neutral',
         measured_at: daysAgo(0),
         query_count: 15,
-        inclusion_rate: 0.73,
-        average_position: 2.8,
+        inclusion_rate: 0.68,
+        average_position: 2.4,
         metadata: {}
     },
     {
         id: 'latest-anthropic',
         brand_id: DEMO_BRAND_ID,
         ai_model: 'anthropic',
-        visibility_score: 78,
-        mention_count: 14,
+        visibility_score: 82,
+        mention_count: 18,
         sentiment: 'positive',
         measured_at: daysAgo(0),
         query_count: 15,
-        inclusion_rate: 0.80,
-        average_position: 2.2,
+        inclusion_rate: 0.85,
+        average_position: 1.8,
         metadata: {}
     },
     {
         id: 'latest-perplexity',
         brand_id: DEMO_BRAND_ID,
         ai_model: 'perplexity',
-        visibility_score: 65,
-        mention_count: 9,
-        sentiment: 'neutral',
+        visibility_score: 25,
+        mention_count: 3,
+        sentiment: 'negative',
         measured_at: daysAgo(0),
         query_count: 15,
-        inclusion_rate: 0.67,
-        average_position: 3.1,
+        inclusion_rate: 0.25,
+        average_position: 4.8,
         metadata: {}
     },
     {
         id: 'latest-gemini',
         brand_id: DEMO_BRAND_ID,
         ai_model: 'gemini',
-        visibility_score: 72,
-        mention_count: 11,
-        sentiment: 'positive',
+        visibility_score: 55,
+        mention_count: 8,
+        sentiment: 'neutral',
         measured_at: daysAgo(0),
         query_count: 15,
-        inclusion_rate: 0.74,
-        average_position: 2.6,
+        inclusion_rate: 0.52,
+        average_position: 3.5,
         metadata: {}
     },
     {
         id: 'latest-google-search',
         brand_id: DEMO_BRAND_ID,
         ai_model: 'google_search',
-        visibility_score: 58,
-        mention_count: 8,
-        sentiment: 'neutral',
+        visibility_score: 71,
+        mention_count: 15,
+        sentiment: 'positive',
         measured_at: daysAgo(0),
         query_count: 15,
-        inclusion_rate: 0.55,
-        average_position: 3.8,
+        inclusion_rate: 0.74,
+        average_position: 2.1,
         metadata: {}
     },
 ]
@@ -432,25 +461,25 @@ export const demoShareOfModel = {
     brand_id: DEMO_BRAND_ID,
     brand_name: 'TechVerde Solutions',
     // Fields required by ShareOfModelData interface in ShareOfModel.tsx
-    brand_mentions: 46,
+    brand_mentions: 82,
     competitor_mentions: {
-        'Paradigma Digital': 38,
-        'Plain Concepts': 29,
-        'Sngular': 22,
-        'Accenture': 51,
-        'Indra': 33,
+        'Paradigma Digital': 65,
+        'Plain Concepts': 22,
+        'Sngular': 95,
+        'Accenture': 142,
+        'Indra': 18,
     } as Record<string, number>,
-    total_mentions: 219,
-    share_of_voice: 21,  // 46/219 ≈ 21%
+    total_mentions: 328,
+    share_of_voice: 25,  // 82/328 = 25%
     trend: 'up' as const,
     last_updated: daysAgo(0),
     // Legacy fields for backward compatibility
     total_queries: 60,
     share_data: [
-        { model: 'openai', share: 0.24, mentions: 14 },
-        { model: 'anthropic', share: 0.30, mentions: 18 },
-        { model: 'perplexity', share: 0.22, mentions: 13 },
-        { model: 'gemini', share: 0.24, mentions: 15 },
+        { model: 'openai', share: 0.18, mentions: 15 },
+        { model: 'anthropic', share: 0.42, mentions: 35 },
+        { model: 'perplexity', share: 0.12, mentions: 10 },
+        { model: 'gemini', share: 0.28, mentions: 22 },
     ],
     competitors_share: [
         { competitor: 'Paradigma Digital', share: 0.28 },
@@ -569,17 +598,17 @@ export const demoInsights = {
             type: 'leading_model',
             icon: '🏆',
             title: 'Claude lidera',
-            description: 'Claude lidera con una puntuación de 78/100',
+            description: 'Claude lidera con una puntuación de 82/100',
             priority: 'medium',
-            data: { model: 'anthropic', score: 78 }
+            data: { model: 'anthropic', score: 82 }
         },
         {
-            type: 'score_increase',
-            icon: '⬆️',
-            title: 'Puntuación subió',
-            description: 'La puntuación subió 5 puntos a 67/100',
+            type: 'score_decrease',
+            icon: '⚠️',
+            title: 'Baja en Perplexity',
+            description: 'La visibilidad en Perplexity cayó a 25/100',
             priority: 'high',
-            data: { change: 5, current: 67 }
+            data: { model: 'perplexity', change: -12, current: 25 }
         },
         {
             type: 'new_competitors',
@@ -596,11 +625,11 @@ export const demoInsights = {
 export const demoLanguageComparison = {
     brand_id: DEMO_BRAND_ID,
     languages: [
-        { language: 'es', score: 78, mention_count: 34 },
-        { language: 'en', score: 65, mention_count: 28 },
-        { language: 'fr', score: 42, mention_count: 12 },
-        { language: 'de', score: 38, mention_count: 8 },
-        { language: 'pt', score: 55, mention_count: 18 },
+        { language: 'es', score: 82, mention_count: 54 },
+        { language: 'en', score: 45, mention_count: 18 },
+        { language: 'fr', score: 12, mention_count: 4 },
+        { language: 'de', score: 92, mention_count: 65 },
+        { language: 'pt', score: 28, mention_count: 9 },
     ],
     primary_language: 'es',
     generated_at: new Date().toISOString()
@@ -610,29 +639,12 @@ export const demoLanguageComparison = {
 export const demoRegionalComparison = {
     brand_id: DEMO_BRAND_ID,
     regions: [
-        { region: 'ES', score: 78, mention_count: 42 },
-        { region: 'US', score: 52, mention_count: 24 },
-        { region: 'MX', score: 61, mention_count: 18 },
-        { region: 'FR', score: 45, mention_count: 14 },
-        { region: 'DE', score: 38, mention_count: 10 },
+        { region: 'ES', score: 88, mention_count: 72 },
+        { region: 'US', score: 25, mention_count: 8 },
+        { region: 'MX', score: 42, mention_count: 15 },
+        { region: 'FR', score: 15, mention_count: 3 },
+        { region: 'DE', score: 75, mention_count: 48 },
     ],
     primary_region: 'ES',
-    generated_at: new Date().toISOString()
-}
-
-// ============ INDUSTRY COMPARISON ============
-export const demoIndustryComparison = {
-    brand_id: DEMO_BRAND_ID,
-    industry: 'Technology',
-    brand_score: 67,
-    industry_average: 52,
-    percentile: 78,
-    rank: 3,
-    total_brands: 14,
-    top_performers: [
-        { name: 'Paradigma Digital', score: 82 },
-        { name: 'Plain Concepts', score: 75 },
-        { name: 'Sngular', score: 71 },
-    ],
     generated_at: new Date().toISOString()
 }

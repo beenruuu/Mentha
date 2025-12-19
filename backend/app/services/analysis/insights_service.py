@@ -1,7 +1,7 @@
 """
 Insights Service - Generate dynamic insights from visibility data.
 
-Provides TryRank-style insights:
+Provides dynamic insights:
 - Consecutive trend detection (improved X days in a row)
 - Leading AI model identification
 - New competitor detection
@@ -28,7 +28,7 @@ class InsightsService:
     
     async def get_brand_insights(self, brand_id: str, days: int = 30) -> Dict[str, Any]:
         """
-        Analyze historical data and generate TryRank-style insights.
+        Analyze historical data and generate dynamic insights.
         
         Returns insights like:
         - "La puntuación mejoró 3 días consecutivos"

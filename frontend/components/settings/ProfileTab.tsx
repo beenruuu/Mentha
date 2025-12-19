@@ -64,11 +64,11 @@ export function ProfileTab({
             window.URL.revokeObjectURL(url)
             document.body.removeChild(a)
 
-            toast.success("Datos exportados correctamente")
+            toast.success(t.dataExported)
 
         } catch (error) {
             console.error('Export error:', error)
-            toast.error("Error al exportar datos")
+            toast.error(t.exportError)
         } finally {
             setIsExporting(false)
         }
@@ -188,7 +188,7 @@ export function ProfileTab({
 
         } catch (error: any) {
             console.error('Error uploading avatar:', error)
-            toast.error('Error al subir la imagen', {
+            toast.error(t.uploadImageError, {
                 description: error.message
             })
         } finally {
@@ -262,20 +262,20 @@ export function ProfileTab({
 
             <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
                 <CardHeader>
-                    <CardTitle>Tus Datos</CardTitle>
-                    <CardDescription>Gestiona tus datos personales y portabilidad (GDPR/LOPD)</CardDescription>
+                    <CardTitle>{t.yourData}</CardTitle>
+                    <CardDescription>{t.yourDataDescription}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center justify-between">
                         <div className="space-y-1">
-                            <h4 className="text-sm font-medium">Exportar Datos</h4>
+                            <h4 className="text-sm font-medium">{t.exportData}</h4>
                             <p className="text-sm text-muted-foreground">
-                                Descarga una copia de todos tus datos personales en formato JSON.
+                                {t.exportDataDescription}
                             </p>
                         </div>
                         <Button variant="outline" onClick={handleExportData} disabled={isExporting}>
                             {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
-                            Exportar mis datos
+                            {t.exportMyData}
                         </Button>
                     </div>
                 </CardContent>

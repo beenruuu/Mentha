@@ -20,7 +20,7 @@ async def get_brand_insights(
     """
     Get dynamic insights for a brand.
     
-    Returns TryRank-style insights:
+    Returns dynamic insights:
     - Consecutive trend (improved/declined X days)
     - Leading AI model
     - Score changes
@@ -64,21 +64,3 @@ async def get_regional_comparison(
     """
     service = get_insights_service()
     return await service.get_regional_comparison(brand_id, days)
-
-
-@router.get("/{brand_id}/industry")
-async def get_industry_comparison(
-    brand_id: str,
-    days: int = 30,
-    user_id: str = Depends(get_current_user_id)
-) -> Dict[str, Any]:
-    """
-    Get visibility comparison against industry benchmarks.
-    
-    Returns:
-    - Brand's score vs industry average
-    - Percentile rank within industry
-    - Top performers in the industry
-    """
-    service = get_insights_service()
-    return await service.get_industry_comparison(brand_id, days)

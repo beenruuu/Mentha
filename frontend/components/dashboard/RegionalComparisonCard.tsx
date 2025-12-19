@@ -6,6 +6,11 @@ import { useTranslations } from '@/lib/i18n'
 import { DEMO_BRAND_ID, demoRegionalComparison } from '@/lib/demo-data'
 import FlagIcon from '@/components/shared/flag-icon'
 import { Loader2, Info } from 'lucide-react'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface RegionScore {
     region: string
@@ -63,7 +68,14 @@ export function RegionalComparisonCard({ brandId }: RegionalComparisonCardProps)
             <div className="space-y-3">
                 <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                     {t.regionalComparison || 'RENDIMIENTO POR REGIÓN'}
-                    <Info className="w-3 h-3" />
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Info className="w-3 h-3 cursor-help opacity-70 hover:opacity-100 transition-opacity" />
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="max-w-[200px]">
+                            {t.regionalComparisonTooltip || "Tu puntuación de visibilidad IA desglosada por región geográfica"}
+                        </TooltipContent>
+                    </Tooltip>
                 </h3>
                 <div className="flex items-center justify-center py-4">
                     <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
@@ -77,7 +89,14 @@ export function RegionalComparisonCard({ brandId }: RegionalComparisonCardProps)
             <div className="space-y-3">
                 <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                     {t.regionalComparison || 'RENDIMIENTO POR REGIÓN'}
-                    <Info className="w-3 h-3" />
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Info className="w-3 h-3 cursor-help opacity-70 hover:opacity-100 transition-opacity" />
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="max-w-[200px]">
+                            {t.regionalComparisonTooltip || "Tu puntuación de visibilidad IA desglosada por región geográfica"}
+                        </TooltipContent>
+                    </Tooltip>
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 italic">
                     {t.noRegionalData || 'Sin datos de región.'}
@@ -92,7 +111,14 @@ export function RegionalComparisonCard({ brandId }: RegionalComparisonCardProps)
         <div className="space-y-3">
             <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                 {t.regionalComparison || 'RENDIMIENTO POR REGIÓN'}
-                <Info className="w-3 h-3" />
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Info className="w-3 h-3 cursor-help opacity-70 hover:opacity-100 transition-opacity" />
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-[200px]">
+                        {t.regionalComparisonTooltip || "Tu puntuación de visibilidad IA desglosada por región geográfica"}
+                    </TooltipContent>
+                </Tooltip>
             </h3>
             <div className="space-y-2">
                 {sortedRegions.map((region) => (

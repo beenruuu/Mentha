@@ -1,6 +1,6 @@
 "use client"
 
-import { Search, Bell, Settings, ChevronRight, X, Bot, Search as SearchIcon, TrendingUp, Users, LogOut, Plus, Trash2, Info, Shield } from "lucide-react"
+import { Bell, Settings, ChevronRight, X, Bot, TrendingUp, Users, LogOut, Plus, Trash2, Info, Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState, useEffect } from "react"
@@ -29,19 +29,9 @@ import {
 function BrandItem({ id, name, domain, onDeleted }: { id: string; name: string; domain: string; onDeleted?: () => void }) {
   const [expanded, setExpanded] = useState(true)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [isSearchPerfOpen, setIsSearchPerfOpen] = useState(false)
   const { t } = useTranslations()
   const router = useRouter()
   const pathname = usePathname()
-  const searchParams = useSearchParams()
-  const currentTab = searchParams.get('tab')
-
-  // Auto-open search performance if on that page
-  useEffect(() => {
-    if (pathname.includes('/search-performance')) {
-      setIsSearchPerfOpen(true)
-    }
-  }, [pathname])
 
   const handleDeleteBrand = async () => {
     setIsDeleting(true)
@@ -145,59 +135,6 @@ function BrandItem({ id, name, domain, onDeleted }: { id: string; name: string; 
               </Tooltip>
             </button>
           </Link>
-
-          {/* Search Performance Submenu */}
-          <div>
-            <button
-              onClick={() => setIsSearchPerfOpen(!isSearchPerfOpen)}
-              className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item"
-            >
-              <span className="flex items-center gap-2">
-                <SearchIcon className="w-3 h-3 opacity-70" />
-                {t.searchPerformance}
-              </span>
-              <div className="flex items-center gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="w-3 h-3 opacity-0 group-hover/item:opacity-70 transition-opacity cursor-help mr-1" />
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-[200px]">
-                    {t.searchPerformanceTooltip || "Métricas de rendimiento en buscadores tradicionales (Google, Bing)"}
-                  </TooltipContent>
-                </Tooltip>
-                <ChevronRight className={`w-3 h-3 transition-transform duration-200 ${isSearchPerfOpen ? 'rotate-90' : ''}`} />
-              </div>
-            </button>
-
-            {isSearchPerfOpen && (
-              <div className="ml-2 pl-2 border-l border-border/50 mt-0.5 space-y-0.5">
-                <Link href={`/brand/${id}/search-performance?tab=keywords`}>
-                  <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-[11px] rounded-md transition-colors ${pathname.includes('/search-performance') && (!currentTab || currentTab === 'keywords')
-                    ? 'text-foreground bg-secondary/50 font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                    }`}>
-                    {t.keywords}
-                  </button>
-                </Link>
-                <Link href={`/brand/${id}/search-performance?tab=queries`}>
-                  <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-[11px] rounded-md transition-colors ${pathname.includes('/search-performance') && currentTab === 'queries'
-                    ? 'text-foreground bg-secondary/50 font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                    }`}>
-                    {t.searchQueries}
-                  </button>
-                </Link>
-                <Link href={`/brand/${id}/search-performance?tab=crawlers`}>
-                  <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-[11px] rounded-md transition-colors ${pathname.includes('/search-performance') && currentTab === 'crawlers'
-                    ? 'text-foreground bg-secondary/50 font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
-                    }`}>
-                    {t.aiCrawlers}
-                  </button>
-                </Link>
-              </div>
-            )}
-          </div>
           <Link href={`/brand/${id}/competitors`}>
             <button className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item">
               <span className="flex items-center gap-2">

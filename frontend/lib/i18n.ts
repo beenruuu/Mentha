@@ -236,7 +236,19 @@ const translations = {
     brandOverview: 'Resumen de Marca',
     competitorOverview: 'Resumen de Competidores',
     notableChanges: 'Cambios Notables',
+    notableChangesTooltip: 'Resumen de los cambios más importantes en tu visibilidad IA',
+    languageComparison: 'Rendimiento por Idioma',
+    languageComparisonTooltip: 'Puntuación de visibilidad IA en cada idioma configurado',
+    regionalComparison: 'Rendimiento por Región',
+    regionalComparisonTooltip: 'Tu puntuación de visibilidad IA desglosada por región geográfica',
+    noLanguageData: 'Sin datos de idioma.',
+    noRegionalData: 'Sin datos de región.',
     noInsightsYet: 'Aún no hay suficientes datos para generar insights.',
+    insightConsecutiveImprovement: 'La puntuación mejoró {days} días consecutivos',
+    insightLeadingModel: '{model} lidera con una puntuación de {score}/100',
+    insightScoreIncrease: 'La puntuación de {model} subió {points} puntos a {score}/100',
+    insightScoreDecrease: '{model} bajó {points} puntos a {score}/100',
+    insightNewCompetitors: '{count} nuevos competidores en los últimos {days} días',
     rankingImproved: 'Ranking mejorado para',
     newMention: 'Nueva mención detectada para',
     performanceImprovement: 'Mejora de rendimiento para',
@@ -414,6 +426,14 @@ const translations = {
     basicFeatures: 'Funciones básicas para uso personal',
     appearanceTitle: 'Apariencia',
     appearanceDescription: 'Personaliza la apariencia de la aplicación.',
+    yourData: 'Tus Datos',
+    yourDataDescription: 'Gestiona tus datos personales y portabilidad (GDPR/LOPD)',
+    exportData: 'Exportar Datos',
+    exportDataDescription: 'Descarga una copia de todos tus datos personales en formato JSON.',
+    exportMyData: 'Exportar mis datos',
+    dataExported: 'Datos exportados correctamente',
+    exportError: 'Error al exportar datos',
+    uploadImageError: 'Error al subir la imagen',
     errorLoadingUser: 'Error al cargar el usuario',
     notificationPrefsSaved: 'Preferencias de notificaciones guardadas',
     errorSavingNotificationPrefs: 'Error al guardar preferencias de notificaciones',
@@ -508,6 +528,7 @@ const translations = {
     analysisInProgressNotify: 'El análisis está en progreso. Te avisaremos cuando existan sugerencias.',
 
     // Dashboard page
+    // Dashboard page
     averagePositionShort: 'POSICIÓN PROM.',
     dashboardOverallVisibility: 'Puntuación general de visibilidad en todos los motores de IA',
     dashboardAvgPositionDesc: 'Posición promedio en los resultados de búsqueda',
@@ -515,8 +536,10 @@ const translations = {
     dashboardUnlockTracking: 'Desbloquear Seguimiento Avanzado',
     dashboardUpgradeMessage: 'Mejora tu plan para rastrear el rendimiento en personas, regiones e idiomas.',
     dashboardCompetitionPerformance: 'Rendimiento de la Competencia',
+    dashboardCompetitionPerformanceTooltip: 'Puntuación de visibilidad IA de tus competidores en cada modelo',
     dashboardLive: 'En vivo',
     dashboardModelPerformance: 'Rendimiento del Modelo',
+    dashboardModelPerformanceTooltip: 'Tu puntuación de visibilidad desglosada por cada motor de IA',
     dashboardNoData: 'Sin datos',
 
     // Notifications page detailed
@@ -968,8 +991,8 @@ const translations = {
     // ==========================================
     dashboardTitle: 'Dashboard',
     dashboardDescription: 'Resumen de tu visibilidad en motores de IA',
-    dashboardRankScore: 'Puntuación',
-    dashboardAvgPosition: 'Pos. Promedio',
+    dashboardRankScore: 'Puntuación de Visibilidad',
+    dashboardAvgPosition: 'Posición Promedio',
     dashboardInclusionRate: 'Tasa de Inclusión',
     dashboardTracking: 'Activo',
     dashboardInactive: 'Inactivo',
@@ -990,13 +1013,6 @@ const translations = {
     dashboardNoCrawlerActivity: 'Sin actividad reciente de crawlers.',
     dashboardNotifications: 'Notificaciones',
 
-    // Language Comparison
-    languageComparison: 'Visibilidad por Idioma',
-    noLanguageData: 'Aún no hay datos de visibilidad por idioma.',
-
-    // Regional Comparison  
-    regionalComparison: 'Visibilidad por Región',
-    noRegionalData: 'Aún no hay datos de visibilidad por región.',
 
     // Industry Comparison
     industryComparison: 'Comparación de Industria',
@@ -1422,7 +1438,19 @@ const translations = {
     brandOverview: 'Brand Overview',
     competitorOverview: 'Competitor Overview',
     notableChanges: 'Notable Changes',
+    notableChangesTooltip: 'Summary of the most important changes in your AI visibility',
+    languageComparison: 'Performance by Language',
+    languageComparisonTooltip: 'AI visibility score for each configured language',
+    regionalComparison: 'Performance by Region',
+    regionalComparisonTooltip: 'Your AI visibility score broken down by geographic region',
+    noLanguageData: 'No language data.',
+    noRegionalData: 'No regional data.',
     noInsightsYet: 'Not enough data yet to generate insights.',
+    insightConsecutiveImprovement: 'Score improved for {days} consecutive days',
+    insightLeadingModel: '{model} leads with a score of {score}/100',
+    insightScoreIncrease: '{model} score increased {points} points to {score}/100',
+    insightScoreDecrease: '{model} dropped {points} points to {score}/100',
+    insightNewCompetitors: '{count} new competitors in the last {days} days',
     rankingImproved: 'Ranking improved for',
     newMention: 'New mention detected for',
     performanceImprovement: 'Performance improvement for',
@@ -1517,6 +1545,7 @@ const translations = {
     volume: 'Volume',
     noKeywords: 'No keywords added',
 
+
     // Notifications
     notificationsTitle: 'Notifications',
     markAllRead: 'Mark all as read',
@@ -1571,6 +1600,14 @@ const translations = {
     upgradeToPro: 'Upgrade to Pro',
     billingHistory: 'Billing history',
     noInvoicesAvailable: 'No invoices available',
+    yourData: 'Your Data',
+    yourDataDescription: 'Manage your personal data and portability (GDPR/CCPA)',
+    exportData: 'Export Data',
+    exportDataDescription: 'Download a copy of all your personal data in JSON format.',
+    exportMyData: 'Export my data',
+    dataExported: 'Data exported successfully',
+    exportError: 'Error exporting data',
+    uploadImageError: 'Error uploading image',
 
     // Upgrade page
     upgradePlan: 'Upgrade Plan',
@@ -1631,8 +1668,10 @@ const translations = {
     dashboardUnlockTracking: 'Unlock Advanced Tracking',
     dashboardUpgradeMessage: 'Upgrade your brand plan to track performance across personas, regions, and languages.',
     dashboardCompetitionPerformance: 'Competition Performance',
+    dashboardCompetitionPerformanceTooltip: 'AI visibility score of your competitors across each model',
     dashboardLive: 'Live',
     dashboardModelPerformance: 'Model Performance',
+    dashboardModelPerformanceTooltip: 'Your visibility score broken down by each AI engine',
     dashboardNoData: 'No data',
 
     // Notifications page detailed
@@ -2100,8 +2139,8 @@ const translations = {
     // ==========================================
     dashboardTitle: 'Dashboard',
     dashboardDescription: 'Overview of your AI engine visibility',
-    dashboardRankScore: 'Rank Score',
-    dashboardAvgPosition: 'Avg. Position',
+    dashboardRankScore: 'Visibility Score',
+    dashboardAvgPosition: 'Average Position',
     dashboardInclusionRate: 'Inclusion Rate',
     dashboardTracking: 'Tracking',
     dashboardInactive: 'Inactive',
@@ -2121,13 +2160,6 @@ const translations = {
     dashboardRecentActivityDescription: 'Latest AI crawler visits',
     dashboardNoCrawlerActivity: 'No recent crawler activity.',
 
-    // Language Comparison
-    languageComparison: 'Visibility by Language',
-    noLanguageData: 'No language visibility data yet.',
-
-    // Regional Comparison
-    regionalComparison: 'Visibility by Region',
-    noRegionalData: 'No regional visibility data yet.',
 
     // Industry Comparison
     industryComparison: 'Industry Comparison',

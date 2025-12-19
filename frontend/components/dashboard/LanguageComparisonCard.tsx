@@ -6,6 +6,11 @@ import { useTranslations } from '@/lib/i18n'
 import { DEMO_BRAND_ID, demoLanguageComparison } from '@/lib/demo-data'
 import FlagIcon from '@/components/shared/flag-icon'
 import { Loader2, Info } from 'lucide-react'
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 const LANGUAGE_TO_COUNTRY: Record<string, { code: string; name: string }> = {
     'en': { code: 'gb', name: 'English' },
@@ -78,7 +83,14 @@ export function LanguageComparisonCard({ brandId }: LanguageComparisonCardProps)
             <div className="space-y-3">
                 <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                     {t.languageComparison || 'RENDIMIENTO POR IDIOMA'}
-                    <Info className="w-3 h-3" />
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Info className="w-3 h-3 cursor-help opacity-70 hover:opacity-100 transition-opacity" />
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="max-w-[200px]">
+                            {t.languageComparisonTooltip || "Puntuación de visibilidad IA en cada idioma configurado"}
+                        </TooltipContent>
+                    </Tooltip>
                 </h3>
                 <div className="flex items-center justify-center py-4">
                     <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
@@ -92,7 +104,14 @@ export function LanguageComparisonCard({ brandId }: LanguageComparisonCardProps)
             <div className="space-y-3">
                 <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                     {t.languageComparison || 'RENDIMIENTO POR IDIOMA'}
-                    <Info className="w-3 h-3" />
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Info className="w-3 h-3 cursor-help opacity-70 hover:opacity-100 transition-opacity" />
+                        </TooltipTrigger>
+                        <TooltipContent side="right" className="max-w-[200px]">
+                            {t.languageComparisonTooltip || "Puntuación de visibilidad IA en cada idioma configurado"}
+                        </TooltipContent>
+                    </Tooltip>
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400 italic">
                     {t.noLanguageData || 'Sin datos de idioma.'}
@@ -107,7 +126,14 @@ export function LanguageComparisonCard({ brandId }: LanguageComparisonCardProps)
         <div className="space-y-3">
             <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
                 {t.languageComparison || 'RENDIMIENTO POR IDIOMA'}
-                <Info className="w-3 h-3" />
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Info className="w-3 h-3 cursor-help opacity-70 hover:opacity-100 transition-opacity" />
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="max-w-[200px]">
+                        {t.languageComparisonTooltip || "Puntuación de visibilidad IA en cada idioma configurado"}
+                    </TooltipContent>
+                </Tooltip>
             </h3>
             <div className="space-y-2">
                 {sortedLanguages.map((lang) => {
