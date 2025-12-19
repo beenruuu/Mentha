@@ -324,7 +324,7 @@ export default function BrandKeywordsPage({ isEmbedded = false }: { isEmbedded?:
 
         return (
             <div className="bg-[#FAFAFA] dark:bg-[#09090b] h-full flex flex-col h-screen overflow-hidden">
-                <header className="flex items-center justify-between px-6 py-4 shrink-0">
+                <header className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4 shrink-0">
                     <div className="flex items-center gap-4">
                         <SidebarTrigger className="-ml-1" />
                         <div className="w-8 h-8 rounded-lg bg-white dark:bg-zinc-800 border border-gray-200 dark:border-gray-800 flex items-center justify-center overflow-hidden shadow-sm">
@@ -344,7 +344,7 @@ export default function BrandKeywordsPage({ isEmbedded = false }: { isEmbedded?:
                         <DialogTrigger asChild>
                             <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20">
                                 <Plus className="mr-2 h-4 w-4" />
-                                {t.addKeyword}
+                                <span className="hidden md:inline">{t.addKeyword}</span>
                             </Button>
                         </DialogTrigger>
                         <DialogContent>

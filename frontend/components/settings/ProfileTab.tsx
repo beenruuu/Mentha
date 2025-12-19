@@ -266,14 +266,14 @@ export function ProfileTab({
                     <CardDescription>{t.yourDataDescription}</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-4">
                         <div className="space-y-1">
                             <h4 className="text-sm font-medium">{t.exportData}</h4>
                             <p className="text-sm text-muted-foreground">
                                 {t.exportDataDescription}
                             </p>
                         </div>
-                        <Button variant="outline" onClick={handleExportData} disabled={isExporting}>
+                        <Button variant="outline" onClick={handleExportData} disabled={isExporting} className="w-fit">
                             {isExporting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />}
                             {t.exportMyData}
                         </Button>

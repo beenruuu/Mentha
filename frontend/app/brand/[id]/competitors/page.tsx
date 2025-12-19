@@ -154,7 +154,7 @@ export default function BrandCompetitorsPage() {
             <AppSidebar />
             <SidebarInset className="bg-[#FAFAFA] dark:bg-[#09090b] h-screen overflow-hidden flex flex-col">
                 {/* Header */}
-                <header className="flex items-center justify-between px-6 py-4 shrink-0">
+                <header className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4 shrink-0">
                     <div className="flex items-center gap-4">
                         <SidebarTrigger className="-ml-1" />
                         <div className="w-8 h-8 rounded-lg bg-white dark:bg-zinc-800 border border-gray-200 dark:border-gray-800 flex items-center justify-center overflow-hidden shadow-sm">
@@ -174,7 +174,7 @@ export default function BrandCompetitorsPage() {
                         <DialogTrigger asChild>
                             <Button className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20">
                                 <Plus className="mr-2 h-4 w-4" />
-                                {t.addCompetitorBtn}
+                                <span className="hidden md:inline">{t.addCompetitorBtn}</span>
                             </Button>
                         </DialogTrigger>
                         <DialogContent>
@@ -328,7 +328,7 @@ export default function BrandCompetitorsPage() {
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-0">
+                            <CardContent className="p-0 overflow-x-auto">
                                 <Table>
                                     <TableHeader className="bg-gray-50/50 dark:bg-white/5">
                                         <TableRow className="hover:bg-transparent border-gray-200 dark:border-white/5">

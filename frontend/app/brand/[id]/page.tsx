@@ -239,7 +239,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
       <AppSidebar />
       <SidebarInset className="bg-[#FAFAFA] dark:bg-[#09090b] !min-h-0 h-full max-h-screen overflow-hidden flex flex-col">
         {/* Header - matches dashboard style */}
-        <header className="flex items-center justify-between px-6 py-4 shrink-0">
+        <header className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4 shrink-0">
           <div className="flex items-center gap-4">
             <SidebarTrigger className="-ml-1" />
             <div className="w-10 h-10 rounded-lg bg-white dark:bg-zinc-800 border border-border/50 flex items-center justify-center overflow-hidden shadow-sm">
@@ -260,7 +260,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
             </div>
             <div>
               <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{brand.name}</h1>
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+              <div className="hidden md:flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                 <Globe className="w-3 h-3" />
                 <a href={brand.domain} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
                   {brand.domain}
@@ -287,7 +287,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
             <DateRangePicker
               date={dateRange}
               onDateChange={handleDateRangeChange}
@@ -310,14 +310,14 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
               ) : (
                 <Play className="h-4 w-4" />
               )}
-              {isAnalyzing ? t.analyzingBrand : t.runAnalysis}
+              <span className="hidden md:inline">{isAnalyzing ? t.analyzingBrand : t.runAnalysis}</span>
             </Button>
             <ExportButton brandId={id} brandName={brand.name} />
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900/30">
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  {t.deleteBrand}
+                  <Trash2 className="h-4 w-4 md:mr-2" />
+                  <span className="hidden md:inline">{t.deleteBrand}</span>
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -374,24 +374,24 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
                 {/* Actionable Insights */}
                 <Card className="border-border/50 shadow-sm rounded-xl">
                   <CardHeader>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between flex-wrap gap-3">
                       <CardTitle className="text-lg font-semibold flex items-center gap-2">
                         <Activity className="w-5 h-5 text-emerald-500" />
                         {t.actionableInsights}
                       </CardTitle>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <Dialog>
                           <DialogTrigger asChild>
                             <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5 text-purple-600 border-purple-200 hover:bg-purple-50 dark:border-purple-900/50 dark:text-purple-400 dark:hover:bg-purple-900/20">
                               <Sparkles className="w-3 h-3" />
-                              {t.simulateAnswer}
+                              <span className="hidden sm:inline">{t.simulateAnswer}</span>
                             </Button>
                           </DialogTrigger>
                           <DialogContent className="max-w-2xl h-[600px] flex flex-col p-0 gap-0 overflow-hidden">
                             <AIAnswerPreview brandName={brand.name} defaultKeyword={keywords[0]?.keyword || ''} />
                           </DialogContent>
                         </Dialog>
-                        <Badge variant="secondary" className="bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400">
+                        <Badge variant="secondary" className="bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 shrink-0">
                           {technicalAeo?.recommendations?.length || 0} {t.pendingBadge}
                         </Badge>
                       </div>

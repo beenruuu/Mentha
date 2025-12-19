@@ -179,8 +179,8 @@ export function ExportButton({ brandId, brandName, size = 'sm', variant = 'outli
                     ) : (
                         <Download className="w-4 h-4" />
                     )}
-                    {texts.export}
-                    <ChevronDown className="w-3 h-3" />
+                    <span className="hidden md:inline">{texts.export}</span>
+                    <ChevronDown className="w-3 h-3 hidden md:inline" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">

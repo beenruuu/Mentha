@@ -17,7 +17,7 @@ export function BillingTab({ t }: BillingTabProps) {
                     <CardDescription>{t.currentPlanDescription}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <div className="p-6 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 flex items-center justify-between">
+                    <div className="p-6 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 flex flex-col gap-4">
                         <div>
                             <div className="flex items-center gap-2 mb-1">
                                 <h3 className="font-semibold text-lg">{t.freePlan}</h3>
@@ -25,7 +25,7 @@ export function BillingTab({ t }: BillingTabProps) {
                             </div>
                             <p className="text-sm text-muted-foreground">{t.basicFeatures}</p>
                         </div>
-                        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white w-fit">
                             <Zap className="w-4 h-4 mr-2" />
                             {t.upgradeToPro}
                         </Button>

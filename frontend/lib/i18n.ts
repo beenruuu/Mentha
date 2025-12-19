@@ -1175,17 +1175,11 @@ const translations = {
     demoDescription: 'Explora la plataforma con datos de ejemplo',
     exitDemo: 'Salir del demo',
 
-    // Advanced AEO Features
-    hallucinationDetection: 'Detección de Alucinaciones',
-    hallucinationDesc: 'Detectar claims falsos sobre tu marca en respuestas de IA',
-    hallucination: 'Alucinación',
-    hallucinations: 'Alucinaciones',
-    accurate: 'Preciso',
-    unverified: 'No verificado',
-    analyzing: 'Analizando...',
-    checkNow: 'Verificar ahora',
-    clickToAnalyze: 'Haz clic en "Verificar ahora" para analizar respuestas de IA',
-    analyzedClaims: 'Claims analizados',
+    // TODO: Implement automatic language detection based on user location
+    // - Detect Spanish for Latin American countries (MX, AR, CO, PE, VE, CL, EC, GT, CU, BO, DO, HN, PY, SV, NI, PR, UY, PA, CR, etc.)
+    // - Default to English for other countries
+    // - Use geolocation API or IP-based detection
+    // - Allow manual override in settings
 
     entityTracking: 'Tracking de Entidades',
     entityTrackingDesc: 'Rastrea la visibilidad de productos, servicios y personas en IA',
@@ -2501,10 +2495,28 @@ export async function detectAndSetGeoLanguage(): Promise<Language> {
     return getLanguage()
   }
 
-  // Get browser language as fallback hint
+  // Get browser language
   const browserLang = navigator.language?.toLowerCase() || ''
-  const isSpanishBrowser = browserLang.startsWith('es')
 
+  // PRIMARY CHECK: Browser language preference
+  // If the browser is explicitly Spanish or English, we respect that ANYWHERE in the world
+  // This solves the issue of:
+  // 1. Latinos in US/Europe (browser=es) -> Get Spanish
+  // 2. English speakers in Spain (browser=en) -> Get English
+
+  if (browserLang.startsWith('es')) {
+    setGeoLanguage('es')
+    return 'es'
+  }
+
+  if (browserLang.startsWith('en')) {
+    setGeoLanguage('en')
+    return 'en'
+  }
+
+  // SECONDARY CHECK: Geolocation (Fallback)
+  // Only for users with "neutral" browser languages (e.g. French, German browser users)
+  // We check if they are physically in Spain to serve Spanish, otherwise English default
   try {
     // Use our internal proxy endpoint (no CORS issues, cached, edge-optimized)
     const response = await fetch('/api/geo', {
@@ -2519,11 +2531,11 @@ export async function detectAndSetGeoLanguage(): Promise<Language> {
       return detectedLang
     }
   } catch {
-    // If proxy fails, fall back to browser language
+    // If proxy fails, fall back to browser language or default to 'es' if ambiguous
   }
 
-  // Fallback: Use browser language preference
-  const detectedLang: Language = isSpanishBrowser ? 'es' : 'en'
+  // Absolute fallback
+  const detectedLang: Language = browserLang.startsWith('es') ? 'es' : 'en'
   setGeoLanguage(detectedLang)
   return detectedLang
 }

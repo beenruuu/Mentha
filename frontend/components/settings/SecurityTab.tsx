@@ -184,7 +184,7 @@ export function SecurityTab({ t }: SecurityTabProps) {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-4">
                         <div className="space-y-1">
                             <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">{t.deleteAccountTitle}</h4>
                             <p className="text-sm text-muted-foreground">
@@ -193,7 +193,7 @@ export function SecurityTab({ t }: SecurityTabProps) {
                         </div>
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
-                                <Button variant="destructive">
+                                <Button variant="destructive" className="w-fit">
                                     {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                                     {t.deleteAccountBtn}
                                 </Button>

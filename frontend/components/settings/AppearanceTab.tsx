@@ -42,36 +42,42 @@ export function AppearanceTab({ t, lang, onLanguageChange }: AppearanceTabProps)
                     <Separator />
                     <div className="space-y-4">
                         <Label className="text-base">{t.language}</Label>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div
                                 onClick={() => handleLanguageChange('es')}
-                                className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${lang === 'es'
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-border/40 hover:border-border/80'
+                                className={`cursor-pointer relative overflow-hidden p-4 rounded-xl border transition-all duration-200 group ${lang === 'es'
+                                    ? 'border-emerald-500/50 bg-emerald-500/5 ring-1 ring-emerald-500/20'
+                                    : 'border-border/40 hover:border-emerald-500/30 hover:bg-emerald-500/5'
                                     }`}
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm text-lg">🇪🇸</div>
+                                <div className="flex flex-col gap-3">
+                                    <span className="text-2xl">🇪🇸</span>
                                     <div>
-                                        <p className="font-medium">{t.spanish}</p>
-                                        <p className="text-xs text-muted-foreground">Español</p>
+                                        <p className={`font-medium ${lang === 'es' ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>Español</p>
+                                        <p className="text-xs text-muted-foreground">Spanish</p>
                                     </div>
                                 </div>
+                                {lang === 'es' && (
+                                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                )}
                             </div>
                             <div
                                 onClick={() => handleLanguageChange('en')}
-                                className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${lang === 'en'
-                                    ? 'border-primary bg-primary/5'
-                                    : 'border-border/40 hover:border-border/80'
+                                className={`cursor-pointer relative overflow-hidden p-4 rounded-xl border transition-all duration-200 group ${lang === 'en'
+                                    ? 'border-emerald-500/50 bg-emerald-500/5 ring-1 ring-emerald-500/20'
+                                    : 'border-border/40 hover:border-emerald-500/30 hover:bg-emerald-500/5'
                                     }`}
                             >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm text-lg">🇺🇸</div>
+                                <div className="flex flex-col gap-3">
+                                    <span className="text-2xl">🇺🇸</span>
                                     <div>
-                                        <p className="font-medium">{t.english}</p>
-                                        <p className="text-xs text-muted-foreground">English</p>
+                                        <p className={`font-medium ${lang === 'en' ? 'text-emerald-600 dark:text-emerald-400' : 'text-foreground'}`}>English</p>
+                                        <p className="text-xs text-muted-foreground">United States</p>
                                     </div>
                                 </div>
+                                {lang === 'en' && (
+                                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                                )}
                             </div>
                         </div>
                     </div>

@@ -61,23 +61,25 @@ export function DateRangePicker({
                         id="date"
                         variant={"outline"}
                         className={cn(
-                            "w-[240px] justify-start text-left font-normal bg-white dark:bg-[#09090b] border-border/60 hover:bg-accent/50",
+                            "w-auto md:w-[240px] justify-start text-left font-normal bg-white dark:bg-[#09090b] border-border/60 hover:bg-accent/50",
                             !date && "text-muted-foreground"
                         )}
                     >
-                        <CalendarIcon className="mr-2 h-4 w-4 text-emerald-500" />
-                        {date?.from ? (
-                            date.to ? (
-                                <>
-                                    {format(date.from, "LLL dd, y")} -{" "}
-                                    {format(date.to, "LLL dd, y")}
-                                </>
+                        <CalendarIcon className="mr-0 md:mr-2 h-4 w-4 text-emerald-500" />
+                        <div className="hidden md:block">
+                            {date?.from ? (
+                                date.to ? (
+                                    <>
+                                        {format(date.from, "LLL dd, y")} -{" "}
+                                        {format(date.to, "LLL dd, y")}
+                                    </>
+                                ) : (
+                                    format(date.from, "LLL dd, y")
+                                )
                             ) : (
-                                format(date.from, "LLL dd, y")
-                            )
-                        ) : (
-                            <span>Date range</span>
-                        )}
+                                <span>Date range</span>
+                            )}
+                        </div>
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="end">

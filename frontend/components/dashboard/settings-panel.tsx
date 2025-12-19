@@ -272,41 +272,62 @@ export default function SettingsPanel() {
               )}
 
               {active === 'profile' && (
-                <div className="p-6 bg-white/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/5 rounded-xl">
-                  <div className="flex items-start gap-6">
-                    <div className="w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center text-3xl font-bold text-white shadow-lg shadow-emerald-500/20">
-                      {user?.email?.substring(0, 2).toUpperCase() || 'U'}
-                    </div>
-                    <div className="flex-1 space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-gray-700 dark:text-gray-300">{t.firstName}</label>
-                          <input
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                            className="w-full px-3 py-2 bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none"
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-xs font-medium text-gray-700 dark:text-gray-300">{t.lastName}</label>
-                          <input
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                            className="w-full px-3 py-2 bg-white dark:bg-black/50 border border-gray-200 dark:border-white/10 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none"
-                          />
-                        </div>
+                <div className="space-y-6">
+                  <div className="p-6 bg-[#0C0C0E] border border-white/5 rounded-2xl">
+                    <div className="space-y-4">
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-gray-300">{t.firstName || "Nombre"}</label>
+                        <input
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          className="w-full px-3 py-2 bg-[#111114] border border-white/10 rounded-lg text-sm text-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none placeholder:text-gray-600"
+                          placeholder="Tu nombre"
+                        />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-xs font-medium text-gray-700 dark:text-gray-300">Email</label>
+                        <label className="text-xs font-medium text-gray-300">{t.lastName || "Apellido"}</label>
+                        <input
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          className="w-full px-3 py-2 bg-[#111114] border border-white/10 rounded-lg text-sm text-white focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all outline-none placeholder:text-gray-600"
+                          placeholder="Tu apellido"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-medium text-gray-300">Email</label>
                         <input
                           value={user?.email || ''}
                           disabled
-                          className="w-full px-3 py-2 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg text-sm text-gray-500 cursor-not-allowed"
+                          className="w-full px-3 py-2 bg-[#111114] border border-white/10 rounded-lg text-sm text-gray-500 cursor-not-allowed"
                         />
                       </div>
-                      <div className="pt-2">
-                        <Button onClick={handleSaveProfile} disabled={isSavingProfile} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                          {isSavingProfile ? t.saving : t.saveChanges}
+
+                      <div className="pt-4 flex justify-end">
+                        <Button onClick={handleSaveProfile} disabled={isSavingProfile} className="bg-white text-black hover:bg-gray-200 font-medium px-6">
+                          {isSavingProfile ? t.saving : (t.saveChanges || "Guardar cambios")}
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Export Data Section - Tus Datos */}
+                  <div className="p-6 bg-[#0C0C0E] border border-white/5 rounded-2xl">
+                    <div className="mb-6">
+                      <h3 className="text-base font-bold text-white mb-1">{t.yourData || "Tus Datos"}</h3>
+                      <p className="text-sm text-gray-400">{t.manageData || "Gestiona tus datos personales y portabilidad (GDPR/LOPD)"}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-bold text-white">{t.exportData || "Exportar Datos"}</h4>
+                      <div className="flex flex-col gap-4">
+                        <p className="text-xs text-gray-400 max-w-md leading-relaxed">
+                          {t.exportDataDesc || "Descarga una copia de todos tus datos personales en formato JSON."}
+                        </p>
+                        <Button variant="outline" className="border-white/10 bg-[#111114] text-white hover:bg-white/5 hover:text-white shrink-0 w-fit">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" x2="12" y1="15" y2="3" /></svg>
+                          {t.exportButton || "Exportar mis datos"}
                         </Button>
                       </div>
                     </div>
@@ -366,23 +387,96 @@ export default function SettingsPanel() {
               )}
 
               {active === 'billing' && (
-                <div className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl relative overflow-hidden">
-                  <div className="relative z-10">
-                    <h3 className="text-lg font-bold text-emerald-900 dark:text-emerald-100">{t.freePlan}</h3>
-                    <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-1 mb-4">{t.tokensUsedThisMonth}</p>
-                    <Button onClick={() => router.push('/upgrade')} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20">
-                      {t.upgradeToPro}
-                    </Button>
+                <div className="space-y-6">
+                  {/* Current Plan Card */}
+                  <div className="p-6 bg-[#0C0C0E] border border-white/5 rounded-2xl">
+                    <h3 className="text-base font-semibold text-white mb-1">{t.billing || "Plan Actual"}</h3>
+                    <p className="text-sm text-gray-400 mb-6">{t.billingDesc || "Gestiona tu suscripción y detalles de facturación."}</p>
+
+                    <div className="bg-[#111114] border border-white/5 rounded-xl p-6 relative overflow-hidden group">
+                      <div className="flex flex-col gap-4 relative z-10">
+                        <div>
+                          <div className="flex items-center gap-3 mb-2">
+                            <h4 className="text-xl font-bold text-white">{t.freePlan || "Plan Gratuito"}</h4>
+                            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[10px] font-medium border border-emerald-500/20">
+                              {t.active || "Activo"}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-400">{t.freePlanDesc || "Funciones básicas para uso personal"}</p>
+                        </div>
+                        <Button onClick={() => router.push('/upgrade')} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-500/20 transition-all hover:scale-105 active:scale-95 whitespace-nowrap w-fit">
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          {t.upgradeToPro || "Actualizar a Pro"}
+                        </Button>
+                      </div>
+
+                      {/* Background Gradient Effect */}
+                      <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl transition-opacity group-hover:opacity-75" />
+                    </div>
                   </div>
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
+
+                  {/* Billing History */}
+                  <div>
+                    <h3 className="text-sm font-medium text-white mb-4">{t.billingHistory || "Historial de facturación"}</h3>
+                    <div className="border border-dashed border-white/10 rounded-xl p-12 flex flex-col items-center justify-center text-center">
+                      <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mb-3">
+                        <CreditCard className="w-5 h-5 text-gray-400" />
+                      </div>
+                      <p className="text-sm text-gray-400">{t.noInvoices || "No hay facturas disponibles"}</p>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {active === 'appearance' && (
-                <div className="p-6 bg-white/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/5 rounded-xl text-center py-12">
-                  <Palette className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">{t.appearance}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{t.advancedAppearance}</p>
+                <div className="space-y-6">
+                  {/* Theme Section */}
+                  <div className="p-6 bg-white/50 dark:bg-white/5 border border-gray-200/50 dark:border-white/5 rounded-xl">
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-4">{t.theme}</h3>
+                    <ThemeToggle />
+                  </div>
+
+                  {/* Language Section */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">{t.language}</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Spanish Option */}
+                      <div
+                        onClick={() => handleLanguageChange('es')}
+                        className={`cursor-pointer relative overflow-hidden p-4 rounded-xl border transition-all duration-200 group flex items-center gap-4 ${lang === 'es'
+                          ? 'border-emerald-500/50 bg-emerald-500/5 ring-1 ring-emerald-500/20'
+                          : 'border-gray-200/50 dark:border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/5'
+                          }`}
+                      >
+                        <span className="text-2xl flex-shrink-0">🇪🇸</span>
+                        <div className="flex-1">
+                          <p className={`font-medium text-sm ${lang === 'es' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-900 dark:text-white'}`}>Español</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">Spanish</p>
+                        </div>
+                        {lang === 'es' && (
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                        )}
+                      </div>
+
+                      {/* English Option */}
+                      <div
+                        onClick={() => handleLanguageChange('en')}
+                        className={`cursor-pointer relative overflow-hidden p-4 rounded-xl border transition-all duration-200 group flex items-center gap-4 ${lang === 'en'
+                          ? 'border-emerald-500/50 bg-emerald-500/5 ring-1 ring-emerald-500/20'
+                          : 'border-gray-200/50 dark:border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/5'
+                          }`}
+                      >
+                        <span className="text-2xl flex-shrink-0">🇺🇸</span>
+                        <div className="flex-1">
+                          <p className={`font-medium text-sm ${lang === 'en' ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-900 dark:text-white'}`}>English</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">United States</p>
+                        </div>
+                        {lang === 'en' && (
+                          <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
 

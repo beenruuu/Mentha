@@ -313,7 +313,7 @@ export default function DashboardPage() {
       <SidebarInset className="bg-[#FAFAFA] dark:bg-[#09090b] h-screen overflow-hidden flex flex-col">
 
         {/* Header sits on the "sidebar" background */}
-        <header className="flex items-center justify-between px-6 py-4 shrink-0">
+        <header className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4 shrink-0">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{t.dashboardTitle}</h1>
             <SidebarTrigger className="-ml-1" />
@@ -329,7 +329,7 @@ export default function DashboardPage() {
                       onError={(e) => { e.currentTarget.style.display = 'none' }}
                     />
                   </div>
-                  {selectedBrand.name}
+                  <span className="hidden md:inline truncate max-w-[100px] lg:max-w-none">{selectedBrand.name}</span>
                   <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </button>
                 <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-zinc-900 border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
@@ -377,7 +377,7 @@ export default function DashboardPage() {
               <Link href={`/brand/${selectedBrand.id}`}>
                 <Button variant="outline" size="sm" className="gap-2 text-xs">
                   <Building2 className="h-3.5 w-3.5" />
-                  {t.viewDetails}
+                  <span className="hidden md:inline">{t.viewDetails}</span>
                 </Button>
               </Link>
             )}
@@ -392,8 +392,8 @@ export default function DashboardPage() {
             {/* Top Section: Metrics & Chart */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
-              {/* Left Column: Metrics & Chart (8 cols) */}
-              <div className="lg:col-span-8 space-y-3">
+              {/* Left Column: Main Chart & Metrics */}
+              <div className="lg:col-span-8 space-y-4 min-w-0">
 
                 {/* Metrics Tabs */}
                 <div className="flex items-center gap-2 border-b border-gray-100 dark:border-[#1A1A20] pb-1">
@@ -432,23 +432,10 @@ export default function DashboardPage() {
                 {/* Main Chart Area */}
                 <div className="w-full">
                   <div className="mb-4">
-                    <div className="flex items-end justify-between">
-                      <div>
-                        <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                          {activeMetric === 'rank' && `${currentRank}/100`}
-                          {activeMetric === 'position' && `#${currentPosition}`}
-                          {activeMetric === 'inclusion' && `${currentInclusion}%`}
-                        </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {activeMetric === 'rank' && t.dashboardOverallVisibility}
-                          {activeMetric === 'position' && t.dashboardAvgPositionDesc}
-                          {activeMetric === 'inclusion' && t.dashboardInclusionRateDesc}
-                        </p>
-                      </div>
-
+                    <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
                       {/* Model Breakdown - Main Chart Header */}
                       {activeMetric === 'rank' && Object.keys(modelPerformance).length > 0 && (
-                        <div className="flex items-center gap-3 mb-1">
+                        <div className="flex items-center gap-3 flex-wrap order-first md:order-last">
                           {AI_PROVIDER_META.map((provider) => {
                             const score = modelPerformance[provider.id]
                             if (score === undefined) return null
@@ -475,10 +462,23 @@ export default function DashboardPage() {
                           })}
                         </div>
                       )}
+
+                      <div>
+                        <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                          {activeMetric === 'rank' && `${currentRank}/100`}
+                          {activeMetric === 'position' && `#${currentPosition}`}
+                          {activeMetric === 'inclusion' && `${currentInclusion}%`}
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {activeMetric === 'rank' && t.dashboardOverallVisibility}
+                          {activeMetric === 'position' && t.dashboardAvgPositionDesc}
+                          {activeMetric === 'inclusion' && t.dashboardInclusionRateDesc}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="h-[280px]">
+                  <div className="h-[280px] w-full overflow-hidden">
                     {chartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={chartData} margin={{ top: 10, right: 0, bottom: 0, left: -20 }}>
@@ -551,7 +551,7 @@ export default function DashboardPage() {
 
                 {/* Language & Regional in 2-col grid */}
                 {selectedBrand && (
-                  <div className="grid grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <LanguageComparisonCard brandId={selectedBrand.id} />
                     <RegionalComparisonCard brandId={selectedBrand.id} />
                   </div>
@@ -578,17 +578,19 @@ export default function DashboardPage() {
 
               {/* Competition Performance */}
               <div className="lg:col-span-2 space-y-4">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                  {t.dashboardCompetitionPerformance}
-                  <TooltipUI>
-                    <TooltipTrigger asChild>
-                      <Info className="w-3.5 h-3.5 cursor-help opacity-70 hover:opacity-100 transition-opacity" />
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[200px]">
-                      {t.dashboardCompetitionPerformanceTooltip}
-                    </TooltipContent>
-                  </TooltipUI>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">{t.dashboardLive}</span>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2 flex-wrap">
+                  <span className="flex items-center gap-2">
+                    {t.dashboardCompetitionPerformance}
+                    <TooltipUI>
+                      <TooltipTrigger asChild>
+                        <Info className="w-3.5 h-3.5 cursor-help opacity-70 hover:opacity-100 transition-opacity" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[200px]">
+                        {t.dashboardCompetitionPerformanceTooltip}
+                      </TooltipContent>
+                    </TooltipUI>
+                  </span>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 whitespace-nowrap">{t.dashboardLive}</span>
                 </h3>
                 <div className="space-y-3">
                   {competitors.slice(0, 5).map((comp) => (

@@ -152,16 +152,16 @@ export function ShareOfModel({ brandName, brandId }: ShareOfModelProps) {
                 <div className="space-y-3">
                     {/* Brand first */}
                     <div className="flex items-center gap-3">
-                        <span className="w-24 text-sm font-medium text-gray-900 dark:text-white truncate">
+                        <span className="w-20 sm:w-24 text-sm font-medium text-gray-900 dark:text-white truncate min-w-0">
                             {brandName}
                         </span>
-                        <div className="flex-1 h-2 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                        <div className="flex-1 min-w-0 h-2 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                             <div
                                 className="h-full bg-blue-500 rounded-full transition-all duration-500"
                                 style={{ width: `${(data.brand_mentions / maxMentions) * 100}%` }}
                             />
                         </div>
-                        <span className="w-8 text-sm font-mono text-gray-600 dark:text-gray-400 text-right">
+                        <span className="w-8 text-sm font-mono text-gray-600 dark:text-gray-400 text-right shrink-0">
                             {data.brand_mentions}
                         </span>
                     </div>
@@ -169,10 +169,10 @@ export function ShareOfModel({ brandName, brandId }: ShareOfModelProps) {
                     {/* Competitors */}
                     {topCompetitors.map(([name, count], index) => (
                         <div key={name} className="flex items-center gap-3">
-                            <span className="w-24 text-sm text-gray-600 dark:text-gray-400 truncate">
+                            <span className="w-20 sm:w-24 text-sm text-gray-600 dark:text-gray-400 truncate min-w-0">
                                 {name}
                             </span>
-                            <div className="flex-1 h-2 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+                            <div className="flex-1 min-w-0 h-2 bg-gray-100 dark:bg-zinc-800 rounded-full overflow-hidden">
                                 <div
                                     className="h-full bg-gray-400 dark:bg-zinc-600 rounded-full transition-all duration-500"
                                     style={{ width: `${(count / maxMentions) * 100}%` }}
@@ -214,7 +214,7 @@ export function ShareOfModel({ brandName, brandId }: ShareOfModelProps) {
                                             className={provider.icon.includes('openai.svg') ? 'w-full h-full object-contain dark:invert' : 'w-full h-full object-contain'}
                                         />
                                     </div>
-                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{provider.name}</span>
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate min-w-0">{provider.name}</span>
                                 </div>
                                 <div className="flex items-center gap-3 flex-1 justify-end max-w-[200px]">
                                     {hasData ? (
