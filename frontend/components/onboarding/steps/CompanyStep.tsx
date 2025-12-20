@@ -33,6 +33,7 @@ export default function CompanyStep() {
     const {
         companyInfo,
         setCompanyInfo,
+        brandProfile,
         setBrandProfile,
         setCompetitors,
         setResearchPrompts,
@@ -119,79 +120,23 @@ export default function CompanyStep() {
         }
 
         const normalizedUrl = normalizeUrl(urlWithoutProtocol)
-        setCompanyInfo({ ...companyInfo, websiteUrl: normalizedUrl })
-        setIsAnalyzing(true)
-        setError('')
+        const domain = extractDomain(normalizedUrl)
 
-        try {
-            // Llamar al endpoint de análisis de marca
-            const data = await fetchAPI<{
-                url: string
-                domain: string
-                title: string
-                description: string
-                favicon: string
-                image: string
-                industry: string
-                location: string
-                services: string[]
-                businessModel: string
-                competitors?: Array<{ name: string; domain: string; logo?: string }>
-                // New scope-aware fields
-                businessScope?: string
-                city?: string
-                industrySpecific?: string
-            }>(`/utils/brand-info?url=${encodeURIComponent(normalizedUrl)}`)
+        // Set basic company info
+        setCompanyInfo({
+            ...companyInfo,
+            websiteUrl: normalizedUrl,
+            corporateDomain: domain
+        })
 
-            // Establecer el perfil de marca with new scope-aware fields
-            setBrandProfile({
-                logo: data.image || data.favicon || '',
-                name: companyName, // Usar el nombre introducido por el usuario
-                domain: data.domain || extractDomain(normalizedUrl),
-                category: data.industry || 'Other',
-                description: data.description || '',
-                businessScope: (data.businessScope as 'local' | 'regional' | 'national' | 'international') || 'national',
-                city: data.city || '',
-                industrySpecific: data.industrySpecific || ''
-            })
+        // Set initial brand profile (analysis will happen in Step 3)
+        setBrandProfile({
+            ...brandProfile,
+            name: companyName,
+            domain: domain,
+        })
 
-            // If category is "Other" or empty, trigger a silent re-analysis or prompt user
-            if (!data.industry || data.industry === 'Other') {
-                console.warn('Category detection low confidence, defaulting to Other')
-            }
-
-
-            // Establecer dominio corporativo
-            const domain = extractDomain(normalizedUrl)
-            setCompanyInfo({
-                ...companyInfo,
-                websiteUrl: normalizedUrl,
-                corporateDomain: domain
-            })
-
-            // Establecer competidores si existen
-            if (data.competitors && data.competitors.length > 0) {
-                setCompetitors(data.competitors.map((c, i) => ({
-                    id: `comp-${i}`,
-                    name: c.name,
-                    domain: c.domain,
-                    logo: c.logo
-                })))
-            }
-
-            // NOTE: Research prompts are now handled in the dedicated ResearchPromptsStep
-            // Users can add prompts manually or optionally generate them with AI
-            // No automatic prompts are pre-generated here
-
-            nextStep()
-        } catch (err) {
-            console.error('Analysis failed:', err)
-            setError(lang === 'es'
-                ? 'No se pudo analizar el sitio web. Por favor, verifica la URL.'
-                : 'Failed to analyze website. Please verify the URL.')
-        } finally {
-            setIsAnalyzing(false)
-        }
+        nextStep()
     }
 
     return (

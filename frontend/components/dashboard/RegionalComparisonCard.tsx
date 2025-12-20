@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { fetchAPI } from '@/lib/api-client'
 import { useTranslations } from '@/lib/i18n'
-import { DEMO_BRAND_ID, demoRegionalComparison } from '@/lib/demo-data'
 import FlagIcon from '@/components/shared/flag-icon'
 import { Loader2, Info } from 'lucide-react'
 import {
@@ -35,21 +34,14 @@ export function RegionalComparisonCard({ brandId }: RegionalComparisonCardProps)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    const isDemo = brandId === DEMO_BRAND_ID
-
     useEffect(() => {
         if (!brandId) return
-
-        if (isDemo) {
-            setData(demoRegionalComparison as RegionalComparisonData)
-            setLoading(false)
-            return
-        }
 
         const fetchData = async () => {
             try {
                 setLoading(true)
                 setError(null)
+                // fetchAPI handles demo mode automatically via isDemoModeActive()
                 const response = await fetchAPI<RegionalComparisonData>(`/insights/${brandId}/regions`)
                 setData(response)
             } catch (err: any) {
@@ -61,7 +53,7 @@ export function RegionalComparisonCard({ brandId }: RegionalComparisonCardProps)
         }
 
         fetchData()
-    }, [brandId, isDemo])
+    }, [brandId])
 
     if (loading) {
         return (

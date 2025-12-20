@@ -18,6 +18,10 @@ import {
     demoQueries,
     demoCitations,
     demoUser,
+    demoInsights,
+    demoHallucinations,
+    demoLanguageComparison,
+    demoRegionalComparison,
 } from './demo-data'
 
 type MockResponse = any
@@ -83,9 +87,27 @@ export function handleDemoRequest(endpoint: string, options?: RequestInit): Mock
             }
         }
 
+        // Analysis status endpoint - for progress toast
+        if (segments[1] === 'status' && segments[2]) {
+            return {
+                status: 'completed',
+                progress: 100,
+                phase: 'Completado',
+                started_at: new Date(Date.now() - 120000).toISOString(),
+                completed_at: new Date().toISOString(),
+                has_data: true,
+                analysis_id: 'demo-analysis-1'
+            }
+        }
+
         // Share of model
         if (segments[1] === 'share_of_model') {
             return demoShareOfModel
+        }
+
+        // Trigger analysis
+        if (segments[1] === 'trigger' && segments[2]) {
+            return { ...demoAnalyses[0], id: 'demo-analysis-' + Date.now(), status: 'processing' }
         }
 
         if (segments[1]) {
@@ -187,6 +209,39 @@ export function handleDemoRequest(endpoint: string, options?: RequestInit): Mock
             return { ...demoQueries[0], ...body, id: 'demo-query-new-' + Date.now() }
         }
         return demoQueries
+    }
+
+    // ============ INSIGHTS ============
+    if (normalizedPath.startsWith('insights')) {
+        // GET /insights/:brandId/languages
+        if (segments[2] === 'languages') {
+            return demoLanguageComparison
+        }
+        // GET /insights/:brandId/regions
+        if (segments[2] === 'regions') {
+            return demoRegionalComparison
+        }
+        // GET /insights/:brandId
+        if (segments[1]) {
+            return demoInsights
+        }
+        return demoInsights
+    }
+
+    // ============ HALLUCINATIONS ============
+    if (normalizedPath.startsWith('hallucinations')) {
+        // GET /hallucinations?brand_id=xxx
+        return demoHallucinations
+    }
+
+    // ============ LANGUAGE COMPARISON ============
+    if (normalizedPath.startsWith('language-comparison') || normalizedPath.includes('languages')) {
+        return demoLanguageComparison
+    }
+
+    // ============ REGIONAL COMPARISON ============
+    if (normalizedPath.startsWith('regional-comparison') || normalizedPath.includes('regions')) {
+        return demoRegionalComparison
     }
 
     // ============ AUTH ============

@@ -5,6 +5,7 @@ from typing import List, Optional
 from app.api.deps import get_current_user
 from app.models.auth import UserProfile
 import httpx
+import logging
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 
@@ -142,14 +143,54 @@ async def get_brand_info(
 ):
     """
     Fetch metadata AND infer business information using AI.
-    Returns: url, domain, title, description, favicon, image, industry, location, company_type, services
-    Requires authentication.
+    Uses deeper crawling if available.
     """
+    from app.core.config import settings
+    logger = logging.getLogger(__name__)
+
     try:
-        # Fetch page content
-        page_data = await fetch_page_content(url)
+        # 1. Use Firecrawl for deeper context if API key is present
+        crawled_content = ""
+        page_data = None
         
-        # Use AI to infer business info
+        if settings.FIRECRAWL_API_KEY:
+            try:
+                from app.services.firecrawl_service import FirecrawlService
+                firecrawl = FirecrawlService()
+                
+                # We do a limited crawl (top 3-5 pages) to get more than just the home page
+                # but keep it fast enough for onboarding (timeout/limit)
+                logger.info(f"[BrandInfo] Deep crawling {url}...")
+                
+                # For now, let's use search/scrape to find a few key pages or just a deeper scrape
+                # Firecrawl 'scrape' with 'formats': ['markdown'] is already very good
+                scrape_res = await firecrawl.scrape_url(url, max_age=86400)
+                
+                if scrape_res.get("success") and scrape_res.get("data"):
+                    data = scrape_res["data"]
+                    meta = data.get("metadata", {})
+                    
+                    page_data = {
+                        "url": url,
+                        "domain": urlparse(url).netloc,
+                        "title": meta.get("title") or data.get("title") or "",
+                        "description": meta.get("description") or data.get("description") or "",
+                        "favicon": meta.get("favicon") or f"https://www.google.com/s2/favicons?sz=128&domain={urlparse(url).netloc}",
+                        "image": meta.get("ogImage") or "",
+                        "text_content": data.get("markdown", "")[:5000], # Increased limit for better context
+                        "keywords": ""
+                    }
+                    crawled_content = page_data["text_content"]
+                    logger.info("[BrandInfo] Firecrawl scrape successful")
+            except Exception as e:
+                logger.error(f"[BrandInfo] Firecrawl failed, falling back to basic fetch: {e}")
+
+        # 2. Fallback to basic fetch if Firecrawl failed or not configured
+        if not page_data:
+            page_data = await fetch_page_content(url)
+            crawled_content = page_data["text_content"]
+
+        # 3. Use AI to infer business info from the richer context
         from app.services.analysis.web_search_service import WebSearchService
         web_service = WebSearchService()
         
@@ -157,12 +198,11 @@ async def get_brand_info(
             url=page_data["url"],
             page_title=page_data["title"],
             page_description=page_data["description"],
-            page_content=page_data["text_content"]
+            page_content=crawled_content
         )
         
-        # Infer location from various sources
+        # Determine location/scope
         location = business_info.get("target_market", "")
-        # Try to extract country from domain TLD
         domain = page_data["domain"]
         tld_countries = {
             ".es": "Spain", ".mx": "Mexico", ".ar": "Argentina", ".co": "Colombia",
@@ -174,13 +214,8 @@ async def get_brand_info(
                 location = country
                 break
         
-        # Determine business model from company_type
         company_type = business_info.get("company_type", "").upper()
         business_model = "B2B" if company_type == "B2B" else "B2C" if company_type == "B2C" else company_type
-        
-        # Normalize industry to Title Case (fix issues like "RestauracióN")
-        industry_raw = business_info.get("industry", "")
-        industry = industry_raw.strip().title() if industry_raw else ""
         
         return {
             "url": page_data["url"],
@@ -189,24 +224,21 @@ async def get_brand_info(
             "description": page_data["description"],
             "favicon": page_data["favicon"],
             "image": page_data["image"],
-            # AI-inferred fields (normalized)
-            "industry": industry,
+            "industry": business_info.get("industry", "").strip().title(),
             "location": location,
             "services": business_info.get("services", []),
             "businessModel": business_model,
             "companyType": business_info.get("company_type", ""),
-            # New scope-aware fields for better competitor discovery
             "businessScope": business_info.get("business_scope", "national"),
             "city": business_info.get("city", ""),
             "industrySpecific": business_info.get("industry_specific", "")
         }
         
-    except httpx.RequestError as e:
-        raise HTTPException(status_code=400, detail=f"Failed to fetch URL: {str(e)}")
     except Exception as e:
+        logger.error(f"[BrandInfo] Error: {e}")
         import traceback
         traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error analyzing brand: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 

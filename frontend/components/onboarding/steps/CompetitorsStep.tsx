@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, Edit2, Check, X, Globe, Building2 } from 'lucide-react'
+import { Plus, Trash2, Edit2, Check, X, Globe, Building2, ExternalLink } from 'lucide-react'
 import { useTranslations } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import { fetchAPI } from '@/lib/api-client'
@@ -16,7 +16,8 @@ interface DiscoveredCompetitor {
     domain: string
     favicon?: string
     snippet?: string
-    source?: string
+    sources?: string[]
+    source?: string // Legacy fallback
     confidence?: string
 }
 
@@ -54,6 +55,8 @@ export default function CompetitorsStep() {
         almostReady: lang === 'es' ? 'Casi listo...' : 'Almost ready...',
     }
 
+    const [analysisStage, setAnalysisStage] = useState<'searching' | 'filtering' | 'idle'>('idle')
+
     // Discover competitors using web search (fast, no full analysis)
     useEffect(() => {
         // Initial discovery - only run if empty to avoid overwriting user edits
@@ -72,6 +75,7 @@ export default function CompetitorsStep() {
         const discoverCompetitors = async () => {
             try {
                 setError('')
+                setAnalysisStage('searching')
 
                 // Call the discover endpoint directly (fast web search + AI filter)
                 // Now with scope-aware fields for better local/regional competitor detection
@@ -93,7 +97,7 @@ export default function CompetitorsStep() {
                 })
 
 
-                if (!isMounted) return
+                setAnalysisStage('filtering')
 
                 if (data && data.length > 0) {
                     // Map discovered competitors to context format
@@ -102,18 +106,20 @@ export default function CompetitorsStep() {
                         name: c.name,
                         domain: c.domain,
                         logo: c.favicon,
-                        source: c.source as Competitor['source'],
+                        sources: c.sources || (c.source ? [c.source as any] : []),
                         confidence: c.confidence as Competitor['confidence']
                     }))
                     setCompetitors(mappedCompetitors)
                 }
 
+                setAnalysisStage('idle')
                 setIsLoading(false)
             } catch (err: any) {
                 console.error('Failed to discover competitors:', err)
                 if (isMounted) {
                     setError(err.message || 'Error discovering competitors')
                     setIsLoading(false)
+                    setAnalysisStage('idle')
                 }
             }
         }
@@ -131,7 +137,7 @@ export default function CompetitorsStep() {
                 id: `comp-${Date.now()}`,
                 name: newCompetitor.name,
                 domain: newCompetitor.domain.replace(/^https?:\/\//, '').replace(/\/$/, ''),
-                source: 'manual',
+                sources: ['manual'],
                 confidence: 'high'
             }
             setCompetitors([...competitors, competitor])
@@ -187,22 +193,30 @@ export default function CompetitorsStep() {
                     {/* Loading State */}
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                            <div className="relative w-12 h-12">
+                            <div className="relative w-16 h-16">
                                 <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
                                 <div className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
+                                <div className="absolute inset-4 bg-primary/10 rounded-full flex items-center justify-center">
+                                    <Globe className="w-6 h-6 text-primary animate-pulse" />
+                                </div>
                             </div>
-                            <p className="text-sm text-muted-foreground animate-pulse">
-                                {t.analyzing}
-                            </p>
-                            <p className="text-xs text-muted-foreground/60">
-                                {lang === 'es' ? 'Buscando competidores...' : 'Searching for competitors...'}
-                            </p>
+                            <div className="text-center space-y-1">
+                                <p className="text-sm font-medium text-foreground">
+                                    {analysisStage === 'searching' ? (lang === 'es' ? 'Buscando competidores...' : 'Searching for competitors...') :
+                                        analysisStage === 'filtering' ? (lang === 'es' ? 'Analizando resultados...' : 'Analyzing results...') :
+                                            t.analyzing}
+                                </p>
+                                <p className="text-xs text-muted-foreground/60 max-w-[250px]">
+                                    {analysisStage === 'searching' && (lang === 'es' ? 'Consultando múltiples fuentes de IA y búsqueda en tiempo real.' : 'Consulting multiple AI sources and real-time search.')}
+                                    {analysisStage === 'filtering' && (lang === 'es' ? 'Identificando empresas reales y extrayendo dominios.' : 'Identifying real companies and extracting domains.')}
+                                </p>
+                            </div>
                         </div>
                     ) : (
                         /* Competitor list */
                         competitors.length > 0 ? (
                             <div className="space-y-2">
-                                <Label className="text-sm font-medium text-gray-300">{t.detected}</Label>
+                                <Label className="text-sm font-medium text-muted-foreground">{t.detected}</Label>
                                 {competitors.map((competitor) => (
                                     <div
                                         key={competitor.id}
@@ -214,11 +228,18 @@ export default function CompetitorsStep() {
                                         )}
                                     >
                                         {/* Logo placeholder */}
-                                        <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                                        <div className="w-10 h-10 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden">
                                             {competitor.logo ? (
-                                                <img src={competitor.logo} alt={competitor.name} className="w-full h-full object-contain rounded-lg" />
+                                                <img
+                                                    src={competitor.logo}
+                                                    alt={competitor.name}
+                                                    className="w-full h-full object-contain p-1"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = `https://www.google.com/s2/favicons?sz=64&domain=${competitor.domain}`
+                                                    }}
+                                                />
                                             ) : (
-                                                <Building2 className="w-4 h-4 text-muted-foreground" />
+                                                <Building2 className="w-5 h-5 text-muted-foreground" />
                                             )}
                                         </div>
 
@@ -259,32 +280,67 @@ export default function CompetitorsStep() {
                                             <>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2">
-                                                        <p className="font-medium text-white truncate">{competitor.name}</p>
-                                                        {/* Source badge */}
-                                                        {competitor.source && (
-                                                            <span className={cn(
-                                                                "text-[10px] px-1.5 py-0.5 rounded-full font-medium shrink-0",
-                                                                competitor.source === 'llm_knowledge' && "bg-purple-500/20 text-purple-400",
-                                                                competitor.source === 'web_search' && "bg-blue-500/20 text-blue-400",
-                                                                competitor.source === 'manual' && "bg-green-500/20 text-green-400",
-                                                            )}>
-                                                                {competitor.source === 'llm_knowledge' ? '🧠 AI' :
-                                                                    competitor.source === 'web_search' ? '🔍 Web' :
-                                                                        '✏️ Manual'}
-                                                            </span>
+                                                        <p className="font-medium text-foreground truncate">{competitor.name}</p>
+                                                        {competitor.confidence === 'high' && (
+                                                            <div className="w-3.5 h-3.5 bg-green-500/20 rounded-full flex items-center justify-center" title="Alta confianza">
+                                                                <Check className="w-2.5 h-2.5 text-green-500" />
+                                                            </div>
                                                         )}
                                                     </div>
-                                                    <p className="text-sm text-muted-foreground truncate flex items-center gap-1">
-                                                        <Globe className="w-3 h-3" />
-                                                        {competitor.domain}
-                                                    </p>
+                                                    <div className="flex items-center gap-3">
+                                                        <a
+                                                            href={`https://${competitor.domain}`}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="text-xs text-muted-foreground truncate hover:text-primary transition-colors flex items-center gap-1 group/link"
+                                                        >
+                                                            <Globe className="w-3 h-3" />
+                                                            {competitor.domain}
+                                                            <ExternalLink className="w-2.5 h-2.5 opacity-0 group-hover/link:opacity-100 transition-opacity" />
+                                                        </a>
+                                                        {competitor.sources && competitor.sources.length > 0 && (
+                                                            <div className="flex items-center gap-1">
+                                                                {competitor.sources.map((source, sIdx) => (
+                                                                    <span key={sIdx} className={cn(
+                                                                        "text-[10px] px-1.5 py-0.5 rounded-sm flex items-center gap-1.5 border leading-none h-5",
+                                                                        source === 'firecrawl' ? "bg-orange-500/5 text-orange-500/80 border-orange-500/20" :
+                                                                            source === 'openai' || source === 'llm_knowledge' ? "bg-emerald-500/5 text-emerald-500/80 border-emerald-500/20" :
+                                                                                "bg-blue-500/5 text-blue-500/80 border-blue-500/20"
+                                                                    )}>
+                                                                        {(source === 'openai' || source === 'llm_knowledge') && (
+                                                                            <img src="/providers/openai.svg" alt="OpenAI" className="w-3 h-3 brightness-0 dark:invert opacity-80" />
+                                                                        )}
+                                                                        {(source === 'google' || source === 'gemini') && (
+                                                                            <img src="/providers/gemini-color.svg" alt="Gemini" className="w-3 h-3 grayscale brightness-0 dark:invert opacity-80" />
+                                                                        )}
+                                                                        {(source === 'anthropic' || source === 'claude') && (
+                                                                            <img src="/providers/claude-color.svg" alt="Claude" className="w-3 h-3 grayscale brightness-0 dark:invert opacity-80" />
+                                                                        )}
+                                                                        {(source === 'perplexity') && (
+                                                                            <img src="/providers/perplexity-color.svg" alt="Perplexity" className="w-3 h-3 grayscale brightness-0 dark:invert opacity-80" />
+                                                                        )}
+                                                                        {source === 'firecrawl' && (
+                                                                            <Globe className="w-2.5 h-2.5 opacity-80" />
+                                                                        )}
+                                                                        {source === 'openai' || source === 'llm_knowledge' ? 'ChatGPT' :
+                                                                            (source === 'google' || source === 'gemini') ? 'Gemini' :
+                                                                                (source === 'anthropic' || source === 'claude') ? 'Claude' :
+                                                                                    source === 'perplexity' ? 'Perplexity' :
+                                                                                        source === 'firecrawl' ? (lang === 'es' ? 'Búsqueda' : 'Search') :
+                                                                                            source === 'manual' ? (lang === 'es' ? 'Manual' : 'Manual') :
+                                                                                                (lang === 'es' ? 'Análisis' : 'Analysis')}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <div className="flex items-center gap-1">
                                                     <Button
                                                         size="sm"
                                                         variant="ghost"
                                                         onClick={() => handleStartEdit(competitor)}
-                                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-white"
+                                                        className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                                                     >
                                                         <Edit2 className="w-4 h-4" />
                                                     </Button>
@@ -315,7 +371,7 @@ export default function CompetitorsStep() {
                         <div className="p-3 rounded-lg border border-primary/30 bg-primary/5 space-y-3">
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1">
-                                    <Label className="text-sm text-gray-300">{t.name}</Label>
+                                    <Label className="text-sm text-muted-foreground">{t.name}</Label>
                                     <Input
                                         value={newCompetitor.name}
                                         onChange={(e) => setNewCompetitor({ ...newCompetitor, name: e.target.value })}
@@ -324,7 +380,7 @@ export default function CompetitorsStep() {
                                     />
                                 </div>
                                 <div className="space-y-1">
-                                    <Label className="text-sm text-gray-300">{t.domain}</Label>
+                                    <Label className="text-sm text-muted-foreground">{t.domain}</Label>
                                     <Input
                                         value={newCompetitor.domain}
                                         onChange={(e) => setNewCompetitor({ ...newCompetitor, domain: e.target.value })}

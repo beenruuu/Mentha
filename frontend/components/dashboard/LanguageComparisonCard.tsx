@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { fetchAPI } from '@/lib/api-client'
 import { useTranslations } from '@/lib/i18n'
-import { DEMO_BRAND_ID, demoLanguageComparison } from '@/lib/demo-data'
 import FlagIcon from '@/components/shared/flag-icon'
 import { Loader2, Info } from 'lucide-react'
 import {
@@ -50,21 +49,14 @@ export function LanguageComparisonCard({ brandId }: LanguageComparisonCardProps)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
-    const isDemo = brandId === DEMO_BRAND_ID
-
     useEffect(() => {
         if (!brandId) return
-
-        if (isDemo) {
-            setData(demoLanguageComparison as LanguageComparisonData)
-            setLoading(false)
-            return
-        }
 
         const fetchData = async () => {
             try {
                 setLoading(true)
                 setError(null)
+                // fetchAPI handles demo mode automatically via isDemoModeActive()
                 const response = await fetchAPI<LanguageComparisonData>(`/insights/${brandId}/languages`)
                 setData(response)
             } catch (err: any) {
@@ -76,7 +68,7 @@ export function LanguageComparisonCard({ brandId }: LanguageComparisonCardProps)
         }
 
         fetchData()
-    }, [brandId, isDemo])
+    }, [brandId])
 
     if (loading) {
         return (

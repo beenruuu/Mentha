@@ -57,6 +57,8 @@ export default function BrandProfileStep() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false)
     const [newCategory, setNewCategory] = useState('')
     const [isInitialized, setIsInitialized] = useState(false)
+    const [isAnalyzing, setIsAnalyzing] = useState(false)
+    const [analysisStage, setAnalysisStage] = useState<'idle' | 'crawling' | 'analyzing'>('idle')
     const dropdownRef = useRef<HTMLDivElement>(null)
 
     // Business scope state - default from brandProfile or 'national'
@@ -74,9 +76,80 @@ export default function BrandProfileStep() {
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
-    // Initialize categories from brandProfile only once after mount
+    // Brand Analysis - Triggered once when entering the step if domain is available
     useEffect(() => {
-        if (!isInitialized && brandProfile.category) {
+        if (!brandProfile.domain || brandProfile.description) {
+            return
+        }
+
+        let isMounted = true
+
+        const analyzeBrand = async () => {
+            setIsAnalyzing(true)
+            setAnalysisStage('crawling')
+            setError('')
+
+            try {
+                const data = await fetchAPI<any>(`/utils/brand-info?url=${encodeURIComponent(brandProfile.domain)}`)
+                if (!isMounted) return
+
+                setAnalysisStage('analyzing')
+
+                // Populate profile with extracted data
+                setBrandProfile({
+                    ...brandProfile,
+                    category: data.industry || brandProfile.category,
+                    description: data.description || brandProfile.description,
+                    logo: data.image || data.favicon || brandProfile.logo,
+                    businessScope: data.businessScope || brandProfile.businessScope,
+                    city: data.city || brandProfile.city,
+                    industrySpecific: data.industrySpecific || brandProfile.industrySpecific
+                })
+
+                // If specific categories were found, initialize them
+                if (data.industry) {
+                    const cats = data.industry.split(',').map((c: string) => c.trim()).filter(Boolean)
+                    const matchedIds: string[] = []
+                    const customCats: string[] = []
+
+                    for (const cat of cats) {
+                        const match = DEFAULT_CATEGORIES.find(dc =>
+                            dc.id.toLowerCase() === cat.toLowerCase() ||
+                            dc.name_es.toLowerCase() === cat.toLowerCase() ||
+                            dc.name_en.toLowerCase() === cat.toLowerCase()
+                        )
+                        if (match) {
+                            if (!matchedIds.includes(match.id)) matchedIds.push(match.id)
+                        } else {
+                            const titleCased = toTitleCase(cat)
+                            if (!customCats.includes(titleCased)) customCats.push(titleCased)
+                        }
+                    }
+                    setSelectedCategories(matchedIds)
+                    setCustomCategories(customCats)
+                }
+
+            } catch (err: any) {
+                console.error('Brand analysis failed:', err)
+                // We don't block the user, just let them fill it manually
+            } finally {
+                if (isMounted) {
+                    setIsAnalyzing(false)
+                    setAnalysisStage('idle')
+                }
+            }
+        }
+
+        analyzeBrand()
+
+        return () => {
+            isMounted = false
+        }
+    }, [brandProfile.domain])
+
+    // Initialize categories from brandProfile only once after mount (if not already analyzing)
+    useEffect(() => {
+        if (!isInitialized && brandProfile.category && !isAnalyzing) {
             const cats = brandProfile.category.split(',').map(c => c.trim()).filter(Boolean)
             const matchedIds: string[] = []
             const customCats: string[] = []
@@ -105,10 +178,10 @@ export default function BrandProfileStep() {
             setSelectedCategories(matchedIds)
             setCustomCategories(customCats)
             setIsInitialized(true)
-        } else if (!isInitialized) {
+        } else if (!isInitialized && !isAnalyzing) {
             setIsInitialized(true)
         }
-    }, [brandProfile.category, isInitialized])
+    }, [brandProfile.category, isInitialized, isAnalyzing])
 
     const t = {
         title: lang === 'es' ? 'Perfil de marca' : 'Brand profile',
@@ -250,195 +323,216 @@ export default function BrandProfileStep() {
                     </span>
                 </div>
 
-                <div className="space-y-4">
-                    {/* Row 1: Logo + Name + Domain */}
-                    <div className="flex gap-4 items-end">
-                        <div className="w-14 h-14 shrink-0 rounded-lg bg-background/50 dark:bg-white/5 border border-border flex items-center justify-center overflow-hidden">
-                            {brandProfile.logo ? (
-                                <img src={brandProfile.logo} alt="Logo" className="w-full h-full object-contain p-1.5" />
-                            ) : (
-                                <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                {isAnalyzing ? (
+                    <div className="flex flex-col items-center justify-center py-12 space-y-4">
+                        <div className="relative w-16 h-16">
+                            <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
+                            <div className="absolute inset-0 border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
+                            <div className="absolute inset-4 bg-primary/10 rounded-full flex items-center justify-center">
+                                <Globe className="w-6 h-6 text-primary animate-pulse" />
+                            </div>
+                        </div>
+                        <div className="text-center space-y-1">
+                            <p className="text-sm font-medium text-foreground">
+                                {analysisStage === 'crawling' ? (lang === 'es' ? 'Analizando tu sitio web...' : 'Analyzing your website...') :
+                                    lang === 'es' ? 'Extrayendo contexto de tu página...' : 'Extracting context from your page...'}
+                            </p>
+                            <p className="text-xs text-muted-foreground/60 max-w-[250px]">
+                                {lang === 'es' ? 'Estamos preparando la información para que sea más precisa.' : 'We are preparing the information for better accuracy.'}
+                            </p>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {/* Row 1: Logo + Name + Domain */}
+                        <div className="flex gap-4 items-end">
+                            <div className="w-14 h-14 shrink-0 rounded-lg bg-background/50 dark:bg-white/5 border border-border flex items-center justify-center overflow-hidden">
+                                {brandProfile.logo ? (
+                                    <img src={brandProfile.logo} alt="Logo" className="w-full h-full object-contain p-1.5" />
+                                ) : (
+                                    <ImageIcon className="w-6 h-6 text-muted-foreground" />
+                                )}
+                            </div>
+                            <div className="flex-1">
+                                <Label className="text-xs text-muted-foreground">{t.companyName} *</Label>
+                                <div className="relative">
+                                    <Building2 className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <Input
+                                        value={brandProfile.name}
+                                        onChange={(e) => setBrandProfile({ ...brandProfile, name: e.target.value })}
+                                        className="h-10 pl-9 bg-background/50 dark:bg-white/5 border-input text-foreground"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex-1">
+                                <Label className="text-xs text-muted-foreground">{t.domain} *</Label>
+                                <div className="relative">
+                                    <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <Input
+                                        value={brandProfile.domain}
+                                        onChange={(e) => setBrandProfile({ ...brandProfile, domain: e.target.value })}
+                                        className="h-10 pl-9 bg-background/50 dark:bg-white/5 border-input text-foreground"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Row 2: Categories Dropdown */}
+                        <div ref={dropdownRef} className="relative">
+                            <Label className="text-xs text-muted-foreground mb-1.5 block">{t.category}</Label>
+
+                            {/* Dropdown trigger */}
+                            <button
+                                type="button"
+                                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                className="w-full h-10 px-3 flex items-center justify-between bg-background/50 dark:bg-white/5 border border-input rounded-md hover:border-ring transition-colors"
+                            >
+                                <span className="text-sm text-muted-foreground">
+                                    {allSelected.length > 0
+                                        ? `${allSelected.length} ${lang === 'es' ? 'seleccionadas' : 'selected'}`
+                                        : t.categoryPlaceholder
+                                    }
+                                </span>
+                                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {/* Selected tags */}
+                            {allSelected.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5 mt-2">
+                                    {allSelected.map(({ id, name, isCustom }) => (
+                                        <span
+                                            key={id}
+                                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs ${isCustom
+                                                ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
+                                                : 'bg-primary/20 text-primary border border-primary/30'
+                                                }`}
+                                        >
+                                            {name}
+                                            <button
+                                                type="button"
+                                                onClick={(e) => { e.stopPropagation(); removeCategory(id, isCustom) }}
+                                                className="hover:text-foreground"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Dropdown menu */}
+                            {isDropdownOpen && (
+                                <div className="absolute z-50 w-full mt-1 p-3 bg-popover border border-border rounded-lg shadow-xl">
+                                    {/* Categories grid - 3 columns */}
+                                    <div className="grid grid-cols-3 gap-1 mb-3">
+                                        {DEFAULT_CATEGORIES.map((cat) => {
+                                            const isSelected = selectedCategories.includes(cat.id)
+                                            return (
+                                                <button
+                                                    key={cat.id}
+                                                    type="button"
+                                                    onClick={() => toggleCategory(cat.id)}
+                                                    className={`flex items-center gap-1.5 px-2 py-1.5 rounded text-xs text-left transition-all ${isSelected
+                                                        ? 'bg-primary/20 text-primary'
+                                                        : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                                                        }`}
+                                                >
+                                                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary border-primary' : 'border-input'
+                                                        }`}>
+                                                        {isSelected && <Check className="w-2.5 h-2.5 text-black" />}
+                                                    </div>
+                                                    {lang === 'es' ? cat.name_es : cat.name_en}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+
+                                    {/* Add custom category */}
+                                    <div className="flex gap-2 pt-2 border-t border-border">
+                                        <Input
+                                            value={newCategory}
+                                            onChange={(e) => setNewCategory(e.target.value)}
+                                            placeholder={t.addCategoryPlaceholder}
+                                            className="h-8 text-xs bg-background/50 dark:bg-white/5 border-input flex-1 text-foreground"
+                                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomCategory())}
+                                        />
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            onClick={addCustomCategory}
+                                            disabled={!newCategory.trim()}
+                                            className="h-8 px-2 bg-primary/20 hover:bg-primary/30 text-primary"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </div>
                             )}
                         </div>
-                        <div className="flex-1">
-                            <Label className="text-xs text-muted-foreground">{t.companyName} *</Label>
-                            <div className="relative">
-                                <Building2 className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                <Input
-                                    value={brandProfile.name}
-                                    onChange={(e) => setBrandProfile({ ...brandProfile, name: e.target.value })}
-                                    className="h-10 pl-9 bg-background/50 dark:bg-white/5 border-input text-foreground"
-                                />
-                            </div>
+
+                        {/* Row 3: Description */}
+                        <div>
+                            <Label className="text-xs text-muted-foreground">{t.description}</Label>
+                            <Textarea
+                                value={brandProfile.description}
+                                onChange={(e) => setBrandProfile({ ...brandProfile, description: e.target.value })}
+                                placeholder={t.descriptionPlaceholder}
+                                rows={2}
+                                className="bg-background/50 dark:bg-white/5 border-input text-sm resize-none mt-1.5 text-foreground"
+                            />
                         </div>
-                        <div className="flex-1">
-                            <Label className="text-xs text-muted-foreground">{t.domain} *</Label>
-                            <div className="relative">
-                                <Globe className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                                <Input
-                                    value={brandProfile.domain}
-                                    onChange={(e) => setBrandProfile({ ...brandProfile, domain: e.target.value })}
-                                    className="h-10 pl-9 bg-background/50 dark:bg-white/5 border-input text-foreground"
-                                />
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Row 2: Categories Dropdown */}
-                    <div ref={dropdownRef} className="relative">
-                        <Label className="text-xs text-muted-foreground mb-1.5 block">{t.category}</Label>
-
-                        {/* Dropdown trigger */}
-                        <button
-                            type="button"
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="w-full h-10 px-3 flex items-center justify-between bg-background/50 dark:bg-white/5 border border-input rounded-md hover:border-ring transition-colors"
-                        >
-                            <span className="text-sm text-muted-foreground">
-                                {allSelected.length > 0
-                                    ? `${allSelected.length} ${lang === 'es' ? 'seleccionadas' : 'selected'}`
-                                    : t.categoryPlaceholder
-                                }
-                            </span>
-                            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                        </button>
-
-                        {/* Selected tags */}
-                        {allSelected.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-2">
-                                {allSelected.map(({ id, name, isCustom }) => (
-                                    <span
-                                        key={id}
-                                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs ${isCustom
-                                            ? 'bg-amber-500/20 text-amber-500 border border-amber-500/30'
-                                            : 'bg-primary/20 text-primary border border-primary/30'
+                        {/* Row 4: Business Scope */}
+                        <div className="space-y-3 pt-2 border-t border-border">
+                            <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                <MapPin className="w-3.5 h-3.5" />
+                                {t.scopeLabel}
+                            </Label>
+                            <RadioGroup
+                                value={scope}
+                                onValueChange={(val) => setScope(val as typeof scope)}
+                                className="grid grid-cols-2 gap-2"
+                            >
+                                {[
+                                    { value: 'local', label: t.scopeLocal },
+                                    { value: 'regional', label: t.scopeRegional },
+                                    { value: 'national', label: t.scopeNational },
+                                    { value: 'international', label: t.scopeInternational },
+                                ].map((option) => (
+                                    <label
+                                        key={option.value}
+                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all text-xs ${scope === option.value
+                                            ? 'bg-primary/10 border-primary/30 text-foreground'
+                                            : 'bg-background/50 dark:bg-white/5 border-input text-muted-foreground hover:border-ring'
                                             }`}
                                     >
-                                        {name}
-                                        <button
-                                            type="button"
-                                            onClick={(e) => { e.stopPropagation(); removeCategory(id, isCustom) }}
-                                            className="hover:text-foreground"
-                                        >
-                                            <X className="w-3 h-3" />
-                                        </button>
-                                    </span>
+                                        <RadioGroupItem value={option.value} className="sr-only" />
+                                        <div className={`w-3 h-3 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === option.value ? 'border-primary' : 'border-input'
+                                            }`}>
+                                            {scope === option.value && (
+                                                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                            )}
+                                        </div>
+                                        {option.label}
+                                    </label>
                                 ))}
-                            </div>
-                        )}
+                            </RadioGroup>
 
-                        {/* Dropdown menu */}
-                        {isDropdownOpen && (
-                            <div className="absolute z-50 w-full mt-1 p-3 bg-popover border border-border rounded-lg shadow-xl">
-                                {/* Categories grid - 3 columns */}
-                                <div className="grid grid-cols-3 gap-1 mb-3">
-                                    {DEFAULT_CATEGORIES.map((cat) => {
-                                        const isSelected = selectedCategories.includes(cat.id)
-                                        return (
-                                            <button
-                                                key={cat.id}
-                                                type="button"
-                                                onClick={() => toggleCategory(cat.id)}
-                                                className={`flex items-center gap-1.5 px-2 py-1.5 rounded text-xs text-left transition-all ${isSelected
-                                                    ? 'bg-primary/20 text-primary'
-                                                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                                                    }`}
-                                            >
-                                                <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary border-primary' : 'border-input'
-                                                    }`}>
-                                                    {isSelected && <Check className="w-2.5 h-2.5 text-black" />}
-                                                </div>
-                                                {lang === 'es' ? cat.name_es : cat.name_en}
-                                            </button>
-                                        )
-                                    })}
-                                </div>
-
-                                {/* Add custom category */}
-                                <div className="flex gap-2 pt-2 border-t border-border">
+                            {/* Conditional city field for local/regional */}
+                            {(scope === 'local' || scope === 'regional') && (
+                                <div className="animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <Label className="text-xs text-muted-foreground">{t.cityLabel}</Label>
                                     <Input
-                                        value={newCategory}
-                                        onChange={(e) => setNewCategory(e.target.value)}
-                                        placeholder={t.addCategoryPlaceholder}
-                                        className="h-8 text-xs bg-background/50 dark:bg-white/5 border-input flex-1 text-foreground"
-                                        onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCustomCategory())}
+                                        value={city}
+                                        onChange={(e) => setCity(e.target.value)}
+                                        placeholder={t.cityPlaceholder}
+                                        className="h-9 mt-1 bg-background/50 dark:bg-white/5 border-input text-sm text-foreground"
                                     />
-                                    <Button
-                                        type="button"
-                                        size="sm"
-                                        onClick={addCustomCategory}
-                                        disabled={!newCategory.trim()}
-                                        className="h-8 px-2 bg-primary/20 hover:bg-primary/30 text-primary"
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                    </Button>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
-
-                    {/* Row 3: Description */}
-                    <div>
-                        <Label className="text-xs text-muted-foreground">{t.description}</Label>
-                        <Textarea
-                            value={brandProfile.description}
-                            onChange={(e) => setBrandProfile({ ...brandProfile, description: e.target.value })}
-                            placeholder={t.descriptionPlaceholder}
-                            rows={2}
-                            className="bg-background/50 dark:bg-white/5 border-input text-sm resize-none mt-1.5 text-foreground"
-                        />
-                    </div>
-
-                    {/* Row 4: Business Scope */}
-                    <div className="space-y-3 pt-2 border-t border-border">
-                        <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
-                            <MapPin className="w-3.5 h-3.5" />
-                            {t.scopeLabel}
-                        </Label>
-                        <RadioGroup
-                            value={scope}
-                            onValueChange={(val) => setScope(val as typeof scope)}
-                            className="grid grid-cols-2 gap-2"
-                        >
-                            {[
-                                { value: 'local', label: t.scopeLocal },
-                                { value: 'regional', label: t.scopeRegional },
-                                { value: 'national', label: t.scopeNational },
-                                { value: 'international', label: t.scopeInternational },
-                            ].map((option) => (
-                                <label
-                                    key={option.value}
-                                    className={`flex items-center gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-all text-xs ${scope === option.value
-                                        ? 'bg-primary/10 border-primary/30 text-foreground'
-                                        : 'bg-background/50 dark:bg-white/5 border-input text-muted-foreground hover:border-ring'
-                                        }`}
-                                >
-                                    <RadioGroupItem value={option.value} className="sr-only" />
-                                    <div className={`w-3 h-3 rounded-full border-2 flex items-center justify-center shrink-0 ${scope === option.value ? 'border-primary' : 'border-input'
-                                        }`}>
-                                        {scope === option.value && (
-                                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                        )}
-                                    </div>
-                                    {option.label}
-                                </label>
-                            ))}
-                        </RadioGroup>
-
-                        {/* Conditional city field for local/regional */}
-                        {(scope === 'local' || scope === 'regional') && (
-                            <div className="animate-in fade-in slide-in-from-top-2 duration-200">
-                                <Label className="text-xs text-muted-foreground">{t.cityLabel}</Label>
-                                <Input
-                                    value={city}
-                                    onChange={(e) => setCity(e.target.value)}
-                                    placeholder={t.cityPlaceholder}
-                                    className="h-9 mt-1 bg-background/50 dark:bg-white/5 border-input text-sm text-foreground"
-                                />
-                            </div>
-                        )}
-                    </div>
-                </div>
+                )}
 
                 {error && <p className="text-sm text-destructive mt-3">{error}</p>}
 

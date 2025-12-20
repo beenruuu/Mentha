@@ -44,11 +44,14 @@ class Settings(BaseSettings):
     
     # AI Visibility Measurement
     AI_VISIBILITY_ENABLED: bool = True  # Enabled by default - uses available API keys for real visibility measurement
-    PERPLEXITY_API_KEY: str = ""  # Optional: for Perplexity visibility checks
+    PERPLEXITY_API_KEY: str = ""  # For Perplexity visibility checks
+    GEMINI_API_KEY: str = ""  # For Google Gemini visibility checks
     
     # Advanced Crawling
     FIRECRAWL_API_KEY: str = ""
     FIRECRAWL_API_URL: str = "https://api.firecrawl.dev" # Can be changed for self-hosted
+    FIRECRAWL_AGENT_ENABLED: bool = True  # FIRE-1 agent for autonomous data discovery
+    FIRECRAWL_AGENT_MAX_PAGES: int = 20  # Max pages agent can visit per request
     
     # Demo mode (set in backend/.env)
     DEMO_MODE: bool = False
@@ -58,6 +61,26 @@ class Settings(BaseSettings):
     
     # GDPR / Data Privacy
     ENABLE_PII_REDACTION: bool = True
+    
+    # Feature Toggles - Analysis Services
+    # Core (always enabled)
+    FEATURE_AI_VISIBILITY: bool = True  # Core visibility measurement
+    FEATURE_INSIGHTS: bool = True  # Dashboard insights
+    
+    # Advanced (enabled by default)
+    FEATURE_KNOWLEDGE_GRAPH: bool = True  # Wikidata/Wikipedia monitoring
+    FEATURE_HALLUCINATION_DETECTION: bool = True  # AI fabrication detection
+    FEATURE_CITATION_TRACKING: bool = True  # Citation monitoring
+    FEATURE_SENTIMENT_ANALYSIS: bool = True  # Brand sentiment
+    FEATURE_PROMPT_TRACKING: bool = True  # Prompt discovery
+    FEATURE_CONTENT_STRUCTURE: bool = True  # FAQ/HowTo analysis
+    
+    # Optional (disabled by default for performance)
+    FEATURE_EEAT_ANALYSIS: bool = False  # E-E-A-T signals
+    FEATURE_TECHNICAL_AEO: bool = False  # Technical SEO
+    FEATURE_PLATFORM_DETECTION: bool = False  # CMS detection
+    FEATURE_VISUAL_ASSETS: bool = False  # Image analysis
+
 
     # Redis / Celery
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"

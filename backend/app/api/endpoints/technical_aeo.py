@@ -1,51 +1,106 @@
-from typing import List, Optional
-from uuid import UUID
+"""
+Technical AEO Endpoint - Access to technical AEO audit results.
+
+Provides access to technical AEO data stored during analysis,
+including AI crawler permissions, structured data, and recommendations.
+"""
+
+import logging
 from fastapi import APIRouter, Depends, HTTPException, Query
-from app.api import deps
-from app.services.supabase.database import SupabaseDatabaseService
-from app.models.technical_aeo import TechnicalAEO
+from typing import List, Optional, Dict, Any
 
-router = APIRouter()
+from app.models.auth import UserProfile
+from app.api.deps import get_current_user
+from app.services.supabase.auth import get_auth_service
 
-@router.get("/", response_model=List[TechnicalAEO])
-async def get_technical_aeo_audits(
-    brand_id: Optional[UUID] = None,
-    analysis_id: Optional[UUID] = None,
-    current_user: deps.UserProfile = Depends(deps.get_current_user)
-):
-    """
-    Get technical AEO audits.
-    """
-    db_service = SupabaseDatabaseService("technical_aeo", TechnicalAEO)
-    
-    filters = {}
-    if brand_id:
-        filters["brand_id"] = str(brand_id)
-    if analysis_id:
-        filters["analysis_id"] = str(analysis_id)
-        
-    # Ensure user can only see their own data (or data for brands they own)
-    # The RLS policies on Supabase handle this, but we can also filter by user_id for redundancy
-    filters["user_id"] = current_user.id
-    
-    results = await db_service.list(filters=filters)
-    return results
+logger = logging.getLogger(__name__)
 
-@router.get("/{audit_id}", response_model=TechnicalAEO)
-async def get_technical_aeo_audit(
-    audit_id: UUID,
-    current_user: deps.UserProfile = Depends(deps.get_current_user)
-):
+router = APIRouter(prefix="/technical-aeo", tags=["Technical AEO"])
+
+
+@router.get("/")
+async def get_technical_aeo(
+    brand_id: Optional[str] = Query(None, description="Filter by brand ID"),
+    current_user: UserProfile = Depends(get_current_user)
+) -> List[Dict[str, Any]]:
     """
-    Get a specific technical AEO audit.
-    """
-    db_service = SupabaseDatabaseService("technical_aeo", TechnicalAEO)
-    audit = await db_service.get(str(audit_id))
+    Get technical AEO audit results.
     
-    if not audit:
-        raise HTTPException(status_code=404, detail="Audit not found")
+    Returns technical AEO data including:
+    - AI crawler permissions (GPTBot, Google-Extended, etc.)
+    - Structured data analysis (Schema.org types found)
+    - Technical signals (HTTPS, mobile, response time)
+    - AEO readiness score
+    - Recommendations for improvement
+    """
+    auth_service = get_auth_service()
+    supabase = auth_service.supabase
+    
+    try:
+        query = supabase.table("technical_aeo").select("*")
         
-    if audit.user_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to view this audit")
+        if brand_id:
+            query = query.eq("brand_id", brand_id)
         
-    return audit
+        # Order by most recent
+        query = query.order("created_at", desc=True)
+        
+        result = query.execute()
+        
+        return result.data if result.data else []
+        
+    except Exception as e:
+        logger.error(f"Error fetching technical AEO data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/{aeo_id}")
+async def get_technical_aeo_by_id(
+    aeo_id: str,
+    current_user: UserProfile = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """Get a specific technical AEO record by ID."""
+    auth_service = get_auth_service()
+    supabase = auth_service.supabase
+    
+    try:
+        result = supabase.table("technical_aeo")\
+            .select("*")\
+            .eq("id", aeo_id)\
+            .single()\
+            .execute()
+        
+        if not result.data:
+            raise HTTPException(status_code=404, detail="Technical AEO record not found")
+        
+        return result.data
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching technical AEO by ID: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/brand/{brand_id}/latest")
+async def get_latest_technical_aeo(
+    brand_id: str,
+    current_user: UserProfile = Depends(get_current_user)
+) -> Optional[Dict[str, Any]]:
+    """Get the latest technical AEO audit for a brand."""
+    auth_service = get_auth_service()
+    supabase = auth_service.supabase
+    
+    try:
+        result = supabase.table("technical_aeo")\
+            .select("*")\
+            .eq("brand_id", brand_id)\
+            .order("created_at", desc=True)\
+            .limit(1)\
+            .execute()
+        
+        return result.data[0] if result.data else None
+        
+    except Exception as e:
+        logger.error(f"Error fetching latest technical AEO: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

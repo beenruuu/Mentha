@@ -156,8 +156,8 @@ export const demoAnalyses: Analysis[] = [
 // ============ VISIBILITY SNAPSHOTS (Historical data for charts) ============
 function generateVisibilityHistory(): VisibilitySnapshot[] {
     const snapshots: VisibilitySnapshot[] = []
-    // Include all 5 models: 4 AI + Google Search baseline
-    const models: Array<'openai' | 'anthropic' | 'perplexity' | 'gemini' | 'google_search'> = ['openai', 'anthropic', 'perplexity', 'gemini', 'google_search']
+    // Include all 4 models: OpenAI, Anthropic, Perplexity, Gemini
+    const models: Array<'openai' | 'anthropic' | 'perplexity' | 'gemini'> = ['openai', 'anthropic', 'perplexity', 'gemini']
 
     // Generate 30 days of history for each model
     for (let day = 30; day >= 0; day--) {
@@ -167,8 +167,7 @@ function generateVisibilityHistory(): VisibilitySnapshot[] {
                 openai: 58,
                 anthropic: 75,
                 perplexity: 24,
-                gemini: 62,
-                google_search: 50
+                gemini: 62
             }
 
             // Add more aggressive trend and volatility
@@ -270,19 +269,6 @@ export const demoLatestScores: VisibilitySnapshot[] = [
         query_count: 15,
         inclusion_rate: 0.52,
         average_position: 3.5,
-        metadata: {}
-    },
-    {
-        id: 'latest-google-search',
-        brand_id: DEMO_BRAND_ID,
-        ai_model: 'google_search',
-        visibility_score: 71,
-        mention_count: 15,
-        sentiment: 'positive',
-        measured_at: daysAgo(0),
-        query_count: 15,
-        inclusion_rate: 0.74,
-        average_position: 2.1,
         metadata: {}
     },
 ]
@@ -648,3 +634,37 @@ export const demoRegionalComparison = {
     primary_region: 'ES',
     generated_at: new Date().toISOString()
 }
+
+// ============ HALLUCINATIONS ============
+export const demoHallucinations = [
+    {
+        id: 'hall-001',
+        brand_id: DEMO_BRAND_ID,
+        claim: 'TechVerde Solutions ofrece un plan gratuito ilimitado para startups',
+        model: 'gemini',
+        severity: 'high',
+        detected_at: daysAgo(2),
+        context: 'En respuesta a preguntas sobre precios, Gemini afirma incorrectamente...',
+        corrected: false
+    },
+    {
+        id: 'hall-002',
+        brand_id: DEMO_BRAND_ID,
+        claim: 'Fundada en 2010 (fecha real: 2018)',
+        model: 'perplexity',
+        severity: 'medium',
+        detected_at: daysAgo(5),
+        context: 'Error en la fecha de fundación de la empresa...',
+        corrected: false
+    },
+    {
+        id: 'hall-003',
+        brand_id: DEMO_BRAND_ID,
+        claim: 'TechVerde tiene oficinas en Barcelona y Valencia (solo tiene en Madrid)',
+        model: 'anthropic',
+        severity: 'low',
+        detected_at: daysAgo(8),
+        context: 'Información incorrecta sobre ubicaciones...',
+        corrected: true
+    }
+]

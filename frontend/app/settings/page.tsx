@@ -17,7 +17,8 @@ import {
   SecurityTab,
   NotificationsTab,
   BillingTab,
-  AppearanceTab
+  AppearanceTab,
+  FeaturesTab
 } from "@/components/settings"
 
 interface NotificationPreferences {
@@ -165,6 +166,10 @@ export default function SettingsPage() {
                     lang={lang}
                     onLanguageChange={setLangState}
                   />
+                </TabsContent>
+
+                <TabsContent value="features">
+                  <FeaturesTab t={t} />
                 </TabsContent>
               </Tabs>
             </div>

@@ -79,6 +79,109 @@ async def update_analysis(
     return await service.update(str(analysis_id), analysis_update.dict(exclude_unset=True))
 
 
+@router.get("/status/{brand_id}")
+async def get_analysis_status(
+    brand_id: UUID,
+    current_user: UserProfile = Depends(get_current_user),
+    service: SupabaseDatabaseService = Depends(get_analysis_service)
+):
+    """
+    Get the status of the latest analysis for a brand.
+    Used by frontend to show progress notification and auto-refresh data.
+    
+    Returns:
+    - status: pending | processing | completed | failed
+    - progress: 0-100 (estimated progress percentage)
+    - phase: current phase name
+    - started_at: when analysis started
+    - completed_at: when analysis completed (if done)
+    - has_data: whether there's any completed analysis data
+    """
+    from datetime import datetime, timedelta
+    
+    # Get the latest analysis for this brand
+    analyses = await service.list(
+        filters={"brand_id": str(brand_id)},
+        order_by="created_at",
+        order_desc=True,
+        limit=1
+    )
+    
+    if not analyses:
+        return {
+            "status": "none",
+            "progress": 0,
+            "phase": None,
+            "started_at": None,
+            "completed_at": None,
+            "has_data": False,
+            "message": "No hay análisis programados"
+        }
+    
+    analysis = analyses[0]
+    
+    # Verify ownership
+    if str(analysis.user_id) != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Calculate estimated progress based on time elapsed (analysis typically takes 2-3 min)
+    progress = 0
+    phase = "Iniciando..."
+    
+    if analysis.status == AnalysisStatus.pending:
+        progress = 5
+        phase = "En cola..."
+    elif analysis.status == AnalysisStatus.processing:
+        # Estimate progress based on time elapsed
+        created_at = analysis.created_at
+        if created_at:
+            elapsed = (datetime.utcnow() - created_at.replace(tzinfo=None)).total_seconds()
+            # Assume average analysis takes ~120 seconds
+            estimated_duration = 120
+            progress = min(int((elapsed / estimated_duration) * 100), 95)
+            
+            # Determine phase based on progress
+            if progress < 15:
+                phase = "Resolviendo entidad..."
+            elif progress < 35:
+                phase = "Recopilando datos web..."
+            elif progress < 55:
+                phase = "Midiendo visibilidad IA..."
+            elif progress < 75:
+                phase = "Analizando contenido..."
+            elif progress < 90:
+                phase = "Generando insights..."
+            else:
+                phase = "Finalizando..."
+        else:
+            progress = 50
+            phase = "Procesando..."
+    elif analysis.status == AnalysisStatus.completed:
+        progress = 100
+        phase = "Completado"
+    elif analysis.status == AnalysisStatus.failed:
+        progress = 0
+        phase = "Error"
+    
+    # Check if there's any completed analysis for this brand
+    completed_analyses = await service.list(
+        filters={"brand_id": str(brand_id), "status": "completed"},
+        limit=1
+    )
+    has_data = len(completed_analyses) > 0
+    
+    return {
+        "status": analysis.status.value if hasattr(analysis.status, 'value') else str(analysis.status),
+        "progress": progress,
+        "phase": phase,
+        "started_at": analysis.created_at.isoformat() if analysis.created_at else None,
+        "completed_at": analysis.completed_at.isoformat() if analysis.completed_at else None,
+        "has_data": has_data,
+        "analysis_id": str(analysis.id),
+        "error_message": analysis.error_message if analysis.status == AnalysisStatus.failed else None
+    }
+
+
 @router.post("/trigger/{brand_id}", response_model=Analysis)
 async def trigger_analysis_for_brand(
     brand_id: UUID,

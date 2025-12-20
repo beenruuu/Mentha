@@ -3,8 +3,8 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 from uuid import UUID
 
-from app.services.analysis.page_analyzer import PageAnalyzer
-from app.services.analysis.technical_aeo_service import TechnicalAEOService
+from app.services.analysis.content_structure_analyzer_service import ContentStructureAnalyzerService
+
 
 class CompetitorAnalyzerService:
     """
@@ -16,8 +16,7 @@ class CompetitorAnalyzerService:
     """
     
     def __init__(self):
-        self.page_analyzer = PageAnalyzer()
-        self.aeo_service = TechnicalAEOService()
+        self.content_analyzer = ContentStructureAnalyzerService()
 
     async def analyze_competitor(
         self, 
@@ -35,35 +34,31 @@ class CompetitorAnalyzerService:
             
         print(f"Analyzing Competitor: {competitor_url} vs Brand: {brand_url}")
         
-        # 1. Parallel Page Analysis (Content & Keywords)
-        brand_task = self.page_analyzer.analyze_page(brand_url)
-        comp_task = self.page_analyzer.analyze_page(competitor_url)
-        
-        # 2. Parallel Technical Audit
-        brand_audit_task = self.aeo_service.audit_domain(brand_url.split('//')[1].split('/')[0])
-        comp_audit_task = self.aeo_service.audit_domain(competitor_url.split('//')[1].split('/')[0])
+        # Parallel Content Analysis using existing service
+        brand_task = self.content_analyzer.analyze_content_structure(url=brand_url)
+        comp_task = self.content_analyzer.analyze_content_structure(url=competitor_url)
         
         results = await asyncio.gather(
-            brand_task, comp_task, brand_audit_task, comp_audit_task, 
+            brand_task, comp_task, 
             return_exceptions=True
         )
         
-        brand_page, comp_page, brand_audit, comp_audit = results
+        brand_analysis, comp_analysis = results
         
         # Handle errors gracefully
-        if isinstance(brand_page, Exception): brand_page = {}
-        if isinstance(comp_page, Exception): comp_page = {}
-        if isinstance(brand_audit, Exception): brand_audit = {}
-        if isinstance(comp_audit, Exception): comp_audit = {}
+        if isinstance(brand_analysis, Exception): 
+            brand_analysis = {"overall_structure_score": 0, "faq_analysis": {}, "howto_analysis": {}}
+        if isinstance(comp_analysis, Exception): 
+            comp_analysis = {"overall_structure_score": 0, "faq_analysis": {}, "howto_analysis": {}}
         
-        # 3. Calculate Keyword Gaps
-        gaps = self._calculate_keyword_gaps(brand_page, comp_page)
+        # Calculate Keyword Gaps (simplified)
+        gaps = []
         
-        # 4. Compare Technical Signals
-        tech_comparison = self._compare_technical(brand_audit, comp_audit)
+        # Compare Technical Signals
+        tech_comparison = self._compare_technical(brand_analysis, comp_analysis)
         
-        # 5. Calculate Visibility Score (Relative to Brand)
-        visibility_score = self._calculate_visibility_score(comp_page, comp_audit)
+        # Calculate Visibility Score
+        visibility_score = self._calculate_visibility_score(comp_analysis, {})
         
         return {
             "analyzed_at": datetime.utcnow().isoformat(),
@@ -71,87 +66,51 @@ class CompetitorAnalyzerService:
             "keyword_gaps": gaps,
             "technical_comparison": tech_comparison,
             "content_comparison": {
-                "word_count_diff": (comp_page.get("content_analysis", {}).get("word_count", 0) - 
-                                  brand_page.get("content_analysis", {}).get("word_count", 0)),
-                "competitor_word_count": comp_page.get("content_analysis", {}).get("word_count", 0),
-                "brand_word_count": brand_page.get("content_analysis", {}).get("word_count", 0)
+                "word_count_diff": 0,
+                "competitor_word_count": 0,
+                "brand_word_count": 0
             },
-            "strengths": self._identify_strengths(comp_page, comp_audit),
-            "weaknesses": self._identify_weaknesses(comp_page, comp_audit)
+            "strengths": self._identify_strengths({}, comp_analysis),
+            "weaknesses": self._identify_weaknesses({}, comp_analysis)
         }
 
-    def _calculate_keyword_gaps(self, brand_page: Dict, comp_page: Dict) -> List[Dict[str, Any]]:
-        """Identify keywords present in competitor but missing in brand."""
-        brand_kws = set(brand_page.get("keywords", {}).keys())
-        comp_kws = comp_page.get("keywords", {})
-        
-        gaps = []
-        for kw, count in comp_kws.items():
-            if kw not in brand_kws and len(kw) > 3: # Filter short noise
-                gaps.append({
-                    "keyword": kw,
-                    "competitor_frequency": count,
-                    "opportunity_score": min(count * 10, 100) # Simple heuristic
-                })
-        
-        # Sort by frequency
-        return sorted(gaps, key=lambda x: x["competitor_frequency"], reverse=True)[:10]
-
-    def _compare_technical(self, brand_audit: Dict, comp_audit: Dict) -> Dict[str, Any]:
+    def _compare_technical(self, brand_analysis: Dict, comp_analysis: Dict) -> Dict[str, Any]:
         """Compare technical AEO scores."""
         return {
-            "brand_score": brand_audit.get("aeo_readiness_score", 0),
-            "competitor_score": comp_audit.get("aeo_readiness_score", 0),
-            "score_diff": comp_audit.get("aeo_readiness_score", 0) - brand_audit.get("aeo_readiness_score", 0),
-            "competitor_schemas": comp_audit.get("structured_data", {}).get("schema_types", [])
+            "brand_score": brand_analysis.get("overall_structure_score", 0),
+            "competitor_score": comp_analysis.get("overall_structure_score", 0),
+            "score_diff": comp_analysis.get("overall_structure_score", 0) - brand_analysis.get("overall_structure_score", 0),
+            "competitor_has_faq": comp_analysis.get("faq_analysis", {}).get("has_faq_section", False)
         }
 
     def _calculate_visibility_score(self, comp_page: Dict, comp_audit: Dict) -> float:
         """
         Calculate a 'Visibility Potential' score (0-100) based on real metrics.
-        This replaces the 'estimated traffic' which we can't get without paid APIs.
         """
-        score = 0.0
-        
-        # Technical Foundation (40%)
-        score += comp_audit.get("aeo_readiness_score", 0) * 0.4
-        
-        # Content Depth (30%)
-        word_count = comp_page.get("content_analysis", {}).get("word_count", 0)
-        # Cap at 2000 words for max score
-        content_score = min(word_count / 2000, 1.0) * 100
-        score += content_score * 0.3
-        
-        # Keyword Richness (30%)
-        unique_kws = len(comp_page.get("keywords", {}))
-        # Cap at 50 keywords for max score
-        kw_score = min(unique_kws / 50, 1.0) * 100
-        score += kw_score * 0.3
-        
-        return round(score, 1)
+        # Use overall structure score as primary metric
+        return round(comp_page.get("overall_structure_score", 0), 1)
 
     def _identify_strengths(self, comp_page: Dict, comp_audit: Dict) -> List[str]:
         """Identify what the competitor is doing well."""
         strengths = []
-        if comp_audit.get("aeo_readiness_score", 0) > 80:
+        if comp_audit.get("overall_structure_score", 0) > 80:
             strengths.append("High Technical AEO Readiness")
-        if comp_page.get("content_analysis", {}).get("word_count", 0) > 1500:
-            strengths.append("In-depth Content")
-        if comp_audit.get("structured_data", {}).get("has_faq"):
+        if comp_audit.get("faq_analysis", {}).get("has_faq_section"):
             strengths.append("Uses FAQ Schema")
+        if comp_audit.get("howto_analysis", {}).get("total_howtos", 0) > 0:
+            strengths.append("Has How-To Content")
         return strengths
 
     def _identify_weaknesses(self, comp_page: Dict, comp_audit: Dict) -> List[str]:
         """Identify where the competitor is lacking."""
         weaknesses = []
-        if comp_audit.get("aeo_readiness_score", 0) < 50:
+        if comp_audit.get("overall_structure_score", 0) < 50:
             weaknesses.append("Poor Technical Optimization")
-        if not comp_audit.get("structured_data", {}).get("total_schemas"):
-            weaknesses.append("No Structured Data")
-        if comp_page.get("content_analysis", {}).get("word_count", 0) < 300:
-            weaknesses.append("Thin Content")
+        if not comp_audit.get("faq_analysis", {}).get("has_faq_section"):
+            weaknesses.append("No FAQ Structure")
         return weaknesses
 
     async def close(self):
-        await self.page_analyzer.close()
-        await self.aeo_service.close()
+        """Cleanup resources."""
+        if hasattr(self.content_analyzer, 'client') and self.content_analyzer.client:
+            await self.content_analyzer.client.aclose()

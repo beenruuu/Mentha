@@ -373,8 +373,7 @@ export default function ResearchPromptsStep() {
                     </Button>
                     <Button
                         onClick={nextStep}
-                        disabled={researchPrompts.length === 0}
-                        className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-10 font-medium transition-all disabled:opacity-50"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-10 font-medium transition-all"
                     >
                         {t.next}
                     </Button>

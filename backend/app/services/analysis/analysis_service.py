@@ -11,12 +11,12 @@ from app.services.analysis.analysis_results_ingestion import AnalysisResultsInge
 from app.services.supabase.database import SupabaseDatabaseService
 from app.services.llm.llm_service import LLMServiceFactory, LLMService
 from app.services.analysis.web_search_service import WebSearchService
-from app.services.analysis.technical_aeo_service import TechnicalAEOService
 from app.services.analysis.keyword_metrics_service import KeywordMetricsService
 from app.services.analysis.ai_visibility_service import AIVisibilityService
 from app.services.analysis.content_structure_analyzer_service import ContentStructureAnalyzerService
 from app.services.analysis.knowledge_graph_service import KnowledgeGraphMonitorService
 from app.services.analysis.sentiment_analysis_service import get_sentiment_analysis_service
+from app.api.endpoints.utils import fetch_page_content
 from app.core.config import settings
 from app.core.logging import Colors, log_info, log_success, log_error, log_warning, log_phase
 
@@ -33,7 +33,6 @@ class AnalysisService:
         self.keyword_db = SupabaseDatabaseService("keywords", Keyword)
         self.ingestion_service = AnalysisResultsIngestionService()
         self.web_search_service = WebSearchService()
-        self.technical_aeo_service = TechnicalAEOService()
         self.keyword_metrics_service = KeywordMetricsService()
         self.ai_visibility_service = AIVisibilityService()
         self.content_structure_service = ContentStructureAnalyzerService()
@@ -102,7 +101,7 @@ class AnalysisService:
             log_info("🔍", "Fetching page content...")
             
             # Fetch basic page content to understand the entity
-            page_content = await self.technical_aeo_service.fetch_page_content(brand_url)
+            page_content = await fetch_page_content(brand_url)
             
             # Infer entity type and business info
             log_info("🧠", "Inferring business info from page...")
@@ -110,7 +109,7 @@ class AnalysisService:
                 url=brand_url,
                 page_title=page_content.get('title', ''),
                 page_description=page_content.get('description', ''),
-                page_content=page_content.get('text', '')
+                page_content=page_content.get('text_content', '')
             )
             
             # Prioritize onboarding data over inferred data
@@ -138,8 +137,8 @@ class AnalysisService:
                 language=preferred_language
             )
             
-            # 2. Technical Audit
-            technical_task = self.technical_aeo_service.audit_domain(brand_url)
+            # 2. Technical Audit (integrated with content analysis below)
+            # No separate technical_aeo_service - using content_structure_service
             
             # Fetch existing competitors to check for Share of Model
             existing_competitors = []
@@ -165,9 +164,18 @@ class AnalysisService:
                 domain=brand_url
             )
 
-            search_context, technical_data, visibility_data, content_data, kg_data = await asyncio.gather(
-                search_task, technical_task, visibility_task, content_task, kg_task
+            search_context, visibility_data, content_data, kg_data = await asyncio.gather(
+                search_task, visibility_task, content_task, kg_task
             )
+            
+            # Derive technical_data from content analysis
+            technical_data = {
+                "aeo_readiness_score": content_data.get("overall_structure_score", 0),
+                "has_faq": content_data.get("faq_analysis", {}).get("has_faq_section", False),
+                "has_howto": content_data.get("howto_analysis", {}).get("total_howtos", 0) > 0,
+                "schema_types": [],
+                "recommendations": content_data.get("recommendations", [])
+            }
             
             # --- SENTIMENT ANALYSIS ---
             # Collect context snippets from visibility data and search context

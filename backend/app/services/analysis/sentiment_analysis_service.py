@@ -1,20 +1,15 @@
 """
 Enhanced Sentiment Analysis Service - Deep sentiment analysis using LLM.
 
-This service provides more accurate sentiment analysis than the basic keyword matching
-in the AI Visibility Service. It uses LLMs to:
-1. Analyze the context and tone of brand mentions
-2. Extract positive and negative aspects
-3. Provide a numeric sentiment score (0-100)
-4. Identify trends over time
+NOTE: Now uses unified AIClientService for API calls (P1 consolidation).
 """
 
 import asyncio
 from typing import Dict, Any, List, Optional
 from datetime import datetime
-import httpx
 
 from app.core.config import settings
+from app.services.ai_client_service import get_ai_client
 
 
 class SentimentAnalysisService:
@@ -44,6 +39,8 @@ class SentimentAnalysisService:
     }
 
     def __init__(self):
+        self.ai_client = get_ai_client()
+        # Keep keys for backward compatibility checks
         self.openai_key = settings.OPENAI_API_KEY
         self.anthropic_key = settings.ANTHROPIC_API_KEY
         

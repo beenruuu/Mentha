@@ -32,6 +32,8 @@ function BrandItem({ id, name, domain, onDeleted }: { id: string; name: string; 
   const { t } = useTranslations()
   const router = useRouter()
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const currentTab = searchParams.get('tab')
 
   const handleDeleteBrand = async () => {
     setIsDeleting(true)
@@ -106,65 +108,33 @@ function BrandItem({ id, name, domain, onDeleted }: { id: string; name: string; 
 
       {expanded && (
         <div className="ml-4 pl-3 border-l border-border/50 mt-1 space-y-0.5">
-          <Link href={`/brand/${id}`}>
-            <button className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item">
+          <Link href={`/brand/${id}?tab=overview`}>
+            <button className={`w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item ${pathname === `/brand/${id}` && (!currentTab || currentTab === 'overview') ? 'text-foreground bg-secondary/50 font-medium' : ''}`}>
               <span>{t.overview}</span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="w-3 h-3 opacity-0 group-hover/item:opacity-70 transition-opacity cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent side="right" className="max-w-[200px]">
-                  {t.overviewTooltip || "Panel general con métricas clave, insights y estado de tu marca"}
-                </TooltipContent>
-              </Tooltip>
             </button>
           </Link>
-          <Link href={`/brand/${id}/keywords`}>
-            <button className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item">
+          <Link href={`/brand/${id}?tab=visibility`}>
+            <button className={`w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item ${pathname === `/brand/${id}` && currentTab === 'visibility' ? 'text-foreground bg-secondary/50 font-medium' : ''}`}>
               <span className="flex items-center gap-2">
                 <TrendingUp className="w-3 h-3 opacity-70" />
-                {t.keywordsAI}
+                {t.brand_visibility}
               </span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="w-3 h-3 opacity-0 group-hover/item:opacity-70 transition-opacity cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent side="right" className="max-w-[200px]">
-                  {t.keywordsTooltip || "Analiza cómo aparece tu marca en respuestas de IA para diferentes keywords"}
-                </TooltipContent>
-              </Tooltip>
             </button>
           </Link>
-          <Link href={`/brand/${id}/competitors`}>
-            <button className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item">
-              <span className="flex items-center gap-2">
-                <Users className="w-3 h-3 opacity-70" />
-                {t.competition}
-              </span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="w-3 h-3 opacity-0 group-hover/item:opacity-70 transition-opacity cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent side="right" className="max-w-[200px]">
-                  {t.competitionTooltip || "Compara tu visibilidad en IA frente a tus competidores"}
-                </TooltipContent>
-              </Tooltip>
-            </button>
-          </Link>
-          <Link href={`/brand/${id}/crawlers`}>
-            <button className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item">
+          <Link href={`/brand/${id}?tab=optimize`}>
+            <button className={`w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item ${pathname === `/brand/${id}` && currentTab === 'optimize' ? 'text-foreground bg-secondary/50 font-medium' : ''}`}>
               <span className="flex items-center gap-2">
                 <Bot className="w-3 h-3 opacity-70" />
-                {t.crawlersMonitor}
+                {t.brand_optimization}
               </span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="w-3 h-3 opacity-0 group-hover/item:opacity-70 transition-opacity cursor-help" />
-                </TooltipTrigger>
-                <TooltipContent side="right" className="max-w-[200px]">
-                  {t.crawlersTooltip || "Monitorea qué bots de IA están rastreando tu sitio web"}
-                </TooltipContent>
-              </Tooltip>
+            </button>
+          </Link>
+          <Link href={`/brand/${id}?tab=competitors`}>
+            <button className={`w-full flex items-center justify-between px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary/50 rounded-md transition-colors group/item ${pathname === `/brand/${id}` && currentTab === 'competitors' ? 'text-foreground bg-secondary/50 font-medium' : ''}`}>
+              <span className="flex items-center gap-2">
+                <Users className="w-3 h-3 opacity-70" />
+                {t.brand_competitors}
+              </span>
             </button>
           </Link>
         </div>

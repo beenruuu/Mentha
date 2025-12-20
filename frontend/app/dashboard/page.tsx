@@ -52,7 +52,6 @@ const AI_PROVIDER_META = [
   { id: 'claude', name: 'Claude', icon: '/providers/claude-color.svg?v=3', color: '#da7756' },
   { id: 'perplexity', name: 'Perplexity', icon: '/providers/perplexity-color.svg?v=3', color: '#3b82f6' },
   { id: 'gemini', name: 'Gemini', icon: '/providers/gemini-color.svg?v=3', color: '#4b5563' },
-  { id: 'google', name: 'Google Search', icon: '/providers/google.svg?v=3', color: '#ea4335' },
 ] as const
 
 const MODEL_ID_MAP: Record<string, string> = {
@@ -60,7 +59,6 @@ const MODEL_ID_MAP: Record<string, string> = {
   'anthropic': 'claude',
   'perplexity': 'perplexity',
   'gemini': 'gemini',  // Keep gemini as gemini for Gemini AI
-  'google_search': 'google'  // Map google_search to google for Google Search
 }
 
 export default function DashboardPage() {
@@ -207,6 +205,10 @@ export default function DashboardPage() {
           setSelectedBrand(brand)
           // Initial fetch with default 30 days
           await fetchDataForBrand(brand, 30)
+        } else {
+          // No brands found - redirect to onboarding
+          router.push('/onboarding')
+          return
         }
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err)
@@ -357,7 +359,7 @@ export default function DashboardPage() {
                       className="w-full flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors rounded-b-lg"
                     >
                       <Plus className="w-4 h-4" />
-                      Añadir marca
+                      {t.addBrand}
                     </button>
                   </div>
                 </div>

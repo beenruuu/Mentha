@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
-import { fetchAPI } from '@/lib/api-client'
+import { insightsService, type InsightsData, type Insight } from '@/lib/services/insights'
 import { useTranslations } from '@/lib/i18n'
-import { DEMO_BRAND_ID, demoInsights } from '@/lib/demo-data'
 import { Loader2, Info } from 'lucide-react'
 import {
     Tooltip,
@@ -17,7 +16,6 @@ const AI_PROVIDERS = [
     { names: ['Claude', 'Anthropic'], icon: '/providers/claude-color.svg?v=3', invert: false },
     { names: ['Perplexity'], icon: '/providers/perplexity-color.svg?v=3', invert: false },
     { names: ['Gemini', 'Google AI'], icon: '/providers/gemini-color.svg?v=3', invert: false },
-    { names: ['Google Search', 'Google'], icon: '/providers/google.svg?v=3', invert: false },
 ]
 
 interface Insight {
@@ -44,8 +42,6 @@ export function InsightsCard({ brandId }: InsightsCardProps) {
     const [insights, setInsights] = useState<InsightsData | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
-
-    const isDemo = brandId === DEMO_BRAND_ID
 
     // Function to render insight text with AI provider icons and highlighted numbers
     // isNegative determines if badges should be red (bad data) or green (good data)
@@ -211,18 +207,14 @@ export function InsightsCard({ brandId }: InsightsCardProps) {
     useEffect(() => {
         if (!brandId) return
 
-        if (isDemo) {
-            setInsights(translateDemoInsights(demoInsights as InsightsData))
-            setLoading(false)
-            return
-        }
-
         const fetchInsights = async () => {
             try {
                 setLoading(true)
                 setError(null)
-                const data = await fetchAPI<InsightsData>(`/insights/${brandId}?days=30`)
-                setInsights(data)
+                // insightsService.getInsights uses fetchAPI which handles demo mode automatically
+                const data = await insightsService.getInsights(brandId, 30)
+                // Translate insights if needed
+                setInsights(translateDemoInsights(data))
             } catch (err: any) {
                 console.error('Failed to fetch insights:', err)
                 setError(err.message || 'Failed to load insights')
@@ -232,7 +224,7 @@ export function InsightsCard({ brandId }: InsightsCardProps) {
         }
 
         fetchInsights()
-    }, [brandId, isDemo])
+    }, [brandId])
 
     if (loading) {
         return (

@@ -40,7 +40,7 @@ export interface Competitor {
     name: string
     domain: string
     logo?: string
-    source?: 'llm_knowledge' | 'web_search' | 'manual' | 'analysis'
+    sources?: ('llm_knowledge' | 'web_search' | 'manual' | 'analysis' | 'openai' | 'firecrawl' | 'gemini' | 'google' | 'claude' | 'anthropic' | 'perplexity')[]
     confidence?: 'high' | 'medium' | 'low'
 }
 

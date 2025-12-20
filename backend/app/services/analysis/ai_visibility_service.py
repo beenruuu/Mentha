@@ -4,13 +4,7 @@ AI Visibility Service - Real measurement of brand visibility in AI responses.
 This service queries actual AI models (ChatGPT, Claude, Perplexity) to measure
 how often and how prominently a brand is mentioned in AI-generated responses.
 
-Data Sources:
-- OpenAI API (GPT-4/GPT-3.5) - Direct queries about brand/keywords
-- Anthropic API (Claude) - Direct queries about brand/keywords
-- Perplexity API (if configured) - For web-augmented AI responses
-- DuckDuckGo (as fallback) - For general web visibility baseline
-
-IMPORTANT: This service makes REAL API calls to measure actual AI visibility.
+NOTE: Now uses unified AIClientService for API calls (P1 consolidation).
 """
 
 import asyncio
@@ -18,9 +12,8 @@ import re
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
-import httpx
-
 from app.core.config import settings
+from app.services.ai_client_service import get_ai_client
 
 
 class AIVisibilityService:
@@ -91,6 +84,8 @@ class AIVisibilityService:
     }
     
     def __init__(self):
+        self.ai_client = get_ai_client()
+        # Keep keys for backward compatibility checks
         self.openai_key = settings.OPENAI_API_KEY
         self.anthropic_key = settings.ANTHROPIC_API_KEY
         self.perplexity_key = getattr(settings, 'PERPLEXITY_API_KEY', '')

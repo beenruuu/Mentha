@@ -185,6 +185,9 @@ const translations = {
 
     // Navigation
     dashboard: 'Dashboard',
+    dashboardTitle: 'Dashboard',
+    addBrand: 'Añadir marca',
+    viewDetails: 'Ver detalles',
     brands: 'Marcas',
     keywords: 'Palabras clave',
     competitors: 'Competidores',
@@ -262,6 +265,17 @@ const translations = {
     position: 'Posición',
 
     // Brand pages
+    brand_visibility: 'Visibilidad',
+    brand_optimization: 'Optimización',
+    brand_competitors: 'Competidores',
+    export: 'Exportar',
+    new_analysis: 'Nuevo Análisis',
+    refresh: 'Actualizar',
+    add_competitor: 'Añadir Competidor',
+    brand_health: 'Salud de Marca',
+    global_score: 'Score Global',
+    technical_health: 'Salud Técnica',
+    recent_activity_insights: 'Actividad Reciente & Insights',
     overview: 'Vista general',
     overviewTooltip: 'Panel general con métricas clave, insights y estado de tu marca',
     keywordsTooltip: 'Analiza cómo aparece tu marca en respuestas de IA para diferentes keywords',
@@ -1396,6 +1410,9 @@ const translations = {
 
     // Navigation
     dashboard: 'Dashboard',
+    dashboardTitle: 'Dashboard',
+    addBrand: 'Add Brand',
+    viewDetails: 'View Details',
     brands: 'Brands',
     keywords: 'Keywords',
     competitors: 'Competitors',
@@ -1473,6 +1490,17 @@ const translations = {
     position: 'Position',
 
     // Brand pages
+    brand_visibility: 'Visibility',
+    brand_optimization: 'Optimization',
+    brand_competitors: 'Competitors',
+    export: 'Export',
+    new_analysis: 'New Analysis',
+    refresh: 'Refresh',
+    add_competitor: 'Add Competitor',
+    brand_health: 'Brand Health',
+    global_score: 'Global Score',
+    technical_health: 'Technical Health',
+    recent_activity_insights: 'Recent Activity & Insights',
     overview: 'Overview',
     overviewTooltip: 'General dashboard with key metrics, insights and your brand status',
     keywordsTooltip: 'Analyze how your brand appears in AI responses for different keywords',
