@@ -976,17 +976,6 @@ const translations = {
     authPasswordTooWeak: 'La contraseña no cumple los requisitos mínimos',
 
     // ==========================================
-    // BLOG
-    // ==========================================
-    blogTitle: 'El Blog de Mentha',
-    blogDescription: 'Insights, estrategias y guías para la nueva era de la Optimización para Motores de Respuesta.',
-    blogReadArticle: 'Leer Artículo',
-    blogBackToBlog: 'Volver al Blog',
-    blogReadyToOptimize: '¿Listo para optimizar tu futuro?',
-    blogStartOptimizing: 'Empieza a optimizar tu marca para la búsqueda IA hoy con la plataforma de visibilidad IA de Mentha.',
-    blogGetStartedFree: 'Comenzar Gratis',
-
-    // ==========================================
     // DASHBOARD
     // ==========================================
     dashboardTitle: 'Dashboard',
@@ -1203,6 +1192,32 @@ const translations = {
     promptCopiedShort: '¡Prompt copiado!',
     advancedAeoIntelligence: 'Inteligencia AEO Avanzada',
     advancedAeoDesc: 'Análisis profundo de tu presencia en respuestas de IA',
+
+    // ==========================================
+    // BLOG PAGE
+    // ==========================================
+    blogTitle: 'El Blog de Mentha',
+    blogDescription: 'Insights, estrategias y guías para la nueva era de la Optimización para Motores de Respuesta.',
+    blogReadArticle: 'Leer Artículo',
+    blogCategories: 'Categorías',
+    blogAllCategories: 'Todas',
+    blogSearchPlaceholder: 'Buscar artículos...',
+    blogTutorial: 'Tutorial',
+    blogSEOGuide: 'Guía SEO',
+    blogTrends: 'Tendencias',
+    blogAEOStrategy: 'Estrategia AEO',
+    blogPublishedOn: 'Publicado el',
+    blogBackToBlog: 'Volver al Blog',
+    blogReadyToOptimize: '¿Listo para optimizar tu marca?',
+    blogStartOptimizing: 'Comienza a dominar tu visibilidad en motores de IA hoy.',
+    blogGetStartedFree: 'Comenzar Gratis',
+    blogLatestPosts: 'Últimos Artículos',
+    blogNoResults: 'No se encontraron artículos.',
+    blogMinRead: 'min de lectura',
+    blogFeatured: 'Destacado',
+    blogTableOfContents: 'Contenido',
+    blogShareArticle: 'Compartir',
+    blogRelatedPosts: 'Artículos Relacionados',
   },
   en: {
     // ==========================================
@@ -2407,6 +2422,32 @@ const translations = {
     promptCopiedShort: 'Prompt copied!',
     advancedAeoIntelligence: 'Advanced AEO Intelligence',
     advancedAeoDesc: 'Deep analysis of your AI response presence',
+
+    // ==========================================
+    // BLOG PAGE
+    // ==========================================
+    blogTitle: 'The Mentha Blog',
+    blogDescription: 'Insights, strategies, and guides for the new era of Answer Engine Optimization.',
+    blogReadArticle: 'Read Article',
+    blogCategories: 'Categories',
+    blogAllCategories: 'All',
+    blogSearchPlaceholder: 'Search articles...',
+    blogTutorial: 'Tutorial',
+    blogSEOGuide: 'SEO Guide',
+    blogTrends: 'Trends',
+    blogAEOStrategy: 'AEO Strategy',
+    blogPublishedOn: 'Published on',
+    blogBackToBlog: 'Back to Blog',
+    blogReadyToOptimize: 'Ready to optimize your brand?',
+    blogStartOptimizing: 'Start dominating your AI engine visibility today.',
+    blogGetStartedFree: 'Get Started Free',
+    blogLatestPosts: 'Latest Articles',
+    blogNoResults: 'No articles found.',
+    blogMinRead: 'min read',
+    blogFeatured: 'Featured',
+    blogTableOfContents: 'Contents',
+    blogShareArticle: 'Share',
+    blogRelatedPosts: 'Related Articles',
   },
 } as const
 
