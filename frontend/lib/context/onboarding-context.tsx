@@ -41,6 +41,7 @@ export interface Competitor {
     domain: string
     logo?: string
     sources?: ('llm_knowledge' | 'web_search' | 'manual' | 'analysis' | 'openai' | 'firecrawl' | 'gemini' | 'google' | 'claude' | 'anthropic' | 'perplexity')[]
+    source?: string  // Single source for API submission
     confidence?: 'high' | 'medium' | 'low'
 }
 

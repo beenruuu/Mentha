@@ -155,51 +155,70 @@ class AnalysisResultsIngestionService:
         log_success("🔑✅", f"Hydrated {created} keywords for user {user_id}")
 
     async def _ingest_competitors(self, analysis: Analysis, competitors: Optional[List[Dict[str, Any]]]) -> None:
+        """
+        Ingest competitors - ADD new ones without deleting existing.
+        Returns list of newly discovered competitors for notifications.
+        """
         if not competitors or not analysis.brand_id:
             return
 
         user_id = str(analysis.user_id)
         brand_id = str(analysis.brand_id)
 
+        # Get existing competitors to avoid duplicates
+        existing_competitors = []
         try:
-            self.competitor_db.supabase.table("competitors").delete().eq("brand_id", brand_id).execute()
-        except Exception as delete_error:
-            log_error("🏢❌", f"Failed to clean previous competitors: {delete_error}")
+            result = self.competitor_db.supabase.table("competitors").select("domain").eq("brand_id", brand_id).execute()
+            existing_competitors = [c["domain"].lower().replace("www.", "") for c in result.data if c.get("domain")]
+        except Exception as e:
+            log_error("🏢❌", f"Failed to fetch existing competitors: {e}")
 
         created = 0
+        new_competitor_names = []
+        
         for item in competitors:
             name = (item.get("name") or "").strip()
             domain = (item.get("domain") or "").strip()
             if not name or not domain:
                 continue
 
+            # Normalize domain for comparison
+            clean_domain = domain.lower().replace("www.", "")
+            if clean_domain.startswith('http'):
+                from urllib.parse import urlparse
+                clean_domain = urlparse(clean_domain).netloc.replace("www.", "")
+            
+            # Skip if already exists
+            if clean_domain in existing_competitors:
+                continue
+
             # Generate favicon URL if not provided
             favicon = item.get("favicon") or ""
             if not favicon and domain:
-                clean_domain = domain.lower().strip()
-                if clean_domain.startswith('http'):
-                    from urllib.parse import urlparse
-                    clean_domain = urlparse(clean_domain).netloc
-                if clean_domain.startswith('www.'):
-                    clean_domain = clean_domain[4:]
                 favicon = f"https://www.google.com/s2/favicons?domain={clean_domain}&sz=64"
 
             payload = {
                 "user_id": user_id,
                 "brand_id": brand_id,
                 "name": name,
-                "domain": domain,
+                "domain": clean_domain,
                 "visibility_score": self._to_float(item.get("visibility_score")),
                 "tracked": item.get("tracked", True),
                 "favicon": favicon,
-                "insight": (item.get("insight") or "")[:500],  # Limit insight length
+                "source": item.get("source", "discovered"),  # Mark as discovered vs onboarding
+                "insight": (item.get("insight") or "")[:500],
                 "created_at": datetime.utcnow().isoformat() + "Z",
                 "updated_at": datetime.utcnow().isoformat() + "Z",
             }
             await self.competitor_db.create(payload)
             created += 1
+            new_competitor_names.append(name)
+            existing_competitors.append(clean_domain)  # Add to list to avoid duplicates in same batch
 
-        log_success("🏢✅", f"Hydrated {created} competitors for brand {brand_id}")
+        if created > 0:
+            log_success("🏢✅", f"Added {created} NEW competitors for brand {brand_id}: {', '.join(new_competitor_names)}")
+        else:
+            log_info("🏢", f"No new competitors to add for brand {brand_id}")
 
     async def _ingest_crawlers(self, analysis: Analysis, crawlers: Optional[List[Dict[str, Any]]]) -> None:
         if not crawlers or not analysis.brand_id:

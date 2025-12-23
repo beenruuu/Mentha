@@ -10,6 +10,10 @@ export interface Brand {
   ai_providers?: string[];
   services?: string[];
   created_at: string;
+  // Geographic scope fields
+  business_scope?: 'local' | 'regional' | 'national' | 'international';
+  city?: string;
+  location?: string;
 }
 
 export interface CreateBrandData {
@@ -20,6 +24,10 @@ export interface CreateBrandData {
   ai_providers?: string[];
   services?: string[];
   discovery_prompts?: string[];
+  // Geographic scope fields
+  business_scope?: 'local' | 'regional' | 'national' | 'international';
+  city?: string;
+  location?: string;
 }
 
 export const brandsService = {

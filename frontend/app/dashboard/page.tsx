@@ -39,6 +39,7 @@ import { DateRangePicker } from "@/components/ui/date-range-picker"
 import { InsightsCard } from "@/components/dashboard/InsightsCard"
 import { LanguageComparisonCard } from "@/components/dashboard/LanguageComparisonCard"
 import { RegionalComparisonCard } from "@/components/dashboard/RegionalComparisonCard"
+import { LocalMarketCard } from "@/components/dashboard/LocalMarketCard"
 import { subDays, isAfter, startOfDay, format } from "date-fns"
 import { DateRange } from "react-day-picker"
 import {
@@ -52,6 +53,7 @@ const AI_PROVIDER_META = [
   { id: 'claude', name: 'Claude', icon: '/providers/claude-color.svg?v=3', color: '#da7756' },
   { id: 'perplexity', name: 'Perplexity', icon: '/providers/perplexity-color.svg?v=3', color: '#3b82f6' },
   { id: 'gemini', name: 'Gemini', icon: '/providers/gemini-color.svg?v=3', color: '#4b5563' },
+  { id: 'google', name: 'Google Search', icon: '/providers/google.svg?v=3', color: '#ea4335' },
 ] as const
 
 const MODEL_ID_MAP: Record<string, string> = {
@@ -59,6 +61,7 @@ const MODEL_ID_MAP: Record<string, string> = {
   'anthropic': 'claude',
   'perplexity': 'perplexity',
   'gemini': 'gemini',  // Keep gemini as gemini for Gemini AI
+  'google_search': 'google'  // Map google_search to google for Google Search
 }
 
 export default function DashboardPage() {
@@ -205,10 +208,6 @@ export default function DashboardPage() {
           setSelectedBrand(brand)
           // Initial fetch with default 30 days
           await fetchDataForBrand(brand, 30)
-        } else {
-          // No brands found - redirect to onboarding
-          router.push('/onboarding')
-          return
         }
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err)
@@ -315,7 +314,7 @@ export default function DashboardPage() {
       <SidebarInset className="bg-[#FAFAFA] dark:bg-[#09090b] h-screen overflow-hidden flex flex-col">
 
         {/* Header sits on the "sidebar" background */}
-        <header className="flex items-center justify-between px-4 py-3 md:px-6 md:py-4 shrink-0">
+        <header className="flex items-center justify-between px-6 py-4 shrink-0">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{t.dashboardTitle}</h1>
             <SidebarTrigger className="-ml-1" />
@@ -331,7 +330,7 @@ export default function DashboardPage() {
                       onError={(e) => { e.currentTarget.style.display = 'none' }}
                     />
                   </div>
-                  <span className="hidden md:inline truncate max-w-[100px] lg:max-w-none">{selectedBrand.name}</span>
+                  {selectedBrand.name}
                   <ChevronDown className="w-4 h-4 text-muted-foreground" />
                 </button>
                 <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-zinc-900 border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
@@ -359,7 +358,7 @@ export default function DashboardPage() {
                       className="w-full flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors rounded-b-lg"
                     >
                       <Plus className="w-4 h-4" />
-                      {t.addBrand}
+                      Añadir marca
                     </button>
                   </div>
                 </div>
@@ -379,7 +378,7 @@ export default function DashboardPage() {
               <Link href={`/brand/${selectedBrand.id}`}>
                 <Button variant="outline" size="sm" className="gap-2 text-xs">
                   <Building2 className="h-3.5 w-3.5" />
-                  <span className="hidden md:inline">{t.viewDetails}</span>
+                  {t.viewDetails}
                 </Button>
               </Link>
             )}
@@ -394,8 +393,8 @@ export default function DashboardPage() {
             {/* Top Section: Metrics & Chart */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
 
-              {/* Left Column: Main Chart & Metrics */}
-              <div className="lg:col-span-8 space-y-4 min-w-0">
+              {/* Left Column: Metrics & Chart (8 cols) */}
+              <div className="lg:col-span-8 space-y-3">
 
                 {/* Metrics Tabs */}
                 <div className="flex items-center gap-2 border-b border-gray-100 dark:border-[#1A1A20] pb-1">
@@ -434,10 +433,23 @@ export default function DashboardPage() {
                 {/* Main Chart Area */}
                 <div className="w-full">
                   <div className="mb-4">
-                    <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                          {activeMetric === 'rank' && `${currentRank}/100`}
+                          {activeMetric === 'position' && `#${currentPosition}`}
+                          {activeMetric === 'inclusion' && `${currentInclusion}%`}
+                        </div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {activeMetric === 'rank' && t.dashboardOverallVisibility}
+                          {activeMetric === 'position' && t.dashboardAvgPositionDesc}
+                          {activeMetric === 'inclusion' && t.dashboardInclusionRateDesc}
+                        </p>
+                      </div>
+
                       {/* Model Breakdown - Main Chart Header */}
                       {activeMetric === 'rank' && Object.keys(modelPerformance).length > 0 && (
-                        <div className="flex items-center gap-3 flex-wrap order-first md:order-last">
+                        <div className="flex items-center gap-3 mb-1">
                           {AI_PROVIDER_META.map((provider) => {
                             const score = modelPerformance[provider.id]
                             if (score === undefined) return null
@@ -464,23 +476,10 @@ export default function DashboardPage() {
                           })}
                         </div>
                       )}
-
-                      <div>
-                        <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                          {activeMetric === 'rank' && `${currentRank}/100`}
-                          {activeMetric === 'position' && `#${currentPosition}`}
-                          {activeMetric === 'inclusion' && `${currentInclusion}%`}
-                        </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {activeMetric === 'rank' && t.dashboardOverallVisibility}
-                          {activeMetric === 'position' && t.dashboardAvgPositionDesc}
-                          {activeMetric === 'inclusion' && t.dashboardInclusionRateDesc}
-                        </p>
-                      </div>
                     </div>
                   </div>
 
-                  <div className="h-[280px] w-full overflow-hidden">
+                  <div className="h-[280px]">
                     {chartData.length > 0 ? (
                       <ResponsiveContainer width="100%" height="100%">
                         <AreaChart data={chartData} margin={{ top: 10, right: 0, bottom: 0, left: -20 }}>
@@ -551,12 +550,27 @@ export default function DashboardPage() {
                   <InsightsCard brandId={selectedBrand.id} />
                 )}
 
-                {/* Language & Regional in 2-col grid */}
-                {selectedBrand && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Language & Regional comparison - Only for truly international businesses */}
+                {selectedBrand && selectedBrand.business_scope === 'international' && (
+                  <div className="grid grid-cols-2 gap-6">
                     <LanguageComparisonCard brandId={selectedBrand.id} />
                     <RegionalComparisonCard brandId={selectedBrand.id} />
                   </div>
+                )}
+                
+                {/* For local, regional, and national businesses - show market dominance card */}
+                {selectedBrand && (
+                  selectedBrand.business_scope === 'local' || 
+                  selectedBrand.business_scope === 'regional' || 
+                  selectedBrand.business_scope === 'national' ||
+                  !selectedBrand.business_scope
+                ) && (
+                  <LocalMarketCard 
+                    brandId={selectedBrand.id} 
+                    city={selectedBrand.city}
+                    location={selectedBrand.location}
+                    scope={selectedBrand.business_scope || 'national'}
+                  />
                 )}
 
 
@@ -580,19 +594,17 @@ export default function DashboardPage() {
 
               {/* Competition Performance */}
               <div className="lg:col-span-2 space-y-4">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2 flex-wrap">
-                  <span className="flex items-center gap-2">
-                    {t.dashboardCompetitionPerformance}
-                    <TooltipUI>
-                      <TooltipTrigger asChild>
-                        <Info className="w-3.5 h-3.5 cursor-help opacity-70 hover:opacity-100 transition-opacity" />
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-[200px]">
-                        {t.dashboardCompetitionPerformanceTooltip}
-                      </TooltipContent>
-                    </TooltipUI>
-                  </span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 whitespace-nowrap">{t.dashboardLive}</span>
+                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-2">
+                  {t.dashboardCompetitionPerformance}
+                  <TooltipUI>
+                    <TooltipTrigger asChild>
+                      <Info className="w-3.5 h-3.5 cursor-help opacity-70 hover:opacity-100 transition-opacity" />
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[200px]">
+                      {t.dashboardCompetitionPerformanceTooltip}
+                    </TooltipContent>
+                  </TooltipUI>
+                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">{t.dashboardLive}</span>
                 </h3>
                 <div className="space-y-3">
                   {competitors.slice(0, 5).map((comp) => (

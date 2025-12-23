@@ -184,14 +184,24 @@ class InsightsService:
     
     def _find_leading_model(self, snapshots: List[Dict]) -> Optional[Dict]:
         """Find the AI model with highest visibility score."""
-        # Get latest scores by model
+        # Get latest scores by model - only count models with actual scores > 0
         model_scores = {}
         for snap in snapshots:
             model = snap.get("ai_model", "unknown")
             score = snap.get("visibility_score", 0)
+            # Skip models with 0 or very low scores (no real data)
+            if score < 1:
+                continue
             # Only keep the latest (first in desc order)
             if model not in model_scores:
                 model_scores[model] = score
+        
+        if not model_scores:
+            return None
+        
+        # Filter out google_search (not a user-facing model)
+        valid_models = {"openai", "anthropic", "perplexity", "gemini"}
+        model_scores = {k: v for k, v in model_scores.items() if k in valid_models}
         
         if not model_scores:
             return None
@@ -200,13 +210,16 @@ class InsightsService:
         leading_model = max(model_scores, key=model_scores.get)
         leading_score = model_scores[leading_model]
         
+        # Only show if score is meaningful (> 5)
+        if leading_score < 5:
+            return None
+        
         # Map model names to display names
         model_display_names = {
             "openai": "ChatGPT",
             "anthropic": "Claude",
             "perplexity": "Perplexity",
-            "gemini": "Google Gemini",
-            "google_search": "Google Search"
+            "gemini": "Google Gemini"
         }
         
         display_name = model_display_names.get(leading_model, leading_model)
@@ -453,9 +466,8 @@ class InsightsService:
         """
         Get visibility comparison by region/country.
         
-        Aggregates visibility scores grouped by region.
-        For now, we infer region from language as a proxy.
-        Future: Add explicit region field to snapshots.
+        For local/regional businesses, returns only the primary location.
+        For national/international, aggregates from actual location data in snapshots.
         """
         try:
             from supabase import create_client
@@ -463,37 +475,64 @@ class InsightsService:
             
             supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
             
+            # First, get the brand's business_scope and location
+            brand_response = supabase.table("brands") \
+                .select("business_scope, location, city") \
+                .eq("id", brand_id) \
+                .single() \
+                .execute()
+            
+            brand_data = brand_response.data or {}
+            business_scope = brand_data.get("business_scope", "national")
+            brand_location = brand_data.get("location", "ES")
+            brand_city = brand_data.get("city", "")
+            
             cutoff_date = (datetime.utcnow() - timedelta(days=days)).isoformat()
             
             snapshots_response = supabase.table("ai_visibility_snapshots") \
-                .select("language, visibility_score, mention_count") \
+                .select("language, visibility_score, mention_count, location") \
                 .eq("brand_id", brand_id) \
                 .gte("measured_at", cutoff_date) \
                 .execute()
             
             snapshots = snapshots_response.data or []
             
-            # Language to primary region mapping
+            # For local/regional businesses, only show their primary market
+            if business_scope in ["local", "regional"]:
+                # Calculate average score from all snapshots (they should all be for the same location)
+                all_scores = [snap.get("visibility_score", 0) or 0 for snap in snapshots]
+                avg_score = sum(all_scores) / len(all_scores) if all_scores else 0
+                total_mentions = sum(snap.get("mention_count", 0) or 0 for snap in snapshots)
+                
+                region_label = brand_location
+                if business_scope == "local" and brand_city:
+                    region_label = f"{brand_city} ({brand_location})"
+                
+                return {
+                    "brand_id": brand_id,
+                    "business_scope": business_scope,
+                    "regions": [{
+                        "region": region_label,
+                        "score": round(avg_score, 1),
+                        "mention_count": total_mentions
+                    }],
+                    "primary_region": brand_location,
+                    "generated_at": datetime.utcnow().isoformat() + "Z",
+                    "message": "Negocio local/regional - solo se mide tu mercado principal"
+                }
+            
+            # For national/international businesses, aggregate by location
+            # Use location field if available, otherwise infer from language
             LANG_TO_REGION = {
-                "es": "ES",
-                "en": "US",
-                "fr": "FR",
-                "de": "DE",
-                "it": "IT",
-                "pt": "PT",
-                "nl": "NL",
-                "pl": "PL",
-                "ru": "RU",
-                "ja": "JP",
-                "ko": "KR",
-                "zh": "CN",
+                "es": "ES", "en": "US", "fr": "FR", "de": "DE",
+                "it": "IT", "pt": "PT", "nl": "NL", "pl": "PL",
+                "ru": "RU", "ja": "JP", "ko": "KR", "zh": "CN",
             }
             
-            # Aggregate by region
             region_data: Dict[str, Dict[str, Any]] = {}
             for snap in snapshots:
-                lang = snap.get("language", "en") or "en"
-                region = LANG_TO_REGION.get(lang, "US")
+                # Prefer explicit location field, fallback to language inference
+                region = snap.get("location") or LANG_TO_REGION.get(snap.get("language", "en"), "US")
                 score = snap.get("visibility_score", 0) or 0
                 mentions = snap.get("mention_count", 0) or 0
                 
@@ -514,10 +553,11 @@ class InsightsService:
                 })
             
             # Determine primary region (highest score)
-            primary = max(regions, key=lambda x: x["score"])["region"] if regions else "US"
+            primary = max(regions, key=lambda x: x["score"])["region"] if regions else brand_location
             
             return {
                 "brand_id": brand_id,
+                "business_scope": business_scope,
                 "regions": regions,
                 "primary_region": primary,
                 "generated_at": datetime.utcnow().isoformat() + "Z"
@@ -685,6 +725,109 @@ class InsightsService:
                 "rank": 0,
                 "total_brands": 0,
                 "top_performers": [],
+                "generated_at": datetime.utcnow().isoformat() + "Z",
+                "error": str(e)
+            }
+
+    async def get_local_market_insights(self, brand_id: str, days: int = 30) -> Dict[str, Any]:
+        """
+        Get local market dominance insights for local/regional businesses.
+        
+        This is a professional alternative to language/region comparison
+        for businesses that operate in a specific local market.
+        
+        Returns:
+        - market_dominance: Brand's visibility score relative to local competitors
+        - local_mentions: Number of times brand mentioned in local context
+        - competitor_count: Number of tracked competitors
+        - top_queries: Most common local search queries where brand appears
+        """
+        try:
+            from supabase import create_client
+            from app.core.config import settings
+            
+            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+            
+            # Get brand details
+            brand_response = supabase.table("brands") \
+                .select("business_scope, location, city, name") \
+                .eq("id", brand_id) \
+                .single() \
+                .execute()
+            
+            brand_data = brand_response.data or {}
+            brand_location = brand_data.get("location", "ES")
+            brand_city = brand_data.get("city", "")
+            brand_name = brand_data.get("name", "")
+            
+            cutoff_date = (datetime.utcnow() - timedelta(days=days)).isoformat()
+            
+            # Get visibility snapshots
+            snapshots_response = supabase.table("ai_visibility_snapshots") \
+                .select("visibility_score, mention_count, metadata") \
+                .eq("brand_id", brand_id) \
+                .gte("measured_at", cutoff_date) \
+                .execute()
+            
+            snapshots = snapshots_response.data or []
+            
+            # Calculate market dominance (average visibility score)
+            scores = [s.get("visibility_score", 0) or 0 for s in snapshots]
+            market_dominance = round(sum(scores) / len(scores), 1) if scores else 0
+            
+            # Count total mentions
+            local_mentions = sum(s.get("mention_count", 0) or 0 for s in snapshots)
+            
+            # Get competitor count
+            competitors_response = supabase.table("competitors") \
+                .select("id") \
+                .eq("brand_id", brand_id) \
+                .execute()
+            
+            competitor_count = len(competitors_response.data or [])
+            
+            # Extract top queries from metadata
+            top_queries = []
+            for snap in snapshots:
+                metadata = snap.get("metadata", {}) or {}
+                if isinstance(metadata, dict):
+                    snippets = metadata.get("context_snippets", [])
+                    for snippet in snippets[:2]:
+                        if snippet and len(snippet) < 100:
+                            top_queries.append(snippet[:50])
+            
+            # Deduplicate and limit
+            top_queries = list(set(top_queries))[:5]
+            
+            # Generate local-specific queries based on city/location
+            if not top_queries and brand_city:
+                top_queries = [
+                    f"mejor {brand_data.get('industry', 'servicio')} en {brand_city}",
+                    f"{brand_data.get('industry', 'empresas')} {brand_city}",
+                    f"recomendación {brand_data.get('industry', '')} {brand_city}"
+                ]
+            
+            return {
+                "brand_id": brand_id,
+                "market_dominance": market_dominance,
+                "local_mentions": local_mentions,
+                "competitor_count": competitor_count,
+                "top_queries": top_queries[:3],
+                "location": brand_location,
+                "city": brand_city,
+                "generated_at": datetime.utcnow().isoformat() + "Z"
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get local market insights for brand {brand_id}: {e}")
+            return {
+                "brand_id": brand_id,
+                "market_dominance": 0,
+                "local_mentions": 0,
+                "competitor_count": 0,
+                "top_queries": [],
+                "location": "ES",
+                "city": "",
                 "generated_at": datetime.utcnow().isoformat() + "Z",
                 "error": str(e)
             }

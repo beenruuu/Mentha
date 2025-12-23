@@ -122,11 +122,39 @@ class AnalysisService:
             # --- PHASE 2: REAL DATA ACQUISITION ---
             log_phase(2, "Real Data Acquisition")
             
-            # Run data gathering in parallel
-            # 1. Web Search (Competitors & Context) - Pass entity_type for smart filtering
             user_country = data.get("user_country", "ES")
             preferred_language = data.get("preferred_language", "es")
             
+            # Fetch existing competitors from DB (from onboarding + previous analyses)
+            existing_competitors = []
+            existing_competitor_objects = []
+            if analysis.brand_id:
+                comps = await self.competitor_db.list(filters={"brand_id": str(analysis.brand_id)})
+                existing_competitors = [c.name for c in comps]
+                existing_competitor_objects = [{"name": c.name, "domain": c.domain} for c in comps]
+                log_info("🏢", f"Found {len(existing_competitors)} existing competitors")
+            
+            # Use Firecrawl to get deeper context from the website
+            site_context = ""
+            try:
+                from app.services.firecrawl_service import FirecrawlService
+                firecrawl = FirecrawlService()
+                if firecrawl.api_key:
+                    log_info("🔥", "Crawling website for context...")
+                    # Map the site to get important URLs
+                    site_urls = await firecrawl.map_site(brand_url, limit=10, search="about services products")
+                    if site_urls:
+                        log_info("🗺️", f"Found {len(site_urls)} pages to analyze")
+                        # Scrape key pages for context
+                        for url in site_urls[:5]:  # Limit to 5 pages
+                            scrape_result = await firecrawl.scrape_url(url, formats=["markdown"])
+                            if scrape_result.get("success") and scrape_result.get("markdown"):
+                                site_context += f"\n\n--- Page: {url} ---\n{scrape_result['markdown'][:2000]}"
+                    await firecrawl.close()
+            except Exception as fc_err:
+                log_warning("🔥", f"Firecrawl context gathering failed: {fc_err}")
+            
+            # Search for competitors using web search + AI context
             search_task = self.web_search_service.get_search_context(
                 brand_name=brand_name,
                 domain=brand_url,
@@ -137,24 +165,19 @@ class AnalysisService:
                 language=preferred_language
             )
             
-            # 2. Technical Audit (integrated with content analysis below)
-            # No separate technical_aeo_service - using content_structure_service
-            
-            # Fetch existing competitors to check for Share of Model
-            existing_competitors = []
-            if analysis.brand_id:
-                comps = await self.competitor_db.list(filters={"brand_id": str(analysis.brand_id)})
-                existing_competitors = [c.name for c in comps]
-            
-            # 3. AI Visibility (Real API checks) - Use discovery prompts from onboarding
-            # Discovery prompts are used as additional queries for visibility measurement
+            # AI Visibility (Real API checks) - Use discovery prompts from onboarding
+            # Pass business_scope info for geo-aware visibility measurement
+            location = brand.get("location", user_country)
             visibility_task = self.ai_visibility_service.measure_visibility(
                 brand_name=brand_name,
                 domain=brand_url,
                 industry=industry,
-                keywords=discovery_prompts[:5] if discovery_prompts else None,  # Use prompts as keywords
+                keywords=discovery_prompts[:5] if discovery_prompts else None,
                 competitors=existing_competitors,
-                language=preferred_language
+                language=preferred_language,
+                business_scope=business_scope,
+                city=city,
+                location=location
             )
             
             content_task = self.content_structure_service.analyze_content_structure(url=brand_url)
@@ -181,17 +204,17 @@ class AnalysisService:
             # Collect context snippets from visibility data and search context
             context_snippets = []
             
-            # 1. From AI Visibility
+            # From AI Visibility
             if visibility_data.get("models"):
                 for model_data in visibility_data["models"].values():
                     if model_data.get("context_snippets"):
                         context_snippets.extend(model_data["context_snippets"])
             
-            # 2. From Search Context (descriptions/snippets)
+            # From search context
             if search_context.get("competitor_results"):
                 for result in search_context["competitor_results"]:
-                    if result.get("description"):
-                        context_snippets.append(result["description"])
+                    if result.get("snippet"):
+                        context_snippets.append(result["snippet"])
             
             # Run Sentiment Analysis
             sentiment_analysis = await self.sentiment_service.analyze_sentiment(
@@ -204,10 +227,9 @@ class AnalysisService:
             if analysis.brand_id:
                 await self.sentiment_service._persist_sentiment_analysis(str(analysis.brand_id), sentiment_analysis)
             
-            # 4. Keyword Metrics (Dependent on search context keywords)
-            # Extract initial keywords from search context + business info + discovery prompts
+            # 4. Keyword Metrics
+            # Extract initial keywords from business info + discovery prompts + search results
             initial_keywords = [brand_name] + business_info.get('services', [])
-            # Add discovery prompts from onboarding as keywords
             if discovery_prompts:
                 initial_keywords.extend(discovery_prompts[:5])
             if search_context.get('keyword_results'):
@@ -218,13 +240,27 @@ class AnalysisService:
                 list(set(initial_keywords))[:10], # Limit to top 10 unique
                 language=preferred_language
             )
+            
+            # Detect NEW competitors (not in existing list)
+            new_competitors = []
+            existing_domains = {c["domain"].lower().replace("www.", "") for c in existing_competitor_objects}
+            for comp in search_context.get('competitor_results', []):
+                comp_domain = (comp.get('domain') or '').lower().replace("www.", "")
+                if comp_domain and comp_domain not in existing_domains:
+                    new_competitors.append(comp)
+                    existing_domains.add(comp_domain)
+            
+            if new_competitors:
+                log_info("🆕", f"Discovered {len(new_competitors)} new competitors")
 
             # --- PHASE 3: RESULT ASSEMBLY ---
             log_phase(3, "Result Assembly")
             log_info("📦", "Constructing result object...")
             
             visual_suggestions = []
-
+            
+            # Combine existing + new competitors
+            all_competitors = existing_competitor_objects + new_competitors
             
             # Construct the deterministic result object
             results = {
@@ -236,15 +272,13 @@ class AnalysisService:
                 
                 # Real Metrics
                 "score": technical_data.get('aeo_readiness_score', 0),
-                "visibility_findings": visibility_data, # Contains real visibility score
-                "competitors": search_context.get('competitor_results', []), # Real competitors from search
-                "keywords": keywords_data, # Real keyword metrics
+                "visibility_findings": visibility_data,
+                "competitors": new_competitors,  # Only new ones for ingestion (existing already in DB)
+                "keywords": keywords_data,
                 "technical_audit": technical_data,
                 "content_analysis": content_data,
                 "knowledge_graph": kg_data,
                 "visual_suggestions": visual_suggestions,
-                "visual_suggestions": visual_suggestions,
-                "authority_nexus": await self._calculate_authority_nexus(brand_name, brand_url, search_context),
                 "sentiment_analysis": sentiment_analysis,
                 
                 "notifications": [],
@@ -258,22 +292,15 @@ class AnalysisService:
                 "voice_search_readiness": "Analyzing..."
             }
             
-            # --- DETECT NEW COMPETITORS ---
-            new_competitors_found = []
-            if existing_competitors:
-                existing_names_set = {n.lower() for n in existing_competitors}
-                
-                for comp in search_context.get('competitor_results', []):
-                    comp_name = comp.get('name', '').strip()
-                    if comp_name and comp_name.lower() not in existing_names_set:
-                        new_competitors_found.append(comp_name)
-            
-            if new_competitors_found:
+            # --- ADD NOTABLE CHANGE: New competitors detected ---
+            if new_competitors:
+                new_names = [c.get('name', c.get('domain', 'Unknown')) for c in new_competitors[:5]]
                 results["notifications"].append({
                     "title": "Nuevos Competidores Detectados",
-                    "message": f"Se han detectado {len(new_competitors_found)} nuevos competidores: {', '.join(new_competitors_found[:3])}{'...' if len(new_competitors_found) > 3 else ''}.",
-                    "type": "system",
-                    "severity": "info"
+                    "message": f"Se han detectado {len(new_competitors)} nuevos competidores: {', '.join(new_names)}{'...' if len(new_competitors) > 5 else ''}.",
+                    "type": "competitor_discovered",
+                    "severity": "info",
+                    "data": {"count": len(new_competitors), "names": new_names}
                 })
             
             # --- PHASE 4: SYNTHESIS ---
@@ -360,11 +387,22 @@ class AnalysisService:
                 except Exception as brand_update_error:
                     log_error("❌", f"Failed to update Brand info: {brand_update_error}")
             
-            # 7c. Update Competitor Visibility Scores
+            # 7c. Persist visibility snapshots for dashboard charts
+            if visibility_data and visibility_data.get("models") and analysis.brand_id:
+                log_info("📊", "Persisting visibility snapshots...")
+                try:
+                    await self.ai_visibility_service.persist_visibility_snapshot(
+                        brand_id=str(analysis.brand_id),
+                        visibility_data=visibility_data
+                    )
+                except Exception as vis_err:
+                    log_error("❌", f"Failed to persist visibility snapshots: {vis_err}")
+            
+            # 7d. Update Competitor Visibility Scores
             log_info("📊", "Measuring competitor visibility...")
             await self._update_competitor_visibility(analysis, preferred_language)
             
-            # 7d. Update Keyword Visibility Scores
+            # 7e. Update Keyword Visibility Scores
             log_info("🔑", "Measuring keyword visibility...")
             await self._update_keyword_visibility(analysis, brand_name, brand_url, preferred_language)
 
@@ -810,43 +848,6 @@ OUTPUT JSON FORMAT:
             await self.recommendation_db.create(rec_data)
         except Exception as e:
             print(f"Failed to create recommendation: {e}")
-
-    async def _calculate_authority_nexus(self, brand_name: str, brand_url: str, search_context: Dict[str, Any] = None) -> Dict[str, Any]:
-        """
-        Calculate authority nexus data including score and citations.
-        """
-        # Extract known URLs from search context to help citation service
-        known_urls = []
-        if search_context and search_context.get("competitor_results"):
-            # Check if any "competitor" result is actually an authority profile for our brand
-            # This happens often (e.g. LinkedIn profile showing up in search)
-            for res in search_context["competitor_results"]:
-                if isinstance(res, dict) and res.get("url"):
-                    known_urls.append(res["url"])
-                    
-        citations = await self.citation_service.check_authority_sources(brand_name, brand_url, known_urls)
-        
-        # Calculate authority score based on citations
-        score = 0
-        total_weight = 0
-        
-        for citation in citations:
-            if citation["status"] == "present":
-                weight = citation["authority"] / 100.0
-                score += citation["authority"] * weight
-                total_weight += weight
-                
-        if total_weight > 0:
-            score = round(score / total_weight)
-        
-        # Normalize score to 0-100 scale more generously
-        # Having 2-3 high authority links should give a good score
-        final_score = min(score * 1.2, 100)
-            
-        return {
-            "citations": citations,
-            "score": round(final_score)
-        }
 
     async def _update_competitor_visibility(self, analysis: Analysis, preferred_language: str = "es") -> None:
         """

@@ -35,7 +35,7 @@ class WebSearchService:
         Infer business information from page content using LLM.
         
         Returns:
-            Dictionary with entity_type, industry, services, etc.
+            Dictionary with entity_type, industry, services, business_scope, etc.
         """
         # If no LLM service, return basic defaults
         if not self.llm_service:
@@ -49,21 +49,32 @@ class WebSearchService:
 URL: {url}
 Title: {page_title}
 Description: {page_description}
-Content Preview: {page_content[:2000] if page_content else 'N/A'}
+Content Preview: {page_content[:3000] if page_content else 'N/A'}
 
 Extract and return a JSON object with:
 - entity_type: "business" | "media" | "ecommerce" | "saas" | "agency" | "nonprofit" | "government" | "personal"
-- industry: The industry/sector (e.g., "Technology", "Healthcare", "Finance", "Marketing")
+- industry: The main industry/sector (e.g., "Technology", "Healthcare", "Finance", "Marketing", "Legal", "Education")
+- industry_specific: More specific industry niche if applicable (e.g., "AI Software", "Family Law", "K-12 Education")
 - services: Array of 3-5 main services or products offered
+- company_type: "B2B" | "B2C" | "B2B2C" based on target audience
+- target_market: Primary country/region target (e.g., "Spain", "United States", "Latin America")
+- city: If the business mentions a specific city/location (empty if not mentioned)
+- business_scope: "local" | "regional" | "national" | "international" based on service area mentioned
 - target_audience: Brief description of target audience
 - unique_value: One sentence describing unique value proposition
+
+Analyze carefully:
+- If the page mentions serving only one city/location → business_scope = "local"
+- If multiple cities in one country/state → business_scope = "regional"
+- If entire country → business_scope = "national"
+- If multiple countries → business_scope = "international"
 
 Return ONLY valid JSON, no markdown or explanation."""
 
             response = await self.llm_service.generate_json(
                 prompt=prompt,
                 model="gpt-4o-mini",
-                max_tokens=500
+                max_tokens=600
             )
             
             if response and response.text:
@@ -73,7 +84,12 @@ Return ONLY valid JSON, no markdown or explanation."""
                     return {
                         "entity_type": data.get("entity_type", "business"),
                         "industry": data.get("industry", "Services"),
+                        "industry_specific": data.get("industry_specific", ""),
                         "services": data.get("services", []),
+                        "company_type": data.get("company_type", ""),
+                        "target_market": data.get("target_market", ""),
+                        "city": data.get("city", ""),
+                        "business_scope": data.get("business_scope", "national"),
                         "target_audience": data.get("target_audience", ""),
                         "unique_value": data.get("unique_value", "")
                     }

@@ -11,6 +11,7 @@ import asyncio
 import re
 from typing import Dict, Any, List, Optional
 from datetime import datetime
+import httpx
 
 from app.core.config import settings
 from app.services.ai_client_service import get_ai_client
@@ -98,7 +99,10 @@ class AIVisibilityService:
         keywords: List[str] = None,
         competitors: List[str] = None,
         num_queries: int = 3,
-        language: str = "en"
+        language: str = "en",
+        business_scope: str = "national",
+        city: str = "",
+        location: str = ""
     ) -> Dict[str, Any]:
         """
         Measure actual AI visibility for a brand across multiple models.
@@ -110,6 +114,10 @@ class AIVisibilityService:
             keywords: Related keywords to include in queries
             competitors: List of competitor names to check for
             num_queries: Number of test queries per model
+            language: Language for queries
+            business_scope: Geographic scope (local, regional, national, international)
+            city: City for local/regional businesses
+            location: Country code (ES, US, etc.)
             
         Returns:
             Dict with visibility scores and detailed findings
@@ -119,6 +127,9 @@ class AIVisibilityService:
             "domain": domain,
             "industry": industry,
             "language": language,
+            "business_scope": business_scope,
+            "city": city,
+            "location": location,
             "measured_at": datetime.utcnow().isoformat() + "Z",
             "models": {},
             "overall_score": 0,
@@ -128,8 +139,11 @@ class AIVisibilityService:
             "enabled": True
         }
         
-        # Generate test queries in the user's preferred language
-        test_queries = self._generate_test_queries(brand_name, industry, keywords, num_queries, language)
+        # Generate test queries in the user's preferred language, considering business scope
+        test_queries = self._generate_test_queries(
+            brand_name, industry, keywords, num_queries, language, 
+            business_scope, city, location
+        )
         
         # Query each available model
         tasks = []
@@ -231,9 +245,13 @@ class AIVisibilityService:
         industry: str,
         keywords: List[str] = None,
         num_queries: int = 3,
-        language: str = "en"
+        language: str = "en",
+        business_scope: str = "national",
+        city: str = "",
+        location: str = ""
     ) -> List[str]:
-        """Generate test queries for visibility measurement in the user's language."""
+        """Generate test queries for visibility measurement in the user's language, 
+        considering geographic scope."""
         queries = []
         
         # Get templates for the selected language, fallback to English
@@ -248,11 +266,37 @@ class AIVisibilityService:
             "it": "tecnologia"
         }.get(language, "technology")
         
+        # Map country codes to full names
+        country_names = {
+            "ES": {"en": "Spain", "es": "España"},
+            "US": {"en": "United States", "es": "Estados Unidos"},
+            "MX": {"en": "Mexico", "es": "México"},
+            "CO": {"en": "Colombia", "es": "Colombia"},
+            "AR": {"en": "Argentina", "es": "Argentina"},
+            "UK": {"en": "United Kingdom", "es": "Reino Unido"},
+            "FR": {"en": "France", "es": "Francia"},
+            "DE": {"en": "Germany", "es": "Alemania"},
+        }
+        country_name = country_names.get(location, {}).get(language, location)
+        
+        # Build location suffix based on business scope
+        location_suffix = ""
+        if business_scope == "local" and city:
+            location_suffix = f" en {city}" if language == "es" else f" in {city}"
+        elif business_scope == "regional" and city:
+            location_suffix = f" en la región de {city}" if language == "es" else f" in the {city} region"
+        elif business_scope == "national" and location:
+            location_suffix = f" en {country_name}" if language == "es" else f" in {country_name}"
+        # For international, no location suffix
+        
         for template in templates[:num_queries]:
             query = template.format(
                 brand_name=brand_name,
                 industry=industry or default_industry
             )
+            # Add location context for non-brand-specific queries
+            if "{brand_name}" not in template and location_suffix:
+                query = query.rstrip("?") + location_suffix + "?"
             queries.append(query)
         
         # Add keyword-based queries if provided (in the appropriate language)
@@ -267,7 +311,11 @@ class AIVisibilityService:
         
         if keywords:
             for kw in keywords[:2]:
-                queries.append(kw_template.format(kw=kw))
+                kw_query = kw_template.format(kw=kw)
+                # Add location for local/regional/national scopes
+                if location_suffix:
+                    kw_query = kw_query.rstrip("?") + location_suffix + "?"
+                queries.append(kw_query)
         
         return queries
     
@@ -743,6 +791,9 @@ class AIVisibilityService:
             overall_score = visibility_data.get("overall_score", 0)
             language = visibility_data.get("language", "es")
             sentiment = visibility_data.get("sentiment", "neutral")
+            # Extract location and business_scope from visibility data
+            location = visibility_data.get("location", "ES")
+            business_scope = visibility_data.get("business_scope", "national")
             
             snapshots_created = 0
             
@@ -771,6 +822,8 @@ class AIVisibilityService:
                     "query_count": model_data.get("responses_analyzed", 0),
                     "inclusion_rate": model_data.get("visibility_score", 0),  # Same as visibility for now
                     "language": language,
+                    "location": location,  # NEW: Store country/region code
+                    "business_scope": business_scope,  # NEW: Store business scope
                     "metadata": {
                         "context_snippets": model_data.get("context_snippets", [])[:3],
                         "competitor_mentions": model_data.get("competitor_mentions", {}),
@@ -793,6 +846,8 @@ class AIVisibilityService:
                     "mention_count": visibility_data.get("mention_count", 0),
                     "sentiment": sentiment,
                     "language": language,
+                    "location": location,
+                    "business_scope": business_scope,
                     "metadata": {"source": "overall_aggregate"}
                 }
                 supabase.table("ai_visibility_snapshots").insert(overall_snapshot).execute()

@@ -563,13 +563,44 @@ async def get_brand_visibility_data(
     limit: int = 30,
     current_user: UserProfile = Depends(get_current_user)
 ) -> Dict[str, Any]:
-    """Get AI visibility data for a brand."""
+    """Get AI visibility data for a brand.
+
+    IMPORTANT: The frontend expects provider IDs using the same naming
+    convention as the demo data (chatgpt/claude/perplexity/gemini).
+    Internally we store models as openai/anthropic/perplexity/gemini
+    in the database, so we normalize them here before returning.
+
+    This keeps the backend storage clean while aligning the response
+    contract with what the dashboard and optimization views already use.
+    """
     auth_service = get_auth_service()
     crud = get_geo_crud(auth_service.supabase)
     
+    # Mapping from internal model IDs (DB) to frontend IDs
+    model_mapping: Dict[str, str] = {
+        "openai": "chatgpt",
+        "anthropic": "claude",
+        "perplexity": "perplexity",
+        "gemini": "gemini",
+        # Keep google_search as-is for now; it's not part of the main
+        # dashboard provider set but we preserve it for completeness.
+        "google_search": "google",
+    }
+
     try:
-        history = await crud.get_visibility_history(str(brand_id), ai_model, limit)
-        latest = await crud.get_latest_visibility_scores(str(brand_id))
+        history_raw = await crud.get_visibility_history(str(brand_id), ai_model, limit)
+        latest_raw = await crud.get_latest_visibility_scores(str(brand_id))
+
+        # Apply model ID mapping so the frontend receives the same
+        # identifiers it uses in AI_PROVIDER_META and other views.
+        def _map_model_id(snapshot: Dict[str, Any]) -> Dict[str, Any]:
+            model_id = snapshot.get("ai_model")
+            if isinstance(model_id, str):
+                snapshot = {**snapshot, "ai_model": model_mapping.get(model_id, model_id)}
+            return snapshot
+
+        history = [_map_model_id(s) for s in (history_raw or [])]
+        latest = [_map_model_id(s) for s in (latest_raw or [])]
         
         return {
             "history": history,

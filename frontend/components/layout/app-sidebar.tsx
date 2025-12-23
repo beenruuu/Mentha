@@ -41,6 +41,7 @@ function BrandItem({ id, name, domain, onDeleted }: { id: string; name: string; 
       await brandsService.delete(id)
       onDeleted?.()
       router.push('/dashboard')
+      router.refresh() // Force refresh to reload brands data
     } catch (error) {
       console.error('Failed to delete brand:', error)
       setIsDeleting(false)

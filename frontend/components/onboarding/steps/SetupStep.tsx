@@ -300,15 +300,21 @@ export default function SetupStep() {
                     .filter((m: { enabled: boolean }) => m.enabled)
                     .map((m: { modelId: string }) => m.modelId)
 
+                // Also get the active days for analysis schedule
+                const activeDays = scheduleConfig?.activeDays || ['L', 'M', 'X', 'J', 'V']
+
                 if (selectedProviders.length > 0) {
                     try {
                         await fetchAPI(`/brands/${resolvedBrandId}`, {
                             method: 'PUT',
                             body: JSON.stringify({
                                 ai_providers: selectedProviders,
+                                analysis_schedule: activeDays,
                             })
                         })
-                        addLog(lang === 'es' ? `✅ ${selectedProviders.length} modelos habilitados` : `✅ ${selectedProviders.length} models enabled`)
+                        addLog(lang === 'es' 
+                            ? `✅ ${selectedProviders.length} modelos habilitados (${activeDays.length} días/semana)` 
+                            : `✅ ${selectedProviders.length} models enabled (${activeDays.length} days/week)`)
                     } catch (modelErr: any) {
                         console.warn('Failed to save AI providers:', modelErr)
                         addLog(lang === 'es' ? '⚠️  Error configurando modelos (continuando...)' : '⚠️  Error configuring models (continuing...)')

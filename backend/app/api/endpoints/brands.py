@@ -44,6 +44,7 @@ async def create_brand(
     # Create brand data
     data = brand.model_dump(exclude_unset=True)
     data["user_id"] = current_user.id
+    
     created_brand = await service.create(data)
 
     # Note: Analysis is NOT triggered here anymore.

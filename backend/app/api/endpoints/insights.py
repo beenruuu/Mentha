@@ -64,3 +64,22 @@ async def get_regional_comparison(
     """
     service = get_insights_service()
     return await service.get_regional_comparison(brand_id, days)
+
+
+@router.get("/{brand_id}/local-market")
+async def get_local_market_insights(
+    brand_id: str,
+    days: int = 30,
+    user_id: str = Depends(get_current_user_id)
+) -> Dict[str, Any]:
+    """
+    Get local market dominance insights for local/regional businesses.
+    
+    Returns:
+    - Market dominance score (visibility vs local competitors)
+    - Local mention count
+    - Competitor count in the market
+    - Top local search queries
+    """
+    service = get_insights_service()
+    return await service.get_local_market_insights(brand_id, days)

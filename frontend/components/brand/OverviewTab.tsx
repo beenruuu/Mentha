@@ -74,21 +74,36 @@ export function OverviewTab({
         ? Math.round((Object.values(visibility.models).filter((m: any) => m.sentiment === 'positive').length / Object.values(visibility.models).length) * 100)
         : 0
 
-    // Generate dynamic visibility summary
+    // Generate dynamic visibility summary - only from real data (scores > 0)
     const getVisibilitySummary = () => {
         if (!visibility?.models || Object.keys(visibility.models).length === 0) {
             return { level: 'Sin datos', bestModel: null, worstModel: null }
         }
         
+        // Filter to only models with actual data (score > 0)
         const modelEntries = Object.entries(visibility.models) as [string, any][]
-        const sorted = modelEntries.sort((a, b) => (b[1].score || 0) - (a[1].score || 0))
+        const validModels = modelEntries.filter(([_, data]) => {
+            const score = data?.score || data?.visibility_score || 0
+            return score > 0
+        })
+        
+        if (validModels.length === 0) {
+            return { level: 'Sin datos', bestModel: null, worstModel: null }
+        }
+        
+        const sorted = validModels.sort((a, b) => {
+            const scoreA = a[1]?.score || a[1]?.visibility_score || 0
+            const scoreB = b[1]?.score || b[1]?.visibility_score || 0
+            return scoreB - scoreA
+        })
         
         const best = sorted[0]
-        const worst = sorted[sorted.length - 1]
+        const worst = sorted.length > 1 ? sorted[sorted.length - 1] : null
         
         const level = overallScore >= 70 ? 'Alta' : overallScore >= 40 ? 'Media' : 'Baja'
         const levelColor = overallScore >= 70 ? 'text-emerald-600' : overallScore >= 40 ? 'text-amber-600' : 'text-red-600'
         
+        // Map model IDs to display names
         const modelNames: Record<string, string> = {
             openai: 'ChatGPT',
             anthropic: 'Claude',
@@ -96,11 +111,18 @@ export function OverviewTab({
             gemini: 'Gemini'
         }
         
+        const bestScore = best[1]?.score || best[1]?.visibility_score || 0
+        const worstScore = worst ? (worst[1]?.score || worst[1]?.visibility_score || 0) : 100
+        
         return {
             level,
             levelColor,
-            bestModel: best ? modelNames[best[0]] || best[0] : null,
-            worstModel: worst && worst[1].score < 50 ? modelNames[worst[0]] || worst[0] : null
+            // Only show best if score is meaningful (> 10)
+            bestModel: bestScore > 10 ? (modelNames[best[0]] || null) : null,
+            // Only show worst if different from best and score is low
+            worstModel: (worst && worst[0] !== best[0] && worstScore < 40) 
+                ? (modelNames[worst[0]] || null) 
+                : null
         }
     }
     const visibilitySummary = getVisibilitySummary()

@@ -156,7 +156,7 @@ export const demoAnalyses: Analysis[] = [
 // ============ VISIBILITY SNAPSHOTS (Historical data for charts) ============
 function generateVisibilityHistory(): VisibilitySnapshot[] {
     const snapshots: VisibilitySnapshot[] = []
-    // Include all 4 models: OpenAI, Anthropic, Perplexity, Gemini
+    // Demo mode includes all 4 models with fictional data
     const models: Array<'openai' | 'anthropic' | 'perplexity' | 'gemini'> = ['openai', 'anthropic', 'perplexity', 'gemini']
 
     // Generate 30 days of history for each model

@@ -9,6 +9,7 @@ export interface Competitor {
   visibility_score?: number;
   favicon?: string;
   tracked: boolean;
+  source?: string; // onboarding, discovered, manual
   metrics_breakdown?: Record<string, number>;
   created_at: string;
   updated_at: string;
@@ -20,6 +21,7 @@ export interface CreateCompetitorData {
   brand_id?: string;
   similarity_score?: number;
   tracked?: boolean;
+  source?: string;
 }
 
 export const competitorsService = {
