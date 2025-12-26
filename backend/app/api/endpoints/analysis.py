@@ -459,3 +459,103 @@ async def get_share_of_model(
         "share_of_voice": share_of_voice,
         "last_updated": analysis.completed_at
     }
+
+
+@router.post("/daily-audit")
+async def run_daily_audit(
+    background_tasks: BackgroundTasks,
+    service: SupabaseDatabaseService = Depends(get_analysis_service)
+):
+    """
+    Rastreo diario automático de todas las marcas.
+    
+    Este endpoint es llamado por el scheduler (start.py) a la hora configurada.
+    Ejecuta un análisis completo de:
+    - Todas las marcas registradas
+    - Sus competidores asignados
+    - Presencia en IAs (ChatGPT, Claude, Perplexity, Gemini)
+    
+    No requiere autenticación ya que es llamado internamente.
+    """
+    from datetime import datetime, timedelta
+    from app.models.brand import Brand
+    
+    brand_service = SupabaseDatabaseService("brands", Brand)
+    
+    # Obtener todas las marcas activas
+    all_brands = await brand_service.list()
+    
+    if not all_brands:
+        return {
+            "status": "skipped",
+            "message": "No hay marcas para analizar",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    
+    analyses_triggered = []
+    
+    for brand in all_brands:
+        # Verificar que no haya un análisis reciente (últimas 20 horas)
+        recent_analyses = await service.list(
+            filters={"brand_id": str(brand.id)},
+            order_by="created_at",
+            order_desc=True,
+            limit=1
+        )
+        
+        should_analyze = True
+        if recent_analyses:
+            last_analysis = recent_analyses[0]
+            if last_analysis.created_at:
+                hours_since_last = (datetime.utcnow() - last_analysis.created_at.replace(tzinfo=None)).total_seconds() / 3600
+                if hours_since_last < 20:
+                    should_analyze = False
+        
+        if should_analyze:
+            # Construir input_data desde la información de la marca
+            input_data = {
+                "brand": {
+                    "name": brand.name,
+                    "domain": brand.domain,
+                    "industry": brand.industry or "",
+                    "description": brand.description or "",
+                    "entity_type": brand.entity_type or "business",
+                    "business_scope": brand.business_scope or "national",
+                    "city": brand.city or "",
+                },
+                "objectives": {
+                    "key_terms": ", ".join(brand.services or []),
+                },
+                "discovery_prompts": brand.discovery_prompts or [],
+                "ai_providers": brand.ai_providers or ["chatgpt", "claude", "perplexity", "gemini"],
+                "preferred_language": "es",
+                "user_country": "ES",
+                "is_daily_audit": True,  # Flag para identificar análisis automáticos
+            }
+            
+            # Crear registro de análisis
+            data = {
+                "user_id": str(brand.user_id),
+                "brand_id": str(brand.id),
+                "status": AnalysisStatus.pending,
+                "analysis_type": AnalysisType.domain,
+                "input_data": input_data,
+            }
+            
+            try:
+                created_analysis = await service.create(data)
+                background_tasks.add_task(run_analysis_task, created_analysis.id)
+                analyses_triggered.append({
+                    "brand_id": str(brand.id),
+                    "brand_name": brand.name,
+                    "analysis_id": str(created_analysis.id)
+                })
+            except Exception as e:
+                print(f"Error triggering analysis for {brand.name}: {e}")
+    
+    return {
+        "status": "success",
+        "message": f"Análisis iniciado para {len(analyses_triggered)} marcas",
+        "analyses": analyses_triggered,
+        "timestamp": datetime.utcnow().isoformat()
+    }

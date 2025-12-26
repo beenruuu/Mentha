@@ -69,7 +69,10 @@ export function CommandPalette() {
     {
       name: t.cmdUpgrade,
       shortcut: "Ctrl+U",
-      action: () => router.push("/upgrade"),
+      action: () => {
+        // Dispatch global event to open upgrade modal
+        window.dispatchEvent(new CustomEvent('open-upgrade-modal'))
+      },
       icon: <Sparkles className="mr-2 h-4 w-4" />,
       section: t.cmdNavigation,
     },

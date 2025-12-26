@@ -1,3 +1,12 @@
+# Mentha - AI Brand Presence Platform
+# Docker Compose for Development
+#
+# Usage:
+#   docker-compose up        # Start all services
+#   docker-compose up -d     # Start in background
+#   docker-compose down      # Stop all services
+#   docker-compose logs -f   # View logs
+
 services:
   frontend:
     build:
@@ -13,11 +22,12 @@ services:
       - NEXT_PUBLIC_API_URL=http://localhost:8000
       - NEXT_PUBLIC_SUPABASE_URL=${SUPABASE_URL}
       - NEXT_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - NEXT_PUBLIC_DEMO_MODE_ENABLED=true
     depends_on:
       backend:
         condition: service_healthy
     networks:
-      - app-network
+      - mentha-network
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
       interval: 30s
@@ -36,23 +46,82 @@ services:
       - ENVIRONMENT=development
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      # AI Providers
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      # Vector DB (Optional)
       - QDRANT_URL=${QDRANT_URL}
       - QDRANT_API_KEY=${QDRANT_API_KEY}
-      - QDRANT_COLLECTION_NAME=${QDRANT_COLLECTION_NAME}
+      - QDRANT_COLLECTION_NAME=${QDRANT_COLLECTION_NAME:-mentha_embeddings}
+      # CORS
       - CORS_ORIGINS=http://localhost:3000,http://frontend:3000,http://127.0.0.1:3000
+      # Daily Audit Scheduler
+      - DAILY_ANALYSIS_HOUR=${DAILY_ANALYSIS_HOUR:-03}
+      - DAILY_ANALYSIS_MINUTE=${DAILY_ANALYSIS_MINUTE:-00}
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     networks:
-      - app-network
+      - mentha-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
 
+  # Scheduler for daily brand audits (optional - can also run via start.py)
+  scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend:/app
+    environment:
+      - ENVIRONMENT=development
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
+      - DAILY_ANALYSIS_HOUR=${DAILY_ANALYSIS_HOUR:-03}
+      - DAILY_ANALYSIS_MINUTE=${DAILY_ANALYSIS_MINUTE:-00}
+    command: python -c "
+      import schedule
+      import time
+      import requests
+      import os
+      
+      hour = os.getenv('DAILY_ANALYSIS_HOUR', '03')
+      minute = os.getenv('DAILY_ANALYSIS_MINUTE', '00')
+      schedule_time = f'{hour.zfill(2)}:{minute.zfill(2)}'
+      
+      def run_daily_audit():
+          print(f'Running daily audit...')
+          try:
+              response = requests.post('http://backend:8000/api/analysis/daily-audit', timeout=300)
+              print(f'Daily audit completed: {response.status_code}')
+          except Exception as e:
+              print(f'Daily audit error: {e}')
+      
+      schedule.every().day.at(schedule_time).do(run_daily_audit)
+      print(f'Scheduler started. Daily audit at {schedule_time}')
+      
+      while True:
+          schedule.run_pending()
+          time.sleep(60)
+      "
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - mentha-network
+    profiles:
+      - with-scheduler
+
 networks:
-  app-network:
+  mentha-network:
     driver: bridge

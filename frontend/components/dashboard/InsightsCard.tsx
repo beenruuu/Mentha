@@ -18,7 +18,7 @@ const AI_PROVIDERS = [
     { names: ['Gemini', 'Google AI'], icon: '/providers/gemini-color.svg?v=3', invert: false },
 ]
 
-interface Insight {
+interface InsightViewModel {
     type: string
     icon: string
     title: string
@@ -27,10 +27,10 @@ interface Insight {
     data?: Record<string, any>
 }
 
-interface InsightsData {
+interface InsightsViewModel {
     brand_id: string
     generated_at: string
-    insights: Insight[]
+    insights: InsightViewModel[]
 }
 
 interface InsightsCardProps {
@@ -39,13 +39,13 @@ interface InsightsCardProps {
 
 export function InsightsCard({ brandId }: InsightsCardProps) {
     const { t } = useTranslations()
-    const [insights, setInsights] = useState<InsightsData | null>(null)
+    const [insights, setInsights] = useState<InsightsViewModel | null>(null)
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
 
     // Function to render insight text with AI provider icons and highlighted numbers
     // isNegative determines if badges should be red (bad data) or green (good data)
-    const renderInsightWithIcons = (text: string, insight?: Insight) => {
+    const renderInsightWithIcons = (text: string, insight?: InsightViewModel) => {
         // Determine if this insight represents negative/bad data
         const isNegative = insight?.data ? (
             (insight.data.direction === 'down') ||
@@ -165,7 +165,7 @@ export function InsightsCard({ brandId }: InsightsCardProps) {
     }
 
     // Function to translate demo insights
-    const translateDemoInsights = (data: InsightsData): InsightsData => {
+    const translateDemoInsights = (data: InsightsViewModel): InsightsViewModel => {
         const translatedInsights = data.insights.map(insight => {
             let description = insight.description
 

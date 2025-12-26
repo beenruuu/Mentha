@@ -593,10 +593,17 @@ class AIVisibilityService:
         domain: str,
         industry: str
     ) -> Dict[str, Any]:
-        """Get baseline visibility from web search (free, no API key needed)."""
+        """Get baseline visibility from web search (free, no API key needed).
+
+        NOTE: This baseline signal is *internal only* and should NOT surface
+        as an extra model in the frontend (no fake Google/Gemini provider).
+        Downstream code must either skip or merge it into existing providers.
+        """
         result = {
             "enabled": True,
-            "model": "google_search",
+            # Keep a separate internal id so we can treat this as a signal,
+            # but never as a standalone provider in the UI.
+            "model": "baseline",
             "visibility_score": 0,
             "mention_count": 0,
             "source": "web_search"
@@ -797,7 +804,7 @@ class AIVisibilityService:
             
             snapshots_created = 0
             
-            # Create snapshot for each model
+            # Create snapshot for each REAL model (skip internal/baseline helpers)
             for model_name, model_data in models_data.items():
                 if not model_data.get("enabled"):
                     continue
@@ -807,11 +814,15 @@ class AIVisibilityService:
                     "openai": "openai",
                     "anthropic": "anthropic",
                     "perplexity": "perplexity",
-                    "google_search": "gemini",  # Use gemini as fallback for baseline
-                    "baseline": "gemini"
+                    # Baseline/web-search is always internal-only:
+                    # do not persist it as a separate AI provider so the
+                    # frontend never sees a fake Gemini/Google bar.
                 }
                 
-                db_model = model_mapping.get(model_name, "openai")
+                db_model = model_mapping.get(model_name)
+                # Skip unknown/internal models (e.g. "baseline")
+                if not db_model:
+                    continue
                 
                 snapshot_data = {
                     "brand_id": brand_id,

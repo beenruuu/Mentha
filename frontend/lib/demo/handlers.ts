@@ -4,7 +4,6 @@
  */
 
 import {
-    DEMO_BRAND_ID,
     demoBrand,
     demoBrands,
     demoCompetitors,
@@ -22,7 +21,8 @@ import {
     demoHallucinations,
     demoLanguageComparison,
     demoRegionalComparison,
-} from './demo-data'
+} from './data'
+import { DEMO_BRAND_ID } from './constants'
 
 type MockResponse = any
 
@@ -34,7 +34,7 @@ export function handleDemoRequest(endpoint: string, options?: RequestInit): Mock
     const method = options?.method?.toUpperCase() || 'GET'
 
     // Normalize endpoint (remove leading slash and query params for matching)
-    const [path, queryString] = endpoint.split('?')
+    const [path] = endpoint.split('?')
     const normalizedPath = path.startsWith('/') ? path.slice(1) : path
     const segments = normalizedPath.split('/')
 
@@ -45,14 +45,12 @@ export function handleDemoRequest(endpoint: string, options?: RequestInit): Mock
     if (normalizedPath === 'brands/' || normalizedPath === 'brands') {
         if (method === 'GET') return demoBrands
         if (method === 'POST') {
-            // Simulate creating a brand - return the demo brand with updated fields
             const body = options?.body ? JSON.parse(options.body as string) : {}
             return { ...demoBrand, ...body, id: 'demo-new-brand-' + Date.now() }
         }
     }
 
     if (segments[0] === 'brands' && segments[1]) {
-        const brandId = segments[1]
         if (method === 'GET') return demoBrand
         if (method === 'PUT') {
             const body = options?.body ? JSON.parse(options.body as string) : {}
@@ -71,8 +69,7 @@ export function handleDemoRequest(endpoint: string, options?: RequestInit): Mock
             }
         }
         if (segments[1]) {
-            const compId = segments[1]
-            const comp = demoCompetitors.find(c => c.id === compId) || demoCompetitors[0]
+            const comp = demoCompetitors.find(c => c.id === segments[1]) || demoCompetitors[0]
             if (method === 'GET') return comp
             if (method === 'DELETE') return undefined
         }
@@ -87,7 +84,6 @@ export function handleDemoRequest(endpoint: string, options?: RequestInit): Mock
             }
         }
 
-        // Analysis status endpoint - for progress toast
         if (segments[1] === 'status' && segments[2]) {
             return {
                 status: 'completed',
@@ -100,12 +96,10 @@ export function handleDemoRequest(endpoint: string, options?: RequestInit): Mock
             }
         }
 
-        // Share of model
         if (segments[1] === 'share_of_model') {
             return demoShareOfModel
         }
 
-        // Trigger analysis
         if (segments[1] === 'trigger' && segments[2]) {
             return { ...demoAnalyses[0], id: 'demo-analysis-' + Date.now(), status: 'processing' }
         }
@@ -117,29 +111,23 @@ export function handleDemoRequest(endpoint: string, options?: RequestInit): Mock
 
     // ============ GEO ANALYSIS ============
     if (normalizedPath.startsWith('geo-analysis')) {
-        // POST /geo-analysis/analyze
         if (segments[1] === 'analyze' && method === 'POST') {
             return { ...demoGeoAnalysis, id: 'demo-geo-new-' + Date.now(), status: 'processing' }
         }
 
-        // GET /geo-analysis/analyze/:id
         if (segments[1] === 'analyze' && segments[2]) {
             return demoGeoAnalysis
         }
 
-        // GET /geo-analysis/brands/:brandId/latest
         if (segments[1] === 'brands' && segments[3] === 'latest') {
             return demoGeoAnalysis
         }
 
-        // GET /geo-analysis/brands/:brandId/history
         if (segments[1] === 'brands' && segments[3] === 'history') {
             return [demoGeoAnalysis]
         }
 
-        // GET /geo-analysis/brands/:brandId/visibility
         if (segments[1] === 'brands' && segments[3] === 'visibility') {
-            // Transform backend model IDs to frontend IDs for proper display
             const modelMapping: Record<string, string> = {
                 'openai': 'chatgpt',
                 'anthropic': 'claude',
@@ -163,17 +151,14 @@ export function handleDemoRequest(endpoint: string, options?: RequestInit): Mock
             }
         }
 
-        // GET /geo-analysis/brands/:brandId/citations
         if (segments[1] === 'brands' && segments[3] === 'citations') {
             return demoCitations
         }
 
-        // GET /geo-analysis/modules
         if (segments[1] === 'modules') {
             return ['ai_visibility', 'citations', 'technical_aeo', 'content_structure']
         }
 
-        // POST /geo-analysis/quick-check
         if (segments[1] === 'quick-check' && method === 'POST') {
             return { score: 67, grade: 'B', quick: true }
         }
@@ -211,15 +196,12 @@ export function handleDemoRequest(endpoint: string, options?: RequestInit): Mock
 
     // ============ INSIGHTS ============
     if (normalizedPath.startsWith('insights')) {
-        // GET /insights/:brandId/languages
         if (segments[2] === 'languages') {
             return demoLanguageComparison
         }
-        // GET /insights/:brandId/regions
         if (segments[2] === 'regions') {
             return demoRegionalComparison
         }
-        // GET /insights/:brandId
         if (segments[1]) {
             return demoInsights
         }
@@ -228,7 +210,6 @@ export function handleDemoRequest(endpoint: string, options?: RequestInit): Mock
 
     // ============ HALLUCINATIONS ============
     if (normalizedPath.startsWith('hallucinations')) {
-        // GET /hallucinations?brand_id=xxx
         return demoHallucinations
     }
 
@@ -262,7 +243,6 @@ export function handleDemoRequest(endpoint: string, options?: RequestInit): Mock
 
     // ============ ADMIN ============
     if (normalizedPath.startsWith('admin')) {
-        // Return minimal admin data for demo
         if (segments[1] === 'overview') {
             return { total_users: 150, total_brands: 89, total_analyses: 1245, active_subscriptions: 45 }
         }
@@ -289,11 +269,10 @@ export function handleDemoRequest(endpoint: string, options?: RequestInit): Mock
 
     // ============ EXPORT ============
     if (normalizedPath.startsWith('export')) {
-        // For exports, we'd typically return a file, but in demo mode we'll return a message
         return { message: 'Export not available in demo mode', demo: true }
     }
 
-    // Default fallback - return empty array or object based on endpoint
+    // Default fallback
     console.warn(`[Demo Mode] Unhandled endpoint: ${endpoint}`)
     return normalizedPath.endsWith('/') ? [] : {}
 }

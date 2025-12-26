@@ -1,23 +1,28 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
+import {
     TrendingUp,
     TrendingDown,
     Trophy,
-    Target
+    Target,
+    ChevronRight,
+    ChevronDown
 } from 'lucide-react'
 import { useTranslations } from '@/lib/i18n'
-
-interface Competitor {
-    id: string
-    name: string
-    domain: string
-    score: number
-    trend?: number
-}
+import { brandsService, type Brand } from '@/lib/services/brands'
+import { type Competitor } from '@/lib/services/competitors'
 
 interface CompetitorsTabProps {
     brandId: string
@@ -35,13 +40,43 @@ export function CompetitorsTab({
     competitors = [],
 }: CompetitorsTabProps) {
     const { t } = useTranslations()
+    const router = useRouter()
+    const [brands, setBrands] = useState<Brand[]>([])
+    const [loading, setLoading] = useState(true)
+
+    // Load all brands for dropdown
+    useEffect(() => {
+        const loadBrands = async () => {
+            try {
+                const allBrands = await brandsService.getAll()
+                setBrands(allBrands)
+            } catch (error) {
+                console.error('Error loading brands:', error)
+            } finally {
+                setLoading(false)
+            }
+        }
+        loadBrands()
+    }, [])
+
+    const handleBrandChange = (newBrandId: string) => {
+        router.push(`/brand/${newBrandId}?tab=competitors`)
+    }
+
     // Sort by score descending
-    const sortedCompetitors = [...competitors].sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+    const sortedCompetitors = [...competitors].sort((a, b) => (b.visibility_score ?? 0) - (a.visibility_score ?? 0))
 
     // All entities for ranking
     const allEntities = [
-        { name: brandName, score: brandScore, isOwn: true, trend: brandTrend },
-        ...sortedCompetitors.map(c => ({ name: c.name, score: c.score ?? 0, isOwn: false, domain: c.domain, trend: c.trend }))
+        { id: null, name: brandName, score: brandScore, isOwn: true, trend: brandTrend, domain: null },
+        ...sortedCompetitors.map(c => ({
+            id: c.id,
+            name: c.name,
+            score: c.visibility_score ?? 0,
+            isOwn: false,
+            domain: c.domain,
+            trend: 0 // Competitor service doesn't return trend yet
+        }))
     ].sort((a, b) => b.score - a.score)
 
     const brandRank = allEntities.findIndex(e => e.isOwn) + 1
@@ -50,9 +85,37 @@ export function CompetitorsTab({
 
     return (
         <div className="space-y-6">
-            {/* Header - Minimal */}
-            <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t.brand_competitors}</h2>
+            {/* Header with Brand Selector */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t.brand_competitors}</h2>
+                    {/* Brand Dropdown Selector */}
+                    {brands.length > 1 && (
+                        <Select value={brandId} onValueChange={handleBrandChange}>
+                            <SelectTrigger className="w-[180px] h-8 text-sm bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+                                <SelectValue placeholder={brandName} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {brands.map((b) => (
+                                    <SelectItem key={b.id} value={b.id} className="text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-4 h-4 rounded bg-white border border-gray-200 dark:bg-gray-800 dark:border-gray-700 flex items-center justify-center overflow-hidden">
+                                                {b.domain && (
+                                                    <img
+                                                        src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=32`}
+                                                        alt=""
+                                                        className="w-3 h-3"
+                                                    />
+                                                )}
+                                            </div>
+                                            {b.name}
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    )}
+                </div>
                 <p className="text-sm text-gray-500">Comparativa de visibilidad en IA frente a competidores</p>
             </div>
 
@@ -117,7 +180,8 @@ export function CompetitorsTab({
                                     {allEntities.map((entity, index) => (
                                         <div
                                             key={entity.name}
-                                            className={`flex items-center gap-3 px-4 py-3 ${entity.isOwn ? 'bg-emerald-50/30 dark:bg-emerald-900/10' : ''}`}
+                                            onClick={() => !entity.isOwn && (entity as any).id && router.push(`/brand/${brandId}/competitor/${(entity as any).id}`)}
+                                            className={`flex items-center gap-3 px-4 py-3 ${entity.isOwn ? 'bg-emerald-50/30 dark:bg-emerald-900/10' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors'}`}
                                         >
                                             {/* Rank */}
                                             <div className={`w-6 h-6 rounded flex items-center justify-center text-xs font-bold
@@ -148,7 +212,7 @@ export function CompetitorsTab({
                                                         {entity.name}
                                                     </span>
                                                     {entity.isOwn && (
-                                                        <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px] h-4 px-1">TÚ</Badge>
+                                                        <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px] h-4 px-1">{t.you || 'TÚ'}</Badge>
                                                     )}
                                                 </div>
                                             </div>
@@ -178,6 +242,11 @@ export function CompetitorsTab({
                                                     <span className="text-xs text-gray-400">—</span>
                                                 )}
                                             </div>
+
+                                            {/* Arrow for clickable items */}
+                                            {!entity.isOwn && (entity as any).id && (
+                                                <ChevronRight className="w-4 h-4 text-gray-400" />
+                                            )}
                                         </div>
                                     ))}
                                 </div>

@@ -6,9 +6,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 interface BillingTabProps {
     t: Record<string, string>
+    onUpgradeClick?: () => void
 }
 
-export function BillingTab({ t }: BillingTabProps) {
+export function BillingTab({ t, onUpgradeClick }: BillingTabProps) {
+    const handleUpgradeClick = () => {
+        if (onUpgradeClick) {
+            onUpgradeClick()
+        } else {
+            // Dispatch global event as fallback
+            window.dispatchEvent(new CustomEvent('open-upgrade-modal'))
+        }
+    }
+
     return (
         <div className="space-y-6">
             <Card className="border-border/40 shadow-sm bg-card/50 backdrop-blur-sm">
@@ -25,7 +35,7 @@ export function BillingTab({ t }: BillingTabProps) {
                             </div>
                             <p className="text-sm text-muted-foreground">{t.basicFeatures}</p>
                         </div>
-                        <Button className="bg-emerald-600 hover:bg-emerald-700 text-white w-fit">
+                        <Button onClick={handleUpgradeClick} className="bg-emerald-600 hover:bg-emerald-700 text-white w-fit">
                             <Zap className="w-4 h-4 mr-2" />
                             {t.upgradeToPro}
                         </Button>

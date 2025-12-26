@@ -11,7 +11,9 @@ import {
   ChevronDown,
   Building2,
   Plus,
-  Info
+  Info,
+  Trash2,
+  ArrowLeft
 } from "lucide-react"
 import {
   AreaChart,
@@ -47,21 +49,30 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const AI_PROVIDER_META = [
   { id: 'chatgpt', name: 'ChatGPT', icon: '/providers/openai.svg?v=3', color: '#10a37f' },
   { id: 'claude', name: 'Claude', icon: '/providers/claude-color.svg?v=3', color: '#da7756' },
   { id: 'perplexity', name: 'Perplexity', icon: '/providers/perplexity-color.svg?v=3', color: '#3b82f6' },
   { id: 'gemini', name: 'Gemini', icon: '/providers/gemini-color.svg?v=3', color: '#4b5563' },
-  { id: 'google', name: 'Google Search', icon: '/providers/google.svg?v=3', color: '#ea4335' },
 ] as const
 
 const MODEL_ID_MAP: Record<string, string> = {
   'openai': 'chatgpt',
   'anthropic': 'claude',
   'perplexity': 'perplexity',
-  'gemini': 'gemini',  // Keep gemini as gemini for Gemini AI
-  'google_search': 'google'  // Map google_search to google for Google Search
+  'gemini': 'gemini'
 }
 
 export default function DashboardPage() {
@@ -74,6 +85,10 @@ export default function DashboardPage() {
   const [modelPerformance, setModelPerformance] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [activeMetric, setActiveMetric] = useState<'rank' | 'position' | 'inclusion'>('rank')
+  const [deletingBrandId, setDeletingBrandId] = useState<string | null>(null)
+
+  // State for viewing competitor as main entity
+  const [viewingCompetitor, setViewingCompetitor] = useState<Competitor | null>(null)
 
   // Date Range State
   const [selectedDays, setSelectedDays] = useState(30)
@@ -178,6 +193,30 @@ export default function DashboardPage() {
   const handleBrandChange = async (brand: Brand) => {
     setSelectedBrand(brand)
     await fetchDataForBrand(brand, selectedDays)
+  }
+
+  // Handler to delete a brand
+  const handleDeleteBrand = async (brandId: string) => {
+    setDeletingBrandId(brandId)
+    try {
+      await brandsService.delete(brandId)
+      const updatedBrands = brands.filter(b => b.id !== brandId)
+      setBrands(updatedBrands)
+
+      // If deleted brand was selected, switch to another brand or redirect
+      if (selectedBrand?.id === brandId) {
+        if (updatedBrands.length > 0) {
+          setSelectedBrand(updatedBrands[0])
+          await fetchDataForBrand(updatedBrands[0], selectedDays)
+        } else {
+          router.push('/onboarding')
+        }
+      }
+    } catch (error) {
+      console.error('Failed to delete brand:', error)
+    } finally {
+      setDeletingBrandId(null)
+    }
   }
 
   const handleDateRangeChange = (range: DateRange | undefined) => {
@@ -316,13 +355,35 @@ export default function DashboardPage() {
         {/* Header sits on the "sidebar" background */}
         <header className="flex items-center justify-between px-6 py-4 shrink-0">
           <div className="flex items-center gap-4">
-            <h1 className="text-xl font-semibold text-gray-900 dark:text-white tracking-tight">{t.dashboardTitle}</h1>
             <SidebarTrigger className="-ml-1" />
-            {/* Brand Selector - only shows if multiple brands */}
-            {brands.length > 1 && selectedBrand && (
+
+            {/* Back button when viewing competitor */}
+            {viewingCompetitor && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setViewingCompetitor(null)}
+                className="gap-2 text-muted-foreground hover:text-foreground"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                {t.back || 'Volver'}
+              </Button>
+            )}
+
+            {/* Brand/Competitor Display with Dropdown */}
+            {loading && !selectedBrand && (
+              <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white dark:bg-zinc-800 border border-border/50 animate-pulse">
+                <div className="w-6 h-6 rounded bg-gray-200 dark:bg-zinc-700" />
+                <div className="flex flex-col gap-1">
+                  <div className="w-24 h-4 bg-gray-200 dark:bg-zinc-700 rounded" />
+                  <div className="w-16 h-3 bg-gray-200 dark:bg-zinc-700 rounded" />
+                </div>
+              </div>
+            )}
+            {selectedBrand && !viewingCompetitor && (
               <div className="relative group">
-                <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white dark:bg-zinc-800 border border-border/50 hover:border-primary/50 transition-colors text-sm font-medium">
-                  <div className="w-5 h-5 rounded bg-gray-100 dark:bg-zinc-700 flex items-center justify-center overflow-hidden">
+                <button className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white dark:bg-zinc-800 border border-border/50 hover:border-primary/50 transition-colors text-sm font-medium">
+                  <div className="w-6 h-6 rounded bg-gray-100 dark:bg-zinc-700 flex items-center justify-center overflow-hidden">
                     <img
                       src={`https://www.google.com/s2/favicons?domain=${selectedBrand.domain}&sz=32`}
                       alt=""
@@ -330,38 +391,97 @@ export default function DashboardPage() {
                       onError={(e) => { e.currentTarget.style.display = 'none' }}
                     />
                   </div>
-                  {selectedBrand.name}
-                  <ChevronDown className="w-4 h-4 text-muted-foreground" />
-                </button>
-                <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-zinc-900 border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                  {brands.map((brand) => (
-                    <button
-                      key={brand.id}
-                      onClick={() => handleBrandChange(brand)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 text-sm hover:bg-secondary/50 transition-colors first:rounded-t-lg last:rounded-b-lg ${brand.id === selectedBrand.id ? 'bg-primary/5 text-primary' : ''
-                        }`}
-                    >
-                      <div className="w-5 h-5 rounded bg-gray-100 dark:bg-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img
-                          src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=32`}
-                          alt=""
-                          className="w-4 h-4 object-contain"
-                          onError={(e) => { e.currentTarget.style.display = 'none' }}
-                        />
-                      </div>
-                      <span className="truncate">{brand.name}</span>
-                    </button>
-                  ))}
-                  <div className="border-t border-border/50">
-                    <button
-                      onClick={() => router.push('/onboarding')}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors rounded-b-lg"
-                    >
-                      <Plus className="w-4 h-4" />
-                      Añadir marca
-                    </button>
+                  <div className="flex flex-col items-start">
+                    <span className="font-semibold text-gray-900 dark:text-white">{selectedBrand.name}</span>
+                    <span className="text-xs text-muted-foreground">{selectedBrand.domain}</span>
                   </div>
+                  {brands.length > 1 && <ChevronDown className="w-4 h-4 text-muted-foreground ml-2" />}
+                </button>
+                {brands.length > 1 && (
+                  <div className="absolute top-full left-0 mt-1 w-72 bg-white dark:bg-zinc-900 border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                    {brands.map((brand) => (
+                      <div
+                        key={brand.id}
+                        className={`flex items-center justify-between px-3 py-2.5 text-sm hover:bg-secondary/50 transition-colors first:rounded-t-lg ${brand.id === selectedBrand.id ? 'bg-primary/5 text-primary' : ''}`}
+                      >
+                        <button
+                          onClick={() => handleBrandChange(brand)}
+                          className="flex-1 flex items-center gap-3"
+                        >
+                          <div className="w-6 h-6 rounded bg-gray-100 dark:bg-zinc-800 flex items-center justify-center overflow-hidden">
+                            <img
+                              src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=32`}
+                              alt=""
+                              className="w-4 h-4 object-contain"
+                              onError={(e) => { e.currentTarget.style.display = 'none' }}
+                            />
+                          </div>
+                          <div className="flex flex-col items-start">
+                            <span className="font-medium truncate">{brand.name}</span>
+                            <span className="text-xs text-muted-foreground">{brand.domain}</span>
+                          </div>
+                        </button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <button
+                              onClick={(e) => e.stopPropagation()}
+                              className="p-1 hover:bg-destructive/10 rounded-md transition-colors ml-2"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
+                            </button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>{t.areYouSure}</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t.deleteWarning.replace('{name}', brand.name)}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteBrand(brand.id)}
+                                className="bg-destructive hover:bg-destructive/90"
+                              >
+                                {deletingBrandId === brand.id ? t.deleting : t.delete}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    ))}
+                    <div className="border-t border-border/50">
+                      <button
+                        onClick={() => router.push('/onboarding')}
+                        className="w-full flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors rounded-b-lg"
+                      >
+                        <Plus className="w-4 h-4" />
+                        {t.addBrand}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Competitor Display when viewing competitor */}
+            {viewingCompetitor && (
+              <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800">
+                <div className="w-6 h-6 rounded bg-white dark:bg-zinc-800 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={`https://www.google.com/s2/favicons?domain=${viewingCompetitor.domain}&sz=32`}
+                    alt=""
+                    className="w-4 h-4 object-contain"
+                    onError={(e) => { e.currentTarget.style.display = 'none' }}
+                  />
                 </div>
+                <div className="flex flex-col items-start">
+                  <span className="text-sm font-semibold text-orange-900 dark:text-orange-100">{viewingCompetitor.name}</span>
+                  <span className="text-xs text-orange-600 dark:text-orange-400">{viewingCompetitor.domain}</span>
+                </div>
+                <span className="text-xs px-2 py-0.5 bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200 rounded-full ml-2">
+                  {t.competitor || 'Competidor'}
+                </span>
               </div>
             )}
           </div>
@@ -557,21 +677,21 @@ export default function DashboardPage() {
                     <RegionalComparisonCard brandId={selectedBrand.id} />
                   </div>
                 )}
-                
+
                 {/* For local, regional, and national businesses - show market dominance card */}
                 {selectedBrand && (
-                  selectedBrand.business_scope === 'local' || 
-                  selectedBrand.business_scope === 'regional' || 
+                  selectedBrand.business_scope === 'local' ||
+                  selectedBrand.business_scope === 'regional' ||
                   selectedBrand.business_scope === 'national' ||
                   !selectedBrand.business_scope
                 ) && (
-                  <LocalMarketCard 
-                    brandId={selectedBrand.id} 
-                    city={selectedBrand.city}
-                    location={selectedBrand.location}
-                    scope={selectedBrand.business_scope || 'national'}
-                  />
-                )}
+                    <LocalMarketCard
+                      brandId={selectedBrand.id}
+                      city={selectedBrand.city}
+                      location={selectedBrand.location}
+                      scope={selectedBrand.business_scope || 'national'}
+                    />
+                  )}
 
 
 
@@ -607,67 +727,142 @@ export default function DashboardPage() {
                   <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300">{t.dashboardLive}</span>
                 </h3>
                 <div className="space-y-3">
-                  {competitors.slice(0, 5).map((comp) => (
-                    <div key={comp.id} className="flex items-center justify-between group p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-[#111114] transition-colors">
+                  {/* When viewing a competitor, show the original brand as first "competitor" */}
+                  {viewingCompetitor && selectedBrand && (
+                    <button
+                      onClick={() => setViewingCompetitor(null)}
+                      className="w-full flex items-center justify-between group p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-[#111114] transition-colors cursor-pointer text-left border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-900/10"
+                    >
                       <div className="flex items-center gap-3">
-                        <div className="w-6 h-6 rounded bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center overflow-hidden">
+                        <div className="w-6 h-6 rounded bg-white dark:bg-gray-800 border border-emerald-300 dark:border-emerald-700 flex items-center justify-center overflow-hidden">
                           <img
-                            src={`https://www.google.com/s2/favicons?domain=${comp.domain}&sz=32`}
-                            alt={comp.name}
+                            src={`https://www.google.com/s2/favicons?domain=${selectedBrand.domain}&sz=32`}
+                            alt={selectedBrand.name}
                             className="w-4 h-4 object-contain"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none'
-                              e.currentTarget.parentElement!.innerHTML = `<span class="text-[10px] font-bold">${comp.name.charAt(0)}</span>`
+                              e.currentTarget.parentElement!.innerHTML = `<span class="text-[10px] font-bold">${selectedBrand.name.charAt(0)}</span>`
                             }}
                           />
                         </div>
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{comp.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-emerald-700 dark:text-emerald-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{selectedBrand.name}</span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-200 dark:bg-emerald-800 text-emerald-800 dark:text-emerald-200">{t.yourBrand || 'Tu marca'}</span>
+                        </div>
                       </div>
-                      <div className="flex flex-col gap-2 w-full max-w-[200px]">
-                        {comp.metrics_breakdown ? (
-                          // Show breakdown with SVG icons
-                          <div className="flex items-center gap-2">
-                            {Object.entries(comp.metrics_breakdown).map(([modelKey, score]) => {
-                              const frontendId = MODEL_ID_MAP[modelKey] || modelKey
-                              const provider = AI_PROVIDER_META.find(p => p.id === frontendId)
-                              if (!provider) return null
+                      <div className="flex items-center gap-3 justify-end">
+                        <div className="w-24 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-emerald-500 rounded-full"
+                            style={{ width: `${currentRank}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-mono text-emerald-600 w-8 text-right">{currentRank}%</span>
+                      </div>
+                    </button>
+                  )}
+                  {/* Filter out the competitor being viewed, show the rest */}
+                  {(viewingCompetitor
+                    ? competitors.filter(c => c.id !== viewingCompetitor.id).slice(0, 4)
+                    : competitors.slice(0, 5)
+                  ).map((comp) => (
+                    viewingCompetitor ? (
+                      // When viewing competitor, show as non-clickable div
+                      <div
+                        key={comp.id}
+                        className="w-full flex items-center justify-between p-2 rounded-lg opacity-50 cursor-not-allowed"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 rounded bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center overflow-hidden">
+                            <img
+                              src={`https://www.google.com/s2/favicons?domain=${comp.domain}&sz=32`}
+                              alt={comp.name}
+                              className="w-4 h-4 object-contain"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none'
+                                e.currentTarget.parentElement!.innerHTML = `<span class="text-[10px] font-bold">${comp.name.charAt(0)}</span>`
+                              }}
+                            />
+                          </div>
+                          <span className="text-sm font-medium text-gray-400 dark:text-gray-500">{comp.name}</span>
+                        </div>
+                        <div className="flex items-center gap-3 justify-end">
+                          <div className="w-24 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gray-400 dark:bg-gray-600 rounded-full"
+                              style={{ width: `${comp.visibility_score || 0}%` }}
+                            />
+                          </div>
+                          <span className="text-xs font-mono text-gray-400 w-8 text-right">{comp.visibility_score || 0}%</span>
+                        </div>
+                      </div>
+                    ) : (
+                      // Normal clickable button when not viewing competitor
+                      <button
+                        key={comp.id}
+                        onClick={() => setViewingCompetitor(comp)}
+                        className="w-full flex items-center justify-between group p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-[#111114] transition-colors cursor-pointer text-left"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-6 h-6 rounded bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center overflow-hidden">
+                            <img
+                              src={`https://www.google.com/s2/favicons?domain=${comp.domain}&sz=32`}
+                              alt={comp.name}
+                              className="w-4 h-4 object-contain"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none'
+                                e.currentTarget.parentElement!.innerHTML = `<span class="text-[10px] font-bold">${comp.name.charAt(0)}</span>`
+                              }}
+                            />
+                          </div>
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{comp.name}</span>
+                        </div>
+                        <div className="flex flex-col gap-2 max-w-[200px]">
+                          {comp.metrics_breakdown ? (
+                            // Show breakdown with SVG icons
+                            <div className="flex items-center gap-2">
+                              {Object.entries(comp.metrics_breakdown).map(([modelKey, score]) => {
+                                const frontendId = MODEL_ID_MAP[modelKey] || modelKey
+                                const provider = AI_PROVIDER_META.find(p => p.id === frontendId)
+                                if (!provider) return null
 
-                              return (
-                                <div key={modelKey} className="flex flex-col items-center group/tooltip relative">
-                                  <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 p-1.5 flex items-center justify-center">
-                                    <Image
-                                      src={provider.icon}
-                                      alt={provider.name}
-                                      width={20}
-                                      height={20}
-                                      className={provider.icon.includes('openai.svg') ? 'w-full h-full object-contain dark:invert' : 'w-full h-full object-contain'}
-                                    />
+                                return (
+                                  <div key={modelKey} className="flex flex-col items-center group/tooltip relative">
+                                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 p-1.5 flex items-center justify-center">
+                                      <Image
+                                        src={provider.icon}
+                                        alt={provider.name}
+                                        width={20}
+                                        height={20}
+                                        className={provider.icon.includes('openai.svg') ? 'w-full h-full object-contain dark:invert' : 'w-full h-full object-contain'}
+                                      />
+                                    </div>
+                                    <span className="text-xs font-mono text-gray-500 mt-0.5">{score}%</span>
+                                    {/* Tooltip on hover */}
+                                    <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover/tooltip:block bg-black text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
+                                      {provider.name}: {score}%
+                                    </div>
                                   </div>
-                                  <span className="text-xs font-mono text-gray-500 mt-0.5">{score}%</span>
-                                  {/* Tooltip on hover */}
-                                  <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover/tooltip:block bg-black text-white text-[10px] px-2 py-1 rounded whitespace-nowrap z-10">
-                                    {provider.name}: {score}%
-                                  </div>
-                                </div>
-                              )
-                            })}
-                          </div>
-                        ) : (
-                          // Fallback to overall score
-                          <div className="flex items-center gap-3 justify-end">
-                            <div className="w-24 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-gray-900 dark:bg-white rounded-full"
-                                style={{ width: `${comp.visibility_score || 0}%` }}
-                              />
+                                )
+                              })}
                             </div>
-                            <span className="text-xs font-mono text-gray-500 w-8 text-right">{comp.visibility_score || 0}%</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
+                          ) : (
+                            // Fallback to overall score
+                            <div className="flex items-center gap-3 justify-end">
+                              <div className="w-24 h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-gray-900 dark:bg-white rounded-full"
+                                  style={{ width: `${comp.visibility_score || 0}%` }}
+                                />
+                              </div>
+                              <span className="text-xs font-mono text-gray-500 w-8 text-right">{comp.visibility_score || 0}%</span>
+                            </div>
+                          )}
+                        </div>
+                      </button>
+                    )
                   ))}
-                  {competitors.length === 0 && (
+                  {competitors.length === 0 && !viewingCompetitor && (
                     <div className="text-sm text-gray-500 italic">{t.noCompetitorsTracked}</div>
                   )}
                 </div>

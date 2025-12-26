@@ -69,7 +69,7 @@ export interface Recommendation {
 export interface VisibilitySnapshot {
     id: string
     brand_id: string
-    ai_model: 'openai' | 'anthropic' | 'perplexity' | 'gemini' | 'google_search'
+    ai_model: 'openai' | 'anthropic' | 'perplexity' | 'gemini'
     visibility_score: number
     mention_count: number
     sentiment?: string
@@ -207,5 +207,12 @@ export const geoAnalysisService = {
      */
     getAvailableModules: async (): Promise<any> => {
         return fetchAPI<any>('/geo-analysis/modules')
+    },
+
+    /**
+     * Get competitor-specific analysis data
+     */
+    getCompetitorAnalysis: async (brandId: string, competitorId: string): Promise<any> => {
+        return fetchAPI<any>(`/geo-analysis/brands/${brandId}/competitors/${competitorId}/analysis`)
     },
 }

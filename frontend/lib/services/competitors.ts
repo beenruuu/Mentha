@@ -13,6 +13,8 @@ export interface Competitor {
   metrics_breakdown?: Record<string, number>;
   created_at: string;
   updated_at: string;
+  score?: number;
+  trend?: 'up' | 'down' | 'stable';
 }
 
 export interface CreateCompetitorData {

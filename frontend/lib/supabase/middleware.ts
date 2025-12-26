@@ -14,7 +14,7 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Verificar que las variables de entorno estén configuradas
+  // Verify environment variables are configured
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
@@ -60,7 +60,6 @@ export async function updateSession(request: NextRequest) {
     '/settings',
     '/keywords',
     '/competitors',
-    '/upgrade',
     '/search',
     '/notifications',
     '/admin',

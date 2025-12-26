@@ -46,7 +46,9 @@ function CrawlersSkeleton() {
   )
 }
 
-export default function CrawlersPage({ isEmbedded = false }: { isEmbedded?: boolean }) {
+// Next.js passes params/searchParams to pages, so we need to allow extra props
+export default function CrawlersPage(props: any) {
+  const { isEmbedded = false } = props
   const params = useParams<{ id: string }>()
   const brandId = params?.id
   const { t } = useTranslations()

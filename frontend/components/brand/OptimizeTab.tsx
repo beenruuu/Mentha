@@ -1,27 +1,34 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Loader2 } from 'lucide-react'
 import {
     FileText,
     Code,
     Copy,
     Check,
     ArrowRight,
-    Plus,
-    Trash2,
     AlertCircle,
     Zap,
-    CheckCircle2
+    CheckCircle2,
+    Globe,
+    Search,
+    Bot,
+    ExternalLink,
+    Sparkles,
+    BarChart3,
+    Lightbulb,
+    RefreshCw,
+    FileCode,
+    AlertTriangle,
+    Clock
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { useTranslations } from '@/lib/i18n'
+import { getTranslations, getLanguage, type Language } from '@/lib/i18n'
 
 interface OptimizeTabProps {
     brandId: string
@@ -31,141 +38,500 @@ interface OptimizeTabProps {
     recommendations?: any[]
 }
 
+interface SiteAudit {
+    audit_id: string
+    brand_id: string
+    status: 'pending' | 'processing' | 'completed' | 'failed'
+    created_at: string
+    completed_at?: string
+    domain: string
+    pages_requested: number
+    pages_analyzed: number
+    pages: PageFinding[]
+    findings: {
+        schema_markup?: {
+            found: boolean
+            types: string[]
+        }
+        content?: {
+            total_words: number
+            faq_pages: number
+        }
+        total_issues?: number
+    }
+    recommendations: Recommendation[]
+    error?: string
+}
+
+interface PageFinding {
+    url: string
+    title?: string
+    has_schema_markup: boolean
+    schema_types: string[]
+    has_faq_content: boolean
+    heading_structure: Record<string, number>
+    word_count: number
+    issues: string[]
+}
+
+interface Recommendation {
+    priority: 'high' | 'medium' | 'low'
+    category: string
+    title: string
+    description: string
+    action?: string
+}
+
+/**
+ * OptimizeTab - AEO/GEO Optimization Dashboard
+ * 
+ * Features:
+ * - Real data from /site-audit API using Firecrawl
+ * - Contextual recommendations based on actual site analysis
+ * - i18n support (es/en)
+ * - Consistent monochrome icons
+ */
 export function OptimizeTab({
     brandId,
     brandName,
     domain,
-    industry,
-    recommendations = []
+    industry
 }: OptimizeTabProps) {
-    const { t } = useTranslations()
-    const [subTab, setSubTab] = useState('recommendations')
+    const [subTab, setSubTab] = useState('audit')
     const [copied, setCopied] = useState<string | null>(null)
+    const [analyzing, setAnalyzing] = useState(false)
+    const [audit, setAudit] = useState<SiteAudit | null>(null)
+    const [loading, setLoading] = useState(true)
 
-    // llms.txt form
-    const [llmsDescription, setLlmsDescription] = useState('')
-    const [llmsServices, setLlmsServices] = useState('')
+    const [lang, setLang] = useState<Language>('es')
+    const t = getTranslations(lang)
 
-    // Schema form
-    const [faqItems, setFaqItems] = useState<{ q: string; a: string }[]>([
-        { q: '', a: '' }
-    ])
+    useEffect(() => {
+        setLang(getLanguage())
+    }, [])
+
+    // Load latest audit on mount
+    const loadLatestAudit = useCallback(async () => {
+        try {
+            const token = localStorage.getItem('access_token')
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/site-audit/brand/${brandId}/latest`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+
+            if (res.ok) {
+                const data = await res.json()
+                if (data) {
+                    setAudit(data)
+                }
+            }
+        } catch (error) {
+            console.error('Error loading audit:', error)
+        } finally {
+            setLoading(false)
+        }
+    }, [brandId])
+
+    useEffect(() => {
+        loadLatestAudit()
+    }, [loadLatestAudit])
+
+    // Poll for audit status if processing
+    useEffect(() => {
+        if (!audit || audit.status !== 'processing') return
+
+        const interval = setInterval(async () => {
+            try {
+                const token = localStorage.getItem('access_token')
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/site-audit/${audit.audit_id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+
+                if (res.ok) {
+                    const data = await res.json()
+                    setAudit(data)
+                    if (data.status === 'completed') {
+                        toast.success(t.auditTab + ' ' + t.completedOnboarding?.toLowerCase() || 'completed')
+                        setAnalyzing(false)
+                    } else if (data.status === 'failed') {
+                        toast.error(t.auditFailed)
+                        setAnalyzing(false)
+                    }
+                }
+            } catch (error) {
+                console.error('Error polling audit:', error)
+            }
+        }, 5000)
+
+        return () => clearInterval(interval)
+    }, [audit, t])
 
     const handleCopy = (text: string, id: string) => {
         navigator.clipboard.writeText(text)
         setCopied(id)
-        toast.success('Copiado al portapapeles')
+        toast.success(t.copiedBtn)
         setTimeout(() => setCopied(null), 2000)
     }
 
+    const handleAnalyze = async () => {
+        setAnalyzing(true)
+        toast.info(t.auditInProgressDesc)
+
+        try {
+            const token = localStorage.getItem('access_token')
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/site-audit/analyze`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    brand_id: brandId,
+                    pages_limit: 5
+                })
+            })
+
+            if (res.ok) {
+                const data = await res.json()
+                setAudit(data)
+            } else {
+                const error = await res.json()
+                toast.error(error.detail || t.auditFailed)
+                setAnalyzing(false)
+            }
+        } catch (error) {
+            toast.error(t.auditFailed)
+            setAnalyzing(false)
+        }
+    }
+
     const generateLlmsTxt = () => {
-        const services = llmsServices.split('\n').filter(s => s.trim())
         return `# ${brandName}
 
-> ${llmsDescription || `${brandName} es un líder en su industria...`}
+> ${brandName} is a leading company in ${industry || 'its sector'}.
 
 ## About
 - Website: https://${domain}
 ${industry ? `- Industry: ${industry}` : ''}
 - Generated: ${new Date().toISOString().split('T')[0]}
 
-${services.length > 0 ? `## Services\n${services.map(s => `- ${s}`).join('\n')}` : ''}`
+## Contact
+- For inquiries, visit https://${domain}/contact
+
+## Important
+- This file provides context for AI language models
+- Updated regularly to ensure accuracy`
     }
 
-    const generateFaqSchema = () => {
-        const validFaqs = faqItems.filter(f => f.q && f.a)
-        if (validFaqs.length === 0) return ''
-
-        return JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "FAQPage",
-            "mainEntity": validFaqs.map(f => ({
-                "@type": "Question",
-                "name": f.q,
-                "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": f.a
-                }
-            }))
-        }, null, 2)
-    }
-
-    const addFaqItem = () => setFaqItems([...faqItems, { q: '', a: '' }])
-    const removeFaqItem = (index: number) => setFaqItems(faqItems.filter((_, i) => i !== index))
-    const updateFaqItem = (index: number, field: 'q' | 'a', value: string) => {
-        const newItems = [...faqItems]
-        newItems[index][field] = value
-        setFaqItems(newItems)
-    }
-
-    const getPriorityIcon = (priority: string) => {
+    const getPriorityColor = (priority: string) => {
         switch (priority) {
-            case 'high': return <AlertCircle className="h-4 w-4" />
-            case 'medium': return <Zap className="h-4 w-4" />
-            default: return <CheckCircle2 className="h-4 w-4" />
+            case 'high': return 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400'
+            case 'medium': return 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-400'
+            case 'low': return 'text-gray-600 bg-gray-50 border-gray-200 dark:bg-gray-800/50 dark:border-gray-700 dark:text-gray-400'
+            default: return 'text-gray-600 bg-gray-50 border-gray-200'
         }
     }
 
-    const getPriorityStyle = (priority: string) => {
+    const getPriorityLabel = (priority: string) => {
         switch (priority) {
-            case 'high': return 'text-red-600 bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800'
-            case 'medium': return 'text-amber-600 bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'
-            default: return 'text-blue-600 bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800'
+            case 'high': return t.recommendationPriorityHigh
+            case 'medium': return t.recommendationPriorityMedium
+            case 'low': return t.recommendationPriorityLow
+            default: return priority
         }
+    }
+
+    const formatDate = (dateStr: string) => {
+        const date = new Date(dateStr)
+        return date.toLocaleDateString(lang === 'es' ? 'es-ES' : 'en-US', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        })
+    }
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center py-16">
+                <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+            </div>
+        )
     }
 
     return (
         <div className="space-y-6">
-            {/* Header - Minimal */}
-            <div>
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">{t.brand_optimization}</h2>
-                <p className="text-sm text-gray-500">Herramientas para mejorar tu visibilidad en modelos LLM</p>
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        {t.optimizationPageTitle}
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {t.optimizationPageDescription}
+                    </p>
+                </div>
+                <Button
+                    onClick={handleAnalyze}
+                    disabled={analyzing || audit?.status === 'processing'}
+                    className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+                >
+                    {analyzing || audit?.status === 'processing' ? (
+                        <RefreshCw className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <Sparkles className="h-4 w-4" />
+                    )}
+                    {analyzing || audit?.status === 'processing' ? t.analyzingBtn : t.analyzeSiteBtn}
+                </Button>
             </div>
 
-            {/* Sub-tabs - Compact style */}
+            {/* Sub-tabs */}
             <Tabs value={subTab} onValueChange={setSubTab} className="w-full">
-                <TabsList className="bg-gray-100 dark:bg-gray-900 p-1 rounded-lg h-9">
-                    <TabsTrigger value="recommendations" className="text-xs px-3 rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800">
-                        Recomendaciones {recommendations.length > 0 && <Badge variant="secondary" className="ml-1.5 h-4 px-1 text-[10px]">{recommendations.length}</Badge>}
+                <TabsList className="bg-gray-100 dark:bg-gray-900 p-1 rounded-lg h-10">
+                    <TabsTrigger value="audit" className="text-xs px-4 rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 gap-2">
+                        <BarChart3 className="h-3.5 w-3.5" />
+                        {t.auditTab}
                     </TabsTrigger>
-                    <TabsTrigger value="llms-txt" className="text-xs px-3 rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800">
-                        llms.txt
+                    <TabsTrigger value="recommendations" className="text-xs px-4 rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 gap-2">
+                        <Lightbulb className="h-3.5 w-3.5" />
+                        {t.recommendationsTab}
+                        {audit?.recommendations && audit.recommendations.length > 0 && (
+                            <Badge variant="secondary" className="ml-1 h-4 px-1.5 text-[10px]">{audit.recommendations.length}</Badge>
+                        )}
                     </TabsTrigger>
-                    <TabsTrigger value="schema" className="text-xs px-3 rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800">
-                        Schema FAQ
+                    <TabsTrigger value="tools" className="text-xs px-4 rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 gap-2">
+                        <Code className="h-3.5 w-3.5" />
+                        {t.toolsTab}
                     </TabsTrigger>
                 </TabsList>
 
-                {/* Recommendations Tab */}
-                <TabsContent value="recommendations" className="mt-4">
-                    {recommendations.length === 0 ? (
+                {/* Audit Tab */}
+                <TabsContent value="audit" className="mt-6">
+                    {!audit ? (
                         <Card className="border-gray-200 dark:border-gray-800">
                             <CardContent className="py-12 text-center">
-                                <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto mb-2" />
-                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">No hay recomendaciones pendientes</p>
-                                <p className="text-xs text-gray-500 mt-1">Tu marca está optimizada</p>
+                                <Search className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {t.noAuditYet}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    {t.noAuditYetDesc}
+                                </p>
+                                <Button onClick={handleAnalyze} className="mt-4 gap-2" variant="outline">
+                                    <Sparkles className="h-4 w-4" />
+                                    {t.analyzeSiteBtn}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    ) : audit.status === 'processing' ? (
+                        <Card className="border-gray-200 dark:border-gray-800">
+                            <CardContent className="py-12 text-center">
+                                <Loader2 className="h-10 w-10 text-emerald-500 mx-auto mb-3 animate-spin" />
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {t.auditInProgress}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    {t.auditInProgressDesc}
+                                </p>
+                            </CardContent>
+                        </Card>
+                    ) : audit.status === 'failed' ? (
+                        <Card className="border-red-200 dark:border-red-800">
+                            <CardContent className="py-12 text-center">
+                                <AlertTriangle className="h-10 w-10 text-red-500 mx-auto mb-3" />
+                                <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                                    {t.auditFailed}
+                                </p>
+                                <p className="text-xs text-red-500 mt-1">
+                                    {audit.error || t.auditFailedDesc}
+                                </p>
+                                <Button onClick={handleAnalyze} className="mt-4 gap-2" variant="outline">
+                                    <RefreshCw className="h-4 w-4" />
+                                    {t.retryBtn}
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        <div className="grid gap-6 lg:grid-cols-12">
+                            {/* Left: Summary Stats */}
+                            <div className="lg:col-span-4 space-y-4">
+                                <Card className="border-gray-200 dark:border-gray-800">
+                                    <CardContent className="pt-6 space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-500">{t.lastAuditLabel}</span>
+                                            <span className="text-sm font-medium flex items-center gap-1">
+                                                <Clock className="h-3.5 w-3.5" />
+                                                {formatDate(audit.completed_at || audit.created_at)}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-500">{t.pagesAnalyzedLabel}</span>
+                                            <span className="text-sm font-medium">{audit.pages_analyzed}</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-sm text-gray-500">{t.issuesFoundLabel}</span>
+                                            <span className="text-sm font-medium text-amber-600">{audit.findings?.total_issues || 0}</span>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+
+                                {/* Schema Status */}
+                                <Card className="border-gray-200 dark:border-gray-800">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                            <FileCode className="h-4 w-4 text-gray-500" />
+                                            {t.schemaMarkupSection}
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {audit.findings?.schema_markup?.found ? (
+                                            <div className="space-y-2">
+                                                <div className="flex items-center gap-2 text-emerald-600">
+                                                    <CheckCircle2 className="h-4 w-4" />
+                                                    <span className="text-sm">{t.schemaMarkupFound}</span>
+                                                </div>
+                                                {audit.findings.schema_markup.types.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1 mt-2">
+                                                        {audit.findings.schema_markup.types.map((type, i) => (
+                                                            <Badge key={i} variant="secondary" className="text-xs">{type}</Badge>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center gap-2 text-amber-600">
+                                                <AlertCircle className="h-4 w-4" />
+                                                <span className="text-sm">{t.schemaMarkupNotFound}</span>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+
+                                {/* Content Summary */}
+                                <Card className="border-gray-200 dark:border-gray-800">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                            <FileText className="h-4 w-4 text-gray-500" />
+                                            {t.contentStructureSection}
+                                        </CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-gray-500">{t.totalWordsLabel}</span>
+                                            <span className="text-sm font-medium">{audit.findings?.content?.total_words?.toLocaleString() || 0}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            {(audit.findings?.content?.faq_pages || 0) > 0 ? (
+                                                <>
+                                                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                                                    <span className="text-sm text-emerald-600">{t.faqContentFound}</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <AlertCircle className="h-4 w-4 text-amber-600" />
+                                                    <span className="text-sm text-amber-600">{t.faqContentNotFound}</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            {/* Right: Pages Analyzed */}
+                            <div className="lg:col-span-8">
+                                <Card className="border-gray-200 dark:border-gray-800">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-sm font-medium">{t.pagesAnalyzedLabel}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="space-y-3">
+                                        {audit.pages?.map((page, i) => (
+                                            <div key={i} className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                                                <div className="flex items-start justify-between">
+                                                    <div className="min-w-0 flex-1">
+                                                        <p className="text-sm font-medium truncate">{page.title || page.url}</p>
+                                                        <p className="text-xs text-gray-500 truncate">{page.url}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 shrink-0 ml-4">
+                                                        {page.has_schema_markup && (
+                                                            <Badge variant="secondary" className="text-xs">Schema</Badge>
+                                                        )}
+                                                        {page.has_faq_content && (
+                                                            <Badge variant="secondary" className="text-xs">FAQ</Badge>
+                                                        )}
+                                                        <span className="text-xs text-gray-500">{page.word_count} words</span>
+                                                    </div>
+                                                </div>
+                                                {page.issues.length > 0 && (
+                                                    <div className="mt-2 flex flex-wrap gap-1">
+                                                        {page.issues.slice(0, 2).map((issue, j) => (
+                                                            <span key={j} className="text-xs text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-0.5 rounded">
+                                                                {issue.split(' on ')[0]}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </div>
+                    )}
+                </TabsContent>
+
+                {/* Recommendations Tab */}
+                <TabsContent value="recommendations" className="mt-6">
+                    {!audit?.recommendations || audit.recommendations.length === 0 ? (
+                        <Card className="border-gray-200 dark:border-gray-800">
+                            <CardContent className="py-12 text-center">
+                                <Sparkles className="h-10 w-10 text-emerald-500 mx-auto mb-3" />
+                                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    {t.noRecommendations}
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    {t.noRecommendationsDesc}
+                                </p>
+                                <Button onClick={handleAnalyze} className="mt-4 gap-2" variant="outline">
+                                    <Sparkles className="h-4 w-4" />
+                                    {t.analyzeSiteBtn}
+                                </Button>
                             </CardContent>
                         </Card>
                     ) : (
                         <div className="space-y-3">
-                            {recommendations.map((rec, i) => (
-                                <Card key={i} className="border-gray-200 dark:border-gray-800">
+                            {audit.recommendations.map((rec, i) => (
+                                <Card key={i} className="border-gray-200 dark:border-gray-800 hover:border-emerald-200 dark:hover:border-emerald-800 transition-colors">
                                     <CardContent className="py-4 px-4">
                                         <div className="flex items-start gap-4">
-                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${getPriorityStyle(rec.priority)}`}>
-                                                {getPriorityIcon(rec.priority)}
+                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border ${getPriorityColor(rec.priority)}`}>
+                                                <Lightbulb className="h-4 w-4" />
                                             </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <h4 className="text-sm font-semibold text-gray-900 dark:text-white">{rec.title}</h4>
-                                                    <Badge variant="outline" className={`text-[10px] h-4 px-1.5 uppercase ${getPriorityStyle(rec.priority)}`}>
-                                                        {rec.priority}
+                                                    <Badge variant="outline" className={`text-[10px] h-4 px-1.5 uppercase ${getPriorityColor(rec.priority)}`}>
+                                                        {getPriorityLabel(rec.priority)}
                                                     </Badge>
                                                 </div>
                                                 <p className="text-sm text-gray-600 dark:text-gray-400">{rec.description}</p>
-                                                <Button size="sm" variant="ghost" className="mt-2 h-7 text-xs text-gray-500 hover:text-emerald-600 gap-1 px-0">
-                                                    Aplicar <ArrowRight className="h-3 w-3" />
-                                                </Button>
+                                                <div className="flex items-center gap-2 mt-3">
+                                                    {rec.action && (
+                                                        <Button
+                                                            size="sm"
+                                                            className="h-7 text-xs gap-1 bg-emerald-600 hover:bg-emerald-700"
+                                                            onClick={() => {
+                                                                if (rec.action === 'generate_llms_txt') {
+                                                                    setSubTab('tools')
+                                                                } else if (rec.action === 'generate_schema') {
+                                                                    setSubTab('tools')
+                                                                }
+                                                            }}
+                                                        >
+                                                            {t.applyRecommendation}
+                                                            <ArrowRight className="h-3 w-3" />
+                                                        </Button>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </CardContent>
@@ -175,124 +541,94 @@ ${services.length > 0 ? `## Services\n${services.map(s => `- ${s}`).join('\n')}`
                     )}
                 </TabsContent>
 
-                {/* llms.txt Tab */}
-                <TabsContent value="llms-txt" className="mt-4">
-                    <div className="grid lg:grid-cols-2 gap-6">
-                        {/* Editor */}
+                {/* Tools Tab */}
+                <TabsContent value="tools" className="mt-6">
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {/* llms.txt Generator */}
                         <Card className="border-gray-200 dark:border-gray-800">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-sm font-medium">Configuración</CardTitle>
+                            <CardHeader>
+                                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                    <FileText className="h-4 w-4" />
+                                    {t.llmsTxtGenerator}
+                                </CardTitle>
+                                <CardDescription className="text-xs">
+                                    {t.llmsTxtDesc}
+                                </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div>
-                                    <Label className="text-xs font-medium text-gray-600">Descripción</Label>
-                                    <Textarea
-                                        placeholder="Descripción breve de tu empresa..."
-                                        value={llmsDescription}
-                                        onChange={(e) => setLlmsDescription(e.target.value)}
-                                        className="mt-1.5 min-h-[80px] resize-none text-sm"
-                                    />
-                                </div>
-                                <div>
-                                    <Label className="text-xs font-medium text-gray-600">Servicios (uno por línea)</Label>
-                                    <Textarea
-                                        placeholder="Servicio 1&#10;Servicio 2&#10;Servicio 3"
-                                        value={llmsServices}
-                                        onChange={(e) => setLlmsServices(e.target.value)}
-                                        className="mt-1.5 min-h-[120px] resize-none text-sm font-mono"
-                                    />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Preview */}
-                        <Card className="border-gray-200 dark:border-gray-800 bg-[#1e1e1e]">
-                            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700">
-                                <span className="text-xs text-gray-400 font-mono">llms.txt</span>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => handleCopy(generateLlmsTxt(), 'llms')}
-                                    className="h-6 text-xs text-gray-400 hover:text-white gap-1"
-                                >
-                                    {copied === 'llms' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                                    {copied === 'llms' ? 'Copiado' : 'Copiar'}
-                                </Button>
-                            </div>
-                            <pre className="p-4 text-xs font-mono text-gray-300 overflow-auto max-h-[300px] whitespace-pre-wrap">
-                                {generateLlmsTxt()}
-                            </pre>
-                        </Card>
-                    </div>
-                </TabsContent>
-
-                {/* Schema Tab */}
-                <TabsContent value="schema" className="mt-4">
-                    <div className="grid lg:grid-cols-2 gap-6">
-                        {/* FAQ Builder */}
-                        <Card className="border-gray-200 dark:border-gray-800">
-                            <CardHeader className="pb-3">
-                                <CardTitle className="text-sm font-medium">FAQ Builder</CardTitle>
-                                <CardDescription className="text-xs">Crea preguntas frecuentes estructuradas</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-3">
-                                {faqItems.map((item, i) => (
-                                    <div key={i} className="p-3 rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <span className="text-xs font-medium text-gray-500">Pregunta {i + 1}</span>
-                                            {faqItems.length > 1 && (
-                                                <button onClick={() => removeFaqItem(i)} className="text-gray-400 hover:text-red-500">
-                                                    <Trash2 className="h-3 w-3" />
-                                                </button>
-                                            )}
-                                        </div>
-                                        <Input
-                                            placeholder="¿Pregunta?"
-                                            value={item.q}
-                                            onChange={(e) => updateFaqItem(i, 'q', e.target.value)}
-                                            className="mb-2 text-sm h-8"
-                                        />
-                                        <Textarea
-                                            placeholder="Respuesta..."
-                                            value={item.a}
-                                            onChange={(e) => updateFaqItem(i, 'a', e.target.value)}
-                                            rows={2}
-                                            className="text-sm resize-none"
-                                        />
+                            <CardContent>
+                                <div className="bg-[#1e1e1e] rounded-lg overflow-hidden">
+                                    <div className="flex items-center justify-between px-3 py-2 border-b border-gray-700">
+                                        <span className="text-xs text-gray-400 font-mono">llms.txt</span>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleCopy(generateLlmsTxt(), 'llms')}
+                                            className="h-6 text-xs text-gray-400 hover:text-white gap-1"
+                                        >
+                                            {copied === 'llms' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                                            {copied === 'llms' ? t.copiedBtn : t.copyBtn}
+                                        </Button>
                                     </div>
-                                ))}
-                                <Button variant="outline" onClick={addFaqItem} className="w-full border-dashed text-xs h-8 gap-1">
-                                    <Plus className="h-3 w-3" /> Añadir pregunta
-                                </Button>
+                                    <pre className="p-4 text-xs font-mono text-gray-300 overflow-auto max-h-[200px] whitespace-pre-wrap">
+                                        {generateLlmsTxt()}
+                                    </pre>
+                                </div>
+                                <p className="text-xs text-muted-foreground mt-3">
+                                    {t.llmsTxtInstruction}{' '}
+                                    <code className="bg-gray-100 dark:bg-gray-800 px-1 rounded">https://{domain}/llms.txt</code>
+                                </p>
                             </CardContent>
                         </Card>
 
-                        {/* JSON-LD Preview */}
-                        <Card className="border-gray-200 dark:border-gray-800 bg-[#1e1e1e]">
-                            <div className="flex items-center justify-between px-4 py-2 border-b border-gray-700">
-                                <span className="text-xs text-gray-400 font-mono">JSON-LD</span>
-                                {faqItems.some(f => f.q && f.a) && (
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => handleCopy(generateFaqSchema(), 'schema')}
-                                        className="h-6 text-xs text-gray-400 hover:text-white gap-1"
-                                    >
-                                        {copied === 'schema' ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                                        {copied === 'schema' ? 'Copiado' : 'Copiar'}
-                                    </Button>
-                                )}
-                            </div>
-                            {faqItems.some(f => f.q && f.a) ? (
-                                <pre className="p-4 text-xs font-mono text-[#9cdcfe] overflow-auto max-h-[400px]">
-                                    {generateFaqSchema()}
-                                </pre>
-                            ) : (
-                                <div className="p-8 text-center text-gray-500">
-                                    <Code className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                                    <p className="text-xs">Rellena el formulario para generar el código</p>
-                                </div>
-                            )}
+                        {/* Quick Actions */}
+                        <Card className="border-gray-200 dark:border-gray-800">
+                            <CardHeader>
+                                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                    <Zap className="h-4 w-4" />
+                                    {t.quickActionsTitle}
+                                </CardTitle>
+                                <CardDescription className="text-xs">
+                                    {t.quickActionsDesc}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                <Button variant="outline" className="w-full justify-between h-10 text-sm" asChild>
+                                    <a href={`https://${domain}/robots.txt`} target="_blank" rel="noopener noreferrer">
+                                        <span className="flex items-center gap-2">
+                                            <Bot className="h-4 w-4" />
+                                            {t.checkRobotsTxt}
+                                        </span>
+                                        <ExternalLink className="h-3.5 w-3.5" />
+                                    </a>
+                                </Button>
+                                <Button variant="outline" className="w-full justify-between h-10 text-sm" asChild>
+                                    <a href={`https://${domain}/sitemap.xml`} target="_blank" rel="noopener noreferrer">
+                                        <span className="flex items-center gap-2">
+                                            <Globe className="h-4 w-4" />
+                                            {t.checkSitemap}
+                                        </span>
+                                        <ExternalLink className="h-3.5 w-3.5" />
+                                    </a>
+                                </Button>
+                                <Button variant="outline" className="w-full justify-between h-10 text-sm" asChild>
+                                    <a href={`https://search.google.com/test/rich-results?url=https://${domain}`} target="_blank" rel="noopener noreferrer">
+                                        <span className="flex items-center gap-2">
+                                            <Search className="h-4 w-4" />
+                                            {t.testRichResults}
+                                        </span>
+                                        <ExternalLink className="h-3.5 w-3.5" />
+                                    </a>
+                                </Button>
+                                <Button variant="outline" className="w-full justify-between h-10 text-sm" asChild>
+                                    <a href={`https://validator.schema.org/#url=https://${domain}`} target="_blank" rel="noopener noreferrer">
+                                        <span className="flex items-center gap-2">
+                                            <Code className="h-4 w-4" />
+                                            {t.validateSchema}
+                                        </span>
+                                        <ExternalLink className="h-3.5 w-3.5" />
+                                    </a>
+                                </Button>
+                            </CardContent>
                         </Card>
                     </div>
                 </TabsContent>

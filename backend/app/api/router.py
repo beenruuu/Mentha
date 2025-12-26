@@ -8,8 +8,6 @@ from app.api.endpoints import (
     vectordb,
     recommendations,
     notifications,
-    queries,
-    keywords,
     competitors,
     utils,
     geo_analysis,
@@ -29,7 +27,8 @@ from app.api.endpoints import (
     features,
     llms_txt,
     schema,
-    technical_aeo
+    technical_aeo,
+    site_audit
 )
 
 api_router = APIRouter()
@@ -39,13 +38,9 @@ api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(llm.router, prefix="/llm", tags=["LLM Services"])
 api_router.include_router(vectordb.router, prefix="/vectordb", tags=["Vector Database"])
 api_router.include_router(brands.router, prefix="/brands", tags=["Brands"])
-api_router.include_router(keywords.router, prefix="/keywords", tags=["Keywords"])
 api_router.include_router(competitors.router, prefix="/competitors", tags=["competitors"])
 api_router.include_router(utils.router, prefix="/utils", tags=["utils"])
-api_router.include_router(analysis.router, prefix="/analysis", tags=["Analysis"])
-api_router.include_router(recommendations.router, prefix="/recommendations", tags=["Recommendations"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
-api_router.include_router(queries.router, prefix="/queries", tags=["Queries"])
 api_router.include_router(geo_analysis.router, tags=["GEO Analysis"])
 api_router.include_router(citations.router, tags=["Citations"])
 api_router.include_router(knowledge_graph.router, tags=["Knowledge Graph"])
@@ -76,3 +71,7 @@ api_router.include_router(schema.router, tags=["Schema Generator"])
 
 # Technical AEO Endpoint
 api_router.include_router(technical_aeo.router, tags=["Technical AEO"])
+
+# Site Audit - Deep website analysis for AEO/GEO optimization
+api_router.include_router(site_audit.router, tags=["Site Audit"])
+

@@ -576,15 +576,13 @@ async def get_brand_visibility_data(
     auth_service = get_auth_service()
     crud = get_geo_crud(auth_service.supabase)
     
-    # Mapping from internal model IDs (DB) to frontend IDs
+    # Mapping from internal model IDs (DB) to frontend IDs.
+    # IMPORTANT: only real AI providers that the frontend sabe mostrar.
     model_mapping: Dict[str, str] = {
         "openai": "chatgpt",
         "anthropic": "claude",
         "perplexity": "perplexity",
         "gemini": "gemini",
-        # Keep google_search as-is for now; it's not part of the main
-        # dashboard provider set but we preserve it for completeness.
-        "google_search": "google",
     }
 
     try:
@@ -593,14 +591,37 @@ async def get_brand_visibility_data(
 
         # Apply model ID mapping so the frontend receives the same
         # identifiers it uses in AI_PROVIDER_META and other views.
-        def _map_model_id(snapshot: Dict[str, Any]) -> Dict[str, Any]:
-            model_id = snapshot.get("ai_model")
-            if isinstance(model_id, str):
-                snapshot = {**snapshot, "ai_model": model_mapping.get(model_id, model_id)}
-            return snapshot
+        # Load brand to know which AI providers are enabled for this brand
+        supabase = auth_service.supabase
+        brand_resp = supabase.table("brands")\
+            .select("ai_providers")\
+            .eq("id", str(brand_id))\
+            .single()\
+            .execute()
 
-        history = [_map_model_id(s) for s in (history_raw or [])]
-        latest = [_map_model_id(s) for s in (latest_raw or [])]
+        raw_providers = (brand_resp.data or {}).get("ai_providers") or []
+        # ai_providers guarda ids de frontend: chatgpt/claude/perplexity/gemini
+        enabled_provider_ids: set[str] = set(raw_providers)
+
+        def _map_and_filter_snapshot(snapshot: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+            model_id = snapshot.get("ai_model")
+            if not isinstance(model_id, str):
+                return None
+            # Primero mapeamos id interno → id frontend
+            frontend_id = model_mapping.get(model_id, model_id)
+            # Si la marca tiene proveedores configurados, solo devolvemos los activos
+            if enabled_provider_ids and frontend_id not in enabled_provider_ids:
+                return None
+            return {**snapshot, "ai_model": frontend_id}
+
+        history = [
+            mapped for s in (history_raw or [])
+            if (mapped := _map_and_filter_snapshot(s)) is not None
+        ]
+        latest = [
+            mapped for s in (latest_raw or [])
+            if (mapped := _map_and_filter_snapshot(s)) is not None
+        ]
         
         return {
             "history": history,
