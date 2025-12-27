@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Settings, X, Users, LogOut, Shield, Wrench, Plus } from "lucide-react"
+import { Bell, Settings, X, Users, LogOut, Shield, Wrench, Plus, User, CreditCard, Palette, Zap, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState, useEffect } from "react"
@@ -135,6 +135,17 @@ export function AppSidebar() {
 
             {/* Submenus - Always visible */}
             <div className="ml-4 pl-3 border-l border-border/50 mt-1 space-y-0.5">
+              {/* Visibility */}
+              <Link href={selectedBrandId ? `/brand/${selectedBrandId}?tab=visibility` : '/dashboard'}>
+                <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${currentTab === 'visibility'
+                  ? 'text-foreground bg-secondary/50 font-medium'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  }`}>
+                  <Eye className="w-3 h-3 opacity-70" />
+                  {t.brand_visibility}
+                </button>
+              </Link>
+
               {/* Competitors */}
               <Link href={selectedBrandId ? `/brand/${selectedBrandId}?tab=competitors` : '/dashboard'}>
                 <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${currentTab === 'competitors'
@@ -184,15 +195,86 @@ export function AppSidebar() {
           </Link>
 
           {/* 4. Settings */}
-          <Link href="/settings">
-            <button className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${pathname.startsWith('/settings')
-              ? 'bg-secondary text-foreground font-medium'
-              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
-              }`}>
-              <Settings className="w-4 h-4" />
-              <span>{t.settings}</span>
-            </button>
-          </Link>
+          <div>
+            <Link href="/settings">
+              <button className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${pathname.startsWith('/settings')
+                ? 'bg-secondary text-foreground font-medium'
+                : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                }`}>
+                <Settings className="w-4 h-4" />
+                <span>{t.settings}</span>
+              </button>
+            </Link>
+
+            {/* Submenus - Always visible */}
+            <div className="ml-4 pl-3 border-l border-border/50 mt-1 space-y-0.5">
+              {/* Profile */}
+              <Link href="/settings?tab=profile">
+                <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${pathname === '/settings' && (currentTab === 'profile' || !currentTab)
+                  ? 'text-foreground bg-secondary/50 font-medium'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  }`}>
+                  <User className="w-3 h-3 opacity-70" />
+                  {t.profile}
+                </button>
+              </Link>
+
+              {/* Security */}
+              <Link href="/settings?tab=security">
+                <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${currentTab === 'security'
+                  ? 'text-foreground bg-secondary/50 font-medium'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  }`}>
+                  <Shield className="w-3 h-3 opacity-70" />
+                  {t.security}
+                </button>
+              </Link>
+
+              {/* Notifications */}
+              <Link href="/settings?tab=notifications">
+                <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${currentTab === 'notifications'
+                  ? 'text-foreground bg-secondary/50 font-medium'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  }`}>
+                  <Bell className="w-3 h-3 opacity-70" />
+                  {t.notifications}
+                </button>
+              </Link>
+
+              {/* Billing */}
+              <Link href="/settings?tab=billing">
+                <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${currentTab === 'billing'
+                  ? 'text-foreground bg-secondary/50 font-medium'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  }`}>
+                  <CreditCard className="w-3 h-3 opacity-70" />
+                  {t.billing}
+                </button>
+              </Link>
+
+              {/* Appearance */}
+              <Link href="/settings?tab=appearance">
+                <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${currentTab === 'appearance'
+                  ? 'text-foreground bg-secondary/50 font-medium'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  }`}>
+                  <Palette className="w-3 h-3 opacity-70" />
+                  {t.appearance}
+                </button>
+              </Link>
+
+              {/* Features */}
+              <Link href="/settings?tab=features">
+                <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${currentTab === 'features'
+                  ? 'text-foreground bg-secondary/50 font-medium'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  }`}>
+                  <Zap className="w-3 h-3 opacity-70" />
+                  {t.features}
+                </button>
+              </Link>
+            </div>
+          </div>
         </nav>
 
         {/* Footer */}
