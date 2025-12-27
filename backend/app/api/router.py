@@ -19,7 +19,7 @@ from app.api.endpoints import (
     prompt_tracking,
     export,
     sentiment,
-    organization,
+
     compliance,
     hallucinations,
     insights,
@@ -35,6 +35,8 @@ api_router = APIRouter()
 
 # Include sub-routers for different API endpoints
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+api_router.include_router(analysis.router, prefix="/analysis", tags=["Analysis"])
+api_router.include_router(recommendations.router, prefix="/recommendations", tags=["Recommendations"])
 api_router.include_router(llm.router, prefix="/llm", tags=["LLM Services"])
 api_router.include_router(vectordb.router, prefix="/vectordb", tags=["Vector Database"])
 api_router.include_router(brands.router, prefix="/brands", tags=["Brands"])
@@ -52,7 +54,7 @@ api_router.include_router(lab.router, prefix="/lab", tags=["Lab"])
 api_router.include_router(prompt_tracking.router, tags=["Prompt Tracking"])
 api_router.include_router(export.router, tags=["Export"])
 api_router.include_router(sentiment.router, tags=["Sentiment Analysis"])
-api_router.include_router(organization.router, prefix="/organization", tags=["Organization"])
+
 api_router.include_router(compliance.router, prefix="/compliance", tags=["Compliance"])
 
 # Core AEO Services

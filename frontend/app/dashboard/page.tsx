@@ -18,12 +18,25 @@ import {
 import {
   AreaChart,
   Area,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer
 } from 'recharts'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+} from "@/components/ui/dropdown-menu"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -37,13 +50,12 @@ import { competitorsService, type Competitor } from "@/lib/services/competitors"
 import { geoAnalysisService, type VisibilitySnapshot } from "@/lib/services/geo-analysis"
 
 
-import { DateRangePicker } from "@/components/ui/date-range-picker"
+// DateRangePicker removed - period selection now inline in chart
 import { InsightsCard } from "@/components/dashboard/InsightsCard"
 import { LanguageComparisonCard } from "@/components/dashboard/LanguageComparisonCard"
 import { RegionalComparisonCard } from "@/components/dashboard/RegionalComparisonCard"
 import { LocalMarketCard } from "@/components/dashboard/LocalMarketCard"
 import { subDays, isAfter, startOfDay, format } from "date-fns"
-import { DateRange } from "react-day-picker"
 import {
   Tooltip as TooltipUI,
   TooltipContent,
@@ -68,6 +80,21 @@ const AI_PROVIDER_META = [
   { id: 'gemini', name: 'Gemini', icon: '/providers/gemini-color.svg?v=3', color: '#4b5563' },
 ] as const
 
+type Period = 'last_week' | 'last_month' | 'last_quarter'
+type ChartType = 'line' | 'area'
+
+const periodLabels: Record<Period, string> = {
+  last_week: 'Last Week',
+  last_month: 'Last Month',
+  last_quarter: 'Last Quarter',
+}
+
+const periodToDays: Record<Period, number> = {
+  last_week: 7,
+  last_month: 30,
+  last_quarter: 90,
+}
+
 const MODEL_ID_MAP: Record<string, string> = {
   'openai': 'chatgpt',
   'anthropic': 'claude',
@@ -90,11 +117,16 @@ export default function DashboardPage() {
   // State for viewing competitor as main entity
   const [viewingCompetitor, setViewingCompetitor] = useState<Competitor | null>(null)
 
-  // Date Range State
+  // Chart Configuration State (Square-UI style)
+  const [period, setPeriod] = useState<Period>('last_month')
   const [selectedDays, setSelectedDays] = useState(30)
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: subDays(new Date(), 30),
-    to: new Date(),
+  const [chartType, setChartType] = useState<ChartType>('area')
+  const [showGrid, setShowGrid] = useState(true)
+  const [visibleModels, setVisibleModels] = useState({
+    chatgpt: true,
+    claude: true,
+    perplexity: true,
+    gemini: true,
   })
 
   const router = useRouter()
@@ -105,8 +137,8 @@ export default function DashboardPage() {
     try {
       const analyses = await analysisService.getAll(brand.id)
 
-      // Filter analyses based on date range
-      const startDate = dateRange?.from || subDays(new Date(), days)
+      // Filter analyses based on selected days period
+      const startDate = subDays(new Date(), days)
       const filteredAnalyses = analyses.filter(a => {
         const date = new Date(a.created_at)
         return isAfter(date, startOfDay(startDate)) || date.toDateString() === startDate.toDateString()
@@ -219,13 +251,30 @@ export default function DashboardPage() {
     }
   }
 
-  const handleDateRangeChange = (range: DateRange | undefined) => {
-    setDateRange(range)
-    if (range?.from && range?.to) {
-      const diffTime = Math.abs(range.to.getTime() - range.from.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      setSelectedDays(diffDays || 1) // limit must be at least 1
-    }
+  // Handle period change from chart dropdown
+  const handlePeriodChange = (newPeriod: Period) => {
+    setPeriod(newPeriod)
+    setSelectedDays(periodToDays[newPeriod])
+  }
+
+  // Toggle model visibility
+  const toggleModel = (modelId: keyof typeof visibleModels) => {
+    setVisibleModels(prev => ({
+      ...prev,
+      [modelId]: !prev[modelId],
+    }))
+  }
+
+  // Reset chart settings to default
+  const resetChartSettings = () => {
+    setChartType('area')
+    setShowGrid(true)
+    setVisibleModels({
+      chatgpt: true,
+      claude: true,
+      perplexity: true,
+      gemini: true,
+    })
   }
 
   // Refetch when selectedDays changes
@@ -487,21 +536,8 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Date Range Picker */}
-            <DateRangePicker
-              date={dateRange}
-              onDateChange={handleDateRangeChange}
-              onDaysChange={setSelectedDays}
-            />
 
-            {selectedBrand && (
-              <Link href={`/brand/${selectedBrand.id}`}>
-                <Button variant="outline" size="sm" className="gap-2 text-xs">
-                  <Building2 className="h-3.5 w-3.5" />
-                  {t.viewDetails}
-                </Button>
-              </Link>
-            )}
+
             <UserAvatarMenu />
           </div>
         </header>
@@ -552,6 +588,7 @@ export default function DashboardPage() {
 
                 {/* Main Chart Area */}
                 <div className="w-full">
+                  {/* AI Model Visualizers - Above the card */}
                   <div className="mb-4">
                     <div className="flex items-end justify-between">
                       <div>
@@ -567,7 +604,7 @@ export default function DashboardPage() {
                         </p>
                       </div>
 
-                      {/* Model Breakdown - Main Chart Header */}
+                      {/* Model Breakdown - AI Provider Icons */}
                       {activeMetric === 'rank' && Object.keys(modelPerformance).length > 0 && (
                         <div className="flex items-center gap-3 mb-1">
                           {AI_PROVIDER_META.map((provider) => {
@@ -599,64 +636,188 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  <div className="h-[280px]">
-                    {chartData.length > 0 ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={chartData} margin={{ top: 10, right: 0, bottom: 0, left: -20 }}>
-                          <defs>
-                            <linearGradient id="colorMetric" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
-                              <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.2} />
-                          <XAxis
-                            dataKey="date"
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                            dy={10}
-                          />
-                          <YAxis
-                            axisLine={false}
-                            tickLine={false}
-                            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                            tickFormatter={(value) => activeMetric === 'position' ? `#${Math.round(value)}` : `${Math.round(value)}%`}
-                            domain={activeMetric === 'position' ? [1, 5] : [0, 100]}
-                            ticks={activeMetric === 'position' ? [1, 2, 3, 4, 5] : undefined}
-                            reversed={activeMetric === 'position'}
-                            allowDecimals={false}
-                          />
-                          <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--border))', strokeWidth: 1, strokeDasharray: '5 5' }} />
+                  {/* Chart Card - Square-UI Style */}
+                  <div className="bg-card text-card-foreground rounded-lg border flex-1">
+                    {/* Card Header with Period Selector and Settings */}
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border-b border-border/50">
+                      <h3 className="font-medium text-sm sm:text-base">{t.dashboardAIVisibility || 'AI Visibility'}</h3>
+                      <div className="flex items-center gap-2">
+                        {/* Period Dropdown */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-7 gap-1.5">
+                              <CalendarIcon className="size-3.5" />
+                              <span className="text-sm">{periodLabels[period]}</span>
+                              <ChevronDown className="size-3" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {(Object.keys(periodLabels) as Period[]).map((p) => (
+                              <DropdownMenuItem key={p} onClick={() => handlePeriodChange(p)}>
+                                {periodLabels[p]} {period === p && "✓"}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
 
-
-                          {/* Individual Model Lines - Overlaid on top */}
-                          {Object.keys(modelPerformance).length > 0 && AI_PROVIDER_META.map((provider) => {
-                            // Determine data key based on active metric
-                            let dataKey: string = provider.id
-                            if (activeMetric === 'position') dataKey = `${provider.id}_position`
-                            if (activeMetric === 'inclusion') dataKey = `${provider.id}_inclusion`
-
-                            return (
-                              <Area
-                                key={provider.id}
-                                type="monotone"
-                                dataKey={dataKey}
-                                stroke={provider.color}
-                                strokeWidth={2}
-                                fillOpacity={0}
-                                fill="transparent"
-                                connectNulls
-                              />
-                            )
-                          })}
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div className="h-full flex items-center justify-center text-muted-foreground text-sm bg-gray-50/50 dark:bg-[#111114] rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
-                        {t.dashboardNoHistoricalData}
+                        {/* Settings Dropdown */}
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon" className="size-7">
+                              <Settings className="size-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger>Chart Type</DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent>
+                                <DropdownMenuItem onClick={() => setChartType('line')}>
+                                  Line Chart {chartType === 'line' && "✓"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setChartType('area')}>
+                                  Area Chart {chartType === 'area' && "✓"}
+                                </DropdownMenuItem>
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuCheckboxItem
+                              checked={showGrid}
+                              onCheckedChange={setShowGrid}
+                            >
+                              Show Grid
+                            </DropdownMenuCheckboxItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger>Show Models</DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent>
+                                {AI_PROVIDER_META.map((provider) => (
+                                  <DropdownMenuCheckboxItem
+                                    key={provider.id}
+                                    checked={visibleModels[provider.id as keyof typeof visibleModels]}
+                                    onCheckedChange={() => toggleModel(provider.id as keyof typeof visibleModels)}
+                                  >
+                                    <span
+                                      className="size-2 rounded-full mr-2"
+                                      style={{ backgroundColor: provider.color }}
+                                    />
+                                    {provider.name}
+                                  </DropdownMenuCheckboxItem>
+                                ))}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={resetChartSettings}>
+                              Reset to Default
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                    )}
+                    </div>
+
+                    {/* Chart Content */}
+                    <div className="p-4">
+                      <div className="h-[250px] sm:h-[280px] w-full">
+                        {chartData.length > 0 ? (
+                          <ResponsiveContainer width="100%" height="100%">
+                            {chartType === 'area' ? (
+                              <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                {showGrid && (
+                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.3} />
+                                )}
+                                <XAxis
+                                  dataKey="date"
+                                  axisLine={false}
+                                  tickLine={false}
+                                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                                />
+                                <YAxis
+                                  axisLine={false}
+                                  tickLine={false}
+                                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                                  tickFormatter={(value) => activeMetric === 'position' ? `#${Math.round(value)}` : `${Math.round(value)}%`}
+                                  domain={activeMetric === 'position' ? [1, 5] : [0, 100]}
+                                  ticks={activeMetric === 'position' ? [1, 2, 3, 4, 5] : undefined}
+                                  reversed={activeMetric === 'position'}
+                                  allowDecimals={false}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                <defs>
+                                  {AI_PROVIDER_META.map((provider) => (
+                                    <linearGradient key={provider.id} id={`gradient-${provider.id}`} x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="0%" stopColor={provider.color} stopOpacity={0.3} />
+                                      <stop offset="100%" stopColor={provider.color} stopOpacity={0} />
+                                    </linearGradient>
+                                  ))}
+                                </defs>
+                                {AI_PROVIDER_META.map((provider) => {
+                                  if (!visibleModels[provider.id as keyof typeof visibleModels]) return null
+                                  let dataKey: string = provider.id
+                                  if (activeMetric === 'position') dataKey = `${provider.id}_position`
+                                  if (activeMetric === 'inclusion') dataKey = `${provider.id}_inclusion`
+                                  return (
+                                    <Area
+                                      key={provider.id}
+                                      type="monotone"
+                                      dataKey={dataKey}
+                                      stroke={provider.color}
+                                      strokeWidth={2}
+                                      fill={`url(#gradient-${provider.id})`}
+                                      dot={false}
+                                      connectNulls
+                                    />
+                                  )
+                                })}
+                              </AreaChart>
+                            ) : (
+                              <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                {showGrid && (
+                                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" opacity={0.3} />
+                                )}
+                                <XAxis
+                                  dataKey="date"
+                                  axisLine={false}
+                                  tickLine={false}
+                                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                                />
+                                <YAxis
+                                  axisLine={false}
+                                  tickLine={false}
+                                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                                  tickFormatter={(value) => activeMetric === 'position' ? `#${Math.round(value)}` : `${Math.round(value)}%`}
+                                  domain={activeMetric === 'position' ? [1, 5] : [0, 100]}
+                                  ticks={activeMetric === 'position' ? [1, 2, 3, 4, 5] : undefined}
+                                  reversed={activeMetric === 'position'}
+                                  allowDecimals={false}
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                {AI_PROVIDER_META.map((provider) => {
+                                  if (!visibleModels[provider.id as keyof typeof visibleModels]) return null
+                                  let dataKey: string = provider.id
+                                  if (activeMetric === 'position') dataKey = `${provider.id}_position`
+                                  if (activeMetric === 'inclusion') dataKey = `${provider.id}_inclusion`
+                                  return (
+                                    <Line
+                                      key={provider.id}
+                                      type="monotone"
+                                      dataKey={dataKey}
+                                      stroke={provider.color}
+                                      strokeWidth={2}
+                                      dot={false}
+                                      activeDot={{ r: 4, strokeWidth: 0 }}
+                                      connectNulls
+                                    />
+                                  )
+                                })}
+                              </LineChart>
+                            )}
+                          </ResponsiveContainer>
+                        ) : (
+                          <div className="h-full flex items-center justify-center text-muted-foreground text-sm bg-gray-50/50 dark:bg-[#111114] rounded-xl border border-dashed border-gray-200 dark:border-gray-800">
+                            {t.dashboardNoHistoricalData}
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
                 </div>

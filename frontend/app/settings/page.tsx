@@ -12,7 +12,6 @@ import { UserAvatarMenu } from "@/components/layout/user-avatar-menu"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { SettingsPageSkeleton } from "@/components/skeletons"
 import {
-  OrganizationTab,
   ProfileTab,
   SecurityTab,
   NotificationsTab,
@@ -31,7 +30,7 @@ interface NotificationPreferences {
 export default function SettingsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const defaultTab = searchParams.get('tab') || 'organization'
+  const defaultTab = searchParams.get('tab') || 'profile'
   const [lang, setLangState] = useState<Language>('es')
   const t = getTranslations(lang)
   const [user, setUser] = useState<any>(null)
@@ -128,9 +127,6 @@ export default function SettingsPage() {
               >
 
 
-                <TabsContent value="organization">
-                  <OrganizationTab t={t} />
-                </TabsContent>
 
                 <TabsContent value="profile">
                   <ProfileTab

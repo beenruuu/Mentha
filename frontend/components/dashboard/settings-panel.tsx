@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from 'react'
-import { X, Languages, Settings, User, Bell, Lock, CreditCard, Palette, Building2 } from 'lucide-react'
+import { X, Languages, Settings, User, Bell, Lock, CreditCard, Palette } from 'lucide-react'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { getLanguage, setLanguage, getTranslations, type Language } from '@/lib/i18n'
@@ -154,7 +154,7 @@ export default function SettingsPanel() {
 
   const sections = [
     { key: 'general', label: t.configuration, icon: <Settings className="w-4 h-4" /> },
-    { key: 'organization', label: t.organization, icon: <Building2 className="w-4 h-4" /> },
+
     { key: 'profile', label: t.profile || 'Perfil', icon: <User className="w-4 h-4" /> },
     { key: 'notifications', label: t.notifications || 'Notificaciones', icon: <Bell className="w-4 h-4" /> },
     { key: 'security', label: t.security || 'Seguridad', icon: <Lock className="w-4 h-4" /> },

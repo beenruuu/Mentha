@@ -11,14 +11,14 @@ sys.path.append(os.getcwd())
 from app.services.supabase.database import SupabaseDatabaseService
 from app.models.analysis import Analysis, AnalysisType, AnalysisStatus, AIModel
 from app.models.brand import Brand
-from app.models.keyword import Keyword
+# from app.models.keyword import Keyword
 from app.models.competitor import Competitor
 
 async def create_snapshot():
     print("📸 Creating Analysis Snapshot...")
     
     brand_db = SupabaseDatabaseService("brands", Brand)
-    keyword_db = SupabaseDatabaseService("keywords", Keyword)
+    # keyword_db = SupabaseDatabaseService("keywords", Keyword)
     competitor_db = SupabaseDatabaseService("competitors", Competitor)
     analysis_db = SupabaseDatabaseService("aeo_analyses", Analysis)
     
@@ -27,8 +27,10 @@ async def create_snapshot():
     for brand in brands:
         print(f"🏢 Processing Brand: {brand.name}")
         
+        
         # Fetch Data
-        keywords = await keyword_db.list(filters={"brand_id": brand.id})
+        # keywords = await keyword_db.list(filters={"brand_id": brand.id})
+        keywords = []
         competitors = await competitor_db.list(filters={"brand_id": brand.id})
         
         # 1. Construct Keywords List for Results

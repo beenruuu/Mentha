@@ -9,7 +9,7 @@ sys.path.append(os.getcwd())
 from app.services.analysis.ai_visibility_service import AIVisibilityService
 from app.services.analysis.competitor_analyzer import CompetitorAnalyzerService
 from app.services.supabase.database import SupabaseDatabaseService
-from app.models.keyword import Keyword
+# from app.models.keyword import Keyword
 from app.models.competitor import Competitor
 from app.models.brand import Brand
 
@@ -20,7 +20,7 @@ async def force_analysis():
     # Initialize services
     visibility_service = AIVisibilityService()
     competitor_service = CompetitorAnalyzerService()
-    keyword_db = SupabaseDatabaseService("keywords", Keyword)
+    # keyword_db = SupabaseDatabaseService("keywords", Keyword)
     competitor_db = SupabaseDatabaseService("competitors", Competitor)
     brand_db = SupabaseDatabaseService("brands", Brand)
     
@@ -34,7 +34,8 @@ async def force_analysis():
         print(f"🏢 Processing Brand: {brand.name} ({brand.domain})")
         
         # 2. Process Keywords (AI Visibility)
-        keywords = await keyword_db.list(filters={"brand_id": brand.id})
+        # keywords = await keyword_db.list(filters={"brand_id": brand.id})
+        keywords = []
         print(f"   found {len(keywords)} keywords.")
         
         for kw in keywords:

@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from app.models.analysis import Analysis
-from app.models.keyword import Keyword
+# from app.models.keyword import Keyword
 from app.models.crawler_log import CrawlerLog
 from app.models.competitor import Competitor
 from app.services.supabase.database import SupabaseDatabaseService
@@ -15,11 +15,11 @@ class AnalysisResultsIngestionService:
     """Persists structured LLM output into the relational tables used by the UI."""
 
     def __init__(self) -> None:
-        self.keyword_db = SupabaseDatabaseService("keywords", Keyword)
+        # self.keyword_db = SupabaseDatabaseService("keywords", Keyword)
         self.crawler_log_db = SupabaseDatabaseService("crawler_logs", CrawlerLog)
         self.competitor_db = SupabaseDatabaseService("competitors", Competitor)
         # New tables for GEO/AEO data
-        self.supabase_client = self.keyword_db.supabase  # Reuse supabase client
+        self.supabase_client = self.competitor_db.supabase  # Reuse supabase client
 
     async def ingest_results(
         self, 
@@ -33,14 +33,14 @@ class AnalysisResultsIngestionService:
 
         try:
             # Merge real keyword metrics if provided
-            keywords_data = results.get("keywords", [])
-            if keyword_metrics and keyword_metrics.get("enabled") and keyword_metrics.get("keywords"):
-                # Use real metrics from Google Trends/SerpAPI instead of LLM estimates
-                real_keywords = keyword_metrics.get("keywords", [])
-                keywords_data = self._merge_keyword_metrics(keywords_data, real_keywords)
+            # keywords_data = results.get("keywords", [])
+            # if keyword_metrics and keyword_metrics.get("enabled") and keyword_metrics.get("keywords"):
+                # # Use real metrics from Google Trends/SerpAPI instead of LLM estimates
+                # real_keywords = keyword_metrics.get("keywords", [])
+                # keywords_data = self._merge_keyword_metrics(keywords_data, real_keywords)
             
-            log_info("🔑📥", f"Ingesting keywords: {len(keywords_data)} found.")
-            await self._ingest_keywords(analysis, keywords_data)
+            # log_info("🔑📥", f"Ingesting keywords: {len(keywords_data)} found.")
+            # await self._ingest_keywords(analysis, keywords_data)
             
             log_info("🏢📥", f"Ingesting competitors: {len(results.get('competitors', []))} found.")
             await self._ingest_competitors(analysis, results.get("competitors"))
@@ -60,99 +60,10 @@ class AnalysisResultsIngestionService:
         llm_keywords: List[Dict[str, Any]],
         real_keywords: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
-        """
-        Merge LLM-generated keywords with real metrics from Google Trends/SerpAPI.
-        Real metrics take precedence over LLM estimates.
-        """
-        # Create lookup for real metrics by keyword
-        real_metrics_map = {}
-        for kw in real_keywords:
-            keyword_text = (kw.get("keyword") or "").strip().lower()
-            if keyword_text:
-                real_metrics_map[keyword_text] = kw
-        
-        merged = []
-        seen_keywords = set()
-        
-        # Update LLM keywords with real metrics where available
-        for kw in llm_keywords:
-            keyword_text = (kw.get("keyword") or "").strip()
-            keyword_lower = keyword_text.lower()
-            
-            if keyword_lower in seen_keywords:
-                continue
-            seen_keywords.add(keyword_lower)
-            
-            if keyword_lower in real_metrics_map:
-                # Use real metrics
-                real_data = real_metrics_map[keyword_lower]
-                merged.append({
-                    "keyword": keyword_text,
-                    "search_volume": real_data.get("search_volume", 0),
-                    "difficulty": real_data.get("difficulty", 50),
-                    "ai_visibility_score": real_data.get("ai_visibility_score", 0),
-                    "trend_score": real_data.get("trend_score", 0),
-                    "data_source": real_data.get("data_source", "google_trends"),
-                    "tracked": True
-                })
-            else:
-                merged.append(kw)
-        
-        # Add any real keywords not in LLM results
-        for kw in real_keywords:
-            keyword_text = (kw.get("keyword") or "").strip()
-            keyword_lower = keyword_text.lower()
-            
-            if keyword_lower not in seen_keywords:
-                seen_keywords.add(keyword_lower)
-                merged.append({
-                    "keyword": keyword_text,
-                    "search_volume": kw.get("search_volume", 0),
-                    "difficulty": kw.get("difficulty", 50),
-                    "ai_visibility_score": kw.get("ai_visibility_score", 0),
-                    "trend_score": kw.get("trend_score", 0),
-                    "data_source": kw.get("data_source", "google_trends"),
-                    "tracked": True
-                })
-        
-        return merged
+        return []
 
     async def _ingest_keywords(self, analysis: Analysis, keywords: Optional[List[Dict[str, Any]]]) -> None:
-        if not keywords:
-            return
-
-        user_id = str(analysis.user_id)
-        brand_id = str(analysis.brand_id) if analysis.brand_id else None
-
-        try:
-            delete_query = self.keyword_db.supabase.table("keywords").delete().eq("user_id", user_id)
-            if brand_id:
-                delete_query = delete_query.eq("brand_id", brand_id)
-            delete_query.execute()
-        except Exception as delete_error:
-            log_error("🔑❌", f"Failed to clean previous keywords: {delete_error}")
-
-        created = 0
-        for item in keywords:
-            keyword_text = (item.get("keyword") or "").strip()
-            if not keyword_text:
-                continue
-
-            payload = {
-                "user_id": user_id,
-                "brand_id": brand_id,
-                "keyword": keyword_text,
-                "search_volume": self._to_int(item.get("search_volume")),
-                "difficulty": self._to_float(item.get("difficulty")),
-                "ai_visibility_score": self._to_float(item.get("ai_visibility_score")),
-                "tracked": item.get("tracked", True),
-                "created_at": datetime.utcnow().isoformat() + "Z",
-                "updated_at": datetime.utcnow().isoformat() + "Z",
-            }
-            await self.keyword_db.create(payload)
-            created += 1
-
-        log_success("🔑✅", f"Hydrated {created} keywords for user {user_id}")
+        pass
 
     async def _ingest_competitors(self, analysis: Analysis, competitors: Optional[List[Dict[str, Any]]]) -> None:
         """

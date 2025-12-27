@@ -29,57 +29,14 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { getTranslations, getLanguage, type Language } from '@/lib/i18n'
+import { siteAuditService, type SiteAudit, type PageFinding, type Recommendation } from '@/lib/services/site-audit'
 
 interface OptimizeTabProps {
     brandId: string
     brandName: string
     domain: string
     industry?: string
-    recommendations?: any[]
-}
-
-interface SiteAudit {
-    audit_id: string
-    brand_id: string
-    status: 'pending' | 'processing' | 'completed' | 'failed'
-    created_at: string
-    completed_at?: string
-    domain: string
-    pages_requested: number
-    pages_analyzed: number
-    pages: PageFinding[]
-    findings: {
-        schema_markup?: {
-            found: boolean
-            types: string[]
-        }
-        content?: {
-            total_words: number
-            faq_pages: number
-        }
-        total_issues?: number
-    }
-    recommendations: Recommendation[]
-    error?: string
-}
-
-interface PageFinding {
-    url: string
-    title?: string
-    has_schema_markup: boolean
-    schema_types: string[]
-    has_faq_content: boolean
-    heading_structure: Record<string, number>
-    word_count: number
-    issues: string[]
-}
-
-interface Recommendation {
-    priority: 'high' | 'medium' | 'low'
-    category: string
-    title: string
-    description: string
-    action?: string
+    recommendations?: Recommendation[]
 }
 
 /**
@@ -95,7 +52,8 @@ export function OptimizeTab({
     brandId,
     brandName,
     domain,
-    industry
+    industry,
+    recommendations
 }: OptimizeTabProps) {
     const [subTab, setSubTab] = useState('audit')
     const [copied, setCopied] = useState<string | null>(null)
@@ -110,18 +68,30 @@ export function OptimizeTab({
         setLang(getLanguage())
     }, [])
 
+    // Merge recommendations from audit and props
+    const allRecommendations = React.useMemo(() => {
+        const auditRecs = audit?.recommendations || []
+        const propRecs = recommendations || []
+        
+        // Merge and deduplicate by title
+        const merged = [...auditRecs]
+        propRecs.forEach(pr => {
+            if (!merged.some(m => m.title === pr.title)) {
+                merged.push(pr)
+            }
+        })
+        
+        return merged
+    }, [audit?.recommendations, recommendations])
+
     // Load latest audit on mount
     const loadLatestAudit = useCallback(async () => {
         try {
-            const token = localStorage.getItem('access_token')
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/site-audit/brand/${brandId}/latest`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            })
-
-            if (res.ok) {
-                const data = await res.json()
-                if (data) {
-                    setAudit(data)
+            const data = await siteAuditService.getLatestAudit(brandId)
+            if (data) {
+                setAudit(data)
+                if (data.status === 'processing') {
+                    setAnalyzing(true)
                 }
             }
         } catch (error) {
@@ -141,21 +111,14 @@ export function OptimizeTab({
 
         const interval = setInterval(async () => {
             try {
-                const token = localStorage.getItem('access_token')
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/site-audit/${audit.audit_id}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                })
-
-                if (res.ok) {
-                    const data = await res.json()
-                    setAudit(data)
-                    if (data.status === 'completed') {
-                        toast.success(t.auditTab + ' ' + t.completedOnboarding?.toLowerCase() || 'completed')
-                        setAnalyzing(false)
-                    } else if (data.status === 'failed') {
-                        toast.error(t.auditFailed)
-                        setAnalyzing(false)
-                    }
+                const data = await siteAuditService.getAudit(audit.audit_id)
+                setAudit(data)
+                if (data.status === 'completed') {
+                    toast.success(t.auditTab + ' ' + t.completedOnboarding?.toLowerCase() || 'completed')
+                    setAnalyzing(false)
+                } else if (data.status === 'failed') {
+                    toast.error(t.auditFailed)
+                    setAnalyzing(false)
                 }
             } catch (error) {
                 console.error('Error polling audit:', error)
@@ -177,29 +140,13 @@ export function OptimizeTab({
         toast.info(t.auditInProgressDesc)
 
         try {
-            const token = localStorage.getItem('access_token')
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/site-audit/analyze`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    brand_id: brandId,
-                    pages_limit: 5
-                })
+            const data = await siteAuditService.analyze({
+                brand_id: brandId,
+                pages_limit: 5
             })
-
-            if (res.ok) {
-                const data = await res.json()
-                setAudit(data)
-            } else {
-                const error = await res.json()
-                toast.error(error.detail || t.auditFailed)
-                setAnalyzing(false)
-            }
-        } catch (error) {
-            toast.error(t.auditFailed)
+            setAudit(data)
+        } catch (error: any) {
+            toast.error(error.message || t.auditFailed)
             setAnalyzing(false)
         }
     }
@@ -481,7 +428,7 @@ ${industry ? `- Industry: ${industry}` : ''}
 
                 {/* Recommendations Tab */}
                 <TabsContent value="recommendations" className="mt-6">
-                    {!audit?.recommendations || audit.recommendations.length === 0 ? (
+                    {allRecommendations.length === 0 ? (
                         <Card className="border-gray-200 dark:border-gray-800">
                             <CardContent className="py-12 text-center">
                                 <Sparkles className="h-10 w-10 text-emerald-500 mx-auto mb-3" />
@@ -499,7 +446,7 @@ ${industry ? `- Industry: ${industry}` : ''}
                         </Card>
                     ) : (
                         <div className="space-y-3">
-                            {audit.recommendations.map((rec, i) => (
+                            {allRecommendations.map((rec, i) => (
                                 <Card key={i} className="border-gray-200 dark:border-gray-800 hover:border-emerald-200 dark:hover:border-emerald-800 transition-colors">
                                     <CardContent className="py-4 px-4">
                                         <div className="flex items-start gap-4">

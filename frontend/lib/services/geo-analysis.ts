@@ -190,7 +190,7 @@ export const geoAnalysisService = {
      * Get technical AEO data for a brand
      */
     getTechnicalAEO: async (brandId: string): Promise<TechnicalAEO[]> => {
-        return fetchAPI<TechnicalAEO[]>(`/technical-aeo/?brand_id=${brandId}`)
+        return fetchAPI<TechnicalAEO[]>(`/technical-aeo?brand_id=${brandId}`)
     },
 
     /**

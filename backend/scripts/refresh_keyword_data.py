@@ -7,7 +7,7 @@ sys.path.append(os.getcwd())
 
 from app.services.analysis.keyword_metrics_service import KeywordMetricsService
 from app.services.supabase.database import SupabaseDatabaseService
-from app.models.keyword import Keyword
+# from app.models.keyword import Keyword
 
 async def refresh_data():
     print("🚀 Starting Keyword Data Refresh")
@@ -15,11 +15,12 @@ async def refresh_data():
     
     # Initialize services
     metrics_service = KeywordMetricsService()
-    db_service = SupabaseDatabaseService("keywords", Keyword)
+    # db_service = SupabaseDatabaseService("keywords", Keyword)
     
     # Fetch all keywords
     print("📥 Fetching all keywords...")
-    keywords = await db_service.list()
+    # keywords = await db_service.list()
+    keywords = []
     print(f"found {len(keywords)} keywords.")
     
     updated_count = 0

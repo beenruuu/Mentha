@@ -1,8 +1,4 @@
 from typing import List, Optional
-from presidio_analyzer import AnalyzerEngine, PatternRecognizer, RecognizerRegistry, Pattern
-from presidio_analyzer.nlp_engine import NlpEngineProvider
-from presidio_anonymizer import AnonymizerEngine
-from presidio_anonymizer.entities import OperatorConfig
 import logging
 import os
 
@@ -23,37 +19,48 @@ class PiiService:
             
         self._initialized = True
         self.enabled = os.getenv("ENABLE_PII_REDACTION", "true").lower() == "true"
+        self.analyzer = None
+        self.anonymizer = None
         
         if self.enabled:
-            try:
-                logger.info("Initializing Presidio PII Engine with EN and ES support...")
-                
-                # Configure NLP engine to support both English and Spanish
-                configuration = {
-                    "nlp_engine_name": "spacy",
-                    "models": [
-                        {"lang_code": "en", "model_name": "en_core_web_lg"},
-                        {"lang_code": "es", "model_name": "es_core_news_lg"},
-                    ],
-                }
-                
-                provider = NlpEngineProvider(nlp_configuration=configuration)
-                nlp_engine = provider.create_engine()
+            self._initialize_presidio()
 
-                # Initialize Analyzer with multi-language support
-                self.analyzer = AnalyzerEngine(nlp_engine=nlp_engine, supported_languages=["en", "es"])
-                self.anonymizer = AnonymizerEngine()
-                
-                # Add custom patterns if needed (DNI is usually covered by built-in ES_NIF recognizer in Presidio 2.2+)
-                # But to be safe, we can ensure it's active or add a backup regex if built-in fails
-                self._add_custom_recognizers()
-                
-                logger.info("Presidio PII Engine (EN/ES) initialized successfully.")
-            except Exception as e:
-                logger.error(f"Failed to initialize Presidio engines: {e}")
-                self.enabled = False
-        else:
-            logger.info("PII Redaction is disabled via configuration.")
+    def _initialize_presidio(self):
+        try:
+            from presidio_analyzer import AnalyzerEngine
+            from presidio_analyzer.nlp_engine import NlpEngineProvider
+            from presidio_anonymizer import AnonymizerEngine
+            from presidio_anonymizer.entities import OperatorConfig
+
+            logger.info("Initializing Presidio PII Engine with EN and ES support...")
+            
+            # Configure NLP engine to support both English and Spanish
+            configuration = {
+                "nlp_engine_name": "spacy",
+                "models": [
+                    {"lang_code": "en", "model_name": "en_core_web_lg"},
+                    {"lang_code": "es", "model_name": "es_core_news_lg"},
+                ],
+            }
+            
+            provider = NlpEngineProvider(nlp_configuration=configuration)
+            nlp_engine = provider.create_engine()
+
+            # Initialize Analyzer with multi-language support
+            self.analyzer = AnalyzerEngine(nlp_engine=nlp_engine, supported_languages=["en", "es"])
+            self.anonymizer = AnonymizerEngine()
+            
+            # Add custom patterns if needed (DNI is usually covered by built-in ES_NIF recognizer in Presidio 2.2+)
+            # But to be safe, we can ensure it's active or add a backup regex if built-in fails
+            self._add_custom_recognizers()
+            
+            logger.info("Presidio PII Engine (EN/ES) initialized successfully.")
+        except ImportError as e:
+            logger.warning(f"Presidio/Spacy dependencies not found: {e}. PII Redaction DISABLED.")
+            self.enabled = False
+        except Exception as e:
+            logger.error(f"Failed to initialize Presidio engines: {e}. PII Redaction DISABLED.")
+            self.enabled = False
 
     def _add_custom_recognizers(self):
         # Example: Add specific heavy-regex for DNI/NIE if built-in one misses cases
@@ -72,15 +79,17 @@ class PiiService:
         Returns:
             Text with PII replaced by placeholders (e.g. <EMAIL>)
         """
-        if not self.enabled or not text:
+        if not self.enabled or not text or not self.analyzer or not self.anonymizer:
             return text
 
-        if entities is None:
-            # Default entities to redact
-            # Added ES_NIF for Spanish ID
-            entities = ["EMAIL_ADDRESS", "PHONE_NUMBER", "IP_ADDRESS", "CREDIT_CARD", "PERSON", "ES_NIF"]
-
         try:
+            from presidio_anonymizer.entities import OperatorConfig
+            
+            if entities is None:
+                # Default entities to redact
+                # Added ES_NIF for Spanish ID
+                entities = ["EMAIL_ADDRESS", "PHONE_NUMBER", "IP_ADDRESS", "CREDIT_CARD", "PERSON", "ES_NIF"]
+
             # Analyze
             results = self.analyzer.analyze(
                 text=text,
@@ -110,4 +119,5 @@ class PiiService:
             
         except Exception as e:
             logger.error(f"Error during PII anonymization: {e}")
-            return text 
+            return text
+ 

@@ -11,7 +11,7 @@ from app.services.analysis.analysis_results_ingestion import AnalysisResultsInge
 from app.services.supabase.database import SupabaseDatabaseService
 from app.services.llm.llm_service import LLMServiceFactory, LLMService
 from app.services.analysis.web_search_service import WebSearchService
-from app.services.analysis.keyword_metrics_service import KeywordMetricsService
+# from app.services.analysis.keyword_metrics_service import KeywordMetricsService
 from app.services.analysis.ai_visibility_service import AIVisibilityService
 from app.services.analysis.content_structure_analyzer_service import ContentStructureAnalyzerService
 from app.services.analysis.knowledge_graph_service import KnowledgeGraphMonitorService
@@ -29,11 +29,11 @@ class AnalysisService:
         # Import Competitor locally to avoid circular imports if any
         from app.models.competitor import Competitor
         self.competitor_db = SupabaseDatabaseService("competitors", Competitor)
-        from app.models.keyword import Keyword
-        self.keyword_db = SupabaseDatabaseService("keywords", Keyword)
+        # from app.models.keyword import Keyword
+        # self.keyword_db = SupabaseDatabaseService("keywords", Keyword)
         self.ingestion_service = AnalysisResultsIngestionService()
         self.web_search_service = WebSearchService()
-        self.keyword_metrics_service = KeywordMetricsService()
+        # self.keyword_metrics_service = KeywordMetricsService()
         self.ai_visibility_service = AIVisibilityService()
         self.content_structure_service = ContentStructureAnalyzerService()
         self.kg_service = KnowledgeGraphMonitorService()
@@ -236,10 +236,11 @@ class AnalysisService:
                 initial_keywords.extend([k.get('title', '') for k in search_context['keyword_results'][:5]])
             
             # Clean and enrich keywords
-            keywords_data = await self.keyword_metrics_service.enrich_keywords(
-                list(set(initial_keywords))[:10], # Limit to top 10 unique
-                language=preferred_language
-            )
+            # keywords_data = await self.keyword_metrics_service.enrich_keywords(
+            #     list(set(initial_keywords))[:10], # Limit to top 10 unique
+            #     language=preferred_language
+            # )
+            keywords_data = []
             
             # Detect NEW competitors (not in existing list)
             new_competitors = []
@@ -403,8 +404,8 @@ class AnalysisService:
             await self._update_competitor_visibility(analysis, preferred_language)
             
             # 7e. Update Keyword Visibility Scores
-            log_info("🔑", "Measuring keyword visibility...")
-            await self._update_keyword_visibility(analysis, brand_name, brand_url, preferred_language)
+            # log_info("🔑", "Measuring keyword visibility...")
+            # await self._update_keyword_visibility(analysis, brand_name, brand_url, preferred_language)
 
             print(f"\n{Colors.BOLD}{Colors.GREEN}{'='*60}{Colors.RESET}")
             log_success("✅", f"Analysis completed successfully for {Colors.BOLD}{brand_name}{Colors.RESET}")
@@ -587,103 +588,8 @@ OUTPUT JSON FORMAT:
         search_context: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Gather REAL keyword metrics from Google Trends and other sources."""
-        data = analysis.input_data or {}
-        brand = data.get("brand", {})
-        objectives = data.get("objectives", {})
-        
-        brand_name = brand.get('name', '')
-        industry = brand.get('industry', '')
-        key_terms = objectives.get('key_terms', '')
-        
-        # Get user's preferred language
-        preferred_language = data.get("preferred_language", "en")
-        
-        # Language-specific "best" keyword prefix
-        best_prefix = {
-            "en": "best",
-            "es": "mejor", 
-            "fr": "meilleur",
-            "de": "beste",
-            "it": "migliore"
-        }.get(preferred_language, "best")
-        
-        # Extract keywords from multiple sources
-        keywords_to_analyze = set()
-        
-        # From key_terms input (user-provided, already in their language)
-        if key_terms:
-            terms = [t.strip() for t in key_terms.replace(',', '\n').split('\n') if t.strip()]
-            for term in terms:
-                if self._is_valid_keyword(term, preferred_language):
-                    keywords_to_analyze.add(term)
-        
-        # From brand name + industry combinations (in user's language)
-        if brand_name and self._is_valid_keyword(brand_name, preferred_language):
-            keywords_to_analyze.add(brand_name)
-            if industry and self._is_valid_keyword(industry, preferred_language):
-                keywords_to_analyze.add(f"{brand_name} {industry}")
-                keywords_to_analyze.add(f"{best_prefix} {industry}")
-        
-        # Extract keywords from search results - BE MORE SELECTIVE
-        if search_context.get("enabled"):
-            # Extract topics from search result titles - only meaningful phrases
-            for result in search_context.get('keyword_results', [])[:5]:
-                title = result.get('title', '')
-                # Skip titles with non-Latin characters
-                import re
-                if re.search(r'[^\u0000-\u007F\u00C0-\u00FF\u0100-\u017F]', title):
-                    continue
-                    
-                # Extract multi-word phrases instead of single words
-                words = title.lower().split()
-                # Look for relevant 2-3 word phrases
-                for i in range(len(words) - 1):
-                    phrase = ' '.join(words[i:i+2])
-                    if len(phrase) > 8 and self._is_valid_keyword(phrase, preferred_language):
-                        # Only add if it seems related to the industry
-                        if industry and industry.lower() in phrase:
-                            keywords_to_analyze.add(phrase)
-        
-        # Filter all keywords one more time
-        keywords_to_analyze = {kw for kw in keywords_to_analyze if self._is_valid_keyword(kw, preferred_language)}
-        
-        # Limit to most relevant keywords
-        keywords_list = list(keywords_to_analyze)[:15]
-        
-        if not keywords_list:
-            print("No keywords to analyze for metrics")
-            return {"enabled": False, "keywords": []}
-        
-        try:
-            print(f"Fetching REAL metrics for {len(keywords_list)} keywords (language: {preferred_language})...")
-            
-            # Get enriched keyword data with real metrics (in user's language)
-            enriched_keywords = await self.keyword_metrics_service.enrich_keywords(
-                keywords=keywords_list,
-                geo=brand.get('country', 'US'),
-                language=preferred_language
-            )
-            
-            # Get related keywords for expansion
-            if brand_name:
-                related = await self.keyword_metrics_service.get_related_keywords(
-                    seed_keyword=f"{brand_name} {industry}" if industry else brand_name,
-                    geo=brand.get('country', 'US'),
-                    language=preferred_language
-                )
-                # Add some related keywords
-                enriched_keywords.extend(related[:5])
-            
-            return {
-                "enabled": True,
-                "keywords": enriched_keywords,
-                "source": "google_trends",
-                "language": preferred_language,
-                "data_freshness": "real_time"
-            }
-        except Exception as e:
-            print(f"Error gathering keyword metrics: {e}")
-            return {"enabled": False, "keywords": [], "error": str(e)}
+        # Method disabled as KeywordMetricsService is removed
+        return {"enabled": False, "keywords": []}
     
     async def _measure_ai_visibility(self, analysis: Analysis) -> Dict[str, Any]:
         """
@@ -975,67 +881,5 @@ OUTPUT JSON FORMAT:
         
         This asks AI models "Tell me about [keyword]" and checks if the brand appears.
         """
-        if not analysis.brand_id:
-            return
-        
-        # Check if AI visibility is enabled
-        if not getattr(settings, 'AI_VISIBILITY_ENABLED', False):
-            print("Skipping keyword visibility measurement (AI_VISIBILITY_ENABLED=false)")
-            return
-        
-        try:
-            # Get all keywords for this brand
-            keywords = await self.keyword_db.list(filters={"brand_id": str(analysis.brand_id)})
-            
-            if not keywords:
-                print("No keywords found to measure visibility for")
-                return
-            
-            log_info("🔑", f"Measuring AI visibility for {len(keywords)} keywords...")
-            
-            updated_count = 0
-            for kw in keywords[:10]:  # Limit to 10 keywords to control API costs
-                try:
-                    # Measure how visible the brand is for this specific keyword
-                    visibility_result = await self.ai_visibility_service.measure_visibility(
-                        brand_name=brand_name,
-                        domain=brand_domain,
-                        keywords=[kw.keyword],  # Query specifically for this keyword
-                        num_queries=1,  # Single query per keyword
-                        language=preferred_language
-                    )
-                    
-                    visibility_score = visibility_result.get("overall_score", 0)
-                    
-                    # Update keyword with visibility score
-                    update_data = {
-                        "ai_visibility_score": visibility_score,
-                        "last_checked_at": f"{datetime.utcnow().isoformat()}Z"
-                    }
-                    
-                    # Also save per-model scores if available
-                    models_data = visibility_result.get("models", {})
-                    if models_data:
-                        ai_models = {}
-                        for model_name, model_info in models_data.items():
-                            if model_info.get("enabled"):
-                                ai_models[model_name] = {
-                                    "score": model_info.get("visibility_score", 0),
-                                    "mentioned": model_info.get("mention_count", 0) > 0
-                                }
-                        if ai_models:
-                            update_data["ai_models"] = ai_models
-                    
-                    await self.keyword_db.update(str(kw.id), update_data)
-                    updated_count += 1
-                    
-                    print(f"  → '{kw.keyword}': {visibility_score}% visibility")
-                    
-                except Exception as kw_err:
-                    print(f"  → '{kw.keyword}': Failed ({kw_err})")
-                    continue
-            
-            log_success("✅", f"Updated visibility for {updated_count}/{len(keywords)} keywords")
-            
-        except Exception as e:
-            log_error("❌", f"Failed to update keyword visibility: {e}")
+        pass
+

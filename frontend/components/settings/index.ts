@@ -1,4 +1,4 @@
-export { OrganizationTab } from './OrganizationTab'
+
 export { ProfileTab } from './ProfileTab'
 export { SecurityTab } from './SecurityTab'
 export { NotificationsTab } from './NotificationsTab'

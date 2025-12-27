@@ -412,11 +412,11 @@ async def get_latest_audit(
     brand_id: str,
     current_user: UserProfile = Depends(get_current_user)
 ) -> Optional[SiteAuditResponse]:
-    """Get the latest completed audit for a brand."""
-    # Find most recent completed audit for this brand
+    """Get the latest audit for a brand (regardless of status)."""
+    # Find most recent audit for this brand
     brand_audits = [
         audit for audit in _audit_results.values()
-        if audit["brand_id"] == brand_id and audit["status"] == "completed"
+        if audit["brand_id"] == brand_id
     ]
     
     if not brand_audits:
