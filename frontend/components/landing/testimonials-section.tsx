@@ -91,7 +91,7 @@ export default function TestimonialsSection() {
             </div>
             <div className="flex-1 px-6 py-6 shadow-[0px_0px_0px_0.75px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col justify-start items-start gap-6 shadow-none pb-0 pt-0">
               <div
-                className="self-stretch justify-start flex flex-col text-black dark:text-white text-2xl md:text-[32px] font-medium leading-10 md:leading-[42px] font-sans h-[200px] md:h-[210px] overflow-hidden line-clamp-5 transition-all duration-700 ease-in-out tracking-tight"
+                className="self-stretch justify-start flex flex-col text-black dark:text-white text-2xl md:text-[32px] font-medium leading-10 md:leading-[42px] font-sans min-h-[180px] md:min-h-[200px] overflow-visible transition-all duration-700 ease-in-out tracking-tight"
                 style={{
                   filter: isTransitioning ? "blur(4px)" : "blur(0px)",
                   transition: "filter 0.7s ease-in-out",

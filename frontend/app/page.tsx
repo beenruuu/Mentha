@@ -74,7 +74,7 @@ export default function LandingPage() {
     <div className="w-full min-h-screen relative bg-white dark:bg-black overflow-x-hidden flex flex-col justify-start items-center">
       <div className="relative flex flex-col justify-start items-center w-full">
         {/* Main container with proper margins */}
-        <div className="w-full max-w-none px-4 sm:px-6 md:px-8 lg:px-0 lg:max-w-[1060px] lg:w-[1060px] relative flex flex-col justify-start items-start min-h-screen">
+        <div className="w-full max-w-none px-4 sm:px-6 md:px-8 lg:px-0 lg:max-w-[1400px] lg:w-[1400px] relative flex flex-col justify-start items-start min-h-screen">
           {/* Left vertical line */}
           <div className="w-[1px] h-full absolute left-4 sm:left-6 md:left-8 lg:left-0 top-0 bg-black/10 dark:bg-white/10 shadow-[1px_0px_0px_white] dark:shadow-none z-0"></div>
 
@@ -88,7 +88,8 @@ export default function LandingPage() {
 
               <div className="w-full max-w-[calc(100%-32px)] sm:max-w-[calc(100%-48px)] md:max-w-[calc(100%-64px)] lg:max-w-[700px] lg:w-[700px] h-10 sm:h-11 md:h-12 py-1.5 sm:py-2 px-3 sm:px-4 md:px-4 pr-2 sm:pr-3 bg-white dark:bg-neutral-900 shadow-[0px_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[0px_1px_3px_rgba(0,0,0,0.3)] overflow-hidden rounded-[50px] flex justify-between items-center relative z-30 border border-black/10 dark:border-white/10">
                 <div className="flex justify-center items-center">
-                  <div className="flex justify-start items-center">
+                  <div className="flex justify-start items-center gap-2">
+                    <img src="/mentha.svg" alt="" className="w-5 h-5 sm:w-6 sm:h-6" />
                     <div className="flex flex-col justify-center text-black dark:text-white text-sm sm:text-base md:text-lg lg:text-xl font-medium leading-5 font-sans">
                       Mentha
                     </div>
@@ -111,7 +112,7 @@ export default function LandingPage() {
                     </Link>
                   </div>
                 </div>
-                <div className="h-6 sm:h-7 md:h-8 flex justify-start items-start gap-2 sm:gap-3">
+                <div className="h-6 sm:h-7 md:h-8 flex justify-start items-center gap-2 sm:gap-3">
                   <HeaderThemeToggle />
                   <Link href="/auth/login" className="px-2 sm:px-3 md:px-[14px] py-1 sm:py-[6px] bg-neutral-100 dark:bg-neutral-800 shadow-[0px_1px_2px_rgba(0,0,0,0.08)] overflow-hidden rounded-full flex justify-center items-center hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors border border-black/10 dark:border-white/10">
                     <div className="flex flex-col justify-center text-black dark:text-white text-xs md:text-[13px] font-medium leading-5 font-sans">
@@ -126,7 +127,7 @@ export default function LandingPage() {
             <div className="pt-16 sm:pt-20 md:pt-24 lg:pt-[216px] pb-8 sm:pb-12 md:pb-16 flex flex-col justify-start items-center px-2 sm:px-4 md:px-8 lg:px-0 w-full sm:pl-0 sm:pr-0 pl-0 pr-0">
               <div className="w-full max-w-[937px] lg:w-[937px] flex flex-col justify-center items-center gap-3 sm:gap-4 md:gap-5 lg:gap-6">
                 <div className="self-stretch rounded-[3px] flex flex-col justify-center items-center gap-4 sm:gap-5 md:gap-6 lg:gap-8">
-                  <div className="w-full max-w-[748.71px] lg:w-[748.71px] text-center flex justify-center flex-col text-black dark:text-white text-[24px] xs:text-[28px] sm:text-[36px] md:text-[52px] lg:text-[80px] font-normal leading-[1.1] sm:leading-[1.15] md:leading-[1.2] lg:leading-24 font-serif px-2 sm:px-4 md:px-0">
+                  <div className="w-full max-w-[900px] lg:w-[900px] text-center flex justify-center flex-col text-black dark:text-white text-[24px] xs:text-[28px] sm:text-[36px] md:text-[52px] lg:text-[80px] font-normal leading-[1.1] sm:leading-[1.15] md:leading-[1.2] lg:leading-24 font-serif tracking-wide px-2 sm:px-4 md:px-0">
                     {t.heroTitle}
                     <br />
                     <span className="text-emerald-500 dark:text-emerald-400">{t.heroTitleHighlight}</span>
@@ -138,9 +139,8 @@ export default function LandingPage() {
               </div>
 
               <div className="w-full max-w-[497px] lg:w-[497px] flex flex-col justify-center items-center gap-6 sm:gap-8 md:gap-10 lg:gap-12 relative z-10 mt-6 sm:mt-8 md:mt-10 lg:mt-12">
-                <div className="backdrop-blur-[8.25px] flex justify-start items-center gap-4">
+                <div className="flex justify-start items-center gap-4">
                   <Link href="/auth/signup" className="h-10 sm:h-11 md:h-12 px-6 sm:px-8 md:px-10 lg:px-12 py-2 sm:py-[6px] relative bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 shadow-[0px_0px_0px_2.5px_rgba(255,255,255,0.08)_inset] overflow-hidden rounded-full flex justify-center items-center transition-colors">
-                    <div className="w-20 sm:w-24 md:w-28 lg:w-44 h-[41px] absolute left-0 top-[-0.5px] bg-gradient-to-b from-[rgba(255,255,255,0)] to-[rgba(0,0,0,0.10)] mix-blend-multiply"></div>
                     <div className="flex flex-col justify-center text-white text-sm sm:text-base md:text-[15px] font-medium leading-5 font-sans">
                       {t.heroStartTrial}
                     </div>
@@ -260,16 +260,16 @@ export default function LandingPage() {
               <Introduction />
 
               {/* Social Proof Section - Introduction style */}
-              <section className="py-28 lg:py-40 w-full border-b border-black/10 dark:border-white/10">
+              <section className="py-16 lg:py-20 w-full border-b border-black/10 dark:border-white/10">
                 <div className="container max-w-5xl mx-auto px-4">
-                  <div className="flex justify-center mb-10">
+                  <div className="flex justify-center mb-8">
                     <Tag>{t.socialProofBadge}</Tag>
                   </div>
                   <div className="text-center">
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-8">
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6">
                       {t.socialProofTitle}
                     </h2>
-                    <p className="text-lg md:text-xl lg:text-2xl text-gray-600 dark:text-white/80 max-w-3xl mx-auto">
+                    <p className="text-base md:text-lg lg:text-xl text-gray-600 dark:text-white/80 max-w-3xl mx-auto">
                       {t.socialProofDescription}
                     </p>
                   </div>
@@ -288,7 +288,7 @@ export default function LandingPage() {
               {/* Bento Grid Section */}
               <div className="w-full border-b border-black/10 dark:border-white/10 flex flex-col justify-center items-center" id="features">
                 {/* Header Section */}
-                <div className="self-stretch px-4 sm:px-6 md:px-8 lg:px-0 lg:max-w-[1060px] lg:w-[1060px] py-8 sm:py-12 md:py-16 border-b border-black/10 dark:border-white/10 flex justify-center items-center gap-6">
+                <div className="self-stretch px-4 sm:px-6 md:px-8 lg:px-0 lg:max-w-[1400px] lg:w-[1400px] py-8 sm:py-12 md:py-16 border-b border-black/10 dark:border-white/10 flex justify-center items-center gap-6">
                   <div className="w-full max-w-[616px] lg:w-[616px] px-4 sm:px-6 py-4 sm:py-5 overflow-hidden rounded-lg flex flex-col justify-start items-center gap-3 sm:gap-4">
                     <Tag>{t.bentoBadge}</Tag>
                     <div className="w-full max-w-[598.06px] lg:w-[598.06px] text-center flex justify-center flex-col text-black dark:text-white text-xl sm:text-2xl md:text-3xl lg:text-5xl font-bold leading-tight md:leading-[60px] font-sans tracking-tight">

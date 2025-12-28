@@ -45,14 +45,6 @@ const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({ width = 4
         }
       `}</style>
 
-      <div
-        className="absolute inset-0 pointer-events-none z-10"
-        style={{
-          background:
-            "linear-gradient(to bottom, rgba(255,255,255,0.1) 0%, transparent 20%, transparent 80%, rgba(255,255,255,0.1) 100%)",
-        }}
-      />
-
       {/* Central hub - Mentha (static) */}
       <div
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-neutral-900 shadow-xl border border-black/5 dark:border-white/10 z-20"

@@ -20,7 +20,8 @@ export default function FooterSection() {
       <div className="self-stretch h-auto flex flex-col md:flex-row justify-between items-stretch pr-0 pb-8 pt-0">
         <div className="h-auto p-4 md:p-8 flex flex-col justify-start items-start gap-8">
           {/* Brand Section */}
-          <div className="self-stretch flex justify-start items-center gap-3">
+          <div className="self-stretch flex justify-start items-center gap-2">
+            <img src="/mentha.svg" alt="" className="w-6 h-6" />
             <div className="text-center text-black dark:text-white text-xl font-semibold leading-4 font-sans">Mentha</div>
           </div>
           <div className="text-black/90 dark:text-white/60 text-sm font-medium leading-[18px] font-sans">

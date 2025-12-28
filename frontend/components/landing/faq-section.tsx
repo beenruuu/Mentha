@@ -20,7 +20,7 @@ function ChevronDownIcon({ className }: { className?: string }) {
 
 export default function FAQSection() {
   const { t } = useTranslations()
-  const [openItems, setOpenItems] = useState<number[]>([0])
+  const [openItem, setOpenItem] = useState<number | null>(0)
 
   const faqData = [
     {
@@ -46,7 +46,7 @@ export default function FAQSection() {
   ]
 
   const toggleItem = (index: number) => {
-    setOpenItems((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]))
+    setOpenItem((prev) => (prev === index ? null : index))
   }
 
   return (
@@ -57,16 +57,13 @@ export default function FAQSection() {
           <div className="w-full flex flex-col justify-center text-black dark:text-white font-semibold leading-tight md:leading-[44px] font-sans text-4xl tracking-tight">
             {t.faqsTitle}
           </div>
-          <div className="w-full text-black/70 dark:text-white/60 text-base font-normal leading-7 font-sans">
-            {t.faqsDescription}
-          </div>
         </div>
 
         {/* Right Column - FAQ Items */}
         <div className="w-full lg:flex-1 flex flex-col justify-center items-center">
           <div className="w-full flex flex-col">
             {faqData.map((item, index) => {
-              const isOpen = openItems.includes(index)
+              const isOpen = openItem === index
 
               return (
                 <div key={index} className={`w-full border-b border-black/10 dark:border-white/10 overflow-hidden transition-colors duration-300 ${isOpen ? "bg-emerald-50/30 dark:bg-emerald-500/5" : ""}`}>
@@ -80,17 +77,15 @@ export default function FAQSection() {
                     </div>
                     <div className="flex justify-center items-center">
                       <ChevronDownIcon
-                        className={`w-5 h-5 transition-transform duration-300 ease-in-out ${
-                          isOpen ? "rotate-180 text-emerald-500 dark:text-emerald-400" : "text-black/40 dark:text-white/40"
-                        }`}
+                        className={`w-5 h-5 transition-transform duration-300 ease-in-out ${isOpen ? "rotate-180 text-emerald-500 dark:text-emerald-400" : "text-black/40 dark:text-white/40"
+                          }`}
                       />
                     </div>
                   </button>
 
                   <div
-                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                      isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
-                    }`}
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                      }`}
                   >
                     <div className="px-5 pb-[22px] text-black/70 dark:text-white/70 text-[15px] font-normal leading-7 font-sans max-w-[90%]">
                       {item.answer}

@@ -6,19 +6,19 @@ import { useTranslations } from "@/lib/i18n";
 
 export default function Introduction() {
     const { t } = useTranslations();
-    
+
     return (
-        <section className="py-28 lg:py-40">
+        <section className="py-16 lg:py-20">
             <div className="container max-w-5xl mx-auto px-4">
-                <div className="flex justify-center mb-10">
+                <div className="flex justify-center mb-8">
                     <Tag>{t.introTag}</Tag>
                 </div>
                 <div className="text-center">
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-gray-900 dark:text-white mb-8">
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6">
                         {t.introTitle}
                     </h2>
                     <ScrollReveal
-                        size="xl"
+                        size="lg"
                         align="center"
                         variant="muted"
                         enableBlur={true}
@@ -32,7 +32,7 @@ export default function Introduction() {
                     >
                         {t.introDescription}
                     </ScrollReveal>
-                    <p className="text-emerald-400 text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mt-8">
+                    <p className="text-emerald-400 text-2xl md:text-3xl lg:text-4xl font-bold mt-6">
                         {t.introHighlight}
                     </p>
                 </div>

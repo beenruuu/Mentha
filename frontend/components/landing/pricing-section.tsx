@@ -27,16 +27,16 @@ export default function PricingSection() {
   return (
     <div id="pricing" className="w-full flex flex-col justify-center items-center gap-2">
       {/* Header Section - Introduction style */}
-      <section className="py-28 lg:py-40 w-full border-b border-black/10 dark:border-white/10">
+      <section className="py-16 lg:py-20 w-full border-b border-black/10 dark:border-white/10">
         <div className="container max-w-5xl mx-auto px-4">
-          <div className="flex justify-center mb-10">
+          <div className="flex justify-center mb-8">
             <Tag>{t.pricingTag}</Tag>
           </div>
           <div className="text-center">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white mb-8">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6">
               {t.pricingTitle} <span className="text-emerald-500 dark:text-emerald-400">{t.pricingTitleHighlight}</span>
             </h2>
-            <p className="text-lg md:text-xl text-gray-600 dark:text-white/80 max-w-3xl mx-auto">
+            <p className="text-base md:text-lg text-gray-600 dark:text-white/80 max-w-3xl mx-auto">
               {t.pricingDescription}
             </p>
           </div>
@@ -113,7 +113,7 @@ export default function PricingSection() {
 
                 <div className="self-stretch flex flex-col justify-start items-start gap-2">
                   <div className="flex flex-col justify-start items-start gap-1">
-                    <div className="relative h-[60px] flex items-center text-black dark:text-white text-5xl font-medium leading-[60px] font-serif">
+                    <div className="relative h-[60px] flex items-center text-black dark:text-white text-5xl font-medium leading-[60px] font-serif tracking-wide">
                       <span className="invisible">{pricing.starter[billingPeriod]}€</span>
                       <span
                         className="absolute inset-0 flex items-center transition-all duration-500"
@@ -192,7 +192,7 @@ export default function PricingSection() {
 
                 <div className="self-stretch flex flex-col justify-start items-start gap-2">
                   <div className="flex flex-col justify-start items-start gap-1">
-                    <div className="relative h-[60px] flex items-center text-white text-5xl font-medium leading-[60px] font-serif">
+                    <div className="relative h-[60px] flex items-center text-white text-5xl font-medium leading-[60px] font-serif tracking-wide">
                       <span className="invisible">{pricing.professional[billingPeriod]}€</span>
                       <span
                         className="absolute inset-0 flex items-center transition-all duration-500"
@@ -272,7 +272,7 @@ export default function PricingSection() {
 
                 <div className="self-stretch flex flex-col justify-start items-start gap-2">
                   <div className="flex flex-col justify-start items-start gap-1">
-                    <div className="relative h-[60px] flex items-center text-black dark:text-white text-5xl font-medium leading-[60px] font-serif">
+                    <div className="relative h-[60px] flex items-center text-black dark:text-white text-5xl font-medium leading-[60px] font-serif tracking-wide">
                       {t.pricingEnterprisePrice}
                     </div>
                     <div className="text-black/50 dark:text-white/40 text-sm font-medium font-sans">

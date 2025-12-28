@@ -15,12 +15,12 @@ const providers = [
 
 export default function LogoTicker() {
     return (
-        <section className="py-24 overflow-x-clip">
+        <section className="py-12 overflow-x-clip">
             <div className="container max-w-5xl mx-auto px-4">
-                <h3 className="text-center text-gray-500 dark:text-white/50 text-xl">
+                <h3 className="text-center text-gray-500 dark:text-white/50 text-base">
                     {useTranslations().t.logoTickerTitle}
                 </h3>
-                <div className="flex overflow-hidden mt-12 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+                <div className="flex overflow-hidden mt-8 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
                     <motion.div
                         animate={{
                             x: "-50%",
@@ -44,7 +44,7 @@ export default function LogoTicker() {
                                             alt={provider.name}
                                             width={120}
                                             height={40}
-                                            className={`h-10 w-auto object-contain ${provider.image.includes('openai.svg') ? 'dark:invert' : ''}`}
+                                            className={`h-7 w-auto object-contain ${provider.image.includes('openai.svg') ? 'dark:invert' : ''}`}
                                         />
                                     </div>
                                 ))}
