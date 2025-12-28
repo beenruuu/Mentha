@@ -26,22 +26,19 @@ export default function TestimonialsSection() {
       quote: t.testimonial1Quote,
       name: t.testimonial1Name,
       company: t.testimonial1Company,
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Sep%2011%2C%202025%2C%2011_35_19%20AM-z4zSRLsbOQDp7MJS1t8EXmGNB6Al9Z.png",
+      image: "/testimonials/elena.png",
     },
     {
       quote: t.testimonial2Quote,
       name: t.testimonial2Name,
       company: t.testimonial2Company,
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Sep%2011%2C%202025%2C%2010_54_18%20AM-nbiecp92QNdTudmCrHr97uekrIPzCP.png",
+      image: "/testimonials/david.png",
     },
     {
       quote: t.testimonial3Quote,
       name: t.testimonial3Name,
       company: t.testimonial3Company,
-      image:
-        "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Sep%2011%2C%202025%2C%2011_01_05%20AM-TBOe92trRxKn4G5So1m9D2h7LRH4PG.png",
+      image: "/testimonials/sarah.png",
     },
   ]
 
@@ -79,7 +76,7 @@ export default function TestimonialsSection() {
           <div className="self-stretch px-3 md:px-12 justify-center items-start gap-4 flex flex-col md:flex-row">
             <div className="relative p-1 bg-white dark:bg-white/10 rounded-xl shadow-lg">
               <img
-                className="w-48 h-50 md:w-48 md:h-50 rounded-lg object-cover transition-all duration-700 ease-in-out"
+                className="w-48 h-50 md:w-48 md:h-50 rounded-lg object-cover transition-all duration-700 ease-in-out testimonial-sketch"
                 style={{
                   opacity: isTransitioning ? 0.6 : 1,
                   transform: isTransitioning ? "scale(0.95)" : "scale(1)",
@@ -155,6 +152,36 @@ export default function TestimonialsSection() {
           </div>
         </div>
       </div>
+
+      {/* SVG Filters for Sketch Effect */}
+      <svg width="0" height="0" className="absolute">
+        <defs>
+          <filter id="sketch-light" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="saturation" values="0" result="gray" />
+            <feConvolveMatrix in="gray" order="3" kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" result="edges" />
+            <feColorMatrix in="edges" type="matrix" values="0 0 0 0 0
+                                                            0 0 0 0 0
+                                                            0 0 0 0 0
+                                                            0 0 0 4 0" />
+          </filter>
+          <filter id="sketch-dark" colorInterpolationFilters="sRGB">
+            <feColorMatrix type="saturation" values="0" result="gray" />
+            <feConvolveMatrix in="gray" order="3" kernelMatrix="-1 -1 -1 -1 8 -1 -1 -1 -1" result="edges" />
+            <feColorMatrix in="edges" type="matrix" values="0 0 0 0 1
+                                                            0 0 0 0 1
+                                                            0 0 0 0 1
+                                                            0 0 0 4 0" />
+          </filter>
+        </defs>
+      </svg>
+      <style>{`
+        .testimonial-sketch {
+          filter: url(#sketch-light);
+        }
+        :is(.dark) .testimonial-sketch {
+          filter: url(#sketch-dark);
+        }
+      `}</style>
     </div>
   )
 }
