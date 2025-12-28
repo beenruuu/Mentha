@@ -122,12 +122,85 @@ const translations = {
     // Call to Action
     ctaText: 'Empieza gratis',
 
+    // Bento Grid
+    numbersRevenue: 'Ingresos Facturados',
+    numbersAmount: '$317,731.00',
+    numbersTitle: 'Números que hablan',
+    numbersDescription: 'Rastrea el crecimiento con precisión y convierte datos brutos en decisiones de confianza.',
+    smartSimpleTitle: 'Inteligente. Simple. Brillante.',
+    smartSimpleDescription: 'Tus datos están bellamente organizados para que veas todo claramente sin desorden.',
+    smartSimpleEvent: 'Evento de Marca',
+    workInSyncTitle: 'Tu trabajo, sincronizado',
+    workInSyncDescription: 'Cada actualización fluye instantáneamente en tu equipo y mantiene la colaboración sin esfuerzo.',
+    integrationTitle: 'Motores de IA',
+    integrationDescription: 'Analizamos tu marca en ChatGPT, Claude, Gemini y Perplexity para optimizar tu visibilidad.',
+    bentoTitle: 'Todo lo que necesitas para dominar la IA',
+    bentoDescription: 'Herramientas diseñadas para optimizar tu visibilidad en los principales motores de IA generativa.',
+    socialProofBadge: 'Clientes',
+    socialProofTitle: 'Empresas que confían en Mentha',
+    socialProofDescription: 'Marcas líderes que ya optimizan su visibilidad en ChatGPT, Claude, Gemini y Perplexity.',
+    bentoBadge: 'Producto',
+    logoAcute: 'Acute',
+
+    // Documentation
+    docBadge: 'Funcionalidades',
+    docTitle: 'Optimiza tu presencia en IA',
+    docSubtitle: 'Gestiona tu visibilidad, analiza datos y colabora con tu equipo en una sola plataforma.',
+    docCard1Title: 'Planifica tu estrategia',
+    docCard1Desc: 'Explora tus datos, construye tu panel y une a tu equipo.',
+    docCard2Title: 'Datos a insights en minutos',
+    docCard2Desc: 'Transforma datos brutos en insights accionables con herramientas de análisis potentes.',
+    docCard3Title: 'Colabora sin problemas',
+    docCard3Desc: 'Trabaja en tiempo real con tu equipo y comparte insights al instante.',
+
+    // Testimonials
+    testimonial1Quote: 'Mentha ha transformado por completo nuestra estrategia de visibilidad. Ahora no solo aparecemos en Google, sino que somos la respuesta principal en ChatGPT y Claude.',
+    testimonial1Name: 'Elena Rodríguez',
+    testimonial1Company: 'CMO en TechFlow',
+    testimonial2Quote: 'La capacidad de Mentha para detectar alucinaciones de IA sobre nuestra marca nos ha ahorrado incontables crisis de reputación. Es una herramienta indispensable.',
+    testimonial2Name: 'David Chen',
+    testimonial2Company: 'Director de Marca en InnovateCorp',
+    testimonial3Quote: 'Optimizar para motores de respuesta era un misterio hasta que empezamos a usar Mentha. Los insights sobre AEO son increíblemente precisos y accionables.',
+    testimonial3Name: 'Sarah Jenkins',
+    testimonial3Company: 'SEO Lead en GlobalScale',
+
+    // Dashboard Preview
+    dashNavHome: 'Inicio',
+    dashNavCustomers: 'Clientes',
+    dashNavBilling: 'Facturación',
+    dashNavSchedules: 'Horarios',
+    dashNavInvoices: 'Facturas',
+    dashNavProducts: 'Productos',
+    dashTitle: 'Horarios',
+    dashCreateBtn: 'Crear horario',
+    dashColCustomer: 'Cliente',
+    dashColStatus: 'Estado',
+    dashColProducts: 'Productos',
+    dashColTotal: 'Total',
+    dashColStart: 'Fecha inicio',
+    dashColEnd: 'Fecha fin',
+    dashStatusComplete: 'Completado',
+    dashStatusActive: 'Activo',
+    dashStatusDraft: 'Borrador',
+
     // Footer
     footerPrivacy: 'Política de Privacidad',
     footerTerms: 'Términos y Condiciones',
     footerBlog: 'Blog',
     footerLegalNotice: 'Aviso Legal',
     footerRights: 'Todos los derechos reservados.',
+    footerTagline: 'Optimización de marca para IA generativa',
+    footerProduct: 'Producto',
+    footerCompany: 'Compañía',
+    footerResources: 'Recursos',
+    footerAbout: 'Sobre nosotros',
+    footerContact: 'Contacto',
+    navFAQ: 'FAQ',
+
+    // CTA Section
+    ctaTitle: '¿Listo para dominar la búsqueda IA?',
+    ctaDescription: 'Únete a cientos de marcas que ya optimizan su presencia en ChatGPT, Claude, Gemini y Perplexity.',
+    ctaPrimary: 'Empieza gratis',
 
     // Prompt Input
     promptPlaceholder: 'Ingresa tu sitio web para analizar...',
@@ -1479,12 +1552,85 @@ const translations = {
     // Call to Action
     ctaText: 'Start for free',
 
+    // Bento Grid
+    numbersRevenue: 'Invoiced Revenue',
+    numbersAmount: '$317,731.00',
+    numbersTitle: 'Numbers that speak',
+    numbersDescription: 'Track growth with precision and turn raw data into confident decisions you can trust.',
+    smartSimpleTitle: 'Smart. Simple. Brilliant.',
+    smartSimpleDescription: 'Your data is beautifully organized so you see everything clearly without the clutter.',
+    smartSimpleEvent: 'Brand Event',
+    workInSyncTitle: 'Your work, in sync',
+    workInSyncDescription: 'Every update flows instantly across your team and keeps collaboration effortless and fast.',
+    integrationTitle: 'Effortless integration',
+    integrationDescription: 'All your favorite tools connect in one place and work together seamlessly by design.',
+    bentoTitle: 'Built for absolute clarity and focused work',
+    bentoDescription: 'Stay focused with tools that organize, connect and turn information into confident decisions.',
+    socialProofBadge: 'Social Proof',
+    socialProofTitle: 'Confidence backed by results',
+    socialProofDescription: 'Our customers achieve more each day because their tools are simple, powerful, and clear.',
+    bentoBadge: 'Bento grid',
+    logoAcute: 'Acute',
+
+    // Documentation
+    docBadge: 'Platform Features',
+    docTitle: 'Streamline your AI presence',
+    docSubtitle: 'Manage schedules, analyze data, and collaborate with your team all in one powerful platform.',
+    docCard1Title: 'Plan your schedules',
+    docCard1Desc: 'Explore your data, build your dashboard, bring your team together.',
+    docCard2Title: 'Data to insights in minutes',
+    docCard2Desc: 'Transform raw data into actionable insights with powerful analytics tools.',
+    docCard3Title: 'Collaborate seamlessly',
+    docCard3Desc: 'Work together in real-time with your team and share insights instantly.',
+
+    // Testimonials
+    testimonial1Quote: 'Mentha has completely transformed our visibility strategy. Now we don\'t just appear on Google, we are the primary answer on ChatGPT and Claude.',
+    testimonial1Name: 'Elena Rodriguez',
+    testimonial1Company: 'CMO at TechFlow',
+    testimonial2Quote: 'Mentha\'s ability to detect AI hallucinations about our brand has saved us from countless reputation crises. It is an indispensable tool.',
+    testimonial2Name: 'David Chen',
+    testimonial2Company: 'Brand Director at InnovateCorp',
+    testimonial3Quote: 'Optimizing for answer engines was a mystery until we started using Mentha. The AEO insights are incredibly accurate and actionable.',
+    testimonial3Name: 'Sarah Jenkins',
+    testimonial3Company: 'SEO Lead at GlobalScale',
+
+    // Dashboard Preview
+    dashNavHome: 'Home',
+    dashNavCustomers: 'Customers',
+    dashNavBilling: 'Billing',
+    dashNavSchedules: 'Schedules',
+    dashNavInvoices: 'Invoices',
+    dashNavProducts: 'Products',
+    dashTitle: 'Schedules',
+    dashCreateBtn: 'Create schedule',
+    dashColCustomer: 'Customer',
+    dashColStatus: 'Status',
+    dashColProducts: 'Products',
+    dashColTotal: 'Total',
+    dashColStart: 'Start date',
+    dashColEnd: 'End date',
+    dashStatusComplete: 'Complete',
+    dashStatusActive: 'Active',
+    dashStatusDraft: 'Draft',
+
     // Footer
     footerPrivacy: 'Privacy Policy',
     footerTerms: 'Terms & Conditions',
     footerBlog: 'Blog',
     footerLegalNotice: 'Legal Notice',
     footerRights: 'All rights reserved.',
+    footerTagline: 'Brand optimization for generative AI',
+    footerProduct: 'Product',
+    footerCompany: 'Company',
+    footerResources: 'Resources',
+    footerAbout: 'About us',
+    footerContact: 'Contact',
+    navFAQ: 'FAQ',
+
+    // CTA Section
+    ctaTitle: 'Ready to dominate AI search?',
+    ctaDescription: 'Join hundreds of brands already optimizing their presence in ChatGPT, Claude, Gemini, and Perplexity.',
+    ctaPrimary: 'Start free',
 
     // Prompt Input
     promptPlaceholder: 'Enter your website to analyze...',
@@ -2918,6 +3064,10 @@ export function useTranslations() {
 
   return { t, lang, setLanguage: changeLanguage, isInitialized }
 }
+
+// Export locale functions for footer language selector
+export const getLocale = getLanguage
+export const setLocale = setLanguage
 
 export type { Language }
 

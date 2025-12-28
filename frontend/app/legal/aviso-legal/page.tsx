@@ -1,8 +1,8 @@
 'use client'
 
 import React from 'react'
-import Navbar from '@/components/landing/sections/Navbar'
-import Footer from '@/components/landing/sections/Footer'
+import { Header } from "@/components/landing/header";
+import FooterSection from "@/components/landing/footer-section";
 import { Building2, Mail, FileText, Scale } from 'lucide-react'
 
 export default function AvisoLegalPage() {
@@ -20,8 +20,8 @@ export default function AvisoLegalPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#050505] text-gray-900 dark:text-white selection:bg-emerald-500/30 transition-colors">
-            <Navbar />
+        <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white selection:bg-emerald-500/30 transition-colors">
+            <Header />
             <main className="pt-32 pb-24">
                 <div className="container mx-auto px-4 max-w-4xl">
                     <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white flex items-center gap-3">
@@ -164,7 +164,7 @@ export default function AvisoLegalPage() {
                     </div>
                 </div>
             </main>
-            <Footer />
+            <FooterSection />
         </div>
     )
 }

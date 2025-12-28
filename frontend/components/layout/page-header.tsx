@@ -19,7 +19,7 @@ export function PageHeader({ icon, title, showSearch = true, actions }: PageHead
   const { t } = useTranslations()
 
   return (
-    <header className="relative flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-gradient-to-r from-white to-gray-50/50 dark:from-black dark:to-gray-900/20 backdrop-blur-sm border-gray-200 dark:border-[#2A2A30]">
+    <header className="relative flex h-16 shrink-0 items-center gap-2 border-b px-4 bg-gradient-to-r from-white to-gray-50/50 dark:from-black dark:to-black backdrop-blur-sm border-gray-200 dark:border-[#2A2A30]">
       {/* Subtle gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/[0.02] to-transparent dark:from-emerald-500/[0.03] pointer-events-none" />
 

@@ -2,15 +2,15 @@
 
 import React from 'react'
 import { useTranslations } from '@/lib/i18n'
-import Navbar from '@/components/landing/sections/Navbar'
-import Footer from '@/components/landing/sections/Footer'
+import { Header } from "@/components/landing/header";
+import FooterSection from "@/components/landing/footer-section";
 
 export default function TermsPage() {
   const { t } = useTranslations()
   
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-[#050505] text-gray-900 dark:text-white selection:bg-emerald-500/30 transition-colors">
-      <Navbar />
+    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white selection:bg-emerald-500/30 transition-colors">
+      <Header />
       <main className="pt-32 pb-24">
         <div className="container mx-auto px-4 max-w-4xl">
           <h1 className="text-4xl font-bold mb-8 text-gray-900 dark:text-white">{t.termsAndConditions}</h1>
@@ -61,7 +61,7 @@ export default function TermsPage() {
           </div>
         </div>
       </main>
-      <Footer />
+      <FooterSection />
     </div>
   )
 }

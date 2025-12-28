@@ -1,0 +1,107 @@
+"use client"
+
+import { useState } from "react"
+import { useTranslations } from "@/lib/i18n"
+
+function ChevronDownIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+export default function FAQSection() {
+  const { t } = useTranslations()
+  const [openItems, setOpenItems] = useState<number[]>([0])
+
+  const faqData = [
+    {
+      question: t.faqQuestion1,
+      answer: t.faqAnswer1,
+    },
+    {
+      question: t.faqQuestion2,
+      answer: t.faqAnswer2,
+    },
+    {
+      question: t.faqQuestion3,
+      answer: t.faqAnswer3,
+    },
+    {
+      question: t.faqQuestion4,
+      answer: t.faqAnswer4,
+    },
+    {
+      question: t.faqQuestion5,
+      answer: t.faqAnswer5,
+    },
+  ]
+
+  const toggleItem = (index: number) => {
+    setOpenItems((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]))
+  }
+
+  return (
+    <div id="faq" className="w-full flex justify-center items-start">
+      <div className="flex-1 px-4 md:px-12 py-16 md:py-20 flex flex-col lg:flex-row justify-start items-start gap-6 lg:gap-12">
+        {/* Left Column - Header */}
+        <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-4 lg:py-5">
+          <div className="w-full flex flex-col justify-center text-black dark:text-white font-semibold leading-tight md:leading-[44px] font-sans text-4xl tracking-tight">
+            {t.faqsTitle}
+          </div>
+          <div className="w-full text-black/70 dark:text-white/60 text-base font-normal leading-7 font-sans">
+            {t.faqsDescription}
+          </div>
+        </div>
+
+        {/* Right Column - FAQ Items */}
+        <div className="w-full lg:flex-1 flex flex-col justify-center items-center">
+          <div className="w-full flex flex-col">
+            {faqData.map((item, index) => {
+              const isOpen = openItems.includes(index)
+
+              return (
+                <div key={index} className={`w-full border-b border-black/10 dark:border-white/10 overflow-hidden transition-colors duration-300 ${isOpen ? "bg-emerald-50/30 dark:bg-emerald-500/5" : ""}`}>
+                  <button
+                    onClick={() => toggleItem(index)}
+                    className="w-full px-5 py-[22px] flex justify-between items-center gap-5 text-left hover:bg-black/5 dark:hover:bg-white/5 transition-colors duration-200"
+                    aria-expanded={isOpen}
+                  >
+                    <div className={`flex-1 text-base font-semibold leading-6 font-sans transition-colors duration-300 ${isOpen ? "text-emerald-600 dark:text-emerald-400" : "text-black dark:text-white"}`}>
+                      {item.question}
+                    </div>
+                    <div className="flex justify-center items-center">
+                      <ChevronDownIcon
+                        className={`w-5 h-5 transition-transform duration-300 ease-in-out ${
+                          isOpen ? "rotate-180 text-emerald-500 dark:text-emerald-400" : "text-black/40 dark:text-white/40"
+                        }`}
+                      />
+                    </div>
+                  </button>
+
+                  <div
+                    className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                      isOpen ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"
+                    }`}
+                  >
+                    <div className="px-5 pb-[22px] text-black/70 dark:text-white/70 text-[15px] font-normal leading-7 font-sans max-w-[90%]">
+                      {item.answer}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
