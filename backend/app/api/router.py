@@ -6,20 +6,14 @@ from app.api.endpoints import (
     analysis,
     llm,
     vectordb,
-    recommendations,
     notifications,
     competitors,
     utils,
     geo_analysis,
     citations,
-    knowledge_graph,
-    admin,
-    cms,
-    lab,
     prompt_tracking,
     export,
     sentiment,
-
     compliance,
     hallucinations,
     insights,
@@ -28,7 +22,8 @@ from app.api.endpoints import (
     llms_txt,
     schema,
     technical_aeo,
-    site_audit
+    site_audit,
+    admin
 )
 
 api_router = APIRouter()
@@ -36,7 +31,6 @@ api_router = APIRouter()
 # Include sub-routers for different API endpoints
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(analysis.router, prefix="/analysis", tags=["Analysis"])
-api_router.include_router(recommendations.router, prefix="/recommendations", tags=["Recommendations"])
 api_router.include_router(llm.router, prefix="/llm", tags=["LLM Services"])
 api_router.include_router(vectordb.router, prefix="/vectordb", tags=["Vector Database"])
 api_router.include_router(brands.router, prefix="/brands", tags=["Brands"])
@@ -45,10 +39,7 @@ api_router.include_router(utils.router, prefix="/utils", tags=["utils"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(geo_analysis.router, tags=["GEO Analysis"])
 api_router.include_router(citations.router, tags=["Citations"])
-api_router.include_router(knowledge_graph.router, tags=["Knowledge Graph"])
 api_router.include_router(admin.router, prefix="/admin", tags=["Admin"])
-api_router.include_router(cms.router, prefix="/cms", tags=["CMS"])
-api_router.include_router(lab.router, prefix="/lab", tags=["Lab"])
 
 # Core AEO Feature endpoints
 api_router.include_router(prompt_tracking.router, tags=["Prompt Tracking"])

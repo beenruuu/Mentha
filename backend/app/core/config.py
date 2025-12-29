@@ -38,9 +38,7 @@ class Settings(BaseSettings):
     WEB_SEARCH_PROVIDER: str = "duckduckgo"  # or "tavily", "serper", etc.
     
     # Google Search Console Integration
-    GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
-    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/gsc/callback"
+    # Removed Google Search Console integration as per pure AEO/GEO directive
     
     # AI Visibility Measurement
     AI_VISIBILITY_ENABLED: bool = True  # Enabled by default - uses available API keys for real visibility measurement
@@ -68,7 +66,6 @@ class Settings(BaseSettings):
     FEATURE_INSIGHTS: bool = True  # Dashboard insights
     
     # Advanced (enabled by default)
-    FEATURE_KNOWLEDGE_GRAPH: bool = True  # Wikidata/Wikipedia monitoring
     FEATURE_HALLUCINATION_DETECTION: bool = True  # AI fabrication detection
     FEATURE_CITATION_TRACKING: bool = True  # Citation monitoring
     FEATURE_SENTIMENT_ANALYSIS: bool = True  # Brand sentiment
@@ -77,8 +74,6 @@ class Settings(BaseSettings):
     
     # Optional (disabled by default for performance)
     FEATURE_EEAT_ANALYSIS: bool = False  # E-E-A-T signals
-    FEATURE_TECHNICAL_AEO: bool = False  # Technical SEO
-    FEATURE_PLATFORM_DETECTION: bool = False  # CMS detection
     FEATURE_VISUAL_ASSETS: bool = False  # Image analysis
 
 

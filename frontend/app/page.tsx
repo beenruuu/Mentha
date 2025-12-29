@@ -16,7 +16,7 @@ import CTASection from "@/components/landing/cta-section"
 import FooterSection from "@/components/landing/footer-section"
 import Introduction from "@/components/landing/sections/Introduction"
 import Tag from "@/components/landing/Tag"
-import { HeaderThemeToggle } from "@/components/shared/header-theme-toggle"
+import Navbar from "@/components/landing/sections/Navbar"
 import { useTranslations } from "@/lib/i18n"
 
 // Reusable Badge Component
@@ -83,45 +83,7 @@ export default function LandingPage() {
 
           <div className="self-stretch pt-[9px] overflow-hidden border-b border-black/5 dark:border-white/5 flex flex-col justify-center items-center gap-4 sm:gap-6 md:gap-8 lg:gap-[66px] relative z-10">
             {/* Navigation - Fixed/Sticky */}
-            <div className="w-full h-12 sm:h-14 md:h-16 lg:h-[84px] fixed left-0 top-0 flex justify-center items-center z-50 px-6 sm:px-8 md:px-12 lg:px-0 bg-white/80 dark:bg-black/80 backdrop-blur-md">
-              <div className="w-full h-0 absolute left-0 bottom-0 border-b border-black/10 dark:border-white/10"></div>
-
-              <div className="w-full max-w-[calc(100%-32px)] sm:max-w-[calc(100%-48px)] md:max-w-[calc(100%-64px)] lg:max-w-[700px] lg:w-[700px] h-10 sm:h-11 md:h-12 py-1.5 sm:py-2 px-3 sm:px-4 md:px-4 pr-2 sm:pr-3 bg-white dark:bg-neutral-900 shadow-[0px_1px_3px_rgba(0,0,0,0.1)] dark:shadow-[0px_1px_3px_rgba(0,0,0,0.3)] overflow-hidden rounded-[50px] flex justify-between items-center relative z-30 border border-black/10 dark:border-white/10">
-                <div className="flex justify-center items-center">
-                  <div className="flex justify-start items-center gap-2">
-                    <img src="/mentha.svg" alt="" className="w-5 h-5 sm:w-6 sm:h-6" />
-                    <div className="flex flex-col justify-center text-black dark:text-white text-sm sm:text-base md:text-lg lg:text-xl font-medium leading-5 font-sans">
-                      Mentha
-                    </div>
-                  </div>
-                  <div className="pl-3 sm:pl-4 md:pl-5 lg:pl-5 flex justify-start items-start hidden sm:flex flex-row gap-2 sm:gap-3 md:gap-4 lg:gap-4">
-                    <Link href="#features" className="flex justify-start items-center hover:opacity-70 transition-opacity">
-                      <div className="flex flex-col justify-center text-black/80 dark:text-white/60 text-xs md:text-[13px] font-medium leading-[14px] font-sans">
-                        {t.navFeatures}
-                      </div>
-                    </Link>
-                    <Link href="#pricing" className="flex justify-start items-center hover:opacity-70 transition-opacity">
-                      <div className="flex flex-col justify-center text-black/80 dark:text-white/60 text-xs md:text-[13px] font-medium leading-[14px] font-sans">
-                        {t.navPricing}
-                      </div>
-                    </Link>
-                    <Link href="/blog" className="flex justify-start items-center hover:opacity-70 transition-opacity">
-                      <div className="flex flex-col justify-center text-black/80 dark:text-white/60 text-xs md:text-[13px] font-medium leading-[14px] font-sans">
-                        {t.footerBlog}
-                      </div>
-                    </Link>
-                  </div>
-                </div>
-                <div className="h-6 sm:h-7 md:h-8 flex justify-start items-center gap-2 sm:gap-3">
-                  <HeaderThemeToggle />
-                  <Link href="/auth/login" className="px-2 sm:px-3 md:px-[14px] py-1 sm:py-[6px] bg-neutral-100 dark:bg-neutral-800 shadow-[0px_1px_2px_rgba(0,0,0,0.08)] overflow-hidden rounded-full flex justify-center items-center hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors border border-black/10 dark:border-white/10">
-                    <div className="flex flex-col justify-center text-black dark:text-white text-xs md:text-[13px] font-medium leading-5 font-sans">
-                      {t.navLogin}
-                    </div>
-                  </Link>
-                </div>
-              </div>
-            </div>
+            <Navbar />
 
             {/* Hero Section */}
             <div className="pt-16 sm:pt-20 md:pt-24 lg:pt-[216px] pb-8 sm:pb-12 md:pb-16 flex flex-col justify-start items-center px-2 sm:px-4 md:px-8 lg:px-0 w-full sm:pl-0 sm:pr-0 pl-0 pr-0">

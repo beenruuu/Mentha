@@ -18,7 +18,7 @@ export function HeroSection() {
                 {t.heroTitle}
               </h1>
               <p className="max-w-[506px] text-center text-black/80 dark:text-white/60 text-lg font-medium leading-7">
-                {t.heroSubtitle}
+                {t.heroDescription}
               </p>
             </div>
           </div>
@@ -27,7 +27,7 @@ export function HeroSection() {
           <div className="flex justify-center">
             <Link href="/auth/signup">
               <Button className="h-10 px-12 bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white rounded-full font-medium text-sm shadow-[0px_0px_0px_2.5px_rgba(255,255,255,0.08)_inset]">
-                {t.heroCTA}
+                {t.heroStartTrial}
               </Button>
             </Link>
           </div>

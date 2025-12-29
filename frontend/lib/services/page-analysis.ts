@@ -53,7 +53,7 @@ export interface PageAnalysisResponse {
   status: 'pending' | 'processing' | 'completed' | 'failed';
   metadata?: PageMetadata;
   content_analysis?: ContentAnalysis;
-  seo_warnings: string[];
+  aeo_warnings: string[];
   headings: Record<string, string[]>;
   additional_tags: Record<string, any>;
   links: LinkInfo[];

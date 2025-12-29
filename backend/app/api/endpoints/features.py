@@ -21,7 +21,6 @@ class FeatureFlags(BaseModel):
     insights: bool
     
     # Advanced
-    knowledge_graph: bool
     hallucination_detection: bool
     citation_tracking: bool
     sentiment_analysis: bool
@@ -48,7 +47,6 @@ async def get_feature_flags():
         insights=settings.FEATURE_INSIGHTS,
         
         # Advanced
-        knowledge_graph=settings.FEATURE_KNOWLEDGE_GRAPH,
         hallucination_detection=settings.FEATURE_HALLUCINATION_DETECTION,
         citation_tracking=settings.FEATURE_CITATION_TRACKING,
         sentiment_analysis=settings.FEATURE_SENTIMENT_ANALYSIS,
@@ -57,8 +55,6 @@ async def get_feature_flags():
         
         # Optional
         eeat_analysis=settings.FEATURE_EEAT_ANALYSIS,
-        technical_aeo=settings.FEATURE_TECHNICAL_AEO,
-        platform_detection=settings.FEATURE_PLATFORM_DETECTION,
         visual_assets=settings.FEATURE_VISUAL_ASSETS,
     )
 
@@ -74,7 +70,6 @@ async def get_feature_descriptions() -> Dict[str, Dict[str, str]]:
             "insights": "Insights dinámicos en el dashboard",
         },
         "advanced": {
-            "knowledge_graph": "Monitoreo en Wikidata/Wikipedia",
             "hallucination_detection": "Detección de alucinaciones de IA",
             "citation_tracking": "Seguimiento de citas a tu sitio",
             "sentiment_analysis": "Análisis de sentimiento de marca",
@@ -83,8 +78,7 @@ async def get_feature_descriptions() -> Dict[str, Dict[str, str]]:
         },
         "optional": {
             "eeat_analysis": "Análisis de señales E-E-A-T",
-            "technical_aeo": "SEO técnico para IA",
-            "platform_detection": "Detección de CMS (WordPress, Shopify...)",
+            "technical_aeo": "Auditoría técnica AEO",
             "visual_assets": "Análisis de imágenes y assets visuales",
         }
     }

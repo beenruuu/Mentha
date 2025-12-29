@@ -5,6 +5,7 @@ Schema Generator API - Generate structured data schemas for AEO.
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 from typing import List, Dict, Optional, Any
+from pydantic import BaseModel, Field
 
 from app.services.generation.schema_generator_service import get_schema_service
 from app.api import deps
@@ -51,7 +52,7 @@ class OrganizationSchemaRequest(BaseModel):
 
 
 class SchemaResponse(BaseModel):
-    schema: Dict[str, Any]
+    generated_schema: Dict[str, Any] = Field(..., alias="schema")
     script_tag: str
 
 

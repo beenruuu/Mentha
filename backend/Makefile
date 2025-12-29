@@ -24,7 +24,7 @@ lint: ## Run linting
 
 test: ## Run tests
 	@echo "${GREEN}Running tests...${NC}"
-	pytest
+	pytest tests
 
 clean: ## Clean up cache files
 	@echo "${YELLOW}Cleaning up cache files...${NC}"

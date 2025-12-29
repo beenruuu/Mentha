@@ -14,7 +14,6 @@ from app.services.analysis.web_search_service import WebSearchService
 # from app.services.analysis.keyword_metrics_service import KeywordMetricsService
 from app.services.analysis.ai_visibility_service import AIVisibilityService
 from app.services.analysis.content_structure_analyzer_service import ContentStructureAnalyzerService
-from app.services.analysis.knowledge_graph_service import KnowledgeGraphMonitorService
 from app.services.analysis.sentiment_analysis_service import get_sentiment_analysis_service
 from app.api.endpoints.utils import fetch_page_content
 from app.core.config import settings
@@ -36,10 +35,10 @@ class AnalysisService:
         # self.keyword_metrics_service = KeywordMetricsService()
         self.ai_visibility_service = AIVisibilityService()
         self.content_structure_service = ContentStructureAnalyzerService()
-        self.kg_service = KnowledgeGraphMonitorService()
-        self.sentiment_service = get_sentiment_analysis_service()
         from app.services.analysis.citation_tracking_service import CitationTrackingService
         self.citation_service = CitationTrackingService()
+        from app.services.analysis.hallucination_detection_service import HallucinationDetectionService
+        self.hallucination_service = HallucinationDetectionService()
 
     async def run_analysis(self, analysis_id: UUID):
         """
@@ -182,13 +181,8 @@ class AnalysisService:
             
             content_task = self.content_structure_service.analyze_content_structure(url=brand_url)
             
-            kg_task = self.kg_service.monitor_knowledge_presence(
-                brand_name=brand_name, 
-                domain=brand_url
-            )
-
-            search_context, visibility_data, content_data, kg_data = await asyncio.gather(
-                search_task, visibility_task, content_task, kg_task
+            search_context, visibility_data, content_data = await asyncio.gather(
+                search_task, visibility_task, content_task
             )
             
             # Derive technical_data from content analysis
@@ -253,6 +247,17 @@ class AnalysisService:
             
             if new_competitors:
                 log_info("🆕", f"Discovered {len(new_competitors)} new competitors")
+            
+            # --- HALLUCINATION DETECTION ---
+            # Run this after other data gathering
+            log_info("🤥", "Detecting hallucinations...")
+            hallucination_task = self.hallucination_service.detect_hallucinations(
+                brand_name=brand_name,
+                domain=brand_url,
+                industry=industry,
+                ai_responses=visibility_data.get("models_raw", []) # Assuming visibility service returns raw responses
+            )
+            hallucination_data = await hallucination_task
 
             # --- PHASE 3: RESULT ASSEMBLY ---
             log_phase(3, "Result Assembly")
@@ -281,6 +286,7 @@ class AnalysisService:
                 "knowledge_graph": kg_data,
                 "visual_suggestions": visual_suggestions,
                 "sentiment_analysis": sentiment_analysis,
+                "hallucination_analysis": hallucination_data,
                 
                 "notifications": [],
                 

@@ -80,7 +80,13 @@ class CompetitorAnalyzerService:
             "brand_score": brand_analysis.get("overall_structure_score", 0),
             "competitor_score": comp_analysis.get("overall_structure_score", 0),
             "score_diff": comp_analysis.get("overall_structure_score", 0) - brand_analysis.get("overall_structure_score", 0),
-            "competitor_has_faq": comp_analysis.get("faq_analysis", {}).get("has_faq_section", False)
+            "competitor_has_faq": comp_analysis.get("faq_analysis", {}).get("has_faq_section", False),
+            "aeo_signals": {
+                "brand": brand_analysis.get("aeo_signals", {}),
+                "competitor": comp_analysis.get("aeo_signals", {}),
+                "direct_answer_gap": comp_analysis.get("aeo_signals", {}).get("direct_answer_score", 0) - brand_analysis.get("aeo_signals", {}).get("direct_answer_score", 0),
+                "density_gap": comp_analysis.get("aeo_signals", {}).get("information_density_score", 0) - brand_analysis.get("aeo_signals", {}).get("information_density_score", 0)
+            }
         }
 
     def _calculate_visibility_score(self, comp_page: Dict, comp_audit: Dict) -> float:

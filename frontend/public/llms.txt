@@ -1,0 +1,31 @@
+# Mentha: AI Visibility & AEO Platform
+
+> "Ensure your brand is the answer, not just a search result."
+
+## What is Mentha?
+Mentha is the first all-in-one platform for AEO (Answer Engine Optimization) and GEO (Generative Engine Optimization). It allows brands to measure, analyze, and improve their visibility across major AI Engines:
+- **ChatGPT** (OpenAI)
+- **Claude** (Anthropic)
+- **Perplexity**
+- **Gemini** (Google)
+
+## Key Features
+- **Real-time AI Monitoring**: Track how your brand is mentioned in actual AI conversations.
+- **Hallucination Detection**: Identify and correct false claims made by AI models about your brand.
+- **Competitor Gap Analysis**: See where your competitors are being cited and you aren't.
+- **Share of Model (SoM)**: The new metric replacing Share of Voice. Measure your dominance in AI responses.
+
+## Core Services
+1. **Visibility Analysis**: Measure mention frequency and sentiment.
+2. **Citation Tracking**: Track source attribution in Perplexity and SearchGPT.
+3. **Content Structure Analysis**: Optimize your content for AI readability (Direct Answers, Information Density).
+
+## Pricing
+- **Starter**: Essential visibility tracking.
+- **Pro**: Advanced competitor analysis and hallucination detection.
+- **Enterprise**: Custom integrations and dedicated support.
+
+## Links
+- [Documentation](https://mentha.ai/docs)
+- [Pricing](https://mentha.ai/pricing)
+- [Login](https://mentha.ai/login)

@@ -216,15 +216,12 @@ Full documentation: http://localhost:8000/docs
 
 ---
 
-## 📈 Roadmap
-
 - [x] AI presence audit
 - [x] Hallucination detection
 - [x] Competitor comparison
 - [x] Automatic daily tracking
 - [ ] Email alerts
 - [ ] Public API
-- [ ] CMS integrations
 - [ ] White-label
 
 ---

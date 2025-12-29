@@ -207,40 +207,6 @@ def update_visibility_snapshots_task():
     return async_to_sync(_process())
 
 
-@celery_app.task(name="sync_gsc_data")
-def sync_gsc_data_task(user_id: str, brand_id: str):
-    """
-    Sync Google Search Console data for a brand.
-    """
-    logger.info(f"Syncing GSC data for brand: {brand_id}")
-    
-    async def _process():
-        try:
-            from app.services.integrations.gsc_service import gsc_service
-            from app.services.supabase.database import SupabaseDatabaseService
-            from supabase import create_client
-            from app.core.config import settings
-            
-            # Get user's GSC tokens
-            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
-            user_response = supabase.auth.admin.get_user_by_id(user_id)
-            user = user_response.user
-            
-            if not user or not user.user_metadata or not user.user_metadata.get("gsc_tokens"):
-                logger.warning(f"GSC not connected for user {user_id}")
-                return {"status": "skipped", "reason": "GSC not connected"}
-            
-            tokens = user.user_metadata.get("gsc_tokens")
-            
-            # TODO: Fetch and persist GSC data
-            # This will be implemented in the GSC data ingestion service
-            
-            return {"status": "success", "brand_id": brand_id}
-            
-        except Exception as e:
-            logger.error(f"Failed to sync GSC data for {brand_id}: {e}", exc_info=True)
-            return {"status": "error", "message": str(e)}
-    
     return async_to_sync(_process())
 
 

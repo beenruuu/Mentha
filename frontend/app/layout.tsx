@@ -7,6 +7,7 @@ import { ThemeScript } from '@/components/shared/theme-script'
 import { ThemeInit } from '@/components/shared/theme-init'
 import { LanguageInit } from '@/components/shared/language-init'
 import { CommandPalette } from '@/components/shared/command-palette'
+import { AdvancedSchema } from '@/components/seo/AdvancedSchema'
 
 const instrumentSerif = Instrument_Serif({
   subsets: ['latin'],
@@ -66,6 +67,7 @@ export default function RootLayout({
         <ThemeInit />
 
         <RootProvider>
+          <AdvancedSchema />
           <CommandPalette />
           {children}
           <CookieConsent />

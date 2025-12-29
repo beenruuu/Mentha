@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { useTranslations } from '@/lib/i18n'
-import { Header } from "@/components/landing/header";
+import { Navbar as Header } from "@/components/landing";
 import FooterSection from "@/components/landing/footer-section";
 
 export default function TermsPage() {

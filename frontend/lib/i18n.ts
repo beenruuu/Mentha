@@ -197,6 +197,20 @@ const translations = {
     footerContact: 'Contacto',
     navFAQ: 'FAQ',
 
+    // About Page
+    aboutMission: 'Nuestra Misión',
+    aboutMissionText: 'En Mentha, creemos que el SEO tradicional está evolucionando. Nuestra misión es ayudar a las marcas a optimizar su visibilidad en los motores de IA generativa como ChatGPT, Claude, Gemini y Perplexity.',
+    aboutVision: 'Nuestra Visión',
+    aboutVisionText: 'Ser la plataforma líder en Answer Engine Optimization (AEO), permitiendo a las empresas dominar la nueva era de la búsqueda impulsada por inteligencia artificial.',
+    aboutTeam: 'Nuestro Equipo',
+    aboutTeamText: 'Somos un equipo apasionado de expertos en SEO, IA y desarrollo de productos que trabajan para redefinir cómo las marcas se posicionan en el ecosistema de IA.',
+
+    // Contact Page
+    contactEmail: 'Email',
+    contactSocial: 'Redes Sociales',
+    contactSupport: 'Soporte',
+    contactSupportText: 'Para soporte técnico o consultas sobre tu cuenta, envía un email a ',
+
     // CTA Section
     ctaTitle: '¿Listo para dominar la búsqueda IA?',
     ctaDescription: 'Únete a cientos de marcas que ya optimizan su presencia en ChatGPT, Claude, Gemini y Perplexity.',
@@ -1421,7 +1435,6 @@ const translations = {
     fixHeadingsAction: 'Arreglar H1',
     addBrandAction: 'Añadir marca',
     completedOnboarding: 'Onboarding completado',
-    analysisPending: 'Analizando...',
     analyzing: 'Analizando...',
     billingDesc: 'Gestiona tu suscripción y detalles de facturación.',
     freePlanDesc: 'Funciones básicas para uso personal',
@@ -1626,6 +1639,20 @@ const translations = {
     footerAbout: 'About us',
     footerContact: 'Contact',
     navFAQ: 'FAQ',
+
+    // About Page
+    aboutMission: 'Our Mission',
+    aboutMissionText: 'At Mentha, we believe traditional SEO is evolving. Our mission is to help brands optimize their visibility in generative AI engines like ChatGPT, Claude, Gemini, and Perplexity.',
+    aboutVision: 'Our Vision',
+    aboutVisionText: 'To be the leading platform in Answer Engine Optimization (AEO), enabling companies to dominate the new era of AI-driven search.',
+    aboutTeam: 'Our Team',
+    aboutTeamText: 'We are a passionate team of SEO, AI, and product development experts working to redefine how brands position themselves in the AI ecosystem.',
+
+    // Contact Page
+    contactEmail: 'Email',
+    contactSocial: 'Social Media',
+    contactSupport: 'Support',
+    contactSupportText: 'For technical support or account inquiries, send an email to ',
 
     // CTA Section
     ctaTitle: 'Ready to dominate AI search?',
@@ -2123,7 +2150,6 @@ const translations = {
     sort: 'Sort',
     trend7d: 'Trend (7d)',
     noKeywordsFoundSearch: 'No keywords found matching your search.',
-    viewDetails: 'View details',
     analyzeNow: 'Analyze now',
     deleteKeyword: 'Delete keyword',
     openMenu: 'Open menu',
@@ -2140,7 +2166,6 @@ const translations = {
     noBrandsConfigured: 'No brands configured',
     dailyAnalyses: 'Remaining analyses',
     signOut: 'Sign out',
-    panel: 'Panel',
     optimization: 'Optimization',
     primary: 'Primary',
 
@@ -2502,17 +2527,6 @@ const translations = {
     authPasswordTooWeak: 'Password does not meet minimum requirements',
 
     // ==========================================
-    // BLOG
-    // ==========================================
-    blogTitle: 'The Mentha Blog',
-    blogDescription: 'Insights, strategies, and guides for the new era of Answer Engine Optimization.',
-    blogReadArticle: 'Read Article',
-    blogBackToBlog: 'Back to Blog',
-    blogReadyToOptimize: 'Ready to optimize for the future?',
-    blogStartOptimizing: 'Start optimizing your brand for AI search today with Mentha\'s AI visibility platform.',
-    blogGetStartedFree: 'Get Started for Free',
-
-    // ==========================================
     // DASHBOARD
     // ==========================================
     dashboardDescription: 'Overview of your AI engine visibility',
@@ -2868,22 +2882,9 @@ const translations = {
     fixHeadingsAction: 'Fix H1',
     addBrandAction: 'Add brand',
     completedOnboarding: 'Onboarding completed',
-    analysisPending: 'Analyzing...',
-    analyzing: 'Analyzing...',
     billingDesc: 'Manage your subscription and billing details.',
     freePlanDesc: 'Basic features for personal use',
     manageData: 'Manage your personal data and portability (GDPR/LOPD)',
-
-    // Hallucinations
-    accurate: 'Accurate',
-    hallucination: 'Hallucination',
-    hallucinations: 'Hallucinations',
-    unverified: 'Unverified',
-    hallucinationDetection: 'Hallucination Detection',
-    hallucinationDesc: 'Detect false claims about your brand in AI responses',
-    clickToAnalyze: "Click 'Check Now' to analyze AI responses for hallucinations",
-    analyzedClaims: 'Analyzed Claims',
-    checkNow: 'Check Now',
   }
 }
 

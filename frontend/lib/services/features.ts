@@ -10,7 +10,6 @@ export interface FeatureFlags {
     insights: boolean;
 
     // Advanced
-    knowledge_graph: boolean;
     hallucination_detection: boolean;
     citation_tracking: boolean;
     sentiment_analysis: boolean;
@@ -19,8 +18,6 @@ export interface FeatureFlags {
 
     // Optional
     eeat_analysis: boolean;
-    technical_aeo: boolean;
-    platform_detection: boolean;
     visual_assets: boolean;
 }
 

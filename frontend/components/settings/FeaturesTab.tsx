@@ -15,7 +15,6 @@ interface Props {
 const featureIcons: Record<string, any> = {
     ai_visibility: Eye,
     insights: BarChart3,
-    knowledge_graph: Brain,
     hallucination_detection: AlertTriangle,
     citation_tracking: Link,
     sentiment_analysis: MessageSquare,
@@ -23,7 +22,6 @@ const featureIcons: Record<string, any> = {
     content_structure: FileText,
     eeat_analysis: Settings2,
     technical_aeo: Settings2,
-    platform_detection: Settings2,
     visual_assets: Settings2,
 }
 
@@ -168,7 +166,6 @@ function formatFeatureName(key: string): string {
     const names: Record<string, string> = {
         ai_visibility: 'Visibilidad en IA',
         insights: 'Insights del Dashboard',
-        knowledge_graph: 'Knowledge Graph',
         hallucination_detection: 'Detección de Alucinaciones',
         citation_tracking: 'Seguimiento de Citas',
         sentiment_analysis: 'Análisis de Sentimiento',
@@ -176,7 +173,6 @@ function formatFeatureName(key: string): string {
         content_structure: 'Estructura de Contenido',
         eeat_analysis: 'Análisis E-E-A-T',
         technical_aeo: 'AEO Técnico',
-        platform_detection: 'Detección de Plataforma',
         visual_assets: 'Assets Visuales',
     }
     return names[key] || key

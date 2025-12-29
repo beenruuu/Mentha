@@ -130,6 +130,7 @@ class ContentStructureAnalyzerService:
             "list_table_analysis": self._analyze_lists_tables(soup),
             "entity_clarity": self._analyze_entity_clarity(soup),
             "speakability_analysis": self._analyze_speakability(soup),
+            "aeo_signals": await self._analyze_aeo_signals(url, soup),
             "overall_structure_score": 0,
             "recommendations": []
         }
@@ -775,7 +776,8 @@ class ContentStructureAnalyzerService:
             "snippet_optimization": 0.15,
             "list_table_analysis": 0.10,
             "entity_clarity": 0.05,
-            "speakability_analysis": 0.15
+            "speakability_analysis": 0.10,
+            "aeo_signals": 0.15
         }
         
         total_score = 0
@@ -785,6 +787,98 @@ class ContentStructureAnalyzerService:
         
         return round(total_score, 1)
     
+    async def _analyze_aeo_signals(self, url: str, soup: BeautifulSoup) -> Dict[str, Any]:
+        """Analyze specialized AEO signals: llms.txt, Direct Answers, Info Density."""
+        analysis = {
+            "llms_txt_present": False,
+            "llms_full_txt_present": False,
+            "direct_answer_score": 0,
+            "information_density_score": 0,
+            "quality_score": 0,
+            "issues": []
+        }
+        
+        # 1. Check llms.txt (if url provided)
+        if url:
+            try:
+                base_url = "/".join(url.split("/")[:3]) # http://domain.com
+                
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    # Check both files in parallel
+                    r1_task = client.head(f"{base_url}/llms.txt", follow_redirects=True)
+                    r2_task = client.head(f"{base_url}/llms-full.txt", follow_redirects=True)
+                    
+                    r1, r2 = await asyncio.gather(r1_task, r2_task, return_exceptions=True)
+                    
+                    if not isinstance(r1, Exception) and r1.status_code == 200:
+                        analysis["llms_txt_present"] = True
+                    if not isinstance(r2, Exception) and r2.status_code == 200:
+                        analysis["llms_full_txt_present"] = True
+            except Exception as e:
+                logger.warning(f"llms.txt check failed: {e}")
+        
+        # 2. Direct Answer Analysis
+        # Best practice: H1 followed immediately by a concise definition (< 60 words)
+        h1 = soup.find('h1')
+        if h1:
+            next_elem = h1.find_next_sibling(['p', 'div'])
+            if next_elem:
+                text = next_elem.get_text(strip=True)
+                words = text.split()
+                
+                if 20 <= len(words) <= 70: # Sweet spot for snippets
+                    # Check for definition patterns
+                    if re.match(r'^(.+?)\s+(is|are|refers to|consists of|means)\s+', text, re.I):
+                        analysis["direct_answer_score"] = 100
+                    else:
+                        analysis["direct_answer_score"] = 70 # Good length, maybe lacks structure
+                elif len(words) < 20:
+                    analysis["direct_answer_score"] = 40 # Too short
+                else:
+                    analysis["direct_answer_score"] = 30 # Too long/fluffy
+        
+        # 3. Information Density (Entities / Total Words)
+        text = soup.get_text(" ", strip=True)
+        words = text.split()
+        if words:
+            # Simple heuristic: capitalized words (not at start of sentence) + numbers
+            # This is a proxy for Named Entities and Facts
+            entities_facts = 0
+            for i, w in enumerate(words):
+                if w[0].isupper() and i > 0 and words[i-1][-1] not in '.!?':
+                    entities_facts += 1
+                elif w[0].isdigit():
+                    entities_facts += 1
+            
+            density = (entities_facts / len(words)) * 100
+            
+            # Normalize: > 15% is excellent, < 5% is fluff
+            if density > 15:
+                analysis["information_density_score"] = 100
+            elif density > 10:
+                analysis["information_density_score"] = 80
+            elif density > 5:
+                analysis["information_density_score"] = 50
+            else:
+                analysis["information_density_score"] = 20
+        
+        # Calculate Sub-score
+        quality = 0
+        if analysis["llms_txt_present"]: quality += 30
+        if analysis["llms_full_txt_present"]: quality += 10
+        quality += (analysis["direct_answer_score"] * 0.3)
+        quality += (analysis["information_density_score"] * 0.3)
+        
+        analysis["quality_score"] = min(100, round(quality, 1))
+        
+        # Issues
+        if url and not analysis["llms_txt_present"]:
+            analysis["issues"].append("Missing llms.txt file for AI crawlers")
+        if analysis["direct_answer_score"] < 50:
+            analysis["issues"].append("Intro content is not structured as a Direct Answer (H1 + concise definition)")
+            
+        return analysis
+
     def _generate_structure_recommendations(self, results: Dict[str, Any]) -> List[Dict[str, str]]:
         """Generate content structure recommendations."""
         recommendations = []

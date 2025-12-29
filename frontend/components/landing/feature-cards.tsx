@@ -7,18 +7,18 @@ export function FeatureCards() {
 
   const features = [
     {
-      title: t.feature1Title,
-      description: t.feature1Description,
+      title: t.featureAEOTitle,
+      description: t.featureAEODescription,
       highlighted: true,
     },
     {
-      title: t.feature2Title,
-      description: t.feature2Description,
+      title: t.featureCompetitorTitle,
+      description: t.featureCompetitorDescription,
       highlighted: false,
     },
     {
-      title: t.feature3Title,
-      description: t.feature3Description,
+      title: t.featureBrandTitle,
+      description: t.featureBrandDescription,
       highlighted: false,
     },
   ]
@@ -30,11 +30,10 @@ export function FeatureCards() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className={`p-6 flex flex-col gap-2 ${
-                feature.highlighted 
-                  ? "bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 shadow-sm" 
+              className={`p-6 flex flex-col gap-2 ${feature.highlighted
+                  ? "bg-white dark:bg-neutral-900 border border-black/10 dark:border-white/10 shadow-sm"
                   : "border border-black/5 dark:border-white/5"
-              }`}
+                }`}
             >
               {feature.highlighted && (
                 <div className="space-y-1 mb-2">

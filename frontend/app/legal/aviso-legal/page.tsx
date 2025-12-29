@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { Header } from "@/components/landing/header";
+import { Navbar as Header } from "@/components/landing";
 import FooterSection from "@/components/landing/footer-section";
 import { Building2, Mail, FileText, Scale } from 'lucide-react'
 

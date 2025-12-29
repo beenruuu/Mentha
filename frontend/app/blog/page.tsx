@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getAllPosts } from "@/lib/blog-data";
 import { ArrowRight } from "lucide-react";
-import { Header } from "@/components/landing/header";
+import { Navbar as Header } from "@/components/landing";
 import FooterSection from "@/components/landing/footer-section";
 
 export default function BlogIndexPage() {

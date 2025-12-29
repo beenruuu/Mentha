@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { getPostBySlug } from "@/lib/blog-data";
-import { Header } from "@/components/landing/header";
+import { Navbar as Header } from "@/components/landing";
 import FooterSection from "@/components/landing/footer-section";
 import BlogPostContent from './blog-post-content'
 

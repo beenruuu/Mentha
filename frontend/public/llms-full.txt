@@ -1,0 +1,47 @@
+# Mentha: Complete AEO/GEO Platform Documentation
+
+## Executive Summary
+Mentha helps brands transition from traditional SEO (Search Engine Optimization) to AEO (Answer Engine Optimization). As search behavior shifts towards Generative AI (ChatGPT, Claude, Perplexity, Gemini), brands need new tools to ensure they are cited, accurate, and visible.
+
+## The AEO Paradigm Shift
+Traditional SEO focused on ten blue links. AEO focuses on **The Single Referent**.
+- **SEO Metric**: Click-Through Rate (CTR), Ranking Position.
+- **AEO Metric**: Share of Model (SoM), Citation Rate, Hallucination Rate.
+
+## Detailed Capabilities
+
+### 1. Visibility & Sentiment Analysis
+Mentha proactively queries AI models using localized, industry-specific prompts to determine:
+- **Presence**: Is the brand mentioned in "Top X" lists?
+- **Position**: Is it the first recommendation?
+- **Sentiment**: How does the AI "feel" about the brand (Positive/Neutral/Negative)?
+
+### 2. Hallucination Detection & Correction
+AI models can "hallucinate" facts (e.g., wrong CEO, wrong pricing). Mentha:
+- Scrapes verifiable facts from your trusted domain.
+- Compares them against AI-generated claims.
+- Alerts you to discrepancies so you can publish correcting content (Brand Knowledge Graph).
+
+### 3. Competitor Intelligence
+AEO is a zero-sum game in many queries. Mentha analyzes:
+- **Content Gaps**: What topics do competitors answer better?
+- **Citation Sources**: Where is Perplexity finding your competitors?
+- **Information Density**: Comparative analysis of fact-to-fluff ratio.
+
+## Technical Architecture for AEO
+To optimize for AI, websites must adapt:
+- **llms.txt**: A standardized file for AI crawlers (like this one).
+- **Schema Graph**: Interconnected JSON-LD entities (Organization -> Product -> Offer).
+- **Direct Answers**: Structuring content to be "snippet-ready" (H1 + concise definition).
+
+## Supported Platforms
+Mentha natively tracks and optimizes for:
+- **ChatGPT** (GPT-4o, o1) via OpenAI API.
+- **Claude** (3.5 Sonnet, 3 Opus) via Anthropic API.
+- **Perplexity** (Sonar models).
+- **Gemini** (Pro/Flash).
+
+## Contact & Resources
+- **Official Website**: https://mentha.ai
+- **Docs**: https://mentha.ai/docs
+- **Support**: support@mentha.ai

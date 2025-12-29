@@ -32,7 +32,7 @@ class GEOAnalysisRequest(BaseModel):
     topics: List[str] = Field(default=[], description="Key topics/keywords")
     run_full_analysis: bool = Field(default=True, description="Run all analysis modules")
     modules: List[str] = Field(
-        default=["ai_visibility", "citations", "search_simulator", "content_structure", "knowledge_graph", "eeat"],
+        default=["ai_visibility", "citations", "search_simulator", "content_structure", "eeat"],
         description="Specific modules to run"
     )
 
@@ -141,7 +141,7 @@ async def _run_full_geo_analysis(
     try:
         modules_to_run = request.modules if not request.run_full_analysis else [
             "ai_visibility", "citations", "search_simulator", 
-            "content_structure", "knowledge_graph", "eeat"
+            "content_structure", "eeat"
         ]
         
         logger.info(f"[GEO] Modules to run: {modules_to_run}")
@@ -254,28 +254,8 @@ async def _run_full_geo_analysis(
             # Update progress
             await crud.update_geo_analysis(analysis_id=analysis_id, modules=results)
         
-        if "knowledge_graph" in modules_to_run:
-            try:
-                logger.info("[GEO] Running knowledge graph monitor module...")
-                from app.services.analysis.knowledge_graph_service import get_knowledge_graph_monitor
-                service = get_knowledge_graph_monitor()
-                result = await service.monitor_knowledge_presence(
-                    brand_name=request.brand_name,
-                    domain=request.domain
-                )
-                results["knowledge_graph"] = result
-                logger.info(f"[GEO] Knowledge graph complete. Score: {result.get('presence_score', 'N/A')}")
-                if result.get("presence_score"):
-                    total_score += result["presence_score"]
-                    module_count += 1
-                if result.get("recommendations"):
-                    all_recommendations.extend(result["recommendations"])
-            except Exception as e:
-                logger.error(f"[GEO] Knowledge graph monitor failed: {e}")
-                results["knowledge_graph"] = {"error": str(e)}
-            
-            # Update progress
-            await crud.update_geo_analysis(analysis_id=analysis_id, modules=results)
+        # Update progress
+        await crud.update_geo_analysis(analysis_id=analysis_id, modules=results)
         
         if "eeat" in modules_to_run:
             try:
@@ -425,7 +405,6 @@ def _create_analysis_summary(results: Dict, overall_score: float) -> Dict[str, A
         "citations": ("Citation Rate", "citation_score"),
         "search_simulator": ("AI Search Presence", "overall_score"),
         "content_structure": ("Content Structure", "overall_structure_score"),
-        "knowledge_graph": ("Knowledge Graph", "presence_score"),
         "eeat": ("E-E-A-T", "overall_score"),
     }
     
@@ -737,12 +716,6 @@ async def list_available_modules(
                 "name": "Content Structure",
                 "description": "Analyze how well your content is structured for AI extraction (FAQs, How-tos, definitions).",
                 "api_required": []
-            },
-            {
-                "id": "knowledge_graph",
-                "name": "Knowledge Graph",
-                "description": "Monitor your brand's presence in Wikipedia, Wikidata, and other knowledge bases.",
-                "api_required": ["openai"]
             },
             {
                 "id": "eeat",
