@@ -286,7 +286,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
         )
       case 'prompts':
         return (
-          <PromptsChat brandId={brandId} brandName={brand.name} />
+          <PromptsChat brandId={brandId} brandName={brand.name} brandDomain={brand.domain} />
         )
       default:
         // No valid tab - redirect to dashboard

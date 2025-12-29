@@ -153,7 +153,10 @@ export function PromptsChatInput({
                                                     alt={provider.name}
                                                     width={14}
                                                     height={14}
-                                                    className="w-3.5 h-3.5 object-contain"
+                                                    className={cn(
+                                                        "w-3.5 h-3.5 object-contain",
+                                                        provider.id === 'openai' && "dark:invert"
+                                                    )}
                                                 />
                                             </div>
                                         )
@@ -214,7 +217,10 @@ export function PromptsChatInput({
                                                         alt={provider.name}
                                                         width={18}
                                                         height={18}
-                                                        className="w-4 h-4 object-contain"
+                                                        className={cn(
+                                                            "w-4 h-4 object-contain",
+                                                            provider.id === 'openai' && "dark:invert"
+                                                        )}
                                                     />
                                                 </div>
                                                 <span className="flex-1 text-left text-sm font-medium">{provider.name}</span>

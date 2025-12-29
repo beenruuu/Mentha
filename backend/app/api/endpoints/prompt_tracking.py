@@ -16,6 +16,7 @@ from app.api.deps import get_current_user_id
 from app.services.analysis.prompt_tracking_service import get_prompt_tracking_service
 from app.services.supabase.database import SupabaseDatabaseService
 from app.models.brand import Brand
+from app.models.prompt_check import PromptCheck, PromptCheckCreate
 
 router = APIRouter(prefix="/prompts", tags=["Prompt Tracking"])
 
@@ -58,6 +59,10 @@ class DebugQueryRequest(BaseModel):
     prompt: str
     providers: Optional[List[str]] = ["openai", "anthropic", "perplexity"]
 
+class PromptChecksResponse(BaseModel):
+    checks: List[PromptCheck]
+    count: int
+
 
 @router.get("/debug-ping")
 async def debug_ping():
@@ -67,7 +72,7 @@ async def debug_ping():
 @router.post("/debug-query")
 async def query_ai_providers(
     debug_request: DebugQueryRequest,
-    # user_id: str = Depends(get_current_user_id)
+    user_id: str = Depends(get_current_user_id)
 ):
     """
     Query multiple AI providers with a prompt and check for brand mentions.
@@ -144,8 +149,41 @@ async def query_ai_providers(
     
     tasks = [query_provider(p) for p in valid_providers]
     responses = await asyncio.gather(*tasks)
+
+    # Save to history
+    try:
+        check_service = SupabaseDatabaseService("prompt_checks", PromptCheck)
+        await check_service.create({
+            "brand_id": str(debug_request.brand_id),
+            "prompt": debug_request.prompt,
+            "providers": valid_providers,
+            "results": responses,
+            "user_id": user_id
+        })
+    except Exception as e:
+        print(f"Error saving prompt check history: {e}")
+        # Don't fail the request if saving history fails
     
     return {"responses": responses}
+
+
+@router.get("/{brand_id}/checks", response_model=PromptChecksResponse)
+async def get_brand_prompt_checks(
+    brand_id: UUID,
+    limit: int = 50,
+    user_id: str = Depends(get_current_user_id)
+):
+    """Get history of prompt checks for a brand."""
+    service = SupabaseDatabaseService("prompt_checks", PromptCheck)
+    
+    checks = await service.list(
+        filters={"brand_id": str(brand_id), "user_id": user_id},
+        order_by="created_at",
+        order_desc=True,
+        limit=limit
+    )
+    
+    return {"checks": checks, "count": len(checks)}
 
 
 @router.post("/discover")

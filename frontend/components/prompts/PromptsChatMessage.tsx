@@ -55,6 +55,21 @@ export function PromptsChatMessage({ role, content, responses, timestamp, brandN
         setTimeout(() => setCopiedProvider(null), 2000)
     }
 
+    // Simple Markdown Parser (handles **bold**)
+    const renderMarkdown = (text: string) => {
+        if (!text) return null
+
+        // Split by code blocks first if needed, but for now just simple bold
+        const parts = text.split(/(\*\*.*?\*\*)/g)
+
+        return parts.map((part, index) => {
+            if (part.startsWith('**') && part.endsWith('**')) {
+                return <strong key={index} className="font-semibold text-foreground">{part.slice(2, -2)}</strong>
+            }
+            return <span key={index}>{part}</span>
+        })
+    }
+
     // User Message
     if (role === 'user') {
         return (
@@ -135,7 +150,10 @@ export function PromptsChatMessage({ role, content, responses, timestamp, brandN
                                             alt={provider.name}
                                             width={20}
                                             height={20}
-                                            className="w-5 h-5 object-contain"
+                                            className={cn(
+                                                "w-5 h-5 object-contain",
+                                                response.provider === 'openai' && "dark:invert"
+                                            )}
                                         />
                                     ) : (
                                         <span className="text-xs font-bold">{provider.name[0]}</span>
@@ -194,7 +212,7 @@ export function PromptsChatMessage({ role, content, responses, timestamp, brandN
                                     ) : (
                                         <>
                                             <p className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap">
-                                                {response.content}
+                                                {renderMarkdown(response.content)}
                                             </p>
 
                                             {/* Copy Button */}
