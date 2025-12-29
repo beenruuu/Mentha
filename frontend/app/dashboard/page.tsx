@@ -61,6 +61,8 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { RainbowButton } from "@/components/ui/rainbow-button"
+import { openUpgradeModal } from "@/components/shared/upgrade-modal"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -862,9 +864,12 @@ export default function DashboardPage() {
                   <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 relative z-10">
                     {t.dashboardUpgradeMessage}
                   </p>
-                  <Button className="w-full bg-gray-900 dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-100 border-0 font-medium text-sm">
+                  <RainbowButton
+                    onClick={openUpgradeModal}
+                    className="w-full h-9 text-sm font-medium"
+                  >
                     {t.upgradePlan}
-                  </Button>
+                  </RainbowButton>
                 </div>
 
               </div>

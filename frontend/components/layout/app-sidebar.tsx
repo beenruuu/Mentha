@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Settings, X, Users, LogOut, Shield, Wrench, Plus, User, CreditCard, Palette, Zap, Eye } from "lucide-react"
+import { Bell, Settings, X, Users, LogOut, Shield, Wrench, Plus, User, CreditCard, Palette, Zap, Eye, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useState, useEffect } from "react"
@@ -9,6 +9,7 @@ import { useSidebar } from "@/components/ui/sidebar"
 import { useTranslations } from "@/lib/i18n"
 import { brandsService, Brand } from "@/lib/services/brands"
 import { UpgradeModal } from "@/components/shared/upgrade-modal"
+import { RainbowButton } from "@/components/ui/rainbow-button"
 
 /**
  * Mentha Sidebar - Clean Navigation
@@ -167,6 +168,17 @@ export function AppSidebar() {
                   {t.optimization}
                 </button>
               </Link>
+
+              {/* Prompts */}
+              <Link href={selectedBrandId ? `/brand/${selectedBrandId}?tab=prompts` : '/dashboard'}>
+                <button className={`w-full flex items-center gap-2 px-2 py-1.5 text-xs rounded-md transition-colors ${currentTab === 'prompts'
+                  ? 'text-foreground bg-secondary/50 font-medium'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-secondary/50'
+                  }`}>
+                  <Search className="w-3 h-3 opacity-70" />
+                  {t.prompts}
+                </button>
+              </Link>
             </div>
           </div>
 
@@ -293,13 +305,12 @@ export function AppSidebar() {
             </div>
           </div>
 
-          <Button
-            variant="outline"
+          <RainbowButton
             onClick={() => setUpgradeModalOpen(true)}
-            className="w-full h-8 text-xs bg-background hover:bg-secondary mb-2 border-border/60 shadow-sm"
+            className="w-full h-8 text-xs mb-2 border-border/60 shadow-sm"
           >
             {t.upgradeToProArrow}
-          </Button>
+          </RainbowButton>
 
           <UpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} />
 

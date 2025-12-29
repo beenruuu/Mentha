@@ -35,6 +35,11 @@
     --ring: 240 5% 64.9%;
     --radius: 0.75rem;
     --font-instrument-serif: "Instrument Serif", ui-serif, serif;
+    --color-1: 0 100% 63%;
+    --color-2: 270 100% 63%;
+    --color-3: 210 100% 63%;
+    --color-4: 195 100% 63%;
+    --color-5: 90 100% 63%;
   }
 
   .dark {

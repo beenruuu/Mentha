@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { AiInput } from "@/components/ui/ai-input"
 import {
     Dialog,
     DialogContent,
@@ -29,6 +30,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useTranslations } from "@/lib/i18n"
+
 
 interface TrackedPrompt {
     id: string
@@ -94,7 +96,8 @@ const componentTranslations = {
         neverChecked: 'Nunca verificado',
         minutesAgo: 'hace {n}m',
         hoursAgo: 'hace {n}h',
-        daysAgo: 'hace {n}d'
+        daysAgo: 'hace {n}d',
+        quickAddPlaceholder: '¿Qué pregunta quieres monitorear?'
     },
     en: {
         promptTracking: 'Prompt Tracking',
@@ -128,7 +131,8 @@ const componentTranslations = {
         neverChecked: 'Never checked',
         minutesAgo: '{n}m ago',
         hoursAgo: '{n}h ago',
-        daysAgo: '{n}d ago'
+        daysAgo: '{n}d ago',
+        quickAddPlaceholder: 'What question do you want to monitor?'
     }
 }
 
@@ -182,6 +186,29 @@ export function PromptTracker({ brandId, brandName, competitors = [], lastUpdate
                 setNewPromptText('')
                 setNewPromptCategory('')
                 setIsAddDialogOpen(false)
+            }
+        } catch (err) {
+            console.error('Failed to add prompt:', err)
+        }
+    }
+
+    const handleQuickAddPrompt = async (promptText: string) => {
+        if (!promptText.trim()) return
+
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/prompts/${brandId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    prompt_text: promptText,
+                    category: null,
+                    check_frequency: 'daily'
+                })
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                setPrompts([data.prompt, ...prompts])
             }
         } catch (err) {
             console.error('Failed to add prompt:', err)
@@ -354,10 +381,15 @@ export function PromptTracker({ brandId, brandName, competitors = [], lastUpdate
             </CardHeader>
             <CardContent>
                 {prompts.length === 0 ? (
-                    <div className="text-center py-8 text-muted-foreground text-sm">
-                        <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                        <p>{texts.noPromptsYet}</p>
-                        <p className="text-xs mt-1">{texts.addPromptsToMonitor}</p>
+                    <div className="text-center py-4">
+                        <Search className="w-8 h-8 mx-auto mb-2 opacity-50 text-muted-foreground" />
+                        <p className="text-muted-foreground text-sm">{texts.noPromptsYet}</p>
+                        <p className="text-xs text-muted-foreground mt-1 mb-4">{texts.addPromptsToMonitor}</p>
+                        <AiInput
+                            placeholder={texts.quickAddPlaceholder}
+                            onSubmit={async (value) => handleQuickAddPrompt(value)}
+                            showSearchToggle={false}
+                        />
                     </div>
                 ) : (
                     <div className="space-y-2">

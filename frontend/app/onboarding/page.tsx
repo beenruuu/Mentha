@@ -5,7 +5,6 @@ import AboutYouStep from '@/components/onboarding/steps/AboutYouStep'
 import CompanyStep from '@/components/onboarding/steps/CompanyStep'
 import BrandProfileStep from '@/components/onboarding/steps/BrandProfileStep'
 import CompetitorsStep from '@/components/onboarding/steps/CompetitorsStep'
-import ResearchPromptsStep from '@/components/onboarding/steps/ResearchPromptsStep'
 import ScheduleStep from '@/components/onboarding/steps/ScheduleStep'
 import SetupStep from '@/components/onboarding/steps/SetupStep'
 import { Sparkles, BarChart3, Target, Zap } from 'lucide-react'
@@ -51,13 +50,6 @@ const STEP_CONTENT = {
     descriptionEn: 'Identify and monitor your competitors to always stay one step ahead.',
     icon: Target,
   },
-  'research-prompts': {
-    titleEs: 'Prompts de investigación',
-    titleEn: 'Research prompts',
-    descriptionEs: 'Define las consultas que usaremos para analizar cómo apareces en los motores de IA.',
-    descriptionEn: 'Define the queries we will use to analyze how you appear in AI engines.',
-    icon: Zap,
-  },
   'schedule': {
     titleEs: 'Configuración avanzada',
     titleEn: 'Advanced configuration',
@@ -90,8 +82,6 @@ export default function OnboardingPage() {
         return <BrandProfileStep />
       case 'competitors':
         return <CompetitorsStep />
-      case 'research-prompts':
-        return <ResearchPromptsStep />
       case 'schedule':
         return <ScheduleStep />
       case 'setup':
@@ -158,14 +148,14 @@ export default function OnboardingPage() {
 
         {/* Step progress indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2">
-          {['about-you', 'company', 'brand-profile', 'competitors', 'research-prompts', 'schedule', 'setup'].map((step, index) => (
+          {['about-you', 'company', 'brand-profile', 'competitors', 'schedule', 'setup'].map((step, index) => (
             <div
               key={step}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${currentStep === step
-                  ? 'w-8 bg-primary'
-                  : Object.keys(STEP_CONTENT).indexOf(currentStep) > index
-                    ? 'bg-primary/50'
-                    : 'bg-zinc-300 dark:bg-white/20'
+                ? 'w-8 bg-primary'
+                : Object.keys(STEP_CONTENT).indexOf(currentStep) > index
+                  ? 'bg-primary/50'
+                  : 'bg-zinc-300 dark:bg-white/20'
                 }`}
             />
           ))}

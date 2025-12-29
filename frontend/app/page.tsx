@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import SmartSimpleBrilliant from "@/components/landing/smart-simple-brilliant"
+import DisplayCards from "@/components/landing/display-cards"
 import YourWorkInSync from "@/components/landing/your-work-in-sync"
 import EffortlessIntegration from "@/components/landing/effortless-integration-updated"
 import NumbersThatSpeak from "@/components/landing/numbers-that-speak"
@@ -18,6 +18,7 @@ import Introduction from "@/components/landing/sections/Introduction"
 import Tag from "@/components/landing/Tag"
 import Navbar from "@/components/landing/sections/Navbar"
 import { useTranslations } from "@/lib/i18n"
+import { Typewriter } from "@/components/ui/typewriter"
 
 // Reusable Badge Component
 function Badge({ icon, text }: { icon: React.ReactNode; text: string }) {
@@ -89,12 +90,15 @@ export default function LandingPage() {
             <div className="pt-16 sm:pt-20 md:pt-24 lg:pt-[216px] pb-8 sm:pb-12 md:pb-16 flex flex-col justify-start items-center px-2 sm:px-4 md:px-8 lg:px-0 w-full sm:pl-0 sm:pr-0 pl-0 pr-0">
               <div className="w-full max-w-[937px] lg:w-[937px] flex flex-col justify-center items-center gap-3 sm:gap-4 md:gap-5 lg:gap-6">
                 <div className="self-stretch rounded-[3px] flex flex-col justify-center items-center gap-4 sm:gap-5 md:gap-6 lg:gap-8">
-                  <div className="w-full max-w-[900px] lg:w-[900px] text-center flex justify-center flex-col text-black dark:text-white text-[24px] xs:text-[28px] sm:text-[36px] md:text-[52px] lg:text-[80px] font-normal leading-[1.1] sm:leading-[1.15] md:leading-[1.2] lg:leading-24 font-serif tracking-wide px-2 sm:px-4 md:px-0">
-                    {t.heroTitle}
-                    <br />
-                    <span className="text-emerald-500 dark:text-emerald-400">{t.heroTitleHighlight}</span>
-                  </div>
-                  <div className="w-full max-w-[506.08px] lg:w-[506.08px] text-center flex justify-center flex-col text-black/80 dark:text-white/70 sm:text-lg md:text-xl leading-[1.4] sm:leading-[1.45] md:leading-[1.5] lg:leading-7 font-sans px-2 sm:px-4 md:px-0 lg:text-lg font-medium text-sm">
+                  <h1 className="w-full max-w-[900px] lg:max-w-[1200px] text-center flex flex-col justify-center items-center text-black dark:text-white text-[32px] xs:text-[40px] sm:text-[52px] md:text-[72px] lg:text-[96px] font-black leading-[1.02] sm:leading-[1.05] md:leading-[1.05] lg:leading-[1.05] font-sans tracking-tight px-2 sm:px-4 md:px-0">
+                    <span className="inline-block">
+                      {t.heroTitle}
+                    </span>
+                    <span className="bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 bg-clip-text text-transparent inline-block pb-2">
+                      {t.heroTitleHighlight}
+                    </span>
+                  </h1>
+                  <div className="w-full max-w-[580px] lg:w-[580px] text-center flex justify-center flex-col text-black/60 dark:text-white/60 sm:text-lg md:text-xl leading-[1.4] sm:leading-[1.45] md:leading-[1.5] lg:leading-7 font-sans px-2 sm:px-4 md:px-0 lg:text-lg font-medium text-sm mt-2">
                     {t.heroDescription}
                   </div>
                 </div>
@@ -110,11 +114,19 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="absolute top-[232px] sm:top-[248px] md:top-[264px] lg:top-[320px] left-1/2 transform -translate-x-1/2 z-0 pointer-events-none">
+              <div className="absolute top-[180px] sm:top-[200px] md:top-[220px] lg:top-[280px] left-1/2 transform -translate-x-1/2 z-0 pointer-events-none overflow-visible">
+                {/* Main Emerald Glow */}
                 <div
-                  className="w-[936px] sm:w-[1404px] md:w-[2106px] lg:w-[2808px] h-[600px] sm:h-[800px] md:h-[1000px] lg:h-[1200px] rounded-full"
+                  className="w-[800px] sm:w-[1200px] md:w-[1800px] lg:w-[2400px] h-[500px] sm:h-[700px] md:h-[900px] lg:h-[1100px] rounded-full blur-[120px] opacity-30 dark:opacity-20"
                   style={{
-                    background: 'radial-gradient(ellipse at center, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 40%, transparent 70%)',
+                    background: 'radial-gradient(ellipse at center, rgba(16, 185, 129, 0.4) 0%, rgba(16, 185, 129, 0.1) 40%, transparent 70%)',
+                  }}
+                />
+                {/* Secondary Teal Glow */}
+                <div
+                  className="absolute top-1/4 left-1/4 w-[600px] sm:w-[1000px] md:w-[1400px] h-[400px] sm:h-[600px] md:h-[800px] rounded-full blur-[100px] opacity-20 dark:opacity-10 mix-blend-screen"
+                  style={{
+                    background: 'radial-gradient(ellipse at center, rgba(45, 212, 191, 0.3) 0%, transparent 70%)',
                   }}
                 />
               </div>
@@ -287,13 +299,8 @@ export default function LandingPage() {
                           {t.smartSimpleDescription}
                         </p>
                       </div>
-                      <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-lg flex items-center justify-center overflow-hidden">
-                        <SmartSimpleBrilliant
-                          width="100%"
-                          height="100%"
-                          theme="dark"
-                          className="scale-50 sm:scale-65 md:scale-75 lg:scale-90"
-                        />
+                      <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] rounded-lg flex items-center justify-center overflow-visible">
+                        <DisplayCards />
                       </div>
                     </div>
 

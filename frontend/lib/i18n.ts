@@ -23,8 +23,8 @@ const translations = {
 
     // Hero
     heroTagline: '✨ El Futuro del SEO está Aquí',
-    heroTitle: 'Domina el',
-    heroTitleHighlight: 'Panorama de Búsqueda IA',
+    heroTitle: 'Domina la',
+    heroTitleHighlight: 'Búsqueda IA',
     heroTitleEnd: '',
     heroDescription: 'El SEO tradicional está desapareciendo. Mentha ayuda a las marcas B2B a optimizar para la nueva era de motores de búsqueda: ChatGPT, Claude, Perplexity y Gemini.',
     heroStartTrial: 'Prueba Gratis',
@@ -422,6 +422,8 @@ const translations = {
     aeoAnalysis: 'Análisis AEO',
     keywordsAI: 'Keywords IA',
     competition: 'Competencia',
+    prompts: 'Prompts',
+    addPromptsDescription: 'Rastrea cómo los modelos de IA responden a consultas sobre tu marca',
 
     // Common words
     in: 'en',
@@ -1088,6 +1090,33 @@ const translations = {
     methodLimited: 'Limitado en esta plataforma',
 
     // ==========================================
+    // GEO/GEU SCORING SYSTEM
+    // ==========================================
+    geoScore: 'GEO Score',
+    geoScoreDescription: 'Mide tu visibilidad en respuestas de IA (posición, frecuencia, proporción)',
+    geuScore: 'GEU Score',
+    geuScoreDescription: 'Mide la calidad de cómo se usa tu contenido (cita, parafraseo, mención)',
+    combinedAeoScore: 'Puntuación AEO Combinada',
+    citationType: 'Tipo de Citación',
+    citationExactQuote: 'Cita Textual',
+    citationParaphrase: 'Paráfrasis',
+    citationMention: 'Mención Simple',
+    citationNone: 'Sin Mención',
+    positionScore: 'Puntuación de Posición',
+    frequencyScore: 'Puntuación de Frecuencia',
+    tokenRatioScore: 'Proporción de Contexto',
+    citationQualityScore: 'Calidad de Citación',
+    keypointCoverageScore: 'Cobertura de Puntos Clave',
+    firstMentionPosition: 'Posición de Primera Mención',
+    mentionCountLabel: 'Número de Menciones',
+
+    // AI Prompt Input
+    aiPromptPlaceholder: 'Escribe un prompt para analizar...',
+    aiPromptSearchPlaceholder: 'Buscar en la web...',
+    aiPromptSubmit: 'Enviar',
+    webSearchEnabled: 'Búsqueda Web',
+
+    // ==========================================
     // AUTH PAGES
     // ==========================================
     authLogin: 'Iniciar Sesión',
@@ -1466,9 +1495,9 @@ const translations = {
 
     // Hero
     heroTagline: '✨ The Future of SEO is Here',
-    heroTitle: 'Dominate the',
+    heroTitle: 'Dominate',
     heroTitleHighlight: 'AI Search',
-    heroTitleEnd: 'Landscape',
+    heroTitleEnd: '',
     heroDescription: 'Traditional SEO is fading. Mentha helps B2B brands optimize for the new era of search engines—ChatGPT, Claude, Perplexity, and Gemini.',
     heroStartTrial: 'Start Free Trial',
     heroAnalyzeSite: 'Analyze Your Site',
@@ -1865,6 +1894,8 @@ const translations = {
     aeoAnalysis: 'AEO Analysis',
     keywordsAI: 'AI Keywords',
     competition: 'Competition',
+    prompts: 'Prompts',
+    addPromptsDescription: 'Track how AI models respond to queries about your brand',
 
     // Common words
     in: 'in',
@@ -2473,6 +2504,33 @@ const translations = {
     methodApp: 'Via app/extension',
     methodCode: 'Edit code',
     methodLimited: 'Limited on this platform',
+
+    // ==========================================
+    // GEO/GEU SCORING SYSTEM
+    // ==========================================
+    geoScore: 'GEO Score',
+    geoScoreDescription: 'Measures your visibility in AI responses (position, frequency, ratio)',
+    geuScore: 'GEU Score',
+    geuScoreDescription: 'Measures how well your content is used (quote, paraphrase, mention)',
+    combinedAeoScore: 'Combined AEO Score',
+    citationType: 'Citation Type',
+    citationExactQuote: 'Exact Quote',
+    citationParaphrase: 'Paraphrase',
+    citationMention: 'Simple Mention',
+    citationNone: 'No Mention',
+    positionScore: 'Position Score',
+    frequencyScore: 'Frequency Score',
+    tokenRatioScore: 'Context Ratio',
+    citationQualityScore: 'Citation Quality',
+    keypointCoverageScore: 'Keypoint Coverage',
+    firstMentionPosition: 'First Mention Position',
+    mentionCountLabel: 'Mention Count',
+
+    // AI Prompt Input
+    aiPromptPlaceholder: 'Write a prompt to analyze...',
+    aiPromptSearchPlaceholder: 'Search the web...',
+    aiPromptSubmit: 'Submit',
+    webSearchEnabled: 'Web Search',
 
     // ==========================================
     // AUTH PAGES

@@ -12,6 +12,7 @@ import {
   OptimizeTab,
   CompetitorsTab
 } from '@/components/brand'
+import { PromptsChat } from '@/components/prompts/PromptsChat'
 import { fetchAPI } from '@/lib/api-client'
 import { brandsService, type Brand } from '@/lib/services/brands'
 import { competitorsService, type Competitor } from '@/lib/services/competitors'
@@ -35,6 +36,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
   const [loading, setLoading] = useState(true)
   const [analyzing, setAnalyzing] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0) // Used to trigger data refresh
+  const [analysisTrigger, setAnalysisTrigger] = useState<number | null>(null) // Used to manually trigger analysis toast
 
   // Data states
   const [brand, setBrand] = useState<Brand | null>(null)
@@ -196,8 +198,8 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
 
       // Load prompts/queries if available
       try {
-        const queriesData = await fetchAPI<any[]>('/queries')
-        const brandQueries = queriesData?.filter((q: any) => q.brand_id === brandId) || []
+        const promptsData = await fetchAPI<{ prompts: any[] }>(`/prompts/${brandId}`)
+        const brandQueries = promptsData?.prompts || []
         setPrompts(brandQueries.map((q: any) => ({
           query: q.prompt_text,
           model: Object.keys(q.results || {})[0] || 'Unknown',
@@ -227,8 +229,8 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
         method: 'POST'
       })
 
-      // The AnalysisProgressToast will automatically detect the running analysis
-      // and show progress. Data will refresh when complete.
+      // Update trigger to show toast and start polling
+      setAnalysisTrigger(Date.now())
 
     } catch (error) {
       console.error('Analysis error:', error)
@@ -281,6 +283,10 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
             brandTrend={visibility?.trend ?? 0}
             competitors={competitors}
           />
+        )
+      case 'prompts':
+        return (
+          <PromptsChat brandId={brandId} brandName={brand.name} />
         )
       default:
         // No valid tab - redirect to dashboard
@@ -419,6 +425,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
           brandId={brandId}
           onComplete={handleAnalysisComplete}
           onDataAvailable={handleDataRefresh}
+          analysisTrigger={analysisTrigger}
         />
       </SidebarInset>
     </SidebarProvider>

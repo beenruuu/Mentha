@@ -133,6 +133,7 @@ class AIVisibilityService:
             "measured_at": datetime.utcnow().isoformat() + "Z",
             "models": {},
             "overall_score": 0,
+            "overall_geo_score": 0,  # NEW: Aggregated GEO score across all models
             "mention_count": 0,
             "competitor_mentions": {comp: 0 for comp in (competitors or [])},
             "sentiment": "neutral",
@@ -234,6 +235,18 @@ class AIVisibilityService:
         
         results["mention_count"] = total_mentions
         
+        # NEW: Calculate overall GEO score (weighted average across models)
+        total_weighted_geo = 0
+        geo_weight = 0
+        for model_name, model_data in results["models"].items():
+            if model_data.get("enabled") and model_data.get("geo_score"):
+                weight = self.MODEL_WEIGHTS.get(model_name, 0.1)
+                total_weighted_geo += model_data["geo_score"] * weight
+                geo_weight += weight
+        
+        if geo_weight > 0:
+            results["overall_geo_score"] = round(total_weighted_geo / geo_weight, 1)
+        
         # Determine overall sentiment
         results["sentiment"] = self._aggregate_sentiment(results["models"])
         
@@ -326,7 +339,7 @@ class AIVisibilityService:
         test_queries: List[str],
         competitors: List[str] = None
     ) -> Dict[str, Any]:
-        """Query OpenAI models and analyze brand mentions."""
+        """Query OpenAI models and analyze brand mentions with GEO scoring."""
         if not self.openai_key:
             return {"enabled": False, "model": "openai"}
         
@@ -334,12 +347,14 @@ class AIVisibilityService:
             "enabled": True,
             "model": "openai",
             "visibility_score": 0,
+            "geo_score": 0,  # NEW: GEO Score
             "mention_count": 0,
             "competitor_mentions": {comp: 0 for comp in (competitors or [])},
             "responses_analyzed": 0,
             "mention_positions": [],
             "sentiment": "neutral",
-            "context_snippets": []
+            "context_snippets": [],
+            "geo_details": {}  # NEW: GEO breakdown
         }
         
         try:
@@ -352,6 +367,7 @@ class AIVisibilityService:
                 mention_count = 0
                 responses_with_mentions = 0
                 snippets = []
+                geo_scores = []  # Collect GEO scores from each response
                 
                 for query in test_queries[:3]:  # Limit queries to control cost
                     try:
@@ -374,6 +390,10 @@ class AIVisibilityService:
                             mentions = self._count_brand_mentions(content, brand_name, domain)
                             mention_count += mentions
                             
+                            # Calculate GEO Score for this response
+                            geo_result = self.calculate_geo_score(content, brand_name, domain)
+                            geo_scores.append(geo_result["geo_score"])
+                            
                             # Analyze for competitor mentions
                             if competitors:
                                 for comp in competitors:
@@ -393,13 +413,22 @@ class AIVisibilityService:
                         print(f"OpenAI query error: {query_error}")
                         continue
                 
-                # Calculate score based on mentions
+                # Calculate scores based on mentions
                 if result["responses_analyzed"] > 0:
                     mention_rate = responses_with_mentions / result["responses_analyzed"]
                     result["visibility_score"] = round(mention_rate * 100, 1)
                     result["mention_count"] = mention_count
                     result["context_snippets"] = snippets[:3]
                     result["sentiment"] = self._analyze_sentiment(snippets)
+                    
+                    # NEW: Aggregate GEO Score (average of all responses)
+                    if geo_scores:
+                        result["geo_score"] = round(sum(geo_scores) / len(geo_scores), 1)
+                        result["geo_details"] = {
+                            "responses_scored": len(geo_scores),
+                            "max_score": round(max(geo_scores), 1),
+                            "min_score": round(min(geo_scores), 1)
+                        }
                     
         except Exception as e:
             print(f"OpenAI visibility measurement failed: {e}")
@@ -423,11 +452,13 @@ class AIVisibilityService:
             "enabled": True,
             "model": "anthropic",
             "visibility_score": 0,
+            "geo_score": 0,  # NEW: GEO Score
             "mention_count": 0,
             "competitor_mentions": {comp: 0 for comp in (competitors or [])},
             "responses_analyzed": 0,
             "sentiment": "neutral",
-            "context_snippets": []
+            "context_snippets": [],
+            "geo_details": {}  # NEW: GEO breakdown
         }
         
         try:
@@ -441,6 +472,7 @@ class AIVisibilityService:
                 mention_count = 0
                 responses_with_mentions = 0
                 snippets = []
+                geo_scores = []  # Collect GEO scores
                 
                 for query in test_queries[:3]:
                     try:
@@ -463,6 +495,10 @@ class AIVisibilityService:
                             
                             mentions = self._count_brand_mentions(content, brand_name, domain)
                             mention_count += mentions
+                            
+                            # Calculate GEO Score for this response
+                            geo_result = self.calculate_geo_score(content, brand_name, domain)
+                            geo_scores.append(geo_result["geo_score"])
                             
                             # Analyze for competitor mentions
                             if competitors:
@@ -489,6 +525,15 @@ class AIVisibilityService:
                     result["context_snippets"] = snippets[:3]
                     result["sentiment"] = self._analyze_sentiment(snippets)
                     
+                    # Aggregate GEO Score
+                    if geo_scores:
+                        result["geo_score"] = round(sum(geo_scores) / len(geo_scores), 1)
+                        result["geo_details"] = {
+                            "responses_scored": len(geo_scores),
+                            "max_score": round(max(geo_scores), 1),
+                            "min_score": round(min(geo_scores), 1)
+                        }
+                    
         except Exception as e:
             print(f"Anthropic visibility measurement failed: {e}")
             result["enabled"] = False
@@ -511,12 +556,14 @@ class AIVisibilityService:
             "enabled": True,
             "model": "perplexity",
             "visibility_score": 0,
+            "geo_score": 0,  # NEW: GEO Score
             "mention_count": 0,
             "competitor_mentions": {comp: 0 for comp in (competitors or [])},
             "responses_analyzed": 0,
             "sentiment": "neutral",
             "context_snippets": [],
-            "sources": []
+            "sources": [],
+            "geo_details": {}  # NEW: GEO breakdown
         }
         
         try:
@@ -530,6 +577,7 @@ class AIVisibilityService:
                 responses_with_mentions = 0
                 snippets = []
                 sources = []
+                geo_scores = []  # Collect GEO scores
                 
                 for query in test_queries[:2]:  # Perplexity can be slower
                     try:
@@ -549,6 +597,10 @@ class AIVisibilityService:
                             
                             mentions = self._count_brand_mentions(content, brand_name, domain)
                             mention_count += mentions
+                            
+                            # Calculate GEO Score for this response
+                            geo_result = self.calculate_geo_score(content, brand_name, domain)
+                            geo_scores.append(geo_result["geo_score"])
                             
                             # Analyze for competitor mentions
                             if competitors:
@@ -579,6 +631,15 @@ class AIVisibilityService:
                     result["context_snippets"] = snippets[:3]
                     result["sources"] = sources[:5]
                     result["sentiment"] = self._analyze_sentiment(snippets)
+                    
+                    # Aggregate GEO Score
+                    if geo_scores:
+                        result["geo_score"] = round(sum(geo_scores) / len(geo_scores), 1)
+                        result["geo_details"] = {
+                            "responses_scored": len(geo_scores),
+                            "max_score": round(max(geo_scores), 1),
+                            "min_score": round(min(geo_scores), 1)
+                        }
                     
         except Exception as e:
             print(f"Perplexity visibility measurement failed: {e}")
@@ -871,6 +932,236 @@ class AIVisibilityService:
             import traceback
             traceback.print_exc()
             return False
+
+    # ========================================================================
+    # GEO/GEU Scoring System - Based on AutoGEO Research Methodology
+    # ========================================================================
+    
+    def calculate_geo_score(
+        self,
+        ai_response: str,
+        brand_name: str,
+        domain: str = ""
+    ) -> Dict[str, Any]:
+        """
+        Calculate GEO Score (Generative Engine Optimization Score).
+        
+        Measures VISIBILITY in AI responses based on:
+        - Position: Where brand appears in response (earlier = better)
+        - Frequency: How many times brand is mentioned
+        - Token Ratio: What % of response discusses the brand
+        
+        Based on: AutoGEO research methodology
+        
+        Returns:
+            Dict with geo_score (0-100) and breakdown
+        """
+        if not ai_response or not brand_name:
+            return {"geo_score": 0, "details": {}}
+        
+        text_lower = ai_response.lower()
+        brand_lower = brand_name.lower()
+        
+        # 1. Position Score (0-40 points) - Earlier mentions are more valuable
+        first_position = text_lower.find(brand_lower)
+        if first_position == -1:
+            position_score = 0
+        else:
+            # Normalize: position 0 = 40 points, position at end = 0 points
+            response_length = len(ai_response)
+            position_ratio = 1 - (first_position / response_length)
+            position_score = position_ratio * 40
+        
+        # 2. Frequency Score (0-30 points) - More mentions = better, capped at 5
+        mention_count = self._count_brand_mentions(ai_response, brand_name, domain)
+        frequency_score = min(mention_count, 5) / 5 * 30
+        
+        # 3. Token Ratio Score (0-30 points) - How much of response is about brand
+        context_snippets = []
+        idx = 0
+        while True:
+            idx = text_lower.find(brand_lower, idx)
+            if idx == -1:
+                break
+            start = max(0, idx - 50)
+            end = min(len(ai_response), idx + len(brand_name) + 50)
+            context_snippets.append(ai_response[start:end])
+            idx += 1
+        
+        total_context_chars = sum(len(s) for s in context_snippets)
+        token_ratio = min(total_context_chars / len(ai_response), 1.0) if ai_response else 0
+        token_ratio_score = token_ratio * 30
+        
+        # Combined GEO Score
+        geo_score = position_score + frequency_score + token_ratio_score
+        
+        return {
+            "geo_score": round(geo_score, 1),
+            "details": {
+                "position_score": round(position_score, 1),
+                "frequency_score": round(frequency_score, 1),
+                "token_ratio_score": round(token_ratio_score, 1),
+                "first_position": first_position,
+                "mention_count": mention_count,
+                "token_ratio": round(token_ratio, 3)
+            }
+        }
+    
+    def _classify_citation_type(
+        self,
+        ai_response: str,
+        original_content: str,
+        brand_name: str
+    ) -> Dict[str, Any]:
+        """
+        Classify how the AI uses brand content.
+        
+        Types:
+        - exact_quote: AI quotes original content verbatim (best)
+        - paraphrase: AI rephrases original content (good)
+        - mention: AI just mentions brand name (basic)
+        - none: Brand not mentioned
+        
+        Returns:
+            Dict with citation_type and similarity_score
+        """
+        if not ai_response or not brand_name:
+            return {"citation_type": "none", "similarity_score": 0}
+        
+        brand_lower = brand_name.lower()
+        response_lower = ai_response.lower()
+        
+        # Check if brand is mentioned at all
+        if brand_lower not in response_lower:
+            return {"citation_type": "none", "similarity_score": 0}
+        
+        # If no original content, we can only detect mention
+        if not original_content:
+            return {"citation_type": "mention", "similarity_score": 0.3}
+        
+        # Check for exact quotes (look for matching phrases of 10+ words)
+        original_sentences = [s.strip() for s in original_content.split('.') if len(s.strip()) > 30]
+        
+        for sentence in original_sentences[:10]:  # Check first 10 sentences
+            # Look for substantial overlap (10+ consecutive words matching)
+            words = sentence.split()
+            for i in range(len(words) - 9):
+                phrase = ' '.join(words[i:i+10]).lower()
+                if phrase in response_lower:
+                    return {"citation_type": "exact_quote", "similarity_score": 0.95}
+        
+        # Check for paraphrase (similar concepts, different words)
+        # Use keyword overlap as a proxy for paraphrase detection
+        original_words = set(original_content.lower().split())
+        response_words = set(ai_response.lower().split())
+        
+        # Filter common words
+        stopwords = {'the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'been', 
+                     'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 
+                     'would', 'could', 'should', 'may', 'might', 'must', 'shall',
+                     'to', 'of', 'in', 'for', 'on', 'with', 'at', 'by', 'from',
+                     'and', 'or', 'but', 'if', 'then', 'than', 'so', 'as', 'that',
+                     'this', 'it', 'its', 'their', 'they', 'them', 'we', 'our', 'you'}
+        
+        original_keywords = original_words - stopwords
+        response_keywords = response_words - stopwords
+        
+        if not original_keywords:
+            return {"citation_type": "mention", "similarity_score": 0.3}
+        
+        overlap = len(original_keywords & response_keywords)
+        overlap_ratio = overlap / len(original_keywords)
+        
+        if overlap_ratio > 0.3:
+            return {"citation_type": "paraphrase", "similarity_score": round(0.5 + overlap_ratio * 0.3, 2)}
+        
+        return {"citation_type": "mention", "similarity_score": 0.3}
+    
+    def calculate_geu_score(
+        self,
+        ai_response: str,
+        original_content: str,
+        brand_name: str
+    ) -> Dict[str, Any]:
+        """
+        Calculate GEU Score (Generative Engine Utility Score).
+        
+        Measures HOW WELL the AI uses your content:
+        - Citation Quality: exact_quote (100%) > paraphrase (70%) > mention (30%)
+        - Keypoint Coverage: How many of your key points are reflected
+        
+        Based on: AutoGEO research methodology (GEU metric)
+        
+        Returns:
+            Dict with geu_score (0-100), citation_type, and details
+        """
+        if not ai_response or not brand_name:
+            return {"geu_score": 0, "citation_type": "none", "details": {}}
+        
+        # Get citation classification
+        citation_result = self._classify_citation_type(ai_response, original_content, brand_name)
+        citation_type = citation_result["citation_type"]
+        similarity_score = citation_result["similarity_score"]
+        
+        # Citation quality weights (based on AutoGEO research)
+        citation_weights = {
+            "exact_quote": 1.0,    # Best: AI quotes you directly
+            "paraphrase": 0.7,     # Good: AI rephrases your content
+            "mention": 0.3,        # Basic: AI just mentions you
+            "none": 0.0            # No mention
+        }
+        
+        citation_quality_score = citation_weights.get(citation_type, 0) * 60  # Max 60 points
+        
+        # Keypoint coverage (simplified) - based on similarity score
+        keypoint_coverage_score = similarity_score * 40  # Max 40 points
+        
+        geu_score = citation_quality_score + keypoint_coverage_score
+        
+        return {
+            "geu_score": round(geu_score, 1),
+            "citation_type": citation_type,
+            "details": {
+                "citation_quality_score": round(citation_quality_score, 1),
+                "keypoint_coverage_score": round(keypoint_coverage_score, 1),
+                "similarity_score": similarity_score
+            }
+        }
+    
+    def calculate_combined_aeo_score(
+        self,
+        ai_response: str,
+        brand_name: str,
+        domain: str = "",
+        original_content: str = None
+    ) -> Dict[str, Any]:
+        """
+        Calculate combined AEO/GEO score using both GEO and GEU metrics.
+        
+        Formula: Combined = (GEO * 0.6) + (GEU * 0.4)
+        - GEO weighted higher because visibility is primary goal
+        - GEU provides quality dimension
+        
+        Returns:
+            Dict with combined_score, geo_score, geu_score, and breakdown
+        """
+        geo_result = self.calculate_geo_score(ai_response, brand_name, domain)
+        geu_result = self.calculate_geu_score(ai_response, original_content or "", brand_name)
+        
+        geo_score = geo_result["geo_score"]
+        geu_score = geu_result["geu_score"]
+        
+        # Weighted combination
+        combined_score = (geo_score * 0.6) + (geu_score * 0.4)
+        
+        return {
+            "combined_score": round(combined_score, 1),
+            "geo_score": geo_score,
+            "geu_score": geu_score,
+            "citation_type": geu_result["citation_type"],
+            "geo_details": geo_result["details"],
+            "geu_details": geu_result["details"]
+        }
 
 
 # Singleton instance

@@ -1,20 +1,12 @@
 import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
-import { Instrument_Serif } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeScript } from '@/components/shared/theme-script'
 import { ThemeInit } from '@/components/shared/theme-init'
 import { LanguageInit } from '@/components/shared/language-init'
 import { CommandPalette } from '@/components/shared/command-palette'
 import { AdvancedSchema } from '@/components/seo/AdvancedSchema'
-
-const instrumentSerif = Instrument_Serif({
-  subsets: ['latin'],
-  variable: '--font-instrument-serif',
-  weight: ['400'],
-  display: 'swap',
-})
 
 import { CookieConsent } from '@/components/shared/cookie-consent'
 import { Toaster } from '@/components/ui/sonner'
@@ -62,7 +54,7 @@ export default function RootLayout({
       <head>
         <ThemeScript />
       </head>
-      <body className={`min-h-screen bg-background antialiased font-sans ${GeistSans.variable} ${GeistMono.variable} ${instrumentSerif.variable}`} suppressHydrationWarning>
+      <body className={`min-h-screen bg-background antialiased font-sans ${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
         <LanguageInit />
         <ThemeInit />
 

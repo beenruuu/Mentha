@@ -14,7 +14,7 @@ export default function Introduction() {
                     <Tag>{t.introTag}</Tag>
                 </div>
                 <div className="text-center">
-                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6">
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-6 font-sans tracking-tight">
                         {t.introTitle}
                     </h2>
                     <ScrollReveal
@@ -28,11 +28,11 @@ export default function Introduction() {
                         staggerDelay={0.03}
                         threshold={0.3}
                         duration={0.5}
-                        textClassName="text-gray-600 dark:text-white/80"
+                        textClassName="text-gray-600 dark:text-white/80 font-sans"
                     >
                         {t.introDescription}
                     </ScrollReveal>
-                    <p className="text-emerald-400 text-2xl md:text-3xl lg:text-4xl font-bold mt-6">
+                    <p className="text-emerald-400 text-2xl md:text-3xl lg:text-4xl font-bold mt-6 font-sans tracking-tight">
                         {t.introHighlight}
                     </p>
                 </div>

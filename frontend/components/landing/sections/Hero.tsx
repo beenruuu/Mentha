@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { PromptInput } from "@/components/landing/prompt-input";
 import { useTranslations } from "@/lib/i18n";
+import { Typewriter } from "@/components/ui/typewriter";
 
 export default function Hero() {
     const [leftScope, leftAnimate] = useAnimate();
@@ -50,10 +51,16 @@ export default function Hero() {
                         {t.heroTagline}
                     </div>
                 </div>
-                <h1 className="text-6xl md:text-7xl lg:text-8xl font-medium text-center mt-6">
-                    {t.heroTitle}{" "}
-                    <span className="text-emerald-500">{t.heroTitleHighlight}</span>{t.heroTitleEnd ? ` ${t.heroTitleEnd}` : ''}
-                </h1>
+                <div className="flex justify-center mt-6">
+                    <Typewriter
+                        text={[t.heroTitle + " " + t.heroTitleHighlight]}
+                        speed={70}
+                        className="text-6xl md:text-7xl lg:text-8xl font-medium text-center"
+                        waitTime={1500}
+                        deleteSpeed={40}
+                        cursorClassName="text-emerald-500 ml-2"
+                    />
+                </div>
                 <p className="text-center text-xl text-gray-500 dark:text-white/50 mt-8 max-w-2xl mx-auto">
                     {t.heroDescription}
                 </p>

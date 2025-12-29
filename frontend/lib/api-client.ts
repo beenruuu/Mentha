@@ -43,7 +43,11 @@ export async function fetchAPI<T>(endpoint: string, options: FetchOptions = {}):
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `API Error: ${response.statusText}`);
+      const errorMessage = typeof errorData.detail === 'string' 
+        ? errorData.detail 
+        : (typeof errorData.detail === 'object' ? JSON.stringify(errorData.detail) : null);
+        
+      throw new Error(errorMessage || `API Error: ${response.statusText}`);
     }
 
     return response.json();

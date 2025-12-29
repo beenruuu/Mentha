@@ -23,17 +23,20 @@ interface AnalysisProgressToastProps {
     brandId: string
     onComplete?: () => void
     onDataAvailable?: () => void
+    analysisTrigger?: number | null
 }
 
-export function AnalysisProgressToast({ 
-    brandId, 
-    onComplete, 
-    onDataAvailable 
+export function AnalysisProgressToast({
+    brandId,
+    onComplete,
+    onDataAvailable,
+    analysisTrigger
 }: AnalysisProgressToastProps) {
     const [status, setStatus] = useState<AnalysisStatus | null>(null)
     const [visible, setVisible] = useState(false)
     const [dismissed, setDismissed] = useState(false)
     const [lastCompletedId, setLastCompletedId] = useState<string | null>(null)
+    const [isPolling, setIsPolling] = useState(false)
 
     const checkStatus = useCallback(async () => {
         if (dismissed) return
@@ -46,13 +49,17 @@ export function AnalysisProgressToast({
             if (data.status === 'pending' || data.status === 'processing') {
                 setVisible(true)
                 setDismissed(false)
+                setIsPolling(true)
+            } else {
+                setIsPolling(false)
             }
 
             // Handle completion
             if (data.status === 'completed' && data.analysis_id !== lastCompletedId) {
                 setLastCompletedId(data.analysis_id || null)
                 setVisible(true)
-                
+                setIsPolling(false)
+
                 // Notify parent to refresh data
                 if (onComplete) {
                     onComplete()
@@ -71,33 +78,40 @@ export function AnalysisProgressToast({
             if (data.status === 'failed') {
                 setVisible(true)
                 // Keep visible for errors until dismissed
+                setIsPolling(false)
             }
 
         } catch (error) {
             console.error('Error checking analysis status:', error)
+            setIsPolling(false)
         }
     }, [brandId, dismissed, lastCompletedId, onComplete, onDataAvailable])
 
     // Poll for status updates
     useEffect(() => {
-        // Initial check
-        checkStatus()
+        let interval: NodeJS.Timeout
 
-        // Set up polling interval
-        const interval = setInterval(() => {
-            if (status?.status === 'pending' || status?.status === 'processing') {
-                checkStatus()
-            }
-        }, 3000) // Poll every 3 seconds during active analysis
+        if (isPolling) {
+            // Check immediately
+            checkStatus()
 
-        return () => clearInterval(interval)
-    }, [checkStatus, status?.status])
+            // Then poll
+            interval = setInterval(checkStatus, 3000)
+        }
 
-    // Also check on mount and when brandId changes
+        return () => {
+            if (interval) clearInterval(interval)
+        }
+    }, [isPolling, checkStatus])
+
+    // Start polling when trigger changes
     useEffect(() => {
-        setDismissed(false)
-        checkStatus()
-    }, [brandId])
+        if (analysisTrigger) {
+            setDismissed(false)
+            setIsPolling(true)
+            checkStatus()
+        }
+    }, [analysisTrigger, checkStatus])
 
     const handleDismiss = () => {
         setDismissed(true)
@@ -183,8 +197,8 @@ export function AnalysisProgressToast({
                                             {status.progress}%
                                         </span>
                                     </div>
-                                    <Progress 
-                                        value={status.progress} 
+                                    <Progress
+                                        value={status.progress}
                                         className="h-1.5"
                                     />
                                 </div>
