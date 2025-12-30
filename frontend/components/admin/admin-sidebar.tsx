@@ -114,8 +114,8 @@ export function AdminSidebar() {
           {/* Panel (Dashboard) */}
           <Link href="/admin">
             <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isPanelActive
-                ? 'bg-secondary text-foreground font-medium'
-                : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+              ? 'bg-secondary text-foreground font-medium'
+              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
               }`}>
               <PanelIcon active={isPanelActive} />
               <span>Panel</span>
@@ -123,10 +123,10 @@ export function AdminSidebar() {
           </Link>
 
           {/* Notifications */}
-          <Link href="/admin/notifications">
-            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === '/admin/notifications'
-                ? 'bg-secondary text-foreground font-medium'
-                : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+          <Link href="/notifications">
+            <button className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${pathname === '/notifications'
+              ? 'bg-secondary text-foreground font-medium'
+              : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
               }`}>
               <Bell className="w-4 h-4" />
               <span>Notificaciones</span>
@@ -158,8 +158,8 @@ export function AdminSidebar() {
                   <button
                     onClick={() => setOpenMobile(false)}
                     className={`w-full flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isActive
-                        ? 'bg-secondary text-foreground font-medium'
-                        : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
+                      ? 'bg-secondary text-foreground font-medium'
+                      : 'text-muted-foreground hover:bg-secondary/50 hover:text-foreground'
                       }`}
                   >
                     <div className="flex items-center gap-3">

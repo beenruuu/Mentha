@@ -18,6 +18,8 @@ export interface FeatureFlags {
 
     // Optional
     eeat_analysis: boolean;
+    technical_aeo: boolean;
+    platform_detection: boolean;
     visual_assets: boolean;
 }
 

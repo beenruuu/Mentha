@@ -1,158 +1,176 @@
 ---
-description: Next.js Frontend Development Standards and Patterns
+description: Next.js Frontend Development Standards - React 19 + App Router Paradigm
 globs: ["frontend/**/*.tsx", "frontend/**/*.ts"]
 alwaysApply: false
 ---
 
-# Next.js Frontend Standards
+# Next.js Frontend Standards (2024+)
 
-## Component Structure
+## Architecture Philosophy
 
-Follow this pattern for all React components:
+> **Next.js Server Components + Edge Caching = Scalability + SEO**
+
+### How it works:
+1. React renders on server → fetches data → sends HTML
+2. Next.js caches render in CDN (Edge) → users don't hit server
+3. Static-like performance, dynamic data
+
+### Why NOT a second backend:
+```
+❌ User → Next.js → FastAPI → Database (3 hops, slow)
+✅ User → CDN/Edge → Next.js → Database (2 hops, cached)
+```
+
+A separate backend **only makes sense** for:
+- Heavy computation (video rendering, ML)
+- WebSockets (real-time, can't run serverless)
+- Complex processing requiring monolithic server
+
+### Why NOT API routes + client fetch:
+- Forces JavaScript in browser
+- Slower page loads
+- Bad SEO (search engines see empty page)
+
+**Current Mentha backend is justified** for:
+- AI model queries (OpenAI, Claude, Perplexity) - heavy/async
+- Web scraping (Firecrawl) - long-running
+- Background analysis jobs - can't block render
+
+**Default to Server Components.** Only use `'use client'` when necessary.
+
+### When to use Server Components (NO 'use client')
+- Pages that fetch data
+- Static content
+- SEO-critical pages
+- Components that don't need interactivity
+
+### When to use Client Components ('use client')
+- Interactive UI (buttons, forms, modals)
+- Browser APIs (localStorage, window)
+- React hooks (useState, useEffect)
+- Event handlers (onClick, onChange)
+
+## Page Pattern (Server Component + Client Wrapper)
+
+For pages with data fetching AND interactivity:
 
 ```tsx
+// app/[page]/page.tsx - Server Component (NO 'use client')
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import { PageClient } from './page-client'
+
+async function getData() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+  
+  // Fetch data on server
+  const data = await fetch(...)
+  return data
+}
+
+export default async function Page() {
+  const data = await getData()
+  return <PageClient initialData={data} />
+}
+```
+
+```tsx
+// app/[page]/page-client.tsx - Client Component
 'use client'
 
-import { useState, useEffect } from 'react'
-import { ComponentProps } from './types'
+import { useState } from 'react'
 
-interface ComponentNameProps {
-  // Props interface at top
-  title: string
-  onAction?: () => void
-  className?: string
+interface PageClientProps {
+  initialData: Data  // Server-provided data
 }
 
-export default function ComponentName({
-  title,
-  onAction,
-  className = ''
-}: ComponentNameProps) {
-  // State and hooks
-  const [loading, setLoading] = useState(false)
-
-  // Event handlers
-  const handleAction = async () => {
-    setLoading(true)
-    try {
-      await onAction?.()
-    } catch (error) {
-      console.error('Action failed:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <div className={`component-base-styles ${className}`}>
-      {/* Component JSX */}
-    </div>
-  )
+export function PageClient({ initialData }: PageClientProps) {
+  const [data, setData] = useState(initialData)  // Initialize with server data
+  
+  // Interactive logic here
+  return <div>...</div>
 }
 ```
 
-## App Router Structure
+## Server Actions (Replace API Routes)
 
-Use Next.js 13+ App Router patterns:
-
-- Place pages in `app/` directory
-- Use `layout.tsx` for shared layouts
-- Create `loading.tsx` for loading states
-- Create `error.tsx` for error boundaries
-- Use `route.ts` for API routes
-
-## Styling with Tailwind
-
-Follow Tailwind best practices:
+Use Server Actions for mutations instead of `/api/` routes:
 
 ```tsx
-// Use semantic class groupings
-<div className="
-  flex items-center justify-between
-  p-4 rounded-lg
-  bg-white shadow-sm
-  hover:shadow-md transition-shadow
-">
-  {/* Content */}
-</div>
+// app/actions/brand-actions.ts
+'use server'
 
-// Use responsive design
-<div className="
-  grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3
-  gap-4 md:gap-6
-">
-  {/* Grid items */}
-</div>
-```
+import { revalidatePath } from 'next/cache'
+import { serverFetchAPI } from '@/lib/server-api-client'
 
-## State Management
-
-Use appropriate state management patterns:
-
-```tsx
-// Local state for component-specific data
-const [formData, setFormData] = useState({})
-
-// URL state for shareable state
-const searchParams = useSearchParams()
-const router = useRouter()
-
-// Server state with proper loading/error handling
-const { data, error, isLoading } = useSWR('/api/data', fetcher)
-```
-
-## Error Handling
-
-Implement proper error boundaries and handling:
-
-```tsx
-'use client'
-
-import { useEffect } from 'react'
-
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string }
-  reset: () => void
-}) {
-  useEffect(() => {
-    console.error('Component error:', error)
-  }, [error])
-
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[400px]">
-      <h2 className="text-xl font-semibold mb-4">Something went wrong!</h2>
-      <button
-        onClick={reset}
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        Try again
-      </button>
-    </div>
-  )
+export async function deleteBrand(brandId: string) {
+  await serverFetchAPI(`/brands/${brandId}`, { method: 'DELETE' })
+  revalidatePath('/dashboard')
+  return { success: true }
 }
 ```
 
-## API Integration
+## State Management with Zustand
 
-Use consistent patterns for API calls:
+Use Zustand for minimal client state, NOT Context for everything:
 
 ```tsx
-import { apiClient } from '@/services/api'
+// lib/stores/ui-store.ts
+import { create } from 'zustand'
 
-// In component
-const handleSubmit = async (data: FormData) => {
-  try {
-    setLoading(true)
-    const response = await apiClient.post('/endpoint', data)
-    // Handle success
-  } catch (error) {
-    console.error('API error:', error)
-    // Handle error
-  } finally {
-    setLoading(false)
-  }
+interface UIStore {
+  sidebarOpen: boolean
+  toggleSidebar: () => void
 }
+
+export const useUIStore = create<UIStore>((set) => ({
+  sidebarOpen: true,
+  toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+}))
 ```
+
+## Data Fetching Rules
+
+| Location | Method | Cache |
+|----------|--------|-------|
+| Server Component | `fetch()` or `serverFetchAPI()` | `no-store` for dynamic |
+| Client Component | Server Action or `fetchAPI()` | N/A |
+| Mutations | Server Action + `revalidatePath()` | Auto-invalidate |
+
+## File Structure
+
+```
+app/
+├── page.tsx              # Server Component (fetches data)
+├── page-client.tsx       # Client Component (optional, for interactivity)
+├── actions/
+│   ├── brand-actions.ts  # Server Actions
+│   └── analysis-actions.ts
+└── layout.tsx            # Can be Server or Client
+
+lib/
+├── server-api-client.ts  # For Server Components/Actions
+├── api-client.ts         # For Client Components
+└── stores/               # Zustand stores
+    ├── ui-store.ts
+    └── brand-store.ts
+```
+
+## Migrated Pages Reference
+
+These pages follow the Server Component pattern:
+- `/dashboard` → `page.tsx` + `dashboard-client.tsx`
+- `/brand/[id]` → `page.tsx` + `brand-client.tsx`
+- `/settings` → `page.tsx` + `settings-client.tsx`
+- `/admin` → `page.tsx` + `admin-client.tsx`
+- `/notifications` → `page.tsx` + `notifications-client.tsx`
+
+## DO NOT Migrate (Static/Simple Pages)
+
+These pages can remain as simple Client Components:
+- Auth pages (`/login`, `/signup`) - form-only
+- Legal pages (`/privacy`, `/terms`) - static content
+- Blog pages - SSG optimized
+- Onboarding wizard - interactive flow

@@ -6,6 +6,33 @@ alwaysApply: false
 
 # FastAPI Backend Standards
 
+## Architecture Philosophy: When is a Backend Justified?
+
+> **A separate backend only makes sense for tasks that CAN'T run in Next.js serverless/edge.**
+
+### This backend exists because:
+| Task | Why it needs a separate server |
+|------|-------------------------------|
+| **AI Model Queries** | Long-running, async (OpenAI, Claude, Perplexity) |
+| **Web Scraping** | Firecrawl jobs can take 30+ seconds |
+| **Background Analysis** | Heavy computation, can't block render |
+| **Rate Limiting** | Centralized API key management |
+
+### What should NOT go in backend:
+- Simple CRUD → Use Next.js + Supabase directly
+- User authentication → Already in Supabase + Next.js
+- Static data → Cache in Next.js/CDN
+
+### Latency consideration:
+```
+With backend:    User → CDN → Next.js → FastAPI → Supabase (4 hops)
+Without backend: User → CDN → Next.js → Supabase (3 hops)
+```
+
+**Rule:** If an endpoint just wraps Supabase with no extra logic, move it to Next.js Server Actions.
+
+---
+
 ## API Endpoint Structure
 
 Follow this pattern for all API endpoints:

@@ -55,6 +55,8 @@ async def get_feature_flags():
         
         # Optional
         eeat_analysis=settings.FEATURE_EEAT_ANALYSIS,
+        technical_aeo=getattr(settings, 'FEATURE_TECHNICAL_AEO', True),
+        platform_detection=getattr(settings, 'FEATURE_PLATFORM_DETECTION', True),
         visual_assets=settings.FEATURE_VISUAL_ASSETS,
     )
 
