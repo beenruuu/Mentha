@@ -312,8 +312,8 @@ export default function SetupStep() {
                                 analysis_schedule: activeDays,
                             })
                         })
-                        addLog(lang === 'es' 
-                            ? `✅ ${selectedProviders.length} modelos habilitados (${activeDays.length} días/semana)` 
+                        addLog(lang === 'es'
+                            ? `✅ ${selectedProviders.length} modelos habilitados (${activeDays.length} días/semana)`
                             : `✅ ${selectedProviders.length} models enabled (${activeDays.length} days/week)`)
                     } catch (modelErr: any) {
                         console.warn('Failed to save AI providers:', modelErr)
@@ -382,19 +382,39 @@ export default function SetupStep() {
 
                 // Task 4: Trigger full analysis
                 if (!isMounted) return
-                addLog('📍 FASE 4: Iniciando análisis')
+                addLog('📍 FASE 4: Iniciando análisis completo')
                 updateTaskStatus('analysis', 'running')
                 setOverallProgress(95)
-                addLog(lang === 'es' ? '🚀 Iniciando análisis en segundo plano...' : '🚀 Starting background analysis...')
+                addLog(lang === 'es' ? '🚀 Iniciando motor de análisis enriquecido...' : '🚀 Starting enriched analysis engine...')
 
                 try {
-                    await fetchAPI(`/analysis/trigger/${resolvedBrandId}`, {
-                        method: 'POST'
+                    // Build enriched context payload for onboarding
+                    const analysisPayload = {
+                        industry: brandProfile.category || 'Technology',
+                        target_audience: brandProfile.description ? `Derived from: ${brandProfile.description}` : '',
+                        key_services: [],
+                        discovery_prompts: Array.isArray(researchPrompts) ? researchPrompts.map((p: any) => p.text) : [],
+                        competitors: Array.isArray(safeCompetitors) ? safeCompetitors.map((c: any) => ({
+                            name: c.name,
+                            domain: c.domain,
+                            source: 'onboarding'
+                        })) : []
+                    }
+
+                    await fetchAPI(`/analysis/onboarding/${resolvedBrandId}`, {
+                        method: 'POST',
+                        body: JSON.stringify(analysisPayload)
                     })
-                    addLog(lang === 'es' ? '✅ Análisis iniciado correctamente' : '✅ Analysis started successfully')
+                    addLog(lang === 'es' ? '✅ Análisis de onboarding iniciado' : '✅ Onboarding analysis started')
                 } catch (e) {
-                    console.warn('Failed to trigger analysis:', e)
-                    addLog(lang === 'es' ? '⚠️  El análisis se ejecutará automáticamente' : '⚠️  Analysis will run automatically')
+                    console.warn('Failed to trigger onboarding analysis:', e)
+                    // Fallback to generic trigger if endpoint fails
+                    try {
+                        await fetchAPI(`/analysis/trigger/${resolvedBrandId}`, { method: 'POST' })
+                        addLog(lang === 'es' ? '✅ Análisis iniciado (fallback)' : '✅ Analysis started (fallback)')
+                    } catch (fallbackErr) {
+                        addLog(lang === 'es' ? '⚠️  El análisis se ejecutará automáticamente' : '⚠️  Analysis will run automatically')
+                    }
                 }
 
                 if (!isMounted) return
@@ -412,7 +432,8 @@ export default function SetupStep() {
                 // Redirect to dashboard after a short delay
                 await new Promise(resolve => setTimeout(resolve, 1000))
                 if (!isMounted) return
-                router.push(`/brand/${resolvedBrandId}`)
+                // Redirect to main dashboard with the new brand selected
+                router.push(`/dashboard?brandId=${resolvedBrandId}`)
 
             } catch (err: any) {
                 console.error('Setup failed:', err)

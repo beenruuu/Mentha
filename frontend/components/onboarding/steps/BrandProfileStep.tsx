@@ -95,39 +95,14 @@ export default function BrandProfileStep() {
 
                 setAnalysisStage('analyzing')
 
-                // Populate profile with extracted data
+                // Populate profile with extracted data (NO auto-fill category)
                 setBrandProfile({
                     ...brandProfile,
-                    category: data.industry || brandProfile.category,
                     description: data.description || brandProfile.description,
                     logo: data.image || data.favicon || brandProfile.logo,
                     businessScope: data.businessScope || brandProfile.businessScope,
-                    city: data.city || brandProfile.city,
-                    industrySpecific: data.industrySpecific || brandProfile.industrySpecific
+                    city: data.city || brandProfile.city
                 })
-
-                // If specific categories were found, initialize them
-                if (data.industry) {
-                    const cats = data.industry.split(',').map((c: string) => c.trim()).filter(Boolean)
-                    const matchedIds: string[] = []
-                    const customCats: string[] = []
-
-                    for (const cat of cats) {
-                        const match = DEFAULT_CATEGORIES.find(dc =>
-                            dc.id.toLowerCase() === cat.toLowerCase() ||
-                            dc.name_es.toLowerCase() === cat.toLowerCase() ||
-                            dc.name_en.toLowerCase() === cat.toLowerCase()
-                        )
-                        if (match) {
-                            if (!matchedIds.includes(match.id)) matchedIds.push(match.id)
-                        } else {
-                            const titleCased = toTitleCase(cat)
-                            if (!customCats.includes(titleCased)) customCats.push(titleCased)
-                        }
-                    }
-                    setSelectedCategories(matchedIds)
-                    setCustomCategories(customCats)
-                }
 
             } catch (err: any) {
                 console.error('Brand analysis failed:', err)

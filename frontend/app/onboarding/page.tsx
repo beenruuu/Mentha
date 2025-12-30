@@ -50,6 +50,13 @@ const STEP_CONTENT = {
     descriptionEn: 'Identify and monitor your competitors to always stay one step ahead.',
     icon: Target,
   },
+  'discovery-prompts': {
+    titleEs: 'Monitoriza búsquedas clave',
+    titleEn: 'Monitor key searches',
+    descriptionEs: 'Define qué consultas quieres rastrear para medir tu visibilidad en modelos de IA.',
+    descriptionEn: 'Define which queries you want to track to measure your visibility in AI models.',
+    icon: Sparkles,
+  },
   'schedule': {
     titleEs: 'Configuración avanzada',
     titleEn: 'Advanced configuration',

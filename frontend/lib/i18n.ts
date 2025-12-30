@@ -324,6 +324,7 @@ const translations = {
     daysAgo: 'Hace {n} días',
 
     // Dashboard
+    dashboardAIVisibility: 'Visibilidad IA',
     rankingMovements: 'Movimientos de ranking esta semana.',
     brandOverview: 'Resumen de Marca',
     competitorOverview: 'Resumen de Competidores',
@@ -1796,6 +1797,7 @@ const translations = {
     daysAgo: '{n} days ago',
 
     // Dashboard
+    dashboardAIVisibility: 'AI Visibility',
     rankingMovements: 'Ranking movements this week.',
     brandOverview: 'Brand Overview',
     competitorOverview: 'Competitor Overview',

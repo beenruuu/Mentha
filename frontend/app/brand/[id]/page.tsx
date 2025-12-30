@@ -12,6 +12,7 @@ import {
   OptimizeTab,
   CompetitorsTab
 } from '@/components/brand'
+import { BrandSwitcher } from "@/components/shared/BrandSwitcher"
 import { PromptsChat } from '@/components/prompts/PromptsChat'
 import { fetchAPI } from '@/lib/api-client'
 import { brandsService, type Brand } from '@/lib/services/brands'
@@ -30,8 +31,8 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
   const [lang, setLang] = useState<Language>('es')
   const t = getTranslations(lang)
 
-  // Get active tab from URL - if none, redirect to dashboard
-  const activeTab = searchParams.get('tab')
+  // Get active tab from URL - if none, default to visibility
+  const activeTab = searchParams.get('tab') || 'visibility'
 
   const [loading, setLoading] = useState(true)
   const [analyzing, setAnalyzing] = useState(false)
@@ -54,6 +55,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
   // Callback to refresh data when analysis completes
   const handleAnalysisComplete = useCallback(() => {
     toast.success('¡Análisis completado! Actualizando datos...')
+    // Force immediate reload of all services
     setRefreshKey(prev => prev + 1)
   }, [])
 
@@ -213,7 +215,8 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
       console.error('Error loading brand:', error)
       toast.error('Error al cargar la marca')
     } finally {
-      setLoading(false)
+      // Ensure loading is false after a small delay to avoid flicker
+      setTimeout(() => setLoading(false), 300)
     }
   }
 
@@ -247,6 +250,13 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
   const handleAddCompetitor = () => {
     router.push(`/brand/${brandId}?tab=competitors`)
   }
+
+  // Handle invalid tab redirection
+  useEffect(() => {
+    if (brand && activeTab && !['overview', 'visibility', 'optimize', 'competitors', 'prompts'].includes(activeTab)) {
+      router.push('/dashboard')
+    }
+  }, [activeTab, brand, router])
 
   // Render content based on active tab
   const renderContent = useMemo(() => {
@@ -289,8 +299,7 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
           <PromptsChat brandId={brandId} brandName={brand.name} brandDomain={brand.domain} />
         )
       default:
-        // No valid tab - redirect to dashboard
-        router.push('/dashboard')
+        // Return null for invalid tabs (redirect handled in useEffect)
         return null
     }
   }, [activeTab, brand, analyzing, visibility, insights, citations, hallucinations, sentiment, prompts, recommendations, competitors])
@@ -324,45 +333,11 @@ export default function BrandPage({ params }: { params: Promise<{ id: string }> 
 
             {/* Brand Dropdown */}
             <div className="relative group">
-              <button className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white dark:bg-zinc-800 border border-border/50 hover:border-primary/50 transition-colors text-sm font-medium">
-                <div className="w-6 h-6 rounded bg-gray-100 dark:bg-zinc-700 flex items-center justify-center overflow-hidden">
-                  <img
-                    src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=32`}
-                    alt=""
-                    className="w-4 h-4 object-contain"
-                    onError={(e) => { e.currentTarget.style.display = 'none' }}
-                  />
-                </div>
-                <div className="flex flex-col items-start">
-                  <span className="font-semibold text-gray-900 dark:text-white">{brand.name}</span>
-                  <span className="text-xs text-muted-foreground">{brand.domain}</span>
-                </div>
-                {brands.length > 1 && <ChevronDown className="w-4 h-4 text-muted-foreground ml-2" />}
-              </button>
-              {brands.length > 1 && (
-                <div className="absolute top-full left-0 mt-1 w-72 bg-white dark:bg-zinc-900 border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                  {brands.map((b) => (
-                    <button
-                      key={b.id}
-                      onClick={() => router.push(`/brand/${b.id}${activeTab !== 'overview' ? `?tab=${activeTab}` : ''}`)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-secondary/50 transition-colors first:rounded-t-lg last:rounded-b-lg ${b.id === brandId ? 'bg-primary/5 text-primary' : ''}`}
-                    >
-                      <div className="w-6 h-6 rounded bg-gray-100 dark:bg-zinc-800 flex items-center justify-center overflow-hidden">
-                        <img
-                          src={`https://www.google.com/s2/favicons?domain=${b.domain}&sz=32`}
-                          alt=""
-                          className="w-4 h-4 object-contain"
-                          onError={(e) => { e.currentTarget.style.display = 'none' }}
-                        />
-                      </div>
-                      <div className="flex flex-col items-start">
-                        <span className="font-medium truncate">{b.name}</span>
-                        <span className="text-xs text-muted-foreground">{b.domain}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+              <BrandSwitcher
+                brands={brands}
+                selectedBrand={brand}
+                activeTab={activeTab || undefined}
+              />
             </div>
           </div>
 

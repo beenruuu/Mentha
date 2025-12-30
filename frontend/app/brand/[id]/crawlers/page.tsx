@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Bot, CheckCircle, XCircle, ShieldCheck, Info, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { BrandSwitcher } from "@/components/shared/BrandSwitcher"
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -49,10 +51,12 @@ function CrawlersSkeleton() {
 // Next.js passes params/searchParams to pages, so we need to allow extra props
 export default function CrawlersPage(props: any) {
   const { isEmbedded = false } = props
+  const router = useRouter()
   const params = useParams<{ id: string }>()
   const brandId = params?.id
   const { t } = useTranslations()
   const [brand, setBrand] = useState<Brand | null>(null)
+  const [brands, setBrands] = useState<Brand[]>([])
   const [technicalAeo, setTechnicalAeo] = useState<TechnicalAEO | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -62,11 +66,13 @@ export default function CrawlersPage(props: any) {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [brandResponse, technicalAeoData] = await Promise.all([
+        const [brandResponse, technicalAeoData, brandsData] = await Promise.all([
           brandsService.getById(brandId),
-          technicalAeoService.getLatestByBrandId(brandId)
+          technicalAeoService.getLatestByBrandId(brandId),
+          brandsService.getAll()
         ])
         setBrand(brandResponse)
+        setBrands(brandsData)
         setTechnicalAeo(technicalAeoData)
       } catch (error) {
         console.error('Failed to load crawler insights:', error)
@@ -246,9 +252,11 @@ export default function CrawlersPage(props: any) {
             <div className="flex items-center gap-2">
               {brand && (
                 <>
-                  <Link href={`/brand/${brandId}`} className="text-sm text-gray-500 hover:text-primary">
-                    {brand.name}
-                  </Link>
+                  <BrandSwitcher
+                    brands={brands}
+                    selectedBrand={brand}
+                    onSelect={(b) => router.push(`/brand/${b.id}/crawlers`)}
+                  />
                   <span className="text-gray-400">/</span>
                 </>
               )}

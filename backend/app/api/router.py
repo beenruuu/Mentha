@@ -23,7 +23,10 @@ from app.api.endpoints import (
     schema,
     technical_aeo,
     site_audit,
-    admin
+    technical_aeo,
+    site_audit,
+    admin,
+    analysis_onboarding
 )
 
 api_router = APIRouter()
@@ -31,6 +34,7 @@ api_router = APIRouter()
 # Include sub-routers for different API endpoints
 api_router.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 api_router.include_router(analysis.router, prefix="/analysis", tags=["Analysis"])
+api_router.include_router(analysis_onboarding.router, prefix="/analysis", tags=["Onboarding Analysis"])
 api_router.include_router(llm.router, prefix="/llm", tags=["LLM Services"])
 api_router.include_router(vectordb.router, prefix="/vectordb", tags=["Vector Database"])
 api_router.include_router(brands.router, prefix="/brands", tags=["Brands"])

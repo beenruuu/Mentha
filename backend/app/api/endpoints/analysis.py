@@ -290,7 +290,8 @@ async def get_gap_analysis(
     # 2. Get Competitors
     # We need to access the competitors table. 
     # Since we are in analysis endpoint, we create a new service instance for competitors
-    comp_service = SupabaseDatabaseService("competitors", None) # Model not strictly needed for raw queries
+    from app.models.competitor import Competitor
+    comp_service = SupabaseDatabaseService("competitors", Competitor)
     competitors = await comp_service.list(filters={"brand_id": str(brand_id)})
     
     if not competitors:

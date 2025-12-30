@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import {
   Calendar as CalendarIcon,
   Settings,
@@ -61,6 +61,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { BrandSwitcher } from "@/components/shared/BrandSwitcher"
 import { RainbowButton } from "@/components/ui/rainbow-button"
 import { openUpgradeModal } from "@/components/shared/upgrade-modal"
 import {
@@ -287,6 +288,9 @@ export default function DashboardPage() {
   }, [selectedDays]) // Only depend on selectedDays and rely on selectedBrand being stable enough or check it
 
 
+  const searchParams = useSearchParams()
+  const brandIdFromUrl = searchParams.get('brandId')
+
   useEffect(() => {
     const initData = async () => {
       try {
@@ -294,10 +298,14 @@ export default function DashboardPage() {
         setBrands(brandsData)
 
         if (brandsData.length > 0) {
-          const brand = brandsData[0]
-          setSelectedBrand(brand)
+          // Select brand from URL or first brand
+          const brandToSelect = brandIdFromUrl
+            ? brandsData.find(b => b.id === brandIdFromUrl) || brandsData[0]
+            : brandsData[0]
+
+          setSelectedBrand(brandToSelect)
           // Initial fetch with default 30 days
-          await fetchDataForBrand(brand, 30)
+          await fetchDataForBrand(brandToSelect, 30)
         }
       } catch (err) {
         console.error("Failed to fetch dashboard data:", err)
@@ -307,7 +315,7 @@ export default function DashboardPage() {
     }
 
     initData()
-  }, [])
+  }, [brandIdFromUrl])
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -432,87 +440,12 @@ export default function DashboardPage() {
               </div>
             )}
             {selectedBrand && !viewingCompetitor && (
-              <div className="relative group">
-                <button className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white dark:bg-zinc-800 border border-border/50 hover:border-primary/50 transition-colors text-sm font-medium">
-                  <div className="w-6 h-6 rounded bg-gray-100 dark:bg-zinc-700 flex items-center justify-center overflow-hidden">
-                    <img
-                      src={`https://www.google.com/s2/favicons?domain=${selectedBrand.domain}&sz=32`}
-                      alt=""
-                      className="w-4 h-4 object-contain"
-                      onError={(e) => { e.currentTarget.style.display = 'none' }}
-                    />
-                  </div>
-                  <div className="flex flex-col items-start">
-                    <span className="font-semibold text-gray-900 dark:text-white">{selectedBrand.name}</span>
-                    <span className="text-xs text-muted-foreground">{selectedBrand.domain}</span>
-                  </div>
-                  {brands.length > 1 && <ChevronDown className="w-4 h-4 text-muted-foreground ml-2" />}
-                </button>
-                {brands.length > 1 && (
-                  <div className="absolute top-full left-0 mt-1 w-72 bg-white dark:bg-zinc-900 border border-border/50 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                    {brands.map((brand) => (
-                      <div
-                        key={brand.id}
-                        className={`flex items-center justify-between px-3 py-2.5 text-sm hover:bg-secondary/50 transition-colors first:rounded-t-lg ${brand.id === selectedBrand.id ? 'bg-primary/5 text-primary' : ''}`}
-                      >
-                        <button
-                          onClick={() => handleBrandChange(brand)}
-                          className="flex-1 flex items-center gap-3"
-                        >
-                          <div className="w-6 h-6 rounded bg-gray-100 dark:bg-zinc-800 flex items-center justify-center overflow-hidden">
-                            <img
-                              src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=32`}
-                              alt=""
-                              className="w-4 h-4 object-contain"
-                              onError={(e) => { e.currentTarget.style.display = 'none' }}
-                            />
-                          </div>
-                          <div className="flex flex-col items-start">
-                            <span className="font-medium truncate">{brand.name}</span>
-                            <span className="text-xs text-muted-foreground">{brand.domain}</span>
-                          </div>
-                        </button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <button
-                              onClick={(e) => e.stopPropagation()}
-                              className="p-1 hover:bg-destructive/10 rounded-md transition-colors ml-2"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
-                            </button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>{t.areYouSure}</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                {t.deleteWarning.replace('{name}', brand.name)}
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteBrand(brand.id)}
-                                className="bg-destructive hover:bg-destructive/90"
-                              >
-                                {deletingBrandId === brand.id ? t.deleting : t.delete}
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    ))}
-                    <div className="border-t border-border/50">
-                      <button
-                        onClick={() => router.push('/onboarding')}
-                        className="w-full flex items-center gap-3 px-3 py-2 text-sm text-muted-foreground hover:text-primary hover:bg-secondary/50 transition-colors rounded-b-lg"
-                      >
-                        <Plus className="w-4 h-4" />
-                        {t.addBrand}
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <BrandSwitcher
+                brands={brands}
+                selectedBrand={selectedBrand}
+                onSelect={handleBrandChange}
+                onDelete={handleDeleteBrand}
+              />
             )}
 
             {/* Competitor Display when viewing competitor */}

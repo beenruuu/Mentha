@@ -39,6 +39,7 @@ class AnalysisService:
         self.citation_service = CitationTrackingService()
         from app.services.analysis.hallucination_detection_service import HallucinationDetectionService
         self.hallucination_service = HallucinationDetectionService()
+        self.sentiment_service = get_sentiment_analysis_service()
 
     async def run_analysis(self, analysis_id: UUID):
         """
@@ -113,6 +114,14 @@ class AnalysisService:
             
             # Prioritize onboarding data over inferred data
             entity_type = entity_type_hint or business_info.get('entity_type', 'business')
+            
+            # Normalize entity_type to avoid DB constraint issues
+            # 'saas' is not a valid enum value in modern versions of the DB
+            valid_entity_types = ['business', 'media', 'personal', 'information', 'educational', 'ecommerce']
+            if entity_type.lower() not in valid_entity_types:
+                log_warning("⚠️", f"Inferred entity_type '{entity_type}' is invalid. Falling back to 'business'.")
+                entity_type = "business"
+                
             industry = onboarding_industry or business_info.get('industry', 'Services')
             # Use onboarding description if provided, otherwise use page description
             description = onboarding_description or page_content.get('description', '')
@@ -264,6 +273,7 @@ class AnalysisService:
             log_info("📦", "Constructing result object...")
             
             visual_suggestions = []
+            kg_data = {} # Initialize missing variable to prevent NameError
             
             # Combine existing + new competitors
             all_competitors = existing_competitor_objects + new_competitors
@@ -273,7 +283,7 @@ class AnalysisService:
                 "brand_name": brand_name,
                 "url": brand_url,
                 "timestamp": datetime.utcnow().isoformat(),
-                "entity_type": entity_type,
+                "entity_type": entity_type if (entity_type and entity_type.lower() in ['business', 'media', 'personal', 'information', 'educational', 'ecommerce']) else 'business',
                 "industry": industry,
                 
                 # Real Metrics
@@ -386,6 +396,10 @@ class AnalysisService:
                     if industry and industry != "Services": # Avoid overwriting with default if possible, or maybe we want to?
                         update_payload["industry"] = industry
                     if entity_type:
+                        # Double check normalization to avoid DB check constraint failure
+                        valid_types = ['business', 'media', 'personal', 'information', 'educational', 'ecommerce']
+                        if entity_type.lower() not in valid_types:
+                            entity_type = 'business'
                         update_payload["entity_type"] = entity_type
                         
                     if update_payload:

@@ -179,7 +179,7 @@ export function CompetitorsTab({
                                 <div className="divide-y divide-gray-100 dark:divide-gray-800">
                                     {allEntities.map((entity, index) => (
                                         <div
-                                            key={entity.name}
+                                            key={`${entity.name}-${index}`}
                                             onClick={() => !entity.isOwn && (entity as any).id && router.push(`/brand/${brandId}/competitor/${(entity as any).id}`)}
                                             className={`flex items-center gap-3 px-4 py-3 ${entity.isOwn ? 'bg-emerald-50/30 dark:bg-emerald-900/10' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors'}`}
                                         >

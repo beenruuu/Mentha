@@ -162,7 +162,6 @@ class CompetitorDiscoveryRequest(BaseModel):
     # New fields for scope-aware competitor discovery
     business_scope: str = "national"  # local, regional, national, international
     city: str = ""  # City/location for local/regional businesses
-    industry_specific: str = ""  # e.g., "reparación de móviles" instead of generic "Tecnología"
 
 @router.post("/discover", response_model=List[dict])
 async def discover_competitors(
@@ -212,10 +211,12 @@ async def discover_competitors(
     
     result = await service.discover_competitors(
         brand_name=request.brand_name,
-        industry=request.industry_specific or request.industry,
+        industry=request.industry,  # Use main industry, ignore industry_specific for now
         domain=request.domain,
         description=enhanced_description,
-        max_competitors=10
+        max_competitors=10,
+        country=request.country,
+        business_scope=request.business_scope
     )
     
     if result.get("error"):

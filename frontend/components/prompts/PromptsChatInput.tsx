@@ -255,10 +255,6 @@ export function PromptsChatInput({
                 </div>
             </div>
 
-            {/* Helper Text */}
-            <p className="text-center text-xs text-muted-foreground/60 mt-3">
-                Las respuestas de IA pueden contener errores. Verifica la información importante.
-            </p>
         </div>
     )
 }

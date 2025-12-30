@@ -7,8 +7,8 @@ export type OnboardingStep =
     | 'company'          // Paso 2: URL sitio web, ubicación
     | 'brand-profile'    // Paso 3: Logo, nombre, dominio, categoría, descripción
     | 'competitors'      // Paso 4: Competidores detectados
-    | 'schedule'         // Paso 5: Configuración de modelos IA
-    | 'setup'            // Paso 6: Activación y procesamiento
+    | 'schedule'         // Paso 6: Configuración de modelos IA
+    | 'setup'            // Paso 7: Activación y procesamiento
 
 export interface UserInfo {
     firstName: string
@@ -45,10 +45,8 @@ export interface Competitor {
 }
 
 export interface ResearchPrompt {
-    id: string
     text: string
-    type: 'branded' | 'non-branded'
-    isCustom?: boolean
+    selected: boolean
 }
 
 export interface AIModelSchedule {

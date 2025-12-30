@@ -58,7 +58,9 @@ class CompetitorAnalyzerService:
         industry: str,
         domain: str = "",
         description: str = "",
-        max_competitors: int = 10
+        max_competitors: int = 10,
+        country: str = "ES",
+        business_scope: str = "national"
     ) -> Dict[str, Any]:
         """
         Automatically discover competitors using LLM knowledge from ALL providers.
@@ -103,8 +105,10 @@ class CompetitorAnalyzerService:
         if domain:
             website_context = await self._fetch_website_context(domain)
         
-        # Step 2: Build prompts
-        prompts = self._build_discovery_prompts(brand_name, industry, description, website_context)
+        # Step 2: Build prompts with geographic and scope filters
+        prompts = self._build_discovery_prompts(
+            brand_name, industry, description, website_context, country, business_scope
+        )
         
         # Step 3: Query ALL providers in parallel
         all_competitors = []
@@ -134,11 +138,15 @@ class CompetitorAnalyzerService:
             elif isinstance(result, Exception):
                 print(f"Provider {provider} failed: {result}")
         
-        # Step 4: Deduplicate and normalize (keeps first occurrence, notes duplicates)
+        # Step 4: Primary deduplication (keeps first occurrence)
         unique_competitors = self._deduplicate_competitors(all_competitors, brand_name)
         
+        # Step 5: Validate connectivity (Async parallel check)
+        # We check the top candidates to ensure they are reachable
+        valid_competitors = await self._validate_competitors_connectivity(unique_competitors[:max_competitors * 2])
+        
         # Limit to max_competitors
-        final_competitors = unique_competitors[:max_competitors]
+        final_competitors = valid_competitors[:max_competitors]
         
         return {
             "brand_name": brand_name,
@@ -178,9 +186,33 @@ class CompetitorAnalyzerService:
         brand_name: str,
         industry: str,
         description: str,
-        website_context: str
+        website_context: str,
+        country: str = "ES",
+        business_scope: str = "national"
     ) -> List[str]:
-        """Build 3 different prompts for diverse competitor discovery."""
+        """Build 3 different prompts for diverse competitor discovery with CONDITIONAL filters."""
+        
+        # Map country codes to names
+        country_names = {
+            "ES": "España", "CO": "Colombia", "MX": "México", "AR": "Argentina",
+            "CL": "Chile", "PE": "Perú", "US": "United States", "UK": "United Kingdom",
+            "FR": "France", "IT": "Italy", "DE": "Germany", "PT": "Portugal"
+        }
+        country_full = country_names.get(country.upper(), country)
+        
+        # Detect if brand is software/SaaS to adapt filters
+        industry_lower = industry.lower()
+        is_software = any(keyword in industry_lower for keyword in ['software', 'saas', 'tech', 'platform', 'app', 'digital'])
+        
+        # Build scope context
+        if business_scope == "international":
+            scope_instruction = "Include both national and international competitors"
+        elif business_scope == "national":
+            scope_instruction = f"Focus on companies with NATIONAL presence in {country_full}, exclude purely local/regional players"
+        elif business_scope == "regional":
+            scope_instruction = f"Focus on companies operating in multiple cities/regions within {country_full}"
+        else:  # local
+            scope_instruction = f"Focus on LOCAL companies in the specified city/area within {country_full}"
         
         context_section = ""
         if website_context:
@@ -188,36 +220,86 @@ class CompetitorAnalyzerService:
         
         base_context = f"""Brand: {brand_name}
 Industry: {industry}
+Country: {country_full}
+Business Scope: {business_scope}
 Description: {description or 'Not provided'}{context_section}"""
 
+        # Build CONDITIONAL filters based on context
+        if is_software:
+            # For software companies
+            type_filter = f"""
+- INCLUDE SaaS, software platforms, and digital tools in the {industry} space
+- Competitors can be software companies or service providers using software.
+- Focus on companies solving similar problems for similar customers."""
+            negative_constraints = ""
+        else:
+            # For service companies: STRICTLY EXCLUDE pure software
+            type_filter = f"""
+- EXCLUDE pure software/SaaS platforms (e.g., Salesforce, HubSpot, Facilio, Spacewell, Planon, iOFFICE).
+- Find companies that PHYSICALLY provide {industry} services with HUMAN labor or consulting.
+- The user is a SERVICE PROVIDER, not a software vendor.
+- If the company sells a "platform" or "solution" but not the actual service execution, EXCLUDE IT."""
+            
+            negative_constraints = """
+NEGATIVE CONSTRAINTS (CRITICAL):
+- DO NOT include software companies, SaaS, or tech platforms.
+- DO NOT include marketplaces or aggregators.
+- DO NOT include companies whose main product is an "app" or "dashboard".
+- DO NOT include: Facilio, Spacewell, Planon, iOFFICE, Salesforce, SAP, Oracle, ServiceChannel."""
+        
+        # Geographic filter (adapt to specified country)
+        country_tld_hint = {
+            "ES": ".es", "CO": ".co or .com.co", "MX": ".mx", "AR": ".ar",
+            "US": ".com", "UK": ".co.uk"
+        }.get(country.upper(), f".{country.lower()}")
+        
+        if business_scope == "international":
+            geo_filter = f"Can include international companies, but prioritize those with presence in {country_full}"
+        else:
+            geo_filter = f"MUST be based in or have major operations in {country_full} (domain typically {country_tld_hint})"
+
+        critical_filters = f"""
+REQUIREMENTS:
+1. Geography: {geo_filter}
+2. Scope: {scope_instruction}
+3. Type: {type_filter}
+4. Return only REAL companies that actually compete in this market
+{negative_constraints}"""
+
         prompts = [
-            # Prompt 1: Well-known, established competitors
+            # Prompt 1: Direct competitors
             f"""{base_context}
 
-Find 3-4 well-known, ESTABLISHED direct competitors for {brand_name}.
+Find 4-5 DIRECT competitors for {brand_name}.
+
+{critical_filters}
 
 Return ONLY a JSON array with this exact format:
-[{{"name": "Competitor Name", "domain": "competitor.com", "category": "direct", "reason": "Why they compete"}}]
+[{{"name": "Competitor Name", "domain": "competitor.{country_tld_hint}", "category": "direct", "reason": "Why they are a direct competitor (verify they provided SERVICES)"}}]
 
-Be specific and return real companies only.""",
+Be specific and relevant to {country_full} and {industry}.""",
             
-            # Prompt 2: Newer, emerging competitors
+            # Prompt 2: Market alternatives
             f"""{base_context}
 
-Find 3-4 NEWER or EMERGING direct competitors for {brand_name}.
+Find 3-4 ALTERNATIVE providers for {brand_name}.
+
+{critical_filters}
 
 Return ONLY a JSON array with this exact format:
-[{{"name": "Competitor Name", "domain": "competitor.com", "category": "direct", "reason": "Why they compete"}}]
-
-Focus on startups or newer players gaining market share.""",
+[{{"name": "Competitor Name", "domain": "competitor.{country_tld_hint}", "category": "alternative", "reason": "How they compete differently"}}]""",
             
-            # Prompt 3: Niche/indirect competitors
+            # Prompt 3: Niche/specialized competitors
             f"""{base_context}
 
-Find 3-4 INDIRECT or NICHE competitors for {brand_name} (companies that solve similar problems differently).
+Find 2-3 SPECIALIZED or NICHE competitors for {brand_name}.
+
+{critical_filters}
+
+Focus on specialists in {industry}.
 
 Return ONLY a JSON array with this exact format:
-[{{"name": "Competitor Name", "domain": "competitor.com", "category": "indirect", "reason": "Why they compete"}}]"""
+[{{"name": "Competitor Name", "domain": "competitor.{country_tld_hint}", "category": "specialized", "reason": "Specialization area"}}]"""
         ]
         
         return prompts
@@ -257,46 +339,101 @@ Return ONLY a JSON array with this exact format:
         
         return []
     
+    async def _is_url_reachable(self, url: str) -> bool:
+        """Fast check if a URL is reachable."""
+        if not url:
+            return False
+            
+        # Normalize URL
+        if not url.startswith(('http://', 'https://')):
+            url = f"https://{url}"
+            
+        try:
+            async with httpx.AsyncClient(timeout=3.0, follow_redirects=True, verify=False) as client:
+                # Try HEAD first, then GET if HEAD fails (some servers block HEAD)
+                try:
+                    response = await client.head(url)
+                    if response.status_code < 400:
+                        return True
+                except:
+                    pass
+                    
+                response = await client.get(url)
+                return response.status_code < 400
+        except:
+            return False
+
+    async def _validate_competitors_connectivity(self, competitors: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Filter out competitors with unreachable websites."""
+        if not competitors:
+            return []
+            
+        tasks = [self._is_url_reachable(c.get("domain", "")) for c in competitors]
+        results = await asyncio.gather(*tasks)
+        
+        valid = []
+        for i, is_ok in enumerate(results):
+            if is_ok:
+                valid.append(competitors[i])
+            else:
+                domain = competitors[i].get("domain")
+                print(f"⚠️ Filtering out unreachable competitor: {domain}")
+                
+        return valid
+
     def _deduplicate_competitors(
         self,
         competitors: List[Dict[str, Any]],
         brand_name: str
     ) -> List[Dict[str, Any]]:
-        """Deduplicate competitors by name similarity."""
+        """Deduplicate competitors by domain and name similarity."""
         if not competitors:
             return []
         
         brand_lower = brand_name.lower()
         seen_names = set()
+        seen_domains = set()
         unique = []
         
         for comp in competitors:
             name = comp.get("name", "").strip()
-            if not name:
+            domain = comp.get("domain", "").strip().lower().replace("www.", "")
+            if not name or not domain:
                 continue
             
+            # Skip if we already saw this domain (highest confidence de-dupe)
+            if domain in seen_domains:
+                continue
+                
             name_lower = name.lower()
             
             # Skip if it's the brand itself
             if brand_lower in name_lower or name_lower in brand_lower:
                 continue
             
-            # Normalize for dedup
-            normalized = re.sub(r'[^a-z0-9]', '', name_lower)
+            # Normalize for name dedup
+            normalized_name = re.sub(r'[^a-z0-9]', '', name_lower)
             
-            # Check similarity with existing
+            # Skip common generic names or very short names
+            if len(normalized_name) < 3:
+                continue
+                
+            # Check similarity with existing names
             is_duplicate = False
             for seen in seen_names:
-                if normalized in seen or seen in normalized:
-                    is_duplicate = True
-                    break
-                if len(normalized) > 4 and len(seen) > 4:
-                    if normalized[:5] == seen[:5]:
+                # If one contains the other and they are long enough
+                if len(normalized_name) > 6 and len(seen) > 6:
+                    if normalized_name in seen or seen in normalized_name:
                         is_duplicate = True
                         break
+                # Very strong similarity
+                if normalized_name == seen:
+                    is_duplicate = True
+                    break
             
             if not is_duplicate:
-                seen_names.add(normalized)
+                seen_names.add(normalized_name)
+                seen_domains.add(domain)
                 unique.append({
                     "name": name,
                     "domain": comp.get("domain", ""),

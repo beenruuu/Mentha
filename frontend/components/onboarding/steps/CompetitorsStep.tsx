@@ -91,8 +91,7 @@ export default function CompetitorsStep() {
                         language: lang || 'es',
                         // New scope-aware fields
                         business_scope: brandProfile.businessScope || 'national',
-                        city: brandProfile.city || '',
-                        industry_specific: brandProfile.industrySpecific || ''
+                        city: brandProfile.city || ''
                     })
                 })
 
@@ -133,16 +132,33 @@ export default function CompetitorsStep() {
 
     const handleAddCompetitor = () => {
         if (newCompetitor.name && newCompetitor.domain) {
+            const normalizedDomain = newCompetitor.domain
+                .toLowerCase()
+                .replace(/^https?:\/\//, '')
+                .replace(/^www\./, '')
+                .replace(/\/$/, '')
+
+            // Prevent duplicates
+            const isDuplicate = competitors.some(c =>
+                c.domain.toLowerCase().replace(/^www\./, '') === normalizedDomain
+            )
+
+            if (isDuplicate) {
+                setError(lang === 'es' ? 'Este competidor ya está en la lista' : 'This competitor is already in the list')
+                return
+            }
+
             const competitor: Competitor = {
                 id: `comp-${Date.now()}`,
                 name: newCompetitor.name,
-                domain: newCompetitor.domain.replace(/^https?:\/\//, '').replace(/\/$/, ''),
+                domain: normalizedDomain,
                 sources: ['manual'],
                 confidence: 'high'
             }
             setCompetitors([...competitors, competitor])
             setNewCompetitor({ name: '', domain: '' })
             setShowAddForm(false)
+            setError('') // Clear error
         }
     }
 

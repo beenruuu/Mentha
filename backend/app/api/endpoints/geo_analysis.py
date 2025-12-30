@@ -568,19 +568,21 @@ async def get_brand_visibility_data(
         history_raw = await crud.get_visibility_history(str(brand_id), ai_model, limit)
         latest_raw = await crud.get_latest_visibility_scores(str(brand_id))
 
-        # Apply model ID mapping so the frontend receives the same
-        # identifiers it uses in AI_PROVIDER_META and other views.
-        # Load brand to know which AI providers are enabled for this brand
-        supabase = auth_service.supabase
-        brand_resp = supabase.table("brands")\
-            .select("ai_providers")\
-            .eq("id", str(brand_id))\
-            .single()\
-            .execute()
-
-        raw_providers = (brand_resp.data or {}).get("ai_providers") or []
+        raw_providers = []
+        try:
+            # Use auth_service.supabase which is already defined or get it
+            supabase = auth_service.supabase
+            brand_resp = supabase.table("brands")\
+                .select("ai_providers")\
+                .eq("id", str(brand_id))\
+                .maybe_single()\
+                .execute()
+            raw_providers = (brand_resp.data or {}).get("ai_providers") or []
+        except Exception as e:
+            logger.warning(f"Could not fetch brand ai_providers: {e}")
+            
         # ai_providers guarda ids de frontend: chatgpt/claude/perplexity/gemini
-        enabled_provider_ids: set[str] = set(raw_providers)
+        enabled_provider_ids: set[str] = set(raw_providers) if raw_providers else set()
 
         def _map_and_filter_snapshot(snapshot: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             model_id = snapshot.get("ai_model")

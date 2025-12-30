@@ -87,9 +87,17 @@ export function VisibilityTab({
                 {/* Citations Tab */}
                 <TabsContent value="citations" className="mt-4">
                     {citations.length === 0 ? (
-                        <Card className="border-gray-200 dark:border-gray-800">
-                            <CardContent className="py-12 text-center">
-                                <p className="text-sm text-gray-500">No se detectaron citas esta semana.</p>
+                        <Card className="border-gray-200 dark:border-gray-800 bg-gray-50/20 dark:bg-gray-900/10">
+                            <CardContent className="py-16 text-center space-y-3">
+                                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto opacity-50">
+                                    <ExternalLink className="h-6 w-6 text-gray-400" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Sin citas detectadas</p>
+                                    <p className="text-xs text-gray-400 mt-1 max-w-[240px] mx-auto">
+                                        Las citas aparecerán cuando los modelos de IA referencien fuentes para hablar de tu marca.
+                                    </p>
+                                </div>
                             </CardContent>
                         </Card>
                     ) : (
@@ -198,7 +206,7 @@ export function VisibilityTab({
                                 const neuWidth = total > 0 ? Math.round((providerSentiment.neutral / total) * 100) : 100
                                 const negWidth = total > 0 ? Math.round((providerSentiment.negative / total) * 100) : 0
                                 const positivePercent = total > 0 ? posWidth : 0
-                                
+
                                 return (
                                     <div key={provider.id} className="flex items-center gap-3">
                                         <div className="w-6 h-6 rounded bg-gray-100 dark:bg-gray-800 p-1 flex items-center justify-center">
@@ -230,8 +238,12 @@ export function VisibilityTab({
                 <TabsContent value="prompts" className="mt-4">
                     {prompts.length === 0 ? (
                         <Card className="border-gray-200 dark:border-gray-800">
-                            <CardContent className="py-12 text-center">
-                                <p className="text-sm text-gray-500">Sin queries monitoreados.</p>
+                            <CardContent className="py-16 text-center space-y-3">
+                                <div className="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto opacity-50">
+                                    <Search className="h-6 w-6 text-gray-400" />
+                                </div>
+                                <p className="text-sm text-gray-500 font-medium">Sin queries monitoreados</p>
+                                <p className="text-xs text-gray-400 max-w-[200px] mx-auto">Realiza un análisis para ver cómo responden las IAs a tus preguntas clave.</p>
                             </CardContent>
                         </Card>
                     ) : (
