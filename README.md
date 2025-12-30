@@ -1,4 +1,5 @@
 # 🌿 Mentha — Control Your Brand in AI Engines
+#file:mentha-preview.png
 
 > **The definitive open-source platform for Answer Engine Optimization (AEO) and Generative Engine Optimization (GEO).**
 
