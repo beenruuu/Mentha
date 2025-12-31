@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-// Cookie name for demo mode (must match demo-context.tsx)
+// Cookie name for demo mode (must match demo-store.ts)
 const DEMO_MODE_COOKIE = 'mentha_demo_mode'
 
 export async function updateSession(request: NextRequest) {

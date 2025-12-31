@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useTranslations } from '@/lib/i18n'
-import { setDemoMode } from '@/lib/demo-context'
+import { useDemoStore } from '@/lib/stores/demo-store'
 import { FlaskConical } from 'lucide-react'
 
 export default function LoginPage() {
@@ -19,9 +19,10 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
   const { t } = useTranslations()
+  const enableDemo = useDemoStore(state => state.enableDemo)
 
   const handleDemoAccess = () => {
-    setDemoMode(true)
+    enableDemo()
     router.push('/dashboard')
   }
 
