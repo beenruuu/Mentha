@@ -60,11 +60,34 @@ async function getBrandPageData(brandId: string): Promise<BrandPageData | null> 
             DEMO_SENTIMENT, DEMO_INSIGHTS
         } = await import('@/lib/demo/constants')
 
+        // Transform visibility for demo
+        let visibility = null
+        if (DEMO_VISIBILITY.latest_scores && DEMO_VISIBILITY.latest_scores.length > 0) {
+            const scores = DEMO_VISIBILITY.latest_scores.map((s: any) => s.visibility_score)
+            const avgScore = Math.round(scores.reduce((a: number, b: number) => a + b, 0) / scores.length)
+
+            const models: Record<string, any> = {}
+            DEMO_VISIBILITY.latest_scores.forEach((s: any) => {
+                models[s.ai_model] = {
+                    score: s.visibility_score,
+                    mentions: s.mention_count,
+                    sentiment: s.sentiment || 'neutral'
+                }
+            })
+
+            visibility = {
+                overall_score: avgScore,
+                trend: 5, // Fictional trend
+                last_updated: DEMO_VISIBILITY.latest_scores[0]?.measured_at || new Date().toISOString(),
+                models
+            }
+        }
+
         return {
             brand: DEMO_BRAND as Brand,
             brands: [DEMO_BRAND as Brand],
             competitors: DEMO_COMPETITORS as Competitor[],
-            visibility: DEMO_VISIBILITY,
+            visibility,
             insights: DEMO_INSIGHTS,
             citations: DEMO_CITATIONS,
             recommendations: DEMO_RECOMMENDATIONS,

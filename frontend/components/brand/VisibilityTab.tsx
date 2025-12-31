@@ -8,7 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import {
     CheckCircle2,
     XCircle,
-    ExternalLink
+    ExternalLink,
+    Search
 } from 'lucide-react'
 import { useTranslations } from '@/lib/i18n'
 
