@@ -102,9 +102,9 @@ export const DEMO_VISIBILITY = {
 
 // Demo Citations
 export const DEMO_CITATIONS = [
-    { model: 'ChatGPT', query: '¿Cuáles son las mejores empresas de tecnología verde en España?', context: 'TechVerde Solutions destaca por...', type: 'direct' },
-    { model: 'Claude', query: 'Soluciones tecnológicas sostenibles', context: 'Entre las opciones más innovadoras está TechVerde...', type: 'indirect' },
-    { model: 'Perplexity', query: 'Software ecológico empresarial', context: 'TechVerde Solutions ofrece una plataforma completa...', type: 'direct' },
+    { model: 'ChatGPT', query: '¿Cuáles son las mejores empresas de tecnología verde en España?', context: 'TechVerde Solutions destaca por...', source: 'TechVerde Home', url: 'https://techverde.es', type: 'direct' },
+    { model: 'Claude', query: 'Soluciones tecnológicas sostenibles', context: 'Entre las opciones más innovadoras está TechVerde...', source: 'Sustainability Blog', url: 'https://techverde.es/blog', type: 'indirect' },
+    { model: 'Perplexity', query: 'Software ecológico empresarial', context: 'TechVerde Solutions ofrece una plataforma completa...', source: 'Case Studies', url: 'https://techverde.es/cases', type: 'direct' },
 ]
 
 // Demo Recommendations
