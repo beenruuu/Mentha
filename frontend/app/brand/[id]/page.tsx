@@ -53,26 +53,23 @@ async function getBrandPageData(brandId: string): Promise<BrandPageData | null> 
     const isDemoMode = cookieStore.get('mentha_demo_mode')?.value === 'true'
 
     if (isDemoMode) {
-        // Return demo data
-        const demoBrand: Brand = {
-            id: DEMO_BRAND_ID,
-            name: DEMO_BRAND_NAME,
-            domain: DEMO_BRAND_DOMAIN,
-            user_id: 'demo-user-001',
-            created_at: new Date().toISOString(),
-            category: 'Tecnología',
-            business_scope: 'national',
-        }
+        // Return comprehensive demo data
+        const {
+            DEMO_BRAND, DEMO_COMPETITORS, DEMO_VISIBILITY,
+            DEMO_CITATIONS, DEMO_RECOMMENDATIONS, DEMO_TECHNICAL_AEO,
+            DEMO_SENTIMENT, DEMO_INSIGHTS
+        } = await import('@/lib/demo/constants')
+
         return {
-            brand: demoBrand,
-            brands: [demoBrand],
-            competitors: [],
-            visibility: { history: [], latest_scores: [] },
-            insights: [],
-            citations: [],
-            recommendations: [],
-            technicalAeo: null,
-            sentiment: null,
+            brand: DEMO_BRAND as Brand,
+            brands: [DEMO_BRAND as Brand],
+            competitors: DEMO_COMPETITORS as Competitor[],
+            visibility: DEMO_VISIBILITY,
+            insights: DEMO_INSIGHTS,
+            citations: DEMO_CITATIONS,
+            recommendations: DEMO_RECOMMENDATIONS,
+            technicalAeo: DEMO_TECHNICAL_AEO,
+            sentiment: DEMO_SENTIMENT,
             isDemo: true,
         }
     }

@@ -47,20 +47,12 @@ async function getDashboardData(): Promise<ServerDashboardData> {
     const isDemoMode = cookieStore.get('mentha_demo_mode')?.value === 'true'
 
     if (isDemoMode) {
-        // Return demo data
-        const demoBrand: Brand = {
-            id: DEMO_BRAND_ID,
-            name: DEMO_BRAND_NAME,
-            domain: DEMO_BRAND_DOMAIN,
-            user_id: 'demo-user-001',
-            created_at: new Date().toISOString(),
-            category: 'Tecnología',
-            business_scope: 'national',
-        }
+        // Return demo data with competitors
+        const { DEMO_BRAND, DEMO_COMPETITORS } = await import('@/lib/demo/constants')
         return {
-            brands: [demoBrand],
-            initialBrand: demoBrand,
-            initialCompetitors: [],
+            brands: [DEMO_BRAND as Brand],
+            initialBrand: DEMO_BRAND as Brand,
+            initialCompetitors: DEMO_COMPETITORS as Competitor[],
             isDemo: true,
         }
     }
