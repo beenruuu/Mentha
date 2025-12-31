@@ -219,7 +219,7 @@ export function BrandClient({
                 setPrompts(brandQueries.map((q: any) => ({
                     query: q.prompt_text,
                     model: Object.keys(q.results || {})[0] || 'Unknown',
-                    mentioned: Object.values(q.results || {}).some((r: any) => r.mentioned)
+                    mentioned: Object.values(q.results || {}).some((r: any) => r?.mentioned)
                 })))
             } catch (e) {
                 console.log('No queries available')

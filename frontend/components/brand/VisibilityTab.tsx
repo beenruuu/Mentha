@@ -28,7 +28,7 @@ interface VisibilityTabProps {
     hallucinations?: any[]
     sentiment?: any
     prompts?: any[]
-    modelSentiments?: Record<string, { positive: number; neutral: number; negative: number }>
+    modelSentiments?: Record<string, any>
 }
 
 export function VisibilityTab({
@@ -42,6 +42,8 @@ export function VisibilityTab({
 }: VisibilityTabProps) {
     const { t } = useTranslations()
     const [subTab, setSubTab] = useState('citations')
+
+    const safeSentiment = sentiment || { positive: 0, neutral: 100, negative: 0 }
 
     const getProviderIcon = (modelName: string) => {
         const provider = AI_PROVIDERS.find(p =>
@@ -176,9 +178,9 @@ export function VisibilityTab({
                 <TabsContent value="sentiment" className="mt-4">
                     <div className="grid gap-4 md:grid-cols-3">
                         {[
-                            { label: 'Positivo', value: sentiment?.positive ?? 0, color: 'emerald' },
-                            { label: 'Neutral', value: sentiment?.neutral ?? 100, color: 'gray' },
-                            { label: 'Negativo', value: sentiment?.negative ?? 0, color: 'red' },
+                            { label: 'Positivo', value: safeSentiment?.positive ?? 0, color: 'emerald' },
+                            { label: 'Neutral', value: safeSentiment?.neutral ?? 0, color: 'gray' },
+                            { label: 'Negativo', value: safeSentiment?.negative ?? 0, color: 'red' },
                         ].map((item, i) => (
                             <Card key={i} className="border-gray-200 dark:border-gray-800">
                                 <CardContent className="py-4 text-center">
@@ -201,12 +203,32 @@ export function VisibilityTab({
                         <CardContent className="space-y-3">
                             {AI_PROVIDERS.map(provider => {
                                 // Get sentiment data for this provider, fallback to overall sentiment or defaults
-                                const providerSentiment = modelSentiments[provider.id] || sentiment || { positive: 0, neutral: 100, negative: 0 }
-                                const total = providerSentiment.positive + providerSentiment.neutral + providerSentiment.negative
-                                const posWidth = total > 0 ? Math.round((providerSentiment.positive / total) * 100) : 0
-                                const neuWidth = total > 0 ? Math.round((providerSentiment.neutral / total) * 100) : 100
-                                const negWidth = total > 0 ? Math.round((providerSentiment.negative / total) * 100) : 0
-                                const positivePercent = total > 0 ? posWidth : 0
+                                const providerData = modelSentiments[provider.id] || {}
+
+                                // Handle the case where the data might be a simple string sentiment or the full object
+                                let pPos = providerData.positive ?? 0
+                                let pNeu = providerData.neutral ?? 0
+                                let pNeg = providerData.negative ?? 0
+
+                                // If providerData has a sentiment string but not numbers, try to map it
+                                if (providerData.sentiment && pPos === 0 && pNeu === 0 && pNeg === 0) {
+                                    if (providerData.sentiment === 'positive') pPos = 100
+                                    else if (providerData.sentiment === 'negative') pNeg = 100
+                                    else pNeu = 100
+                                }
+
+                                // Fallback to safeSentiment if still empty
+                                if (pPos === 0 && pNeu === 0 && pNeg === 0) {
+                                    pPos = safeSentiment.positive || 0
+                                    pNeu = safeSentiment.neutral || 0
+                                    pNeg = safeSentiment.negative || 0
+                                }
+
+                                const total = pPos + pNeu + pNeg
+                                const posWidth = total > 0 ? Math.round((pPos / total) * 100) : 0
+                                const neuWidth = total > 0 ? Math.round((pNeu / total) * 100) : (total === 0 ? 100 : 0)
+                                const negWidth = total > 0 ? Math.round((pNeg / total) * 100) : 0
+                                const positivePercent = total > 0 ? posWidth : (pNeu === 100 ? 0 : 0)
 
                                 return (
                                     <div key={provider.id} className="flex items-center gap-3">
