@@ -5,7 +5,7 @@ export interface Notification {
   brand_id?: string | null
   title: string
   message: string
-  type: 'analysis_complete' | 'analysis_failed' | 'system' | 'reminder'
+  type: 'analysis_complete' | 'analysis_failed' | 'system' | 'reminder' | 'info'
   status: 'unread' | 'read'
   metadata?: Record<string, any>
   created_at: string

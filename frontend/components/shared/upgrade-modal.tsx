@@ -5,10 +5,12 @@ import { Check, X, Sparkles } from 'lucide-react'
 import {
     Dialog,
     DialogContent,
+    DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { useTranslations } from '@/lib/i18n'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 
 interface UpgradeModalProps {
     open: boolean
@@ -56,51 +58,46 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
-                className="max-w-7xl w-[95vw] p-0 gap-0 border border-border shadow-2xl bg-background overflow-hidden"
+                className="max-w-4xl w-[95vw] p-0 gap-0 border border-border shadow-2xl bg-background overflow-hidden"
                 showCloseButton={false}
             >
-                <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px]">
+                <VisuallyHidden>
+                    <DialogTitle>Upgrade to Pro</DialogTitle>
+                </VisuallyHidden>
+                <div className="grid grid-cols-1 md:grid-cols-2">
                     {/* Left Column - Features */}
-                    <div className="p-8 lg:p-10">
+                    <div className="p-8">
                         {/* Icon */}
                         <div className="w-12 h-12 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 border border-emerald-200 dark:border-emerald-500/30 flex items-center justify-center mb-6">
                             <Sparkles className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                         </div>
 
                         {/* Title */}
-                        <h2 className="text-3xl font-bold text-foreground mb-2">
-                            {t.upgradeToProTitle || 'Actualizar a Pro'}
+                        <h2 className="text-2xl font-bold text-foreground mb-2">
+                            {t.upgradeToProTitle || 'Upgrade to Pro'}
                         </h2>
-                        <p className="text-muted-foreground text-base mb-8">
-                            {t.upgradeToProSubtitle || 'Desbloquea todo el potencial de Mentha'}
+                        <p className="text-muted-foreground text-sm mb-6">
+                            {t.upgradeToProSubtitle || 'Unlock the full potential of Mentha'}
                         </p>
 
                         {/* Features List */}
-                        <div className="space-y-5">
+                        <div className="space-y-4">
                             {features.map((feature, idx) => (
-                                <div key={idx} className="flex items-start gap-4">
-                                    <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                        <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" strokeWidth={3} />
+                                <div key={idx} className="flex items-start gap-3">
+                                    <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <Check className="w-3 h-3 text-emerald-600 dark:text-emerald-400" strokeWidth={3} />
                                     </div>
                                     <div>
-                                        <h4 className="text-foreground font-semibold">{feature.title}</h4>
-                                        <p className="text-muted-foreground text-sm mt-1">{feature.description}</p>
+                                        <h4 className="text-foreground font-medium text-sm">{feature.title}</h4>
+                                        <p className="text-muted-foreground text-xs mt-0.5">{feature.description}</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
-
-                        {/* Scroll indicator */}
-                        <div className="mt-8 flex items-center gap-2 text-muted-foreground/50 text-xs">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-                            </svg>
-                            <span>{t.scrollDown || 'Desliza hacia abajo'}</span>
-                        </div>
                     </div>
 
                     {/* Right Column - Order Summary */}
-                    <div className="bg-muted/40 dark:bg-muted/20 p-8 lg:p-10 border-t lg:border-t-0 lg:border-l border-border relative">
+                    <div className="bg-muted/40 dark:bg-muted/20 p-8 border-t md:border-t-0 md:border-l border-border relative">
                         {/* Close Button */}
                         <button
                             onClick={() => onOpenChange(false)}
@@ -165,31 +162,31 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
                         {/* Pricing Breakdown */}
                         <div className="py-3 space-y-2 text-sm">
                             <div className="flex items-center justify-between">
-                                <p className="text-muted-foreground">Subtotal</p>
-                                <p className="text-foreground">${subtotal.toFixed(2)}</p>
+                                <p className="text-muted-foreground">{t.subtotal}</p>
+                                <p className="text-foreground font-medium">${subtotal.toFixed(2)}</p>
                             </div>
                             <div className="flex items-center justify-between">
-                                <p className="text-muted-foreground">IVA (si aplica)</p>
-                                <p className="text-muted-foreground">${tax.toFixed(2)}</p>
+                                <p className="text-muted-foreground">{t.taxIfApplicable}</p>
+                                <p className="text-foreground font-medium">${tax.toFixed(2)}</p>
                             </div>
                         </div>
 
                         {/* Total */}
-                        <div className="flex items-center justify-between py-4 mb-4">
-                            <p className="text-foreground font-semibold">Total de hoy</p>
-                            <p className="text-foreground font-bold text-xl">${total.toFixed(2)}</p>
+                        <div className="flex items-center justify-between py-4 border-t border-border mb-6">
+                            <p className="text-foreground font-semibold">{t.totalForToday}</p>
+                            <p className="text-foreground font-bold text-2xl">${total.toFixed(2)}</p>
                         </div>
 
                         {/* CTA Button */}
-                        <Button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-semibold h-12 rounded-lg shadow-md">
-                            {t.confirmPayment || 'Confirmar pago'}
+                        <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold h-12 rounded-xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
+                            {t.confirmPayment}
                         </Button>
 
                         {/* Terms */}
-                        <p className="text-center text-muted-foreground text-xs mt-4 leading-relaxed">
-                            Al continuar, aceptas nuestros{' '}
-                            <a href="/terms" className="text-emerald-600 dark:text-emerald-400 underline">
-                                Términos y Condiciones
+                        <p className="text-center text-muted-foreground text-[10px] mt-6 leading-relaxed">
+                            {t.byContinuing} {' '}
+                            <a href="/terms" className="text-emerald-600 hover:underline">
+                                {t.footerTerms}
                             </a>.
                         </p>
                     </div>
@@ -198,6 +195,7 @@ export function UpgradeModal({ open, onOpenChange }: UpgradeModalProps) {
         </Dialog>
     )
 }
+
 
 export const openUpgradeModal = () => {
     if (typeof window !== 'undefined') {

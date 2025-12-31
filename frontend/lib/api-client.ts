@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
-import { isDemoModeActive } from '@/lib/demo-context';
-import { handleDemoRequest } from '@/lib/demo-api-handler';
+import { isDemoMode, handleDemoRequest } from '@/lib/demo';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api';
 
@@ -10,7 +9,7 @@ interface FetchOptions extends RequestInit {
 
 export async function fetchAPI<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
   // Check if we're in demo mode - return mock data
-  if (isDemoModeActive()) {
+  if (isDemoMode()) {
     // Simulate network delay for realism
     await new Promise(resolve => setTimeout(resolve, 100 + Math.random() * 200));
     return handleDemoRequest(endpoint, options) as T;
@@ -43,10 +42,10 @@ export async function fetchAPI<T>(endpoint: string, options: FetchOptions = {}):
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const errorMessage = typeof errorData.detail === 'string' 
-        ? errorData.detail 
+      const errorMessage = typeof errorData.detail === 'string'
+        ? errorData.detail
         : (typeof errorData.detail === 'object' ? JSON.stringify(errorData.detail) : null);
-        
+
       throw new Error(errorMessage || `API Error: ${response.statusText}`);
     }
 

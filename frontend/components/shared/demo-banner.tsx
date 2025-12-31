@@ -5,23 +5,12 @@ import { useRouter } from 'next/navigation'
 import { useTranslations } from '@/lib/i18n'
 import { X, FlaskConical } from 'lucide-react'
 
-// Import the context value type only, use safe access
-import { useDemo } from '@/lib/demo-context'
+import { useDemoStore } from '@/lib/stores/demo-store'
 
 const BANNER_HEIGHT = '40px'
 
 export function DemoBanner() {
-    let isDemoMode = false
-    let exitDemoMode = () => { }
-
-    try {
-        const demoContext = useDemo()
-        isDemoMode = demoContext.isDemoMode
-        exitDemoMode = demoContext.exitDemoMode
-    } catch {
-        // Context not available yet (during SSR or before provider mounted)
-        return null
-    }
+    const { isDemo: isDemoMode, disableDemo: exitDemoMode } = useDemoStore()
 
     const router = useRouter()
     const { t } = useTranslations()

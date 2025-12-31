@@ -10,15 +10,17 @@ export const DEMO_USER_ID = 'demo-user-001'
 export const DEMO_BRAND_NAME = 'TechVerde Solutions'
 export const DEMO_BRAND_DOMAIN = 'techverde.es'
 
+const DEMO_MODE_KEY = 'mentha_demo_mode'
+
 // Demo mode detection
 export const isDemoMode = (): boolean => {
     if (typeof window === 'undefined') return false
-    return localStorage.getItem('demo_mode') === 'true'
+    return localStorage.getItem(DEMO_MODE_KEY) === 'true'
 }
 
 export const setDemoMode = (enabled: boolean): void => {
     if (typeof window === 'undefined') return
-    localStorage.setItem('demo_mode', enabled ? 'true' : 'false')
+    localStorage.setItem(DEMO_MODE_KEY, enabled ? 'true' : 'false')
 }
 
 // Demo User

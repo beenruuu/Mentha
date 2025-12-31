@@ -1,12 +1,14 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { NotificationsClient } from './notifications-client'
+import { DEMO_USER_ID } from '@/lib/demo/constants'
 
 // Types
 interface Notification {
     id: string
     user_id: string
-    type: string
+    type: 'analysis_complete' | 'reminder' | 'analysis_failed' | 'system' | 'info'
     title: string
     message: string
     status: 'unread' | 'read'
@@ -14,7 +16,46 @@ interface Notification {
     created_at: string
 }
 
+// Demo notifications
+const DEMO_NOTIFICATIONS: Notification[] = [
+    {
+        id: 'demo-notif-1',
+        user_id: DEMO_USER_ID,
+        type: 'analysis_complete',
+        title: 'Análisis completado',
+        message: 'El análisis de TechVerde Solutions ha finalizado. Tu puntuación de visibilidad ha aumentado a 82.',
+        status: 'unread',
+        created_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    },
+    {
+        id: 'demo-notif-2',
+        user_id: DEMO_USER_ID,
+        type: 'reminder',
+        title: 'Recomendación pendiente',
+        message: 'Tienes 3 recomendaciones de alta prioridad por implementar para mejorar tu visibilidad en IA.',
+        status: 'unread',
+        created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Yesterday
+    },
+    {
+        id: 'demo-notif-3',
+        user_id: DEMO_USER_ID,
+        type: 'info',
+        title: 'Nueva mención detectada',
+        message: 'Tu marca fue mencionada en Perplexity para la consulta "mejores soluciones tecnológicas verdes".',
+        status: 'read',
+        created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+    },
+]
+
 async function getNotificationsData(): Promise<{ notifications: Notification[] }> {
+    // Check for demo mode via cookie
+    const cookieStore = await cookies()
+    const isDemoMode = cookieStore.get('mentha_demo_mode')?.value === 'true'
+
+    if (isDemoMode) {
+        return { notifications: DEMO_NOTIFICATIONS }
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 

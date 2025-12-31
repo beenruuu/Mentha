@@ -657,7 +657,7 @@ const translations = {
     taxIfApplicable: 'IVA (si aplica)',
     totalForToday: 'Total de hoy',
     confirmPayment: 'Confirmar pago',
-    byContiuing: 'Al continuar, aceptas nuestros',
+    byContinuing: 'Al continuar, aceptas nuestros',
 
 
     // Brand pages
@@ -2061,7 +2061,7 @@ const translations = {
     taxIfApplicable: 'Tax if applicable',
     totalForToday: 'Total for today',
     confirmPayment: 'Confirm payment',
-    byContiuing: 'By continuing, you accept our',
+    byContinuing: 'By continuing, you accept our',
 
 
     // Brand pages
