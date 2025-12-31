@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { DashboardClient } from './dashboard-client'
+import { DEMO_BRAND_ID, DEMO_BRAND_NAME, DEMO_BRAND_DOMAIN } from '@/lib/demo/constants'
 
 // Types for initial data
 export interface Brand {
@@ -27,6 +29,8 @@ export interface Competitor {
     source: string
     visibility_score?: number
     metrics_breakdown?: Record<string, number>
+    tracked?: boolean
+    updated_at?: string
     created_at: string
 }
 
@@ -34,9 +38,33 @@ export interface ServerDashboardData {
     brands: Brand[]
     initialBrand: Brand | null
     initialCompetitors: Competitor[]
+    isDemo: boolean
 }
 
 async function getDashboardData(): Promise<ServerDashboardData> {
+    // Check for demo mode via cookie
+    const cookieStore = await cookies()
+    const isDemoMode = cookieStore.get('mentha_demo_mode')?.value === 'true'
+
+    if (isDemoMode) {
+        // Return demo data
+        const demoBrand: Brand = {
+            id: DEMO_BRAND_ID,
+            name: DEMO_BRAND_NAME,
+            domain: DEMO_BRAND_DOMAIN,
+            user_id: 'demo-user-001',
+            created_at: new Date().toISOString(),
+            category: 'Tecnología',
+            business_scope: 'national',
+        }
+        return {
+            brands: [demoBrand],
+            initialBrand: demoBrand,
+            initialCompetitors: [],
+            isDemo: true,
+        }
+    }
+
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
@@ -64,7 +92,7 @@ async function getDashboardData(): Promise<ServerDashboardData> {
 
         if (!brandsRes.ok) {
             console.error('Failed to fetch brands:', brandsRes.status)
-            return { brands: [], initialBrand: null, initialCompetitors: [] }
+            return { brands: [], initialBrand: null, initialCompetitors: [], isDemo: false }
         }
 
         const brands: Brand[] = await brandsRes.json()
@@ -93,10 +121,11 @@ async function getDashboardData(): Promise<ServerDashboardData> {
             brands,
             initialBrand,
             initialCompetitors,
+            isDemo: false,
         }
     } catch (error) {
         console.error('Error fetching dashboard data:', error)
-        return { brands: [], initialBrand: null, initialCompetitors: [] }
+        return { brands: [], initialBrand: null, initialCompetitors: [], isDemo: false }
     }
 }
 

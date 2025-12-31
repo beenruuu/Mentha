@@ -8,11 +8,11 @@ export interface Competitor {
   similarity_score?: number;
   visibility_score?: number;
   favicon?: string;
-  tracked: boolean;
+  tracked?: boolean;
   source?: string; // onboarding, discovered, manual
   metrics_breakdown?: Record<string, number>;
   created_at: string;
-  updated_at: string;
+  updated_at?: string;
   score?: number;
   trend?: 'up' | 'down' | 'stable';
 }
