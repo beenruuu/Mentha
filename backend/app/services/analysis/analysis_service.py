@@ -268,12 +268,144 @@ class AnalysisService:
             )
             hallucination_data = await hallucination_task
 
+            # --- GEO/AEO ENHANCEMENT: NER + Knowledge Graph + Schema.org ---
+            log_info("🧠", "Running GEO/AEO enhancements (NER, Knowledge Graph, Schema.org)...")
+            
+            # Entity Extraction using NER
+            entity_extraction_result = {}
+            extracted_entities = []
+            try:
+                from app.services.nlp.entity_extraction_service import get_entity_extraction_service
+                ner_service = get_entity_extraction_service()
+                
+                # Extract entities from page content
+                page_text = page_content.get('text_content', '') + " " + site_context
+                if page_text.strip():
+                    extraction = await ner_service.extract_entities(page_text[:10000])  # Limit text size
+                    extraction = await ner_service.enrich_with_wikidata(extraction, max_entities=5)
+                    entity_extraction_result = extraction.to_dict()
+                    extracted_entities = extraction.get_unique_entities()
+                    log_success("✅", f"Extracted {len(extracted_entities)} unique entities")
+            except Exception as ner_err:
+                log_warning("⚠️", f"NER extraction failed: {ner_err}")
+            
+            # Knowledge Graph population
+            kg_data = {}
+            kg_stats = {}
+            try:
+                from app.services.knowledge_graph.knowledge_graph_service import (
+                    get_knowledge_graph_service, GraphNode, GraphEdge, NodeType, EdgeType
+                )
+                kg_service = get_knowledge_graph_service()
+                
+                if analysis.brand_id:
+                    brand_kg_id = str(analysis.brand_id)
+                    
+                    # Add brand as Organization node
+                    brand_node = GraphNode(
+                        id=f"org:{brand_kg_id}",
+                        node_type=NodeType.ORGANIZATION,
+                        name=brand_name,
+                        url=brand_url,
+                        properties={
+                            "industry": industry,
+                            "entity_type": entity_type,
+                            "description": description
+                        }
+                    )
+                    await kg_service.add_node(brand_kg_id, brand_node)
+                    
+                    # Add extracted entities to Knowledge Graph
+                    for entity in extracted_entities:
+                        entity_node_type = NodeType.CONCEPT  # Default
+                        if entity.entity_type.value == "Organization":
+                            entity_node_type = NodeType.ORGANIZATION
+                        elif entity.entity_type.value == "Person":
+                            entity_node_type = NodeType.PERSON
+                        elif entity.entity_type.value == "Product":
+                            entity_node_type = NodeType.PRODUCT
+                        elif entity.entity_type.value == "Place":
+                            entity_node_type = NodeType.PLACE
+                        
+                        entity_node = GraphNode(
+                            id=f"entity:{entity.text.lower().replace(' ', '_')}",
+                            node_type=entity_node_type,
+                            name=entity.text,
+                            same_as=entity.same_as,
+                            properties={"wikidata_id": entity.wikidata_id}
+                        )
+                        await kg_service.add_node(brand_kg_id, entity_node, persist=False)
+                        
+                        # Create MENTIONS edge from brand to entity
+                        edge = GraphEdge(
+                            source_id=f"org:{brand_kg_id}",
+                            target_id=f"entity:{entity.text.lower().replace(' ', '_')}",
+                            edge_type=EdgeType.MENTIONS,
+                            weight=1.0
+                        )
+                        await kg_service.add_edge(brand_kg_id, edge, persist=False)
+                    
+                    # Get graph stats
+                    kg_stats = await kg_service.get_stats(brand_kg_id)
+                    
+                    # Get PageRank for authority scoring
+                    pagerank = await kg_service.calculate_pagerank(brand_kg_id)
+                    brand_authority = pagerank.get(f"org:{brand_kg_id}", 0)
+                    
+                    kg_data = {
+                        "nodes_count": kg_stats.get("total_nodes", 0),
+                        "edges_count": kg_stats.get("total_edges", 0),
+                        "brand_authority_score": round(brand_authority * 100, 2),
+                        "entity_types": kg_stats.get("node_types", {}),
+                        "extracted_entities": [e.to_dict() for e in extracted_entities[:10]]
+                    }
+                    log_success("✅", f"Knowledge Graph: {kg_data['nodes_count']} nodes, {kg_data['edges_count']} edges")
+            except Exception as kg_err:
+                log_warning("⚠️", f"Knowledge Graph population failed: {kg_err}")
+                kg_data = {"error": str(kg_err)}
+            
+            # Schema.org JSON-LD generation
+            schema_org_data = {}
+            try:
+                from app.models.schema_org import OrganizationSchema, LocalBusinessSchema
+                
+                # Create Organization schema
+                if entity_type == "business" and business_scope == "local":
+                    org_schema = LocalBusinessSchema(
+                        name=brand_name,
+                        url=brand_url,
+                        description=description,
+                        same_as=[e.wikipedia_url for e in extracted_entities if e.wikipedia_url][:3],
+                        knows_about=business_info.get('services', [])[:5],
+                        area_served=city if city else None
+                    )
+                else:
+                    org_schema = OrganizationSchema(
+                        name=brand_name,
+                        url=brand_url,
+                        description=description,
+                        same_as=[e.wikipedia_url for e in extracted_entities if e.wikipedia_url][:3],
+                        knows_about=business_info.get('services', [])[:5]
+                    )
+                
+                # Inject mentions from NER
+                if extracted_entities:
+                    org_schema.inject_mentions_from_entities([e.to_dict() for e in extracted_entities[:5]])
+                
+                schema_org_data = {
+                    "organization": org_schema.to_json_ld(),
+                    "json_ld_script": org_schema.to_json_ld_string()
+                }
+                log_success("✅", "Generated Schema.org JSON-LD")
+            except Exception as schema_err:
+                log_warning("⚠️", f"Schema.org generation failed: {schema_err}")
+                schema_org_data = {"error": str(schema_err)}
+
             # --- PHASE 3: RESULT ASSEMBLY ---
             log_phase(3, "Result Assembly")
             log_info("📦", "Constructing result object...")
             
             visual_suggestions = []
-            kg_data = {} # Initialize missing variable to prevent NameError
             
             # Combine existing + new competitors
             all_competitors = existing_competitor_objects + new_competitors
@@ -297,6 +429,10 @@ class AnalysisService:
                 "visual_suggestions": visual_suggestions,
                 "sentiment_analysis": sentiment_analysis,
                 "hallucination_analysis": hallucination_data,
+                
+                # GEO/AEO Enhancements
+                "entity_extraction": entity_extraction_result,
+                "schema_org": schema_org_data,
                 
                 "notifications": [],
                 
@@ -368,6 +504,64 @@ class AnalysisService:
             
             # Extract score
             score = results.get("score", 0)
+            
+            # --- GEO ENHANCEMENT: Content Auditor for better recommendations ---
+            try:
+                from app.services.agents.content_auditor_agent import get_content_auditor_agent
+                content_auditor = get_content_auditor_agent()
+                
+                log_info("🤖", "Running Content Auditor agent for GEO recommendations...")
+                
+                # Prepare content for auditing
+                audit_content = f"""
+Brand: {brand_name}
+URL: {brand_url}
+Industry: {industry}
+
+Page Content:
+{page_content.get('text_content', '')[:3000]}
+
+Current AEO Score: {score}
+Entity Type: {entity_type}
+Extracted Entities: {[e.text for e in extracted_entities[:5]]}
+"""
+                
+                audit_result = await content_auditor.audit_content(
+                    content=audit_content,
+                    brand_id=str(analysis.brand_id) if analysis.brand_id else None,
+                    content_type="webpage"
+                )
+                
+                # Merge auditor recommendations with existing
+                if audit_result and audit_result.get("suggestions"):
+                    geo_recommendations = []
+                    for suggestion in audit_result.get("suggestions", [])[:5]:
+                        geo_recommendations.append({
+                            "title": suggestion.get("title", "GEO Optimization"),
+                            "description": suggestion.get("description", ""),
+                            "priority": suggestion.get("priority", "medium"),
+                            "category": "geo",
+                            "source": "content_auditor"
+                        })
+                    
+                    # Add to results
+                    current_recs = results.get("recommendations", [])
+                    if isinstance(current_recs, list):
+                        results["recommendations"] = geo_recommendations + current_recs
+                    
+                    # Add GEO audit scores to results
+                    results["geo_audit"] = {
+                        "entity_density_score": audit_result.get("evaluation", {}).get("entity_density", 0),
+                        "structure_score": audit_result.get("evaluation", {}).get("structure", 0),
+                        "authority_score": audit_result.get("evaluation", {}).get("authority", 0),
+                        "schema_score": audit_result.get("evaluation", {}).get("schema", 0),
+                        "speakable_score": audit_result.get("evaluation", {}).get("speakable", 0),
+                        "overall_geo_score": audit_result.get("evaluation", {}).get("overall_score", 0)
+                    }
+                    
+                    log_success("✅", f"Content Auditor: GEO score {results['geo_audit']['overall_geo_score']}/100")
+            except Exception as auditor_err:
+                log_warning("⚠️", f"Content Auditor failed: {auditor_err}")
             
             # 6. Update Analysis
             await self.analysis_db.update(str(analysis_id), {

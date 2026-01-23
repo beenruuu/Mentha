@@ -2,8 +2,6 @@ from fastapi import APIRouter
 
 from app.api.endpoints import (
     auth,
-    brands,
-    analysis,
     llm,
     vectordb,
     notifications,
@@ -23,11 +21,14 @@ from app.api.endpoints import (
     schema,
     technical_aeo,
     site_audit,
-    technical_aeo,
-    site_audit,
     admin,
-    analysis_onboarding
+    analysis_onboarding,
+    crawler_logs
 )
+
+# New Clean Architecture Controllers
+from app.interface_adapters.controllers import brands_controller as brands
+from app.interface_adapters.controllers import analysis_controller as analysis
 
 api_router = APIRouter()
 
@@ -71,4 +72,7 @@ api_router.include_router(technical_aeo.router, tags=["Technical AEO"])
 
 # Site Audit - Deep website analysis for AEO/GEO optimization
 api_router.include_router(site_audit.router, tags=["Site Audit"])
+
+# Crawler Logs - AI bot activity tracking
+api_router.include_router(crawler_logs.router, tags=["Crawler Logs"])
 

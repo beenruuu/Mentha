@@ -62,7 +62,11 @@ services:
       # Daily Audit Scheduler
       - DAILY_ANALYSIS_HOUR=${DAILY_ANALYSIS_HOUR:-03}
       - DAILY_ANALYSIS_MINUTE=${DAILY_ANALYSIS_MINUTE:-00}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    depends_on:
+      - redis
     networks:
       - mentha-network
     healthcheck:
@@ -72,8 +76,21 @@ services:
       retries: 3
       start_period: 10s
 
-  # Scheduler for daily brand audits (optional - can also run via start.py)
-  scheduler:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - mentha-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  worker:
     build:
       context: ./backend
       dockerfile: Dockerfile.dev
@@ -87,40 +104,40 @@ services:
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       - PERPLEXITY_API_KEY=${PERPLEXITY_API_KEY}
-      - DAILY_ANALYSIS_HOUR=${DAILY_ANALYSIS_HOUR:-03}
-      - DAILY_ANALYSIS_MINUTE=${DAILY_ANALYSIS_MINUTE:-00}
-    command: python -c "
-      import schedule
-      import time
-      import requests
-      import os
-      
-      hour = os.getenv('DAILY_ANALYSIS_HOUR', '03')
-      minute = os.getenv('DAILY_ANALYSIS_MINUTE', '00')
-      schedule_time = f'{hour.zfill(2)}:{minute.zfill(2)}'
-      
-      def run_daily_audit():
-          print(f'Running daily audit...')
-          try:
-              response = requests.post('http://backend:8000/api/analysis/daily-audit', timeout=300)
-              print(f'Daily audit completed: {response.status_code}')
-          except Exception as e:
-              print(f'Daily audit error: {e}')
-      
-      schedule.every().day.at(schedule_time).do(run_daily_audit)
-      print(f'Scheduler started. Daily audit at {schedule_time}')
-      
-      while True:
-          schedule.run_pending()
-          time.sleep(60)
-      "
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    command: celery -A app.core.celery_app worker --loglevel=info
     depends_on:
-      backend:
+      redis:
         condition: service_healthy
+      backend:
+        condition: service_started
     networks:
       - mentha-network
-    profiles:
-      - with-scheduler
+
+  # Scheduler for daily brand audits (optional - can also run via start.py)
+  # Replaced custom scheduler with Celery Beat
+  celery-beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./backend:/app
+    environment:
+      - ENVIRONMENT=development
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    command: celery -A app.core.celery_app beat --loglevel=info
+    depends_on:
+      - redis
+      - worker
+    networks:
+      - mentha-network
+
+volumes:
+  redis_data:
 
 networks:
   mentha-network:

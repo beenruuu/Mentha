@@ -13,8 +13,9 @@ import { AppSidebar } from '@/components/layout/app-sidebar'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useTranslations } from '@/lib/i18n'
-import { brandsService, Brand } from '@/lib/services/brands'
-import { technicalAeoService, TechnicalAEO } from '@/lib/services/technical-aeo'
+import { brandsService, Brand } from '@/features/brand/api/brands'
+import { technicalAeoService, TechnicalAEO } from '@/features/optimization/api/technical-aeo'
+import { CrawlActivityChart } from '@/components/crawlers/crawl-activity-chart'
 
 function CrawlersSkeleton() {
   return (
@@ -233,6 +234,9 @@ export default function CrawlersPage(props: any) {
           )}
         </CardContent>
       </Card>
+
+      {/* Crawl Activity Chart */}
+      <CrawlActivityChart brandId={brandId} days={7} />
     </div>
   )
 

@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 
 const API_BASE_URL = process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api'
 
@@ -38,6 +39,13 @@ export async function serverFetchAPI<T>(endpoint: string, options: FetchOptions 
         const errorMessage = typeof errorData.detail === 'string'
             ? errorData.detail
             : (typeof errorData.detail === 'object' ? JSON.stringify(errorData.detail) : null)
+
+        // Handle specific invalid session error from backend
+        if (response.status === 401 && errorMessage?.includes('Session from session_id claim in JWT does not exist')) {
+            const supabase = await createClient()
+            await supabase.auth.signOut()
+            redirect('/auth/login')
+        }
 
         throw new Error(errorMessage || `API Error: ${response.statusText}`)
     }

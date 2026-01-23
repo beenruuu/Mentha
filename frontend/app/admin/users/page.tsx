@@ -70,7 +70,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Textarea } from '@/components/ui/textarea'
-import { adminService, type UserListItem, type UserDetail, type PaginatedUsers, type UserFilters } from '@/lib/services/admin'
+import { adminService, type UserListItem, type UserDetail, type PaginatedUsers, type UserFilters } from '@/features/admin/api/admin'
 import { format } from 'date-fns'
 import { es, enUS } from 'date-fns/locale'
 import { toast } from 'sonner'

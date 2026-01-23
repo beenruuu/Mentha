@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
-import { AdminSidebar } from '@/components/admin/admin-sidebar'
-import { adminService, type AdminUser } from '@/lib/services/admin'
+import { AdminSidebar } from '@/features/admin/components/admin-sidebar'
+import { adminService, type AdminUser } from '@/features/admin/api/admin'
 
 export default function AdminLayout({
   children,

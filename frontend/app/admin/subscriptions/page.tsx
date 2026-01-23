@@ -32,8 +32,8 @@ import {
   Legend
 } from 'recharts'
 import { AdminPageWrapper } from '@/components/admin/admin-page-wrapper'
-import { StatsGridSkeleton, ChartSkeleton } from '@/components/admin/admin-skeletons'
-import { adminService, type SubscriptionOverview } from '@/lib/services/admin'
+import { StatsGridSkeleton, ChartSkeleton } from '@/features/admin/components/admin-skeletons'
+import { adminService, type SubscriptionOverview } from '@/features/admin/api/admin'
 
 const COLORS = {
   free: '#94a3b8',

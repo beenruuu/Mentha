@@ -1,6 +1,4 @@
-from supabase import create_client, Client
-from supabase.lib.client_options import ClientOptions  # Import this
-from app.core.config import settings
+from app.core.supabase import get_supabase_client
 
 
 class SupabaseAuthService:
@@ -8,12 +6,7 @@ class SupabaseAuthService:
 
     def __init__(self):
         """Initialize the Supabase client."""
-        # Initialize with proper options structure
-        # The headers attribute is needed by the Supabase client
-        options = {"auto_refresh_token": True, "persist_session": True, "headers": {"X-Client-Info": "backend-api"}}
-
-        # Create the client with the properly structured options
-        self.supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+        self.supabase = get_supabase_client()
 
     async def get_user(self, jwt_token: str):
         """Get user data from a JWT token."""

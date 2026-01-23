@@ -24,7 +24,7 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useTranslations } from "@/lib/i18n"
-import { Brand } from "@/lib/services/brands"
+import { Brand } from "@/features/brand/api/brands"
 
 interface BrandSwitcherProps {
     brands: Brand[]

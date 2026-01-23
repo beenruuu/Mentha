@@ -33,7 +33,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { AdminPageWrapper } from '@/components/admin/admin-page-wrapper'
-import { adminService, type AuditLogEntry } from '@/lib/services/admin'
+import { adminService, type AuditLogEntry } from '@/features/admin/api/admin'
 import { format, formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
 

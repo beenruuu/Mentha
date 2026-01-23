@@ -8,7 +8,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { UserAvatarMenu } from "@/components/layout/user-avatar-menu"
 import { useTranslations } from "@/lib/i18n"
-import { notificationsService, type Notification } from "@/lib/services/notifications"
+import { notificationsService, type Notification } from "@/features/settings/api/notifications"
 import { format, isToday, isYesterday } from "date-fns"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"

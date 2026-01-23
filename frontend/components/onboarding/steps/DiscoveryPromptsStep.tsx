@@ -163,7 +163,7 @@ export default function DiscoveryPromptsStep() {
                                         onClick={() => togglePrompt(prompt)}
                                         className={`flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all text-sm ${isSelected
                                                 ? 'bg-primary/10 border-primary/30 text-foreground'
-                                                : 'bg-background/50 dark:bg-white/5 border-input text-muted-foreground hover:border-ring hover:text-foreground'
+                                                : 'bg-background hover:bg-zinc-100 dark:hover:bg-zinc-800 border-input text-muted-foreground hover:border-ring hover:text-foreground'
                                             }`}
                                     >
                                         <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${isSelected ? 'bg-primary border-primary' : 'border-input'
@@ -172,7 +172,7 @@ export default function DiscoveryPromptsStep() {
                                                 <div className="w-2 h-2 rounded-sm bg-white" />
                                             )}
                                         </div>
-                                        <span className="flex-1">"{prompt}"</span>
+                                        <span className="flex-1 text-foreground">"{prompt}"</span>
                                         {isSelected && <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" />}
                                     </button>
                                 )

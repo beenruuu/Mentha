@@ -1,14 +1,20 @@
 /**
  * Comprehensive mock data for demo mode
  * Realistic Spanish tech consultancy example
+ * 
+ * Uses centralized types from @/lib/types
  */
 
-import { Brand } from '../services/brands'
-import { Analysis } from '../services/analysis'
-import { Competitor } from '../services/competitors'
-import { Notification } from '../services/notifications'
-import { TechnicalAEO } from '../services/technical-aeo'
-import { VisibilitySnapshot, GEOAnalysisResponse, Recommendation } from '../services/geo-analysis'
+import type { 
+    Brand, 
+    Analysis, 
+    Competitor, 
+    Notification, 
+    TechnicalAEO,
+    VisibilitySnapshot, 
+    GEOAnalysisResponse, 
+    Recommendation 
+} from '../types'
 import { DEMO_BRAND_ID, DEMO_USER_ID } from './constants'
 
 // Demo brand ID (used across all mock data)

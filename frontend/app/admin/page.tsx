@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { AdminClient } from './admin-client'
+import { AdminClient } from '@/features/admin/components/AdminClient'
 
 // Types
 interface AdminPageData {

@@ -1,38 +1,9 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
-import { DashboardClient } from './dashboard-client'
+import { DashboardClient } from '@/features/dashboard/components/DashboardClient'
 import { DEMO_BRAND_ID, DEMO_BRAND_NAME, DEMO_BRAND_DOMAIN } from '@/lib/demo/constants'
-
-// Types for initial data
-export interface Brand {
-    id: string
-    name: string
-    domain: string
-    logo?: string
-    category?: string
-    description?: string
-    user_id: string
-    created_at: string
-    updated_at?: string
-    business_scope?: 'local' | 'regional' | 'national' | 'international'
-    city?: string
-    location?: string
-}
-
-export interface Competitor {
-    id: string
-    brand_id: string
-    name: string
-    domain: string
-    logo?: string
-    source: string
-    visibility_score?: number
-    metrics_breakdown?: Record<string, number>
-    tracked?: boolean
-    updated_at?: string
-    created_at: string
-}
+import type { Brand, Competitor } from '@/lib/types'
 
 export interface ServerDashboardData {
     brands: Brand[]

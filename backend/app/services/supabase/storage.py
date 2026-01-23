@@ -1,9 +1,8 @@
-from supabase import create_client, Client
 from fastapi import UploadFile
 from typing import List, Optional
 import uuid
 
-from app.core.config import settings
+from app.core.supabase import get_supabase_client
 
 
 class SupabaseStorageService:
@@ -16,7 +15,7 @@ class SupabaseStorageService:
         Args:
             bucket_name: The name of the storage bucket (default: "default")
         """
-        self.supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+        self.supabase = get_supabase_client()
         self.bucket_name = bucket_name
 
         # Ensure the bucket exists

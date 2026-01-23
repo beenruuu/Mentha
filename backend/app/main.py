@@ -13,9 +13,11 @@ from app.api.router import api_router
 from app.core.config import settings
 
 app = FastAPI(
-    title="Full Stack App Backend",
-    description="API for the Full Stack Application",
+    title="Mentha API",
+    description="AI Brand Presence Platform - AEO/GEO Optimization",
     version="0.1.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
 )
 
 

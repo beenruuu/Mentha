@@ -13,11 +13,7 @@ export default function OnboardingLayout({
 }) {
     return (
         <OnboardingProvider>
-            <div className="min-h-screen bg-white dark:bg-black flex flex-col">
-                <main className="flex-1 flex flex-col">
-                    {children}
-                </main>
-            </div>
+            {children}
         </OnboardingProvider>
     )
 }

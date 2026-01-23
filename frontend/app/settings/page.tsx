@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
-import { SettingsClient } from './settings-client'
+import { SettingsClient } from '@/features/settings/components/SettingsClient'
 import { DEMO_USER } from '@/lib/demo/constants'
 
 // Types

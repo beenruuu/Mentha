@@ -1,7 +1,6 @@
-from supabase import create_client, Client
 from typing import Dict, List, Any, Optional, TypeVar, Generic, Type
 
-from app.core.config import settings
+from app.core.supabase import get_supabase_client
 
 T = TypeVar("T")
 
@@ -17,7 +16,7 @@ class SupabaseDatabaseService(Generic[T]):
             table_name: The name of the table in Supabase
             model_class: The Pydantic model class for data validation
         """
-        self.supabase: Client = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+        self.supabase = get_supabase_client()
         self.table_name = table_name
         self.model_class = model_class
 

@@ -36,7 +36,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { AdminPageWrapper } from '@/components/admin/admin-page-wrapper'
-import { adminService, type Category, type CategoryCreate, type CategoryUpdate } from '@/lib/services/admin'
+import { adminService, type Category, type CategoryCreate, type CategoryUpdate } from '@/features/admin/api/admin'
 import { toast } from 'sonner'
 import { useTranslations } from '@/lib/i18n'
 

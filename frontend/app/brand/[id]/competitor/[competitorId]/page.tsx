@@ -10,9 +10,9 @@ import { Badge } from '@/components/ui/badge'
 import { AppSidebar } from '@/components/layout/app-sidebar'
 import { UserAvatarMenu } from '@/components/layout/user-avatar-menu'
 import { useTranslations } from '@/lib/i18n'
-import { competitorsService, type Competitor } from '@/lib/services/competitors'
-import { brandsService, type Brand } from '@/lib/services/brands'
-import { geoAnalysisService } from '@/lib/services/geo-analysis'
+import { competitorsService, type Competitor } from '@/features/competitors/api/competitors'
+import { brandsService, type Brand } from '@/features/brand/api/brands'
+import { geoAnalysisService } from '@/features/geo-analysis/api/geo-analysis'
 import {
   Loader2,
   ArrowLeft,

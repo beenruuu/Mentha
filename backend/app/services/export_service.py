@@ -8,6 +8,8 @@ This service provides export capabilities for:
 - Brand mentions
 - Sentiment analysis
 - All data as ZIP
+
+Refactored to use singleton Supabase client.
 """
 
 import io
@@ -17,6 +19,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 
 from app.core.config import settings
+from app.core.supabase import get_supabase_client
 
 
 class ExportService:
@@ -25,7 +28,7 @@ class ExportService:
     """
     
     def __init__(self):
-        pass
+        self._supabase = get_supabase_client()
     
     async def export_keywords(
         self,
@@ -34,12 +37,8 @@ class ExportService:
     ) -> str:
         """Export keywords data as CSV string."""
         try:
-            from supabase import create_client
-            
-            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
-            
             # Get keywords
-            result = supabase.table("keywords").select("*").eq("brand_id", brand_id).execute()
+            result = self._supabase.table("keywords").select("*").eq("brand_id", brand_id).execute()
             keywords = result.data or []
             
             # Create CSV
@@ -80,11 +79,7 @@ class ExportService:
     async def export_competitors(self, brand_id: str) -> str:
         """Export competitors data as CSV string."""
         try:
-            from supabase import create_client
-            
-            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
-            
-            result = supabase.table("competitors").select("*").eq("brand_id", brand_id).execute()
+            result = self._supabase.table("competitors").select("*").eq("brand_id", brand_id).execute()
             competitors = result.data or []
             
             output = io.StringIO()
@@ -128,16 +123,13 @@ class ExportService:
     ) -> str:
         """Export AI visibility history as CSV string."""
         try:
-            from supabase import create_client
             from datetime import timedelta
-            
-            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
             
             # Calculate date range
             end_date = datetime.utcnow()
             start_date = end_date - timedelta(days=days)
             
-            result = supabase.table("ai_visibility_snapshots").select("*").eq(
+            result = self._supabase.table("ai_visibility_snapshots").select("*").eq(
                 "brand_id", brand_id
             ).gte(
                 "measured_at", start_date.isoformat()
@@ -188,15 +180,12 @@ class ExportService:
     ) -> str:
         """Export brand mentions as CSV string."""
         try:
-            from supabase import create_client
             from datetime import timedelta
-            
-            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
             
             end_date = datetime.utcnow()
             start_date = end_date - timedelta(days=days)
             
-            result = supabase.table("brand_mentions").select("*").eq(
+            result = self._supabase.table("brand_mentions").select("*").eq(
                 "brand_id", brand_id
             ).gte(
                 "detected_at", start_date.isoformat()
@@ -239,12 +228,8 @@ class ExportService:
     async def export_prompt_tracking(self, brand_id: str) -> str:
         """Export tracked prompts and their results as CSV."""
         try:
-            from supabase import create_client
-            
-            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
-            
             # Get tracked prompts
-            prompts_result = supabase.table("tracked_prompts").select("*").eq(
+            prompts_result = self._supabase.table("tracked_prompts").select("*").eq(
                 "brand_id", brand_id
             ).execute()
             prompts = prompts_result.data or []
@@ -282,11 +267,7 @@ class ExportService:
     async def export_sentiment_analysis(self, brand_id: str) -> str:
         """Export sentiment analysis history as CSV."""
         try:
-            from supabase import create_client
-            
-            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
-            
-            result = supabase.table("sentiment_analysis").select("*").eq(
+            result = self._supabase.table("sentiment_analysis").select("*").eq(
                 "brand_id", brand_id
             ).order("analyzed_at", desc=True).limit(100).execute()
             
@@ -331,11 +312,7 @@ class ExportService:
         """Export all data as a ZIP file containing multiple CSVs."""
         try:
             # Get brand name for the filename
-            from supabase import create_client
-            
-            supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
-            
-            brand_result = supabase.table("brands").select("name").eq("id", brand_id).single().execute()
+            brand_result = self._supabase.table("brands").select("name").eq("id", brand_id).single().execute()
             brand_name = brand_result.data.get("name", "brand") if brand_result.data else "brand"
             brand_name_safe = "".join(c for c in brand_name if c.isalnum() or c in (' ', '-', '_')).strip()
             

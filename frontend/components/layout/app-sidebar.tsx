@@ -7,7 +7,7 @@ import { useState, useEffect } from "react"
 import { useRouter, usePathname, useSearchParams } from "next/navigation"
 import { useSidebar } from "@/components/ui/sidebar"
 import { useTranslations } from "@/lib/i18n"
-import { brandsService, Brand } from "@/lib/services/brands"
+import { brandsService, Brand } from "@/features/brand/api/brands"
 import { UpgradeModal } from "@/components/shared/upgrade-modal"
 import { RainbowButton } from "@/components/ui/rainbow-button"
 
@@ -43,10 +43,18 @@ export function AppSidebar() {
       try {
         const brands = await brandsService.getAll()
         if (brands.length > 0) {
-          setSelectedBrandId(brandIdFromUrl && brandIdFromUrl !== 'new' ? brandIdFromUrl : brands[0].id)
+          // Validate that brandIdFromUrl exists in the user's brands list
+          const validBrandId = brandIdFromUrl && brandIdFromUrl !== 'new' 
+            && brands.some(b => b.id === brandIdFromUrl)
+              ? brandIdFromUrl 
+              : brands[0].id
+          setSelectedBrandId(validBrandId)
+        } else {
+          setSelectedBrandId(null)
         }
       } catch (error) {
         console.error('Failed to fetch brands:', error)
+        setSelectedBrandId(null)
       }
     }
     fetchDefaultBrand()

@@ -1,8 +1,10 @@
 /**
  * Export Service - Frontend API client for CSV/ZIP exports
+ * 
+ * Uses centralized API configuration.
  */
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+import { API_ROOT_URL } from '@/lib/config/api'
 
 export type ExportType = 'keywords' | 'competitors' | 'visibility' | 'mentions' | 'prompts' | 'sentiment' | 'all'
 
@@ -16,7 +18,7 @@ export const exportService = {
      * Export keywords data as CSV
      */
     async exportKeywords(brandId: string, includeHistory: boolean = false): Promise<Blob> {
-        const url = `${API_URL}/api/export/${brandId}/keywords?include_history=${includeHistory}`
+        const url = `${API_ROOT_URL}/api/export/${brandId}/keywords?include_history=${includeHistory}`
         return await downloadBlob(url)
     },
 
@@ -24,7 +26,7 @@ export const exportService = {
      * Export competitors data as CSV
      */
     async exportCompetitors(brandId: string): Promise<Blob> {
-        const url = `${API_URL}/api/export/${brandId}/competitors`
+        const url = `${API_ROOT_URL}/api/export/${brandId}/competitors`
         return await downloadBlob(url)
     },
 
@@ -32,7 +34,7 @@ export const exportService = {
      * Export visibility history as CSV
      */
     async exportVisibility(brandId: string, days: number = 90): Promise<Blob> {
-        const url = `${API_URL}/api/export/${brandId}/visibility?days=${days}`
+        const url = `${API_ROOT_URL}/api/export/${brandId}/visibility?days=${days}`
         return await downloadBlob(url)
     },
 
@@ -40,7 +42,7 @@ export const exportService = {
      * Export brand mentions as CSV
      */
     async exportMentions(brandId: string, days: number = 90): Promise<Blob> {
-        const url = `${API_URL}/api/export/${brandId}/mentions?days=${days}`
+        const url = `${API_ROOT_URL}/api/export/${brandId}/mentions?days=${days}`
         return await downloadBlob(url)
     },
 
@@ -48,7 +50,7 @@ export const exportService = {
      * Export tracked prompts as CSV
      */
     async exportPrompts(brandId: string): Promise<Blob> {
-        const url = `${API_URL}/api/export/${brandId}/prompts`
+        const url = `${API_ROOT_URL}/api/export/${brandId}/prompts`
         return await downloadBlob(url)
     },
 
@@ -56,7 +58,7 @@ export const exportService = {
      * Export sentiment analysis history as CSV
      */
     async exportSentiment(brandId: string): Promise<Blob> {
-        const url = `${API_URL}/api/export/${brandId}/sentiment`
+        const url = `${API_ROOT_URL}/api/export/${brandId}/sentiment`
         return await downloadBlob(url)
     },
 
@@ -64,7 +66,7 @@ export const exportService = {
      * Export all data as ZIP file
      */
     async exportAll(brandId: string): Promise<Blob> {
-        const url = `${API_URL}/api/export/${brandId}/all`
+        const url = `${API_ROOT_URL}/api/export/${brandId}/all`
         return await downloadBlob(url)
     },
 
@@ -72,7 +74,7 @@ export const exportService = {
      * Generic export function
      */
     async export(brandId: string, type: ExportType, options?: ExportOptions): Promise<Blob> {
-        let url = `${API_URL}/api/export/${brandId}/${type}`
+        let url = `${API_ROOT_URL}/api/export/${brandId}/${type}`
 
         const params = new URLSearchParams()
         if (options?.days) params.append('days', options.days.toString())

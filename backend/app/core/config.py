@@ -1,7 +1,15 @@
+import os
 from typing import List, Union
 
 from pydantic_settings import BaseSettings
 
+# Robustly find the .env file (backend/.env) regardless of CWD
+# __file__ = backend/app/core/config.py
+# dirname = backend/app/core
+# dirname = backend/app
+# dirname = backend
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ENV_PATH = os.path.join(BASE_DIR, ".env")
 
 class Settings(BaseSettings):
     """Application settings."""
@@ -78,11 +86,11 @@ class Settings(BaseSettings):
 
 
     # Redis / Celery
-    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
+    CELERY_BROKER_URL: str = "redis://redis:6379/0"
+    CELERY_RESULT_BACKEND: str = "redis://redis:6379/0"
 
     class Config:
-        env_file = ".env"
+        env_file = ENV_PATH
         case_sensitive = True
 
 

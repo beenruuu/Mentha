@@ -32,8 +32,8 @@ import {
   Area
 } from 'recharts'
 import { AdminPageWrapper } from '@/components/admin/admin-page-wrapper'
-import { StatsGridSkeleton, ChartSkeleton, ListSkeleton } from '@/components/admin/admin-skeletons'
-import { adminService, type OnboardingAnalytics } from '@/lib/services/admin'
+import { StatsGridSkeleton, ChartSkeleton, ListSkeleton } from '@/features/admin/components/admin-skeletons'
+import { adminService, type OnboardingAnalytics } from '@/features/admin/api/admin'
 import { getCountryCode, getCountryName } from '@/lib/utils/countries'
 import FlagIcon from '@/components/shared/flag-icon'
 

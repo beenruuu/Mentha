@@ -46,6 +46,14 @@ export async function fetchAPI<T>(endpoint: string, options: FetchOptions = {}):
         ? errorData.detail
         : (typeof errorData.detail === 'object' ? JSON.stringify(errorData.detail) : null);
 
+      // Handle specific invalid session error from backend
+      if (response.status === 401 && errorMessage?.includes('Session from session_id claim in JWT does not exist')) {
+        if (typeof window !== 'undefined') {
+          await supabase.auth.signOut();
+          window.location.href = '/auth/login';
+        }
+      }
+
       throw new Error(errorMessage || `API Error: ${response.statusText}`);
     }
 

@@ -247,7 +247,17 @@ export default function BrandProfileStep() {
     }
 
     const handleNext = async () => {
+        // Validation: Name, Domain, AND Category (Sector) are mandatory
         if (!brandProfile.name || !brandProfile.domain) return
+        
+        // Check if at least one category is selected (either predefined or custom)
+        const hasCategories = selectedCategories.length > 0 || customCategories.length > 0
+        if (!hasCategories) {
+            setError(lang === 'es' 
+                ? 'Por favor, selecciona al menos un sector o categoría.' 
+                : 'Please select at least one industry or category.')
+            return
+        }
 
         setIsCreating(true)
         setError('')

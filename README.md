@@ -7,6 +7,16 @@
 
 ---
 
+## 📚 Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Quick Start](docs/QUICKSTART.md) | Get running in 5 minutes |
+| [Architecture](docs/ARCHITECTURE.md) | Full technical architecture |
+| [Contributing](CONTRIBUTING.md) | How to contribute |
+
+---
+
 ## 🎯 Core Capabilities
 
 ### AI Presence Audit

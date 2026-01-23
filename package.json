@@ -1,6 +1,24 @@
 {
+  "name": "mentha",
+  "version": "0.1.0",
+  "private": true,
+  "description": "AI Brand Presence Platform - AEO/GEO Optimization",
+  "scripts": {
+    "dev": "cd frontend && pnpm run dev",
+    "build": "cd frontend && pnpm run build",
+    "start": "python start.py",
+    "setup": "python setup.py",
+    "install:frontend": "cd frontend && pnpm install",
+    "install:backend": "cd backend && pip install -r requirements.txt"
+  },
   "dependencies": {
-    "@paper-design/shaders-react": "^0.0.68"
+    "@paper-design/shaders-react": "^0.0.68",
+    "@types/react-beautiful-dnd": "^13.1.8",
+    "react-beautiful-dnd": "^13.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=9.0.0"
   },
   "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
 }

@@ -12,8 +12,8 @@ import { Label } from "@/components/ui/label"
 import { SidebarTrigger, SidebarProvider } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/layout/app-sidebar"
 import { UserAvatarMenu } from "@/components/layout/user-avatar-menu"
-import { analysisService } from "@/lib/services/analysis"
-import { brandsService } from "@/lib/services/brands"
+import { analysisService } from "@/features/analysis/api/analysis"
+import { brandsService } from "@/features/brand/api/brands"
 import { useToast } from "@/hooks/use-toast"
 
 export default function CreateBrandPage() {

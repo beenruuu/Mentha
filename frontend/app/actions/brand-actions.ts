@@ -2,28 +2,10 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { serverFetchAPI, requireAuth } from '@/lib/server-api-client'
+import type { Brand, BrandWithAnalysis } from '@/lib/types'
 
-// Types
-export interface Brand {
-    id: string
-    name: string
-    domain: string
-    logo?: string
-    category?: string
-    description?: string
-    user_id: string
-    created_at: string
-    updated_at?: string
-}
-
-export interface BrandWithAnalysis extends Brand {
-    latest_analysis?: {
-        id: string
-        overall_score: number
-        grade: string
-        created_at: string
-    }
-}
+// Re-export types for backward compatibility
+export type { Brand, BrandWithAnalysis }
 
 /**
  * Get all brands for the current user

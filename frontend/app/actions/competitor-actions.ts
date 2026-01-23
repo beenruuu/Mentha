@@ -2,17 +2,10 @@
 
 import { revalidatePath } from 'next/cache'
 import { serverFetchAPI, requireAuth } from '@/lib/server-api-client'
+import type { Competitor } from '@/lib/types'
 
-export interface Competitor {
-    id: string
-    brand_id: string
-    name: string
-    domain: string
-    logo?: string
-    source: string
-    confidence?: 'high' | 'medium' | 'low'
-    created_at: string
-}
+// Re-export type for backward compatibility
+export type { Competitor }
 
 /**
  * Get competitors for a brand

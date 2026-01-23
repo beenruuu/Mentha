@@ -5,9 +5,9 @@ Provides endpoints for admin dashboard functionality
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from typing import Optional
-from supabase import create_client
 
 from app.core.config import settings
+from app.core.supabase import get_supabase_client
 from app.services.supabase.auth import SupabaseAuthService, get_auth_service
 from app.crud.admin import AdminCRUD
 from app.models.admin import (
@@ -27,11 +27,6 @@ ALLOWED_ADMIN_EMAILS = [
     for email in settings.ADMIN_EMAILS.split(",") 
     if email.strip()
 ]
-
-
-def get_supabase_client():
-    """Get Supabase client instance"""
-    return create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
 
 
 async def get_admin_crud():

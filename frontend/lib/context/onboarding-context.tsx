@@ -7,6 +7,7 @@ export type OnboardingStep =
     | 'company'          // Paso 2: URL sitio web, ubicación
     | 'brand-profile'    // Paso 3: Logo, nombre, dominio, categoría, descripción
     | 'competitors'      // Paso 4: Competidores detectados
+    | 'discovery-prompts' // Paso 5: Prompts de descubrimiento
     | 'schedule'         // Paso 6: Configuración de modelos IA
     | 'setup'            // Paso 7: Activación y procesamiento
 
@@ -163,6 +164,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         'company',
         'brand-profile',
         'competitors',
+        'discovery-prompts',
         'schedule',
         'setup'
     ]
