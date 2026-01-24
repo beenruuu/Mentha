@@ -335,3 +335,63 @@ Importante:
             PromptItem(text=f"{request.industry or 'servicios'} cerca de mi", type="non-branded"),
         ]
         return GeneratePromptsResponse(prompts=fallback)
+
+
+@router.get("/system-status")
+async def get_system_status(
+    current_user: UserProfile = Depends(get_current_user)
+) -> dict:
+    """
+    Get system configuration status.
+    Checks if all required services are properly configured.
+    Useful for debugging and ensuring the platform is ready.
+    """
+    from app.core.config import settings
+    from app.services.scraper import get_unified_scraper
+    
+    # Check LLM configuration
+    llm_status = {
+        "openai_configured": bool(settings.OPENAI_API_KEY),
+        "anthropic_configured": bool(settings.ANTHROPIC_API_KEY),
+        "openrouter_configured": bool(settings.OPENROUTER_API_KEY),
+        "any_llm_available": bool(settings.OPENAI_API_KEY or settings.ANTHROPIC_API_KEY or settings.OPENROUTER_API_KEY)
+    }
+    
+    # Check scraper configuration
+    scraper = get_unified_scraper()
+    scraper_status = scraper.get_status()
+    
+    # Check AI visibility configuration
+    visibility_status = {
+        "enabled": settings.AI_VISIBILITY_ENABLED,
+        "perplexity_configured": bool(settings.PERPLEXITY_API_KEY),
+        "gemini_configured": bool(settings.GEMINI_API_KEY)
+    }
+    
+    # Check database configuration
+    db_status = {
+        "supabase_configured": bool(settings.SUPABASE_URL and settings.SUPABASE_SERVICE_KEY),
+        "qdrant_configured": bool(settings.QDRANT_URL and settings.QDRANT_API_KEY)
+    }
+    
+    # Overall health
+    is_healthy = (
+        llm_status["any_llm_available"] and
+        db_status["supabase_configured"]
+    )
+    
+    return {
+        "status": "healthy" if is_healthy else "degraded",
+        "llm": llm_status,
+        "scraper": scraper_status,
+        "visibility": visibility_status,
+        "database": db_status,
+        "environment": settings.ENVIRONMENT,
+        "demo_mode": settings.DEMO_MODE,
+        "warnings": [
+            "No LLM configured - analysis will fail" if not llm_status["any_llm_available"] else None,
+            "Scraper using Playwright fallback (Firecrawl unavailable)" if scraper_status.get("active_backend") == "playwright" else None,
+            "AI visibility features limited (no Perplexity/Gemini keys)" if not (visibility_status["perplexity_configured"] or visibility_status["gemini_configured"]) else None
+        ]
+    }
+

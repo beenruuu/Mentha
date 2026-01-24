@@ -25,6 +25,8 @@ from app.api.endpoints import (
     analysis_onboarding,
     crawler_logs,
     knowledge_graph,
+    agent_analytics,
+    activities,
 )
 
 # New Clean Architecture Controllers
@@ -79,4 +81,10 @@ api_router.include_router(crawler_logs.router, tags=["Crawler Logs"])
 
 # Knowledge Graph - Entity visualization and graph data
 api_router.include_router(knowledge_graph.router, tags=["Knowledge Graph"])
+
+# Agent Analytics - Real-time AI crawler metrics, IP verification, semantic cache
+api_router.include_router(agent_analytics.router, tags=["Agent Analytics"])
+
+# Activity Logs - Real-time activity logging for frontend
+api_router.include_router(activities.router, prefix="/activities", tags=["Activity Logs"])
 

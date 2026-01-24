@@ -130,4 +130,116 @@ export const geoAnalysisService = {
     getCompetitorAnalysis: async (brandId: string, competitorId: string): Promise<any> => {
         return fetchAPI<any>(`/geo-analysis/brands/${brandId}/competitors/${competitorId}/analysis`)
     },
+
+    /**
+     * Get enhanced GEO/AEO data (SSoV, Entity Gaps, RAG Simulation, Hallucination metrics)
+     */
+    getEnhancedGEO: async (brandId: string): Promise<EnhancedGEOData | null> => {
+        try {
+            return await fetchAPI<EnhancedGEOData>(`/geo-analysis/brands/${brandId}/enhanced-geo`)
+        } catch (error: any) {
+            if (error.response?.status === 404) {
+                return null
+            }
+            console.log('Enhanced GEO data not available yet')
+            return null
+        }
+    },
+}
+
+// Enhanced GEO Types
+export interface EnhancedGEOData {
+    ssov: SSoVData | null
+    ssov_score: number
+    entity_gaps: EntityGapsData | null
+    high_priority_gaps: number
+    rag_simulation: RAGSimulationData | null
+    retrieval_readiness: number
+    hallucination_analysis: HallucinationMetricsData | null
+    hallucination_risk: 'low' | 'medium' | 'high' | 'critical' | 'unknown'
+    entity_resolution: EntityResolutionData | null
+    knowledge_graph_grounded: boolean
+    voice_profile: VoiceProfileData | null
+    voice_dimensions: VoiceDimensionsData | null
+    geo_readiness_score: number
+    recommendations: Array<{
+        source: string
+        priority: string
+        category: string
+        recommendation: string
+        entity?: string
+    }>
+    // Legacy field for backwards compatibility
+    hallucination_metrics?: HallucinationMetricsData | null
+}
+
+export interface EntityResolutionData {
+    brand_name: string
+    brand_domain: string
+    is_known_entity: boolean
+    ambiguity_level: string
+    recommended_same_as: string[]
+    disambiguation_needed: boolean
+}
+
+export interface VoiceDimensionsData {
+    formality: number
+    technical_depth: number
+    complexity: number
+    vocabulary_level: number
+    sentiment: number
+}
+
+export interface VoiceProfileData {
+    content_id: string
+    content_title: string
+    word_count: number
+    sentence_count: number
+    scores: {
+        formality: number
+        technical: number
+        sentiment: number
+        complexity: number
+        vocabulary: number
+    }
+}
+
+export interface SSoVData {
+    overall_ssov: number
+    model_breakdown: Record<string, {
+        ssov: number
+        mentions: number
+        sentiment: number
+        prominence: number
+    }>
+    competitor_comparison: Record<string, number>
+    trend: number
+}
+
+export interface EntityGapsData {
+    gaps: Array<{
+        entity: string
+        entity_type: string
+        priority: 'critical' | 'high' | 'medium' | 'low'
+        competitors_using: string[]
+        suggested_context: string
+    }>
+    coverage_score: number
+    entity_diversity: number
+}
+
+export interface RAGSimulationData {
+    chunks_analyzed: number
+    avg_retrieval_score: number
+    top_performing_sections: string[]
+    weak_sections: string[]
+    recommendations: string[]
+}
+
+export interface HallucinationMetricsData {
+    faithfulness: number
+    answer_relevancy: number
+    context_precision: number
+    context_recall: number
+    overall_score: number
 }

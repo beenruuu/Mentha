@@ -1,10 +1,10 @@
 """
 Web Search Service - Wrapper for web search and business info extraction.
-Uses Firecrawl for web search and LLM for entity extraction.
+Uses UnifiedScraper (Firecrawl with Playwright fallback) for web search and LLM for entity extraction.
 """
 import logging
 from typing import Dict, Any, List, Optional
-from app.services.firecrawl_service import FirecrawlService
+from app.services.scraper import get_unified_scraper, UnifiedScraper
 from app.services.llm.llm_service import LLMService, LLMServiceFactory
 
 logger = logging.getLogger(__name__)
@@ -13,12 +13,13 @@ logger = logging.getLogger(__name__)
 class WebSearchService:
     """
     Service for web search operations and business info extraction.
-    Wraps Firecrawl for search and uses LLM for intelligent extraction.
+    Uses UnifiedScraper (auto-fallback: Firecrawl -> Playwright) for web search.
     """
     
     def __init__(self):
-        self.firecrawl = FirecrawlService()
+        self.scraper = get_unified_scraper()
         self.llm_service: Optional[LLMService] = None
+        logger.info("[WebSearchService] 🔧 Initialized with UnifiedScraper (auto-fallback enabled)")
     
     def set_llm_service(self, llm_service: LLMService):
         """Set the LLM service to use for extraction."""
@@ -154,12 +155,14 @@ Return ONLY valid JSON, no markdown or explanation."""
             if language == "es":
                 competitor_query = f"empresas de {industry} como {brand_name}" if industry else f"competidores de {brand_name}"
             
-            comp_results = await self.firecrawl.search_web(
+            logger.info(f"[WebSearch] 🔍 Searching competitors: {competitor_query}")
+            comp_results = await self.scraper.search_web(
                 query=competitor_query,
                 limit=10,
                 lang=language,
                 country=country.lower()
             )
+            logger.info(f"[WebSearch] ✅ Competitor search: backend={comp_results.get('backend', 'unknown')}, results={len(comp_results.get('data', []))}")
             
             if comp_results.get("success") and comp_results.get("data"):
                 for r in comp_results["data"]:
@@ -178,12 +181,14 @@ Return ONLY valid JSON, no markdown or explanation."""
             if language == "es":
                 keyword_query = f"mejores servicios de {industry}" if industry else f"tendencias {brand_name}"
             
-            kw_results = await self.firecrawl.search_web(
+            logger.info(f"[WebSearch] 🔍 Searching keywords: {keyword_query}")
+            kw_results = await self.scraper.search_web(
                 query=keyword_query,
                 limit=5,
                 lang=language,
                 country=country.lower()
             )
+            logger.info(f"[WebSearch] ✅ Keyword search: backend={kw_results.get('backend', 'unknown')}, results={len(kw_results.get('data', []))}")
             
             if kw_results.get("success") and kw_results.get("data"):
                 for r in kw_results["data"]:
@@ -195,12 +200,14 @@ Return ONLY valid JSON, no markdown or explanation."""
             
             # 3. Search for brand mentions
             mention_query = f'"{brand_name}" reviews OR mentions'
-            mention_results = await self.firecrawl.search_web(
+            logger.info(f"[WebSearch] 🔍 Searching mentions: {mention_query}")
+            mention_results = await self.scraper.search_web(
                 query=mention_query,
                 limit=5,
                 lang=language,
                 country=country.lower()
             )
+            logger.info(f"[WebSearch] ✅ Mention search: backend={mention_results.get('backend', 'unknown')}, results={len(mention_results.get('data', []))}")
             
             if mention_results.get("success") and mention_results.get("data"):
                 for r in mention_results["data"]:
@@ -212,7 +219,7 @@ Return ONLY valid JSON, no markdown or explanation."""
                             "description": r.get("description", "")
                         })
             
-            logger.info(f"[WebSearch] Found {len(results['competitor_results'])} competitors, "
+            logger.info(f"[WebSearch] 📊 Summary: {len(results['competitor_results'])} competitors, "
                        f"{len(results['keyword_results'])} keywords, "
                        f"{len(results['mention_results'])} mentions")
             
@@ -255,10 +262,9 @@ Return ONLY valid JSON, no markdown or explanation."""
         """
         competitors = []
         
-        # Check if Firecrawl is configured
-        if not self.firecrawl.api_key:
-            logger.warning("[WebSearch] FIRECRAWL_API_KEY not configured - cannot search for competitors")
-            return []
+        # Log scraper status (no longer blocks if Firecrawl is unavailable)
+        scraper_status = self.scraper.get_status()
+        logger.info(f"[WebSearch] 🔧 Scraper status: {scraper_status}")
         
         try:
             # Build search query based on scope
@@ -276,16 +282,16 @@ Return ONLY valid JSON, no markdown or explanation."""
                 services_str = ", ".join(services[:3])
                 query += f" {services_str}"
             
-            logger.info(f"[WebSearch] Searching competitors with query: {query}")
+            logger.info(f"[WebSearch] 🔍 Searching competitors with query: {query}")
             
-            results = await self.firecrawl.search_web(
+            results = await self.scraper.search_web(
                 query=query,
                 limit=max_results * 2,  # Get extra to filter
                 lang=language,
                 country=country.lower()
             )
             
-            logger.info(f"[WebSearch] Firecrawl result: success={results.get('success')}, data_count={len(results.get('data', []))}")
+            logger.info(f"[WebSearch] ✅ Search result: backend={results.get('backend', 'unknown')}, success={results.get('success')}, data_count={len(results.get('data', []))}")
             
             if results.get("success") and results.get("data"):
                 seen_domains = set()

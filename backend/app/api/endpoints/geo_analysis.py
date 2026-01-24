@@ -555,3 +555,118 @@ async def get_dashboard_data(
         logger.error(f"Error fetching dashboard data: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@router.get("/brands/{brand_id}/enhanced-geo")
+async def get_enhanced_geo_data(
+    brand_id: UUID,
+    current_user: UserProfile = Depends(get_current_user)
+) -> Dict[str, Any]:
+    """
+    Get Enhanced GEO/AEO analysis data.
+    
+    Returns comprehensive enhanced metrics including:
+    - SSoV (Semantic Share of Voice)
+    - Entity Gaps analysis
+    - RAG Simulation results
+    - Hallucination prevention metrics
+    - GEO Readiness score
+    """
+    auth_service = get_auth_service()
+    crud = get_geo_crud(auth_service.supabase)
+    
+    try:
+        enhanced_geo = None
+        
+        # First try geo_analysis_results table
+        latest_analysis = await crud.get_latest_geo_analysis(str(brand_id))
+        if latest_analysis:
+            enhanced_geo = latest_analysis.get("enhanced_geo") or latest_analysis.get("modules", {}).get("enhanced_geo")
+        
+        # Fallback to aeo_analyses table where enhanced_geo is stored during normal analysis
+        if not enhanced_geo:
+            analysis_response = auth_service.supabase.table("aeo_analyses")\
+                .select("results")\
+                .eq("brand_id", str(brand_id))\
+                .order("created_at", desc=True)\
+                .limit(1)\
+                .execute()
+            
+            if analysis_response.data:
+                results = analysis_response.data[0].get("results") or {}
+                enhanced_geo = results.get("enhanced_geo") if isinstance(results, dict) else None
+        
+        if not enhanced_geo or enhanced_geo.get("error"):
+            # Try to run enhanced analysis if not available
+            try:
+                from app.services.analysis.enhanced_pipeline import get_enhanced_pipeline
+                pipeline = get_enhanced_pipeline()
+                
+                # Get brand info
+                brand_response = auth_service.supabase.table("brands")\
+                    .select("name, domain, industry")\
+                    .eq("id", str(brand_id))\
+                    .single()\
+                    .execute()
+                
+                if not brand_response.data:
+                    raise HTTPException(status_code=404, detail="Brand not found")
+                
+                brand = brand_response.data
+                
+                # Get competitors
+                competitors_response = auth_service.supabase.table("competitors")\
+                    .select("name, domain")\
+                    .eq("brand_id", str(brand_id))\
+                    .execute()
+                
+                competitors = [c["name"] for c in (competitors_response.data or [])]
+                
+                # Get latest analysis data for context
+                analysis_data = {
+                    "brand_id": str(brand_id),
+                    "brand_name": brand["name"],
+                    "domain": brand["domain"],
+                    "industry": brand.get("industry", ""),
+                    "competitors": competitors,
+                    "modules": latest_analysis.get("modules", {})
+                }
+                
+                # Run enhanced analysis (async)
+                enhanced_geo = await pipeline.run_enhanced_analysis(analysis_data)
+                
+            except Exception as e:
+                logger.warning(f"Could not run enhanced analysis: {e}")
+                # Return empty structure
+                enhanced_geo = {
+                    "ssov": None,
+                    "entity_gaps": None,
+                    "rag_simulation": None,
+                    "hallucination_metrics": None,
+                    "geo_readiness_score": 0,
+                    "recommendations": []
+                }
+        
+        # Ensure proper structure (map to frontend expected fields)
+        return {
+            "ssov": enhanced_geo.get("ssov"),
+            "ssov_score": enhanced_geo.get("ssov_score", 0),
+            "entity_gaps": enhanced_geo.get("entity_gaps"),
+            "high_priority_gaps": enhanced_geo.get("high_priority_gaps", 0),
+            "rag_simulation": enhanced_geo.get("rag_simulation"),
+            "retrieval_readiness": enhanced_geo.get("retrieval_readiness", 0),
+            "hallucination_analysis": enhanced_geo.get("hallucination_analysis"),
+            "hallucination_risk": enhanced_geo.get("hallucination_risk", "unknown"),
+            "entity_resolution": enhanced_geo.get("entity_resolution"),
+            "knowledge_graph_grounded": enhanced_geo.get("knowledge_graph_grounded", False),
+            "voice_profile": enhanced_geo.get("voice_profile"),
+            "voice_dimensions": enhanced_geo.get("voice_dimensions"),
+            "geo_readiness_score": enhanced_geo.get("geo_readiness_score", 0),
+            "recommendations": enhanced_geo.get("recommendations", [])
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error fetching enhanced GEO data: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+

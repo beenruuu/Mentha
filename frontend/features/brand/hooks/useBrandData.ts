@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { fetchAPI } from '@/lib/api-client'
 import { competitorsService, type Competitor } from '@/features/competitors/api/competitors'
-import { geoAnalysisService } from '@/features/geo-analysis/api/geo-analysis'
+import { geoAnalysisService, type EnhancedGEOData } from '@/features/geo-analysis/api/geo-analysis'
 import { insightsService } from '@/features/dashboard/api/insights'
 import { brandsService, type Brand } from '@/features/brand/api/brands'
 
@@ -39,7 +39,7 @@ export function useBrandData({
     const [sentiment, setSentiment] = useState<any>(null)
     const [hallucinations, setHallucinations] = useState<any[]>([])
     const [prompts, setPrompts] = useState<any[]>([])
-
+    const [enhancedGEO, setEnhancedGEO] = useState<EnhancedGEOData | null>(null)
     // Data Loading Logic - runs client-side for fast initial render
     const loadBrandData = useCallback(async () => {
         try {
@@ -52,7 +52,8 @@ export function useBrandData({
                 visibilityResult,
                 citationsResult,
                 technicalAeoResult,
-                latestAnalysisResult
+                latestAnalysisResult,
+                enhancedGEOResult
             ] = await Promise.allSettled([
                 brandsService.getAll(),
                 insightsService.getInsights(brandId),
@@ -60,7 +61,8 @@ export function useBrandData({
                 geoAnalysisService.getVisibilityData(brandId),
                 geoAnalysisService.getCitations(brandId),
                 geoAnalysisService.getTechnicalAEO(brandId),
-                geoAnalysisService.getLatestAnalysis(brandId)
+                geoAnalysisService.getLatestAnalysis(brandId),
+                geoAnalysisService.getEnhancedGEO(brandId)
             ])
 
             // Process results
@@ -164,6 +166,11 @@ export function useBrandData({
             
             setRecommendations(newRecommendations)
 
+            // Process Enhanced GEO Data
+            if (enhancedGEOResult.status === 'fulfilled' && enhancedGEOResult.value) {
+                setEnhancedGEO(enhancedGEOResult.value)
+            }
+
             // Load prompts
             try {
                 const promptsData = await fetchAPI<{ prompts: any[] }>(`/prompts/${brandId}`)
@@ -242,6 +249,7 @@ export function useBrandData({
         prompts,
         recommendations,
         technicalAeo,
+        enhancedGEO,
         loading,
         analyzing,
         analysisTrigger,

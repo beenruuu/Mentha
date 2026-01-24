@@ -6,12 +6,33 @@ warnings.filterwarnings("ignore", category=DeprecationWarning, module="pytrends"
 warnings.filterwarnings("ignore", category=FutureWarning, module="pytrends")
 warnings.filterwarnings("ignore", category=ResourceWarning)
 
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.core.config import settings
 from app.middleware.ai_content_negotiation import AIContentNegotiationMiddleware
+from app.middleware.agent_analytics import (
+    AgentAnalyticsMiddleware,
+    set_agent_analytics_middleware
+)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager for startup/shutdown events."""
+    # Startup
+    # Initialize services that need async setup
+    # (Redis connections, etc. can be initialized here)
+    yield
+    # Shutdown
+    # Cleanup resources
+    from app.middleware.agent_analytics import get_agent_analytics_middleware
+    middleware = get_agent_analytics_middleware()
+    if middleware:
+        await middleware.shutdown()
+
 
 app = FastAPI(
     title="Mentha API",
@@ -19,6 +40,7 @@ app = FastAPI(
     version="0.1.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 
@@ -32,6 +54,19 @@ app.add_middleware(
     expose_headers=["Content-Type", "Authorization"],
     max_age=600,  # 10 minutes cache for preflight requests
 )
+
+# Agent Analytics Middleware - Tracks AI crawler visits server-side
+# Captures GPTBot, ClaudeBot, PerplexityBot, etc. that don't execute JavaScript
+_agent_middleware = AgentAnalyticsMiddleware(
+    app.router,
+    enabled=True,
+    log_all_requests=False,
+    excluded_paths=["/health", "/docs", "/redoc", "/openapi.json", "/_next/", "/static/"],
+    buffer_size=100,
+    flush_interval=5.0
+)
+app.add_middleware(AgentAnalyticsMiddleware)
+set_agent_analytics_middleware(_agent_middleware)
 
 # AI Content Negotiation Middleware - Serves Markdown to AI bots (GPTBot, ClaudeBot, etc.)
 # This enables "Markdown Twins" pattern for GEO optimization

@@ -42,6 +42,8 @@ import { useDashboardData } from "@/features/dashboard/hooks/useDashboardData"
 import { DashboardChart, AI_PROVIDER_META } from "./DashboardChart"
 import { CompetitorPerformance } from "./CompetitorPerformance"
 import { ModelPerformance } from "./ModelPerformance"
+import { GEOReadinessCard } from "./GEOReadinessCard"
+import { SSoVCard } from "./SSoVCard"
 
 type Period = 'last_week' | 'last_month' | 'last_quarter'
 type ChartType = 'line' | 'area'
@@ -75,6 +77,7 @@ export function DashboardClient(props: DashboardClientProps) {
         analysis,
         chartData,
         modelPerformance,
+        enhancedGEO,
         loading,
         handleBrandChange: onBrandChange,
         handleDeleteBrand
@@ -358,6 +361,22 @@ export function DashboardClient(props: DashboardClientProps) {
                                     <InsightsCard brandId={selectedBrand.id} />
                                 )}
 
+                                {/* GEO Readiness Score - Only show if data available */}
+                                {enhancedGEO && (
+                                    <GEOReadinessCard 
+                                        score={enhancedGEO.geo_readiness_score}
+                                        metrics={{
+                                            entityResolution: enhancedGEO.knowledge_graph_grounded ? 75 : 25,
+                                            ragSimulation: enhancedGEO.retrieval_readiness ?? (enhancedGEO.rag_simulation?.avg_retrieval_score ?? 0),
+                                            hallucinationPrevention: (enhancedGEO.hallucination_analysis?.overall_score ?? enhancedGEO.hallucination_metrics?.overall_score ?? 50),
+                                            ssov: enhancedGEO.ssov_score ?? (enhancedGEO.ssov?.overall_ssov ?? 0),
+                                            entityGaps: Math.max(0, 100 - (enhancedGEO.high_priority_gaps ?? (enhancedGEO.entity_gaps?.gaps?.length ?? 0)) * 10)
+                                        }}
+                                        recommendations={enhancedGEO.recommendations}
+                                        compact={true}
+                                    />
+                                )}
+
                                 {selectedBrand && selectedBrand.business_scope === 'international' && (
                                     <div className="grid grid-cols-2 gap-6">
                                         <LanguageComparisonCard brandId={selectedBrand.id} />
@@ -409,6 +428,17 @@ export function DashboardClient(props: DashboardClientProps) {
                             )}
                             
                             <ModelPerformance modelPerformance={modelPerformance} />
+
+                            {/* SSoV Card - Only show if data available */}
+                            {enhancedGEO?.ssov && (
+                                <SSoVCard
+                                    ssov={enhancedGEO.ssov.overall_ssov}
+                                    modelBreakdown={enhancedGEO.ssov.model_breakdown}
+                                    competitorComparison={enhancedGEO.ssov.competitor_comparison}
+                                    trend={enhancedGEO.ssov.trend}
+                                    compact={true}
+                                />
+                            )}
 
                         </div>
 

@@ -72,6 +72,7 @@ export function BrandClient(props: UseBrandDataProps) {
         sentiment,
         prompts,
         recommendations,
+        enhancedGEO,
         loading,
         analyzing,
         analysisTrigger,
@@ -108,6 +109,7 @@ export function BrandClient(props: UseBrandDataProps) {
                         hallucinations={hallucinations}
                         sentiment={sentiment}
                         prompts={prompts}
+                        enhancedGEO={enhancedGEO}
                     />
                 )
             case 'optimize':

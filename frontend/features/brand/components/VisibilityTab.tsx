@@ -9,9 +9,16 @@ import {
     CheckCircle2,
     XCircle,
     ExternalLink,
-    Search
+    Search,
+    Sparkles
 } from 'lucide-react'
 import { useTranslations } from '@/lib/i18n'
+import type { EnhancedGEOData } from '@/features/geo-analysis/api/geo-analysis'
+
+// Import GEO Components
+import { GEOReadinessCard } from '@/features/dashboard/components/GEOReadinessCard'
+import { SSoVCard } from '@/features/dashboard/components/SSoVCard'
+import { EntityGapsCard } from '@/features/dashboard/components/EntityGapsCard'
 
 // AI Provider metadata - matches dashboard exactly
 const AI_PROVIDERS = [
@@ -29,6 +36,7 @@ interface VisibilityTabProps {
     sentiment?: any
     prompts?: any[]
     modelSentiments?: Record<string, any>
+    enhancedGEO?: EnhancedGEOData | null
 }
 
 export function VisibilityTab({
@@ -38,7 +46,8 @@ export function VisibilityTab({
     hallucinations = [],
     sentiment,
     prompts = [],
-    modelSentiments = {}
+    modelSentiments = {},
+    enhancedGEO = null
 }: VisibilityTabProps) {
     const { t } = useTranslations()
     const [subTab, setSubTab] = useState('citations')
@@ -84,6 +93,10 @@ export function VisibilityTab({
                     </TabsTrigger>
                     <TabsTrigger value="prompts" className="text-xs px-3 rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800">
                         Queries {prompts.length > 0 && <Badge variant="secondary" className="ml-1.5 h-4 px-1 text-[10px]">{prompts.length}</Badge>}
+                    </TabsTrigger>
+                    <TabsTrigger value="geo" className="text-xs px-3 rounded-md data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800">
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        GEO {enhancedGEO && <Badge variant="secondary" className="ml-1.5 h-4 px-1 text-[10px] bg-emerald-100 text-emerald-700">{Math.round(enhancedGEO.geo_readiness_score)}%</Badge>}
                     </TabsTrigger>
                 </TabsList>
 
@@ -298,7 +311,129 @@ export function VisibilityTab({
                         </div>
                     )}
                 </TabsContent>
-            </Tabs>
+                {/* GEO Tab - Enhanced GEO/AEO Metrics */}
+                <TabsContent value="geo" className="mt-4">
+                    {!enhancedGEO ? (
+                        <Card className="border-gray-200 dark:border-gray-800">
+                            <CardContent className="py-16 text-center space-y-3">
+                                <div className="w-12 h-12 bg-gradient-to-br from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 rounded-full flex items-center justify-center mx-auto">
+                                    <Sparkles className="h-6 w-6 text-emerald-500" />
+                                </div>
+                                <p className="text-sm text-gray-500 font-medium">Sin datos GEO disponibles</p>
+                                <p className="text-xs text-gray-400 max-w-[280px] mx-auto">
+                                    Ejecuta un análisis completo para obtener métricas avanzadas de GEO/AEO: SSoV, Entity Gaps, y RAG Simulation.
+                                </p>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        <div className="space-y-6">
+                            {/* GEO Readiness Score */}
+                            <GEOReadinessCard 
+                                score={enhancedGEO.geo_readiness_score}
+                                metrics={{
+                                    entityResolution: enhancedGEO.entity_gaps?.coverage_score ?? 0,
+                                    ragSimulation: enhancedGEO.rag_simulation?.avg_retrieval_score ?? 0,
+                                    hallucinationPrevention: enhancedGEO.hallucination_metrics?.overall_score ?? 0,
+                                    ssov: enhancedGEO.ssov?.overall_ssov ?? 0,
+                                    entityGaps: 100 - (enhancedGEO.entity_gaps?.gaps?.length ?? 0) * 5
+                                }}
+                                recommendations={enhancedGEO.recommendations}
+                            />
+
+                            {/* SSoV and Entity Gaps side by side */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {enhancedGEO.ssov && (
+                                    <SSoVCard
+                                        ssov={enhancedGEO.ssov.overall_ssov}
+                                        modelBreakdown={enhancedGEO.ssov.model_breakdown}
+                                        competitorComparison={enhancedGEO.ssov.competitor_comparison}
+                                        trend={enhancedGEO.ssov.trend}
+                                    />
+                                )}
+
+                                {enhancedGEO.entity_gaps && (
+                                    <EntityGapsCard
+                                        gaps={enhancedGEO.entity_gaps.gaps}
+                                        coverageScore={enhancedGEO.entity_gaps.coverage_score}
+                                        entityDiversity={enhancedGEO.entity_gaps.entity_diversity}
+                                    />
+                                )}
+                            </div>
+
+                            {/* RAG Simulation Results */}
+                            {enhancedGEO.rag_simulation && (
+                                <Card className="border-gray-200 dark:border-gray-800">
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                            <span className="w-2 h-2 bg-blue-500 rounded-full" />
+                                            RAG Simulation Results
+                                        </CardTitle>
+                                        <CardDescription className="text-xs">
+                                            Simulated retrieval performance for your content chunks
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="space-y-4">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="text-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                                                <p className="text-2xl font-bold text-blue-600">{enhancedGEO.rag_simulation.chunks_analyzed ?? 0}</p>
+                                                <p className="text-xs text-gray-500">Chunks Analyzed</p>
+                                            </div>
+                                            <div className="text-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                                                <p className="text-2xl font-bold text-emerald-600">{Math.round((enhancedGEO.rag_simulation.avg_retrieval_score ?? 0) * 100)}%</p>
+                                                <p className="text-xs text-gray-500">Avg Retrieval Score</p>
+                                            </div>
+                                        </div>
+
+                                        {(enhancedGEO.rag_simulation.weak_sections?.length ?? 0) > 0 && (
+                                            <div>
+                                                <p className="text-xs font-medium text-gray-500 mb-2">Sections to Improve:</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {enhancedGEO.rag_simulation.weak_sections?.map((section, i) => (
+                                                        <Badge key={i} variant="outline" className="text-xs border-orange-200 text-orange-600">
+                                                            {section}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            )}
+
+                            {/* Hallucination Metrics */}
+                            {enhancedGEO.hallucination_metrics && (
+                                <Card className="border-gray-200 dark:border-gray-800">
+                                    <CardHeader className="pb-3">
+                                        <CardTitle className="text-sm font-medium flex items-center gap-2">
+                                            <span className="w-2 h-2 bg-purple-500 rounded-full" />
+                                            Hallucination Prevention Metrics
+                                        </CardTitle>
+                                        <CardDescription className="text-xs">
+                                            RAGAS-based quality metrics for AI response accuracy
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                            {[
+                                                { label: 'Faithfulness', value: enhancedGEO.hallucination_metrics.faithfulness, color: 'emerald' },
+                                                { label: 'Answer Relevancy', value: enhancedGEO.hallucination_metrics.answer_relevancy, color: 'blue' },
+                                                { label: 'Context Precision', value: enhancedGEO.hallucination_metrics.context_precision, color: 'purple' },
+                                                { label: 'Context Recall', value: enhancedGEO.hallucination_metrics.context_recall, color: 'orange' },
+                                            ].map((metric, i) => (
+                                                <div key={i} className="text-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                                                    <p className={`text-xl font-bold text-${metric.color}-600`}>
+                                                        {Math.round(metric.value * 100)}%
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">{metric.label}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                            )}
+                        </div>
+                    )}
+                </TabsContent>            </Tabs>
         </div>
     )
 }

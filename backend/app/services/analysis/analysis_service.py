@@ -1,5 +1,6 @@
 import json
 import asyncio
+import math
 from uuid import UUID
 from datetime import datetime
 from typing import Dict, Any, Optional, List
@@ -18,6 +19,27 @@ from app.services.analysis.sentiment_analysis_service import get_sentiment_analy
 from app.api.endpoints.utils import fetch_page_content
 from app.core.config import settings
 from app.core.logging import Colors, log_info, log_success, log_error, log_warning, log_phase
+
+# Activity Logger for detailed step tracking
+from app.services.logging.activity_logger import get_activity_logger, ActivityType, ActivityLevel
+
+
+def sanitize_nan(obj: Any) -> Any:
+    """
+    Recursively sanitize NaN and Inf values in nested structures.
+    Replaces NaN/Inf with None to make data JSON-serializable.
+    """
+    if obj is None:
+        return None
+    if isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    if isinstance(obj, dict):
+        return {k: sanitize_nan(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [sanitize_nan(v) for v in obj]
+    return obj
 
 
 class AnalysisService:
@@ -40,6 +62,11 @@ class AnalysisService:
         from app.services.analysis.hallucination_detection_service import HallucinationDetectionService
         self.hallucination_service = HallucinationDetectionService()
         self.sentiment_service = get_sentiment_analysis_service()
+        self.activity_logger = get_activity_logger()
+        
+        # Enhanced GEO/AEO Pipeline
+        from app.services.analysis.enhanced_pipeline import get_enhanced_pipeline
+        self.enhanced_pipeline = get_enhanced_pipeline()
 
     async def run_analysis(self, analysis_id: UUID):
         """
@@ -56,6 +83,15 @@ class AnalysisService:
         if not analysis:
             print(f"Analysis {analysis_id} not found")
             return
+
+        # Log analysis start
+        await self.activity_logger.log(
+            ActivityType.ANALYSIS_STARTED,
+            "Analysis Started",
+            f"Starting AEO/GEO analysis for analysis {analysis_id}",
+            ActivityLevel.INFO,
+            analysis_id=str(analysis_id)
+        )
 
         # Update status to processing
         await self.analysis_db.update(str(analysis_id), {"status": AnalysisStatus.processing})
@@ -77,6 +113,15 @@ class AnalysisService:
             brand = data.get("brand", {})
             brand_name = brand.get('name', '')
             brand_url = brand.get('domain', '')
+            
+            # Log brand info
+            await self.activity_logger.log_analysis_phase(
+                str(analysis_id),
+                "Initialization",
+                f"Analyzing brand: {brand_name} ({brand_url})",
+                progress=5,
+                metadata={"brand_name": brand_name, "brand_url": brand_url}
+            )
             
             # Extract discovery prompts configured during onboarding
             discovery_prompts = data.get("discovery_prompts", [])
@@ -100,8 +145,23 @@ class AnalysisService:
             log_phase(1, "Entity Resolution")
             log_info("🔍", "Fetching page content...")
             
+            # Log phase start
+            await self.activity_logger.log_analysis_phase(
+                str(analysis_id),
+                "Entity Resolution",
+                "Fetching page content and determining entity type",
+                progress=10
+            )
+            
             # Fetch basic page content to understand the entity
             page_content = await fetch_page_content(brand_url)
+            
+            await self.activity_logger.log_scrape(
+                url=brand_url,
+                backend="fetch_page_content",
+                success=bool(page_content.get('text_content')),
+                analysis_id=str(analysis_id)
+            )
             
             # Infer entity type and business info
             log_info("🧠", "Inferring business info from page...")
@@ -127,8 +187,24 @@ class AnalysisService:
             description = onboarding_description or page_content.get('description', '')
             log_success("✅", f"Detected → Entity: {Colors.BOLD}{entity_type}{Colors.RESET}{Colors.GREEN} | Industry: {Colors.BOLD}{industry}{Colors.RESET}")
 
+            await self.activity_logger.log(
+                ActivityType.ANALYSIS_PHASE,
+                "Entity Resolved",
+                f"Entity: {entity_type}, Industry: {industry}",
+                ActivityLevel.SUCCESS,
+                analysis_id=str(analysis_id),
+                metadata={"entity_type": entity_type, "industry": industry}
+            )
+
             # --- PHASE 2: REAL DATA ACQUISITION ---
             log_phase(2, "Real Data Acquisition")
+            
+            await self.activity_logger.log_analysis_phase(
+                str(analysis_id),
+                "Real Data Acquisition",
+                "Gathering web search results and competitor data",
+                progress=25
+            )
             
             user_country = data.get("user_country", "ES")
             preferred_language = data.get("preferred_language", "es")
@@ -142,25 +218,56 @@ class AnalysisService:
                 existing_competitor_objects = [{"name": c.name, "domain": c.domain} for c in comps]
                 log_info("🏢", f"Found {len(existing_competitors)} existing competitors")
             
-            # Use Firecrawl to get deeper context from the website
+            # Use UnifiedScraper (Playwright fallback) to get deeper context from the website
             site_context = ""
             try:
-                from app.services.firecrawl_service import FirecrawlService
-                firecrawl = FirecrawlService()
-                if firecrawl.api_key:
-                    log_info("🔥", "Crawling website for context...")
-                    # Map the site to get important URLs
-                    site_urls = await firecrawl.map_site(brand_url, limit=10, search="about services products")
-                    if site_urls:
-                        log_info("🗺️", f"Found {len(site_urls)} pages to analyze")
-                        # Scrape key pages for context
-                        for url in site_urls[:5]:  # Limit to 5 pages
-                            scrape_result = await firecrawl.scrape_url(url, formats=["markdown"])
-                            if scrape_result.get("success") and scrape_result.get("markdown"):
-                                site_context += f"\n\n--- Page: {url} ---\n{scrape_result['markdown'][:2000]}"
-                    await firecrawl.close()
-            except Exception as fc_err:
-                log_warning("🔥", f"Firecrawl context gathering failed: {fc_err}")
+                from app.services.scraper import get_unified_scraper
+                scraper = get_unified_scraper()
+                scraper_status = scraper.get_status()
+                log_info("🔧", f"Scraper status: {scraper_status}")
+                
+                await self.activity_logger.log(
+                    ActivityType.ANALYSIS_SCRAPING,
+                    "Starting Website Crawl",
+                    f"Scraper backend: {scraper_status.get('active_backend', 'unknown')}",
+                    ActivityLevel.INFO,
+                    analysis_id=str(analysis_id),
+                    metadata=scraper_status
+                )
+                
+                log_info("🕷️", "Crawling website for context...")
+                # Map the site to get important URLs
+                site_urls = await scraper.map_site(brand_url, limit=10)
+                if site_urls:
+                    log_info("🗺️", f"Found {len(site_urls)} pages to analyze")
+                    # Scrape key pages for context
+                    for url in site_urls[:5]:  # Limit to 5 pages
+                        scrape_result = await scraper.scrape_url(url, formats=["markdown"])
+                        if scrape_result.get("success") and scrape_result.get("markdown"):
+                            site_context += f"\n\n--- Page: {url} ---\n{scrape_result['markdown'][:2000]}"
+                            await self.activity_logger.log_scrape(
+                                url=url,
+                                backend=scrape_result.get("backend", "unknown"),
+                                success=True,
+                                analysis_id=str(analysis_id)
+                            )
+                        else:
+                            await self.activity_logger.log_scrape(
+                                url=url,
+                                backend=scrape_result.get("backend", "unknown"),
+                                success=False,
+                                error=scrape_result.get("error"),
+                                analysis_id=str(analysis_id)
+                            )
+            except Exception as scraper_err:
+                log_warning("🕷️", f"Scraper context gathering failed: {scraper_err}")
+                await self.activity_logger.log(
+                    ActivityType.SCRAPE_ERROR,
+                    "Website Crawl Failed",
+                    str(scraper_err),
+                    ActivityLevel.WARNING,
+                    analysis_id=str(analysis_id)
+                )
             
             # Search for competitors using web search + AI context
             search_task = self.web_search_service.get_search_context(
@@ -405,6 +512,13 @@ class AnalysisService:
             log_phase(3, "Result Assembly")
             log_info("📦", "Constructing result object...")
             
+            await self.activity_logger.log_analysis_phase(
+                str(analysis_id),
+                "Result Assembly",
+                "Combining all data into final result structure",
+                progress=70
+            )
+            
             visual_suggestions = []
             
             # Combine existing + new competitors
@@ -460,12 +574,27 @@ class AnalysisService:
             log_phase(4, "Synthesis (LLM)")
             log_info("🤖", "Generating qualitative insights with AI...")
             
+            await self.activity_logger.log_analysis_phase(
+                str(analysis_id),
+                "AI Synthesis",
+                "Generating qualitative insights with LLM",
+                progress=85
+            )
+            
             # Construct prompt with the REAL data
             prompt = self._construct_synthesis_prompt(
                 brand_name, 
                 business_info, 
                 results, 
                 page_content
+            )
+            
+            await self.activity_logger.log(
+                ActivityType.LLM_REQUEST,
+                "LLM Synthesis Request",
+                f"Model: gpt-4o, generating analysis insights",
+                ActivityLevel.INFO,
+                analysis_id=str(analysis_id)
             )
             
             # Generate qualitative insights
@@ -512,12 +641,8 @@ class AnalysisService:
                 
                 log_info("🤖", "Running Content Auditor agent for GEO recommendations...")
                 
-                # Prepare content for auditing
-                audit_content = f"""
-Brand: {brand_name}
-URL: {brand_url}
-Industry: {industry}
-
+                # Prepare content body for auditing
+                content_body = f"""
 Page Content:
 {page_content.get('text_content', '')[:3000]}
 
@@ -526,20 +651,27 @@ Entity Type: {entity_type}
 Extracted Entities: {[e.text for e in extracted_entities[:5]]}
 """
                 
+                # Call audit_content with correct parameters
+                # Signature: content_id, content_title, content_body, brand_name, content_url, require_human_review
                 audit_result = await content_auditor.audit_content(
-                    content=audit_content,
-                    brand_id=str(analysis.brand_id) if analysis.brand_id else None,
-                    content_type="webpage"
+                    content_id=str(analysis.id) if analysis.id else "temp-analysis",
+                    content_title=page_content.get('title', brand_name),
+                    content_body=content_body,
+                    brand_name=brand_name,
+                    content_url=brand_url,
+                    require_human_review=False
                 )
                 
                 # Merge auditor recommendations with existing
-                if audit_result and audit_result.get("suggestions"):
+                # audit_result is an AuditResult dataclass, access attributes directly
+                if audit_result and audit_result.suggestions:
                     geo_recommendations = []
-                    for suggestion in audit_result.get("suggestions", [])[:5]:
+                    for suggestion in audit_result.suggestions[:5]:
+                        # suggestion is an AuditSuggestion dataclass
                         geo_recommendations.append({
-                            "title": suggestion.get("title", "GEO Optimization"),
-                            "description": suggestion.get("description", ""),
-                            "priority": suggestion.get("priority", "medium"),
+                            "title": suggestion.title or "GEO Optimization",
+                            "description": suggestion.description or "",
+                            "priority": suggestion.priority.value if hasattr(suggestion.priority, 'value') else str(suggestion.priority),
                             "category": "geo",
                             "source": "content_auditor"
                         })
@@ -550,23 +682,62 @@ Extracted Entities: {[e.text for e in extracted_entities[:5]]}
                         results["recommendations"] = geo_recommendations + current_recs
                     
                     # Add GEO audit scores to results
+                    # audit_result.scores is a dict like {"entity_density": 70, "structure": 60, ...}
                     results["geo_audit"] = {
-                        "entity_density_score": audit_result.get("evaluation", {}).get("entity_density", 0),
-                        "structure_score": audit_result.get("evaluation", {}).get("structure", 0),
-                        "authority_score": audit_result.get("evaluation", {}).get("authority", 0),
-                        "schema_score": audit_result.get("evaluation", {}).get("schema", 0),
-                        "speakable_score": audit_result.get("evaluation", {}).get("speakable", 0),
-                        "overall_geo_score": audit_result.get("evaluation", {}).get("overall_score", 0)
+                        "entity_density_score": audit_result.scores.get("entity_density", 0),
+                        "structure_score": audit_result.scores.get("structure", 0),
+                        "authority_score": audit_result.scores.get("authority", 0),
+                        "schema_score": audit_result.scores.get("schema", 0),
+                        "speakable_score": audit_result.scores.get("speakable", 0),
+                        "overall_geo_score": audit_result.overall_score
                     }
                     
-                    log_success("✅", f"Content Auditor: GEO score {results['geo_audit']['overall_geo_score']}/100")
+                    log_success("✅", f"Content Auditor: GEO score {audit_result.overall_score}/100")
             except Exception as auditor_err:
                 log_warning("⚠️", f"Content Auditor failed: {auditor_err}")
             
-            # 6. Update Analysis
+            # --- ENHANCED GEO/AEO PIPELINE ---
+            log_info("🚀", "Running Enhanced GEO/AEO Pipeline...")
+            try:
+                competitor_contents = [
+                    {"name": c.get("name", ""), "domain": c.get("domain", ""), "content": ""}
+                    for c in all_competitors[:5]
+                ]
+                
+                enhanced_result = await self.enhanced_pipeline.run_enhanced_analysis(
+                    brand_id=str(analysis.brand_id) if analysis.brand_id else "",
+                    brand_name=brand_name,
+                    brand_domain=brand_url,
+                    brand_description=description,
+                    industry=industry,
+                    existing_content=page_content.get('text_content', '') + site_context,
+                    competitors=competitor_contents,
+                    discovery_queries=discovery_prompts[:5] if discovery_prompts else None,
+                    run_rag_simulation=True,
+                    run_entity_analysis=True,
+                    run_hallucination_check=True,
+                    run_ssov=True,
+                )
+                
+                # Merge enhanced results
+                results["enhanced_geo"] = enhanced_result.to_dict()
+                results["geo_readiness_score"] = enhanced_result.geo_readiness_score
+                results["ssov_score"] = enhanced_result.ssov_score
+                
+                # Add enhanced recommendations
+                for rec in enhanced_result.recommendations[:5]:
+                    results["recommendations"].insert(0, rec)
+                
+                log_success("✅", f"Enhanced Pipeline: GEO Readiness={enhanced_result.geo_readiness_score:.1f}/100, SSoV={enhanced_result.ssov_score:.1f}%")
+            except Exception as enhanced_err:
+                log_warning("⚠️", f"Enhanced GEO/AEO Pipeline failed: {enhanced_err}")
+                results["enhanced_geo"] = {"error": str(enhanced_err)}
+            
+            # 6. Update Analysis - Sanitize NaN values before DB save
+            sanitized_results = sanitize_nan(results)
             await self.analysis_db.update(str(analysis_id), {
-                "results": results,
-                "score": score,
+                "results": sanitized_results,
+                "score": score if score is not None and not (isinstance(score, float) and (math.isnan(score) or math.isinf(score))) else 0,
                 "status": AnalysisStatus.completed,
                 "completed_at": f"{datetime.utcnow().isoformat()}Z"
             })
@@ -574,6 +745,14 @@ Extracted Entities: {[e.text for e in extracted_entities[:5]]}
             # 7. Ingest Structured Results into DB
             log_phase(5, "Database Ingestion")
             log_info("💾", f"Ingesting results for analysis {analysis_id}...")
+            
+            await self.activity_logger.log_analysis_phase(
+                str(analysis_id),
+                "Database Ingestion",
+                "Saving all results to database",
+                progress=95
+            )
+            
             await self.ingestion_service.ingest_results(analysis, results, {"keywords": keywords_data})
             await self.ingestion_service.ingest_technical_aeo(analysis, technical_data)
             await self.ingestion_service.ingest_web_search_results(analysis, search_context)
@@ -625,6 +804,16 @@ Extracted Entities: {[e.text for e in extracted_entities[:5]]}
             log_success("✅", f"Analysis completed successfully for {Colors.BOLD}{brand_name}{Colors.RESET}")
             print(f"{Colors.BOLD}{Colors.GREEN}{'='*60}{Colors.RESET}\n")
 
+            # Log analysis completion
+            await self.activity_logger.log(
+                ActivityType.ANALYSIS_COMPLETE,
+                "Analysis Complete",
+                f"Successfully analyzed {brand_name} with score {score}/100",
+                ActivityLevel.SUCCESS,
+                analysis_id=str(analysis_id),
+                metadata={"score": score, "brand_name": brand_name}
+            )
+
             # 8. Persist notifications
             await self._handle_notifications(analysis, results, success=True)
 
@@ -632,6 +821,17 @@ Extracted Entities: {[e.text for e in extracted_entities[:5]]}
             log_error("💥", f"Analysis failed: {e}")
             import traceback
             traceback.print_exc()
+            
+            # Log analysis error
+            await self.activity_logger.log(
+                ActivityType.ANALYSIS_ERROR,
+                "Analysis Failed",
+                str(e),
+                ActivityLevel.ERROR,
+                analysis_id=str(analysis_id),
+                metadata={"error": str(e)}
+            )
+            
             await self.analysis_db.update(str(analysis_id), {
                 "status": AnalysisStatus.failed,
                 "error_message": str(e)

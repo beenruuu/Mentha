@@ -39,3 +39,14 @@ playwright>=1.40.0
 
 # Markdown Processing
 markdownify>=0.11.0
+
+# RAG Evaluation & Hallucination Detection
+ragas>=0.1.0
+deepeval>=0.21.0
+datasets>=2.16.0
+
+# Machine Learning Utilities
+scikit-learn>=1.4.0
+
+# Semantic Search & Embeddings
+sentence-transformers>=2.2.0

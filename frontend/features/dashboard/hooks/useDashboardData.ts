@@ -4,7 +4,7 @@ import { subDays, isAfter, startOfDay, format } from "date-fns"
 import { brandsService, type Brand } from "@/features/brand/api/brands"
 import { analysisService, type Analysis } from "@/features/analysis/api/analysis"
 import { competitorsService, type Competitor } from "@/features/competitors/api/competitors"
-import { geoAnalysisService, type VisibilitySnapshot } from "@/features/geo-analysis/api/geo-analysis"
+import { geoAnalysisService, type VisibilitySnapshot, type EnhancedGEOData } from "@/features/geo-analysis/api/geo-analysis"
 
 const MODEL_ID_MAP: Record<string, string> = {
     'openai': 'chatgpt',
@@ -31,6 +31,7 @@ export function useDashboardData({ initialBrands, initialBrand, initialCompetito
     const [analysis, setAnalysis] = useState<Analysis | null>(null)
     const [chartData, setChartData] = useState<any[]>([])
     const [modelPerformance, setModelPerformance] = useState<Record<string, number>>({})
+    const [enhancedGEO, setEnhancedGEO] = useState<EnhancedGEOData | null>(null)
     
     // UI State
     const [loading, setLoading] = useState(false)
@@ -41,11 +42,15 @@ export function useDashboardData({ initialBrands, initialBrand, initialCompetito
         setLoading(true)
         try {
             // Parallelize requests for better performance
-            const [analyses, comps, visibilityData] = await Promise.all([
+            const [analyses, comps, visibilityData, enhancedData] = await Promise.all([
                 analysisService.getAll(brand.id),
                 competitorsService.getAll(brand.id),
-                geoAnalysisService.getVisibilityData(brand.id, undefined, days).catch(() => ({ latest_scores: [], history: [] }))
+                geoAnalysisService.getVisibilityData(brand.id, undefined, days).catch(() => ({ latest_scores: [], history: [] })),
+                geoAnalysisService.getEnhancedGEO(brand.id).catch(() => null)
             ])
+
+            // Set Enhanced GEO Data
+            setEnhancedGEO(enhancedData)
 
             // 1. Process Analysis (Chart Data)
             const startDate = subDays(new Date(), days)
@@ -176,6 +181,7 @@ export function useDashboardData({ initialBrands, initialBrand, initialCompetito
         analysis,
         chartData,
         modelPerformance,
+        enhancedGEO,
         loading,
         deletingBrandId,
         handleBrandChange,

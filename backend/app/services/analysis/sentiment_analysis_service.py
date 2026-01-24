@@ -5,6 +5,7 @@ NOTE: Now uses unified AIClientService for API calls (P1 consolidation).
 """
 
 import asyncio
+import httpx
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
