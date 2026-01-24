@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
 from app.core.config import settings
+from app.middleware.ai_content_negotiation import AIContentNegotiationMiddleware
 
 app = FastAPI(
     title="Mentha API",
@@ -30,6 +31,14 @@ app.add_middleware(
     allow_headers=["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With", "X-CSRF-Token"],
     expose_headers=["Content-Type", "Authorization"],
     max_age=600,  # 10 minutes cache for preflight requests
+)
+
+# AI Content Negotiation Middleware - Serves Markdown to AI bots (GPTBot, ClaudeBot, etc.)
+# This enables "Markdown Twins" pattern for GEO optimization
+app.add_middleware(
+    AIContentNegotiationMiddleware,
+    enabled_paths=["/"],
+    disabled_paths=["/api/", "/docs", "/redoc", "/openapi.json"],
 )
 
 # Include API router

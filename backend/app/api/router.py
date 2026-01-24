@@ -23,7 +23,8 @@ from app.api.endpoints import (
     site_audit,
     admin,
     analysis_onboarding,
-    crawler_logs
+    crawler_logs,
+    knowledge_graph,
 )
 
 # New Clean Architecture Controllers
@@ -75,4 +76,7 @@ api_router.include_router(site_audit.router, tags=["Site Audit"])
 
 # Crawler Logs - AI bot activity tracking
 api_router.include_router(crawler_logs.router, tags=["Crawler Logs"])
+
+# Knowledge Graph - Entity visualization and graph data
+api_router.include_router(knowledge_graph.router, tags=["Knowledge Graph"])
 

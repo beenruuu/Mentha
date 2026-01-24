@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useTranslations } from '@/lib/i18n'
 import { brandsService, Brand } from '@/features/brand/api/brands'
 import { technicalAeoService, TechnicalAEO } from '@/features/optimization/api/technical-aeo'
-import { CrawlActivityChart } from '@/components/crawlers/crawl-activity-chart'
+import { CrawlActivityChart } from '@/features/crawlers/components/crawl-activity-chart'
 
 function CrawlersSkeleton() {
   return (

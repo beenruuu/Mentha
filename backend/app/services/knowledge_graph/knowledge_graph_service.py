@@ -949,6 +949,161 @@ class KnowledgeGraphService:
             return True
         return False
 
+    # ==================== Visualization Export ====================
+    
+    async def export_for_visualization(
+        self,
+        brand_id: str,
+        limit: int = 200,
+        node_types: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
+        """
+        Export graph data for frontend visualization (react-force-graph).
+        
+        Returns nodes and edges with PageRank scores for sizing.
+        
+        Args:
+            brand_id: Brand identifier
+            limit: Max nodes to return
+            node_types: Optional list of node types to filter
+        
+        Returns:
+            Dict with nodes, edges, and stats
+        """
+        if not await self._ensure_networkx():
+            return {"nodes": [], "edges": [], "stats": {"total_nodes": 0, "total_edges": 0, "node_types": {}}}
+        
+        graph = self._get_graph(brand_id)
+        pagerank = await self.calculate_pagerank(brand_id)
+        
+        # Build nodes list
+        nodes = []
+        node_ids_included = set()
+        
+        # Sort by PageRank to get most important nodes first
+        sorted_nodes = sorted(
+            graph.nodes(data=True),
+            key=lambda x: pagerank.get(x[0], 0),
+            reverse=True
+        )
+        
+        for node_id, attrs in sorted_nodes[:limit]:
+            node_type = attrs.get("type", "Unknown")
+            
+            # Apply filter if specified
+            if node_types and node_type not in node_types:
+                continue
+            
+            nodes.append({
+                "id": node_id,
+                "name": attrs.get("name", node_id),
+                "type": node_type,
+                "url": attrs.get("url"),
+                "pagerank": pagerank.get(node_id, 0.0),
+                "properties": attrs.get("properties", {})
+            })
+            node_ids_included.add(node_id)
+        
+        # Build edges (only for included nodes)
+        edges = []
+        for source, target, data in graph.edges(data=True):
+            if source in node_ids_included and target in node_ids_included:
+                edges.append({
+                    "source": source,
+                    "target": target,
+                    "type": data.get("type", "RELATED"),
+                    "weight": data.get("weight", 1.0)
+                })
+        
+        # Calculate stats
+        type_counts = {}
+        for node in nodes:
+            node_type = node.get("type", "Unknown")
+            type_counts[node_type] = type_counts.get(node_type, 0) + 1
+        
+        edge_type_counts = {}
+        for edge in edges:
+            edge_type = edge.get("type", "Unknown")
+            edge_type_counts[edge_type] = edge_type_counts.get(edge_type, 0) + 1
+        
+        return {
+            "nodes": nodes,
+            "edges": edges,
+            "stats": {
+                "total_nodes": len(nodes),
+                "total_edges": len(edges),
+                "node_types": type_counts,
+                "edge_types": edge_type_counts
+            }
+        }
+    
+    async def get_entity(
+        self,
+        brand_id: str,
+        entity_id: str,
+        include_neighbors: bool = True
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Get detailed info about a specific entity/node.
+        
+        Args:
+            brand_id: Brand identifier
+            entity_id: Node ID to look up
+            include_neighbors: Whether to include connected nodes
+        
+        Returns:
+            Entity data with optional neighbors
+        """
+        if not await self._ensure_networkx():
+            return None
+        
+        graph = self._get_graph(brand_id)
+        
+        if entity_id not in graph:
+            return None
+        
+        attrs = graph.nodes[entity_id]
+        pagerank = await self.calculate_pagerank(brand_id)
+        
+        entity = {
+            "id": entity_id,
+            "name": attrs.get("name", entity_id),
+            "type": attrs.get("type", "Unknown"),
+            "url": attrs.get("url"),
+            "pagerank": pagerank.get(entity_id, 0.0),
+            "same_as": attrs.get("same_as", []),
+            "properties": attrs.get("properties", {})
+        }
+        
+        if include_neighbors:
+            # Get incoming edges (who points to this entity)
+            incoming = []
+            for source, target, data in graph.in_edges(entity_id, data=True):
+                source_attrs = graph.nodes.get(source, {})
+                incoming.append({
+                    "id": source,
+                    "name": source_attrs.get("name", source),
+                    "type": source_attrs.get("type", "Unknown"),
+                    "relationship": data.get("type", "RELATED")
+                })
+            
+            # Get outgoing edges (what this entity points to)
+            outgoing = []
+            for source, target, data in graph.out_edges(entity_id, data=True):
+                target_attrs = graph.nodes.get(target, {})
+                outgoing.append({
+                    "id": target,
+                    "name": target_attrs.get("name", target),
+                    "type": target_attrs.get("type", "Unknown"),
+                    "relationship": data.get("type", "RELATED")
+                })
+            
+            entity["incoming"] = incoming
+            entity["outgoing"] = outgoing
+            entity["total_connections"] = len(incoming) + len(outgoing)
+        
+        return entity
+
 
 # Singleton instance
 _knowledge_graph_service: Optional[KnowledgeGraphService] = None
