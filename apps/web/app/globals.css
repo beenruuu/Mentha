@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ============================================
    Mentha Dashboard - Godly-inspired Design
    ============================================ */
@@ -764,4 +768,19 @@ body {
 
 .metric-card:nth-child(4) {
     animation-delay: 0.25s;
+}
+
+/* Infinite Scroll Animation */
+@keyframes marquee {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-100%);
+    }
+}
+
+.animate-marquee {
+    animation: marquee 40s linear infinite;
 }
