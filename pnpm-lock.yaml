@@ -20,9 +20,6 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^0.71.2
         version: 0.71.2(zod@3.25.76)
-      '@modelcontextprotocol/sdk':
-        specifier: ^1.25.3
-        version: 1.25.3(hono@4.11.6)(zod@3.25.76)
       '@supabase/supabase-js':
         specifier: ^2.45.0
         version: 2.93.0
@@ -102,6 +99,34 @@ importers:
       typescript-eslint:
         specifier: ^8.2.0
         version: 8.53.1(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3)
+
+  apps/mcp:
+    dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.25.3
+        version: 1.25.3(hono@4.11.6)(zod@3.25.76)
+      '@supabase/supabase-js':
+        specifier: ^2.93.0
+        version: 2.93.0
+      dotenv:
+        specifier: ^16.6.1
+        version: 16.6.1
+      openai:
+        specifier: ^4.56.0
+        version: 4.104.0(ws@8.19.0)(zod@3.25.76)
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
+    devDependencies:
+      '@types/node':
+        specifier: ^22.5.0
+        version: 22.19.7
+      tsx:
+        specifier: ^4.17.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.5.4
+        version: 5.9.3
 
   apps/web:
     dependencies:
