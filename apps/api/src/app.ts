@@ -3,19 +3,19 @@ import path from 'path';
 import helmet from 'helmet';
 import cors from 'cors';
 import compression from 'compression';
-import { env } from './config/index.js';
-import { logger } from './infrastructure/logging/index.js';
-import { aiViewMiddleware } from './infrastructure/middleware/index.js';
-import { healthRouter } from './controllers/health.controller.js';
-import { projectsRouter } from './controllers/projects.controller.js';
-import { keywordsRouter } from './controllers/keywords.controller.js';
-import { scansRouter } from './controllers/scans.controller.js';
-import { knowledgeGraphRouter } from './controllers/knowledge-graph.controller.js';
-import { llmsTxtRouter } from './controllers/llms-txt.controller.js';
-import { dashboardRouter } from './controllers/dashboard.controller.js';
-import { edgeRouter } from './controllers/edge.controller.js';
+import { env } from './config/index';
+import { logger } from './infrastructure/logging/index';
+import { aiViewMiddleware } from './infrastructure/middleware/index';
+import { healthRouter } from './controllers/health.controller';
+import { projectsRouter } from './controllers/projects.controller';
+import { keywordsRouter } from './controllers/keywords.controller';
+import { scansRouter } from './controllers/scans.controller';
+import { knowledgeGraphRouter } from './controllers/knowledge-graph.controller';
+import { llmsTxtRouter } from './controllers/llms-txt.controller';
+import { dashboardRouter } from './controllers/dashboard.controller';
+import { edgeRouter } from './controllers/edge.controller';
 
-const app = express();
+const app: express.Express = express();
 
 // =============================================================================
 // MIDDLEWARE

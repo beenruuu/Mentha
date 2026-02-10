@@ -1,4 +1,4 @@
-import { IntentType } from './schema.js';
+import { IntentType } from './schema';
 
 export interface MeaningMap {
     // Top funnel

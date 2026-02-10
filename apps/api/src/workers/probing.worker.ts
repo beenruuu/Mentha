@@ -1,8 +1,8 @@
 import { Worker, Job } from 'bullmq';
-import { getRedisConnection, QUEUE_NAMES, addScanJob } from '../infrastructure/queue/index.js';
-import { createSupabaseAdmin } from '../infrastructure/database/index.js';
-import { logger, createLogger } from '../infrastructure/logging/index.js';
-import { createProvider } from '../infrastructure/search/index.js';
+import { getRedisConnection, QUEUE_NAMES, addScanJob } from '../infrastructure/queue/index';
+import { createSupabaseAdmin } from '../infrastructure/database/index';
+import { logger, createLogger } from '../infrastructure/logging/index';
+import { createProvider } from '../infrastructure/search/index';
 
 /**
  * Probing job data - for automated Share of Model checks

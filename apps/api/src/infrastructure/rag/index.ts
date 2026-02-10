@@ -1,1 +1,1 @@
-export { RAGSimulator, getRAGSimulator } from './simulator.js';
+export { RAGSimulator, getRAGSimulator } from './simulator';

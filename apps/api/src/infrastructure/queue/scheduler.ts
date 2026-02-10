@@ -1,6 +1,6 @@
-import { getQueue, QUEUE_NAMES, ScheduledJobData } from './queues.js';
-import { createSupabaseAdmin } from '../database/index.js';
-import { logger } from '../logging/index.js';
+import { getQueue, QUEUE_NAMES, ScheduledJobData } from './queues';
+import { createSupabaseAdmin } from '../database/index';
+import { logger } from '../logging/index';
 
 /**
  * Cron patterns for different scan frequencies

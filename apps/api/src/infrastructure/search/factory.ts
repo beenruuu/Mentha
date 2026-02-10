@@ -1,9 +1,9 @@
-import { ISearchProvider, ProviderType } from '../../domain/search/types.js';
-import { PerplexityProvider } from './perplexity.provider.js';
-import { OpenAIProvider } from './openai.provider.js';
-import { GeminiProvider } from './gemini.provider.js';
-import { AnthropicProvider } from './anthropic.provider.js';
-import { logger } from '../logging/index.js';
+import { ISearchProvider, ProviderType } from '../../domain/search/types';
+import { PerplexityProvider } from './perplexity.provider';
+import { OpenAIProvider } from './openai.provider';
+import { GeminiProvider } from './gemini.provider';
+import { AnthropicProvider } from './anthropic.provider';
+import { logger } from '../logging/index';
 
 /**
  * Provider instance cache (singleton pattern)
@@ -13,7 +13,7 @@ const providerCache = new Map<ProviderType, ISearchProvider>();
 /**
  * Factory function to create or retrieve search providers
  * Uses caching to reuse provider instances
- * 
+ *
  * @param type - The provider type to create
  * @returns The search provider instance
  */

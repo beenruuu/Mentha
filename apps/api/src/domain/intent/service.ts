@@ -1,9 +1,9 @@
 import OpenAI from 'openai';
 import { zodResponseFormat } from "openai/helpers/zod";
-import { env } from '../../config/index.js';
-import { logger } from '../../infrastructure/logging/index.js';
-import { IntentExtractionSchema, IntentExtractionResult } from './schema.js';
-import { BrandContext, buildContextBlock } from './context.js';
+import { env } from '../../config/index';
+import { logger } from '../../infrastructure/logging/index';
+import { IntentExtractionSchema, IntentExtractionResult } from './schema';
+import { BrandContext, buildContextBlock } from './context';
 
 export class IntentExtractionService {
     private client: OpenAI;

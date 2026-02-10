@@ -3,4 +3,4 @@ export {
     submitToGoogleIndexing,
     triggerCriticalPagesIndexing,
     pingSitemaps,
-} from './indexnow.js';
+} from './indexnow';

@@ -1,5 +1,5 @@
-import { createSupabaseAdmin } from '../../infrastructure/database/index.js';
-import { logger } from '../../infrastructure/logging/index.js';
+import { createSupabaseAdmin } from '../../infrastructure/database/index';
+import { logger } from '../../infrastructure/logging/index';
 
 export interface EntityProfile {
     brandName: string;

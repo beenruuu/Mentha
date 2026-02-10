@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
-import { env } from '../../config/index.js';
-import { logger } from '../logging/index.js';
+import { env } from '../../config/index';
+import { logger } from '../logging/index';
 
 /**
  * Supabase client for authenticated user requests

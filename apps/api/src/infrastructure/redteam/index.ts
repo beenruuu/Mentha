@@ -1,2 +1,2 @@
-export { RedTeamService, getRedTeamService } from './service.js';
-export type { AdversarialAttack, AttackResult, RedTeamReport } from './service.js';
+export { RedTeamService, getRedTeamService } from './service';
+export type { AdversarialAttack, AttackResult, RedTeamReport } from './service';

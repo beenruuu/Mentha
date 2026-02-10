@@ -6,4 +6,4 @@ export {
     resetRateLimit,
     setUserQuota,
     getUserQuota,
-} from './limiter.js';
+} from './limiter';

@@ -3,7 +3,7 @@ export {
     getRedisConnection,
     closeRedisConnection,
     testRedisConnection,
-} from './connection.js';
+} from './connection';
 
 export {
     QUEUE_NAMES,
@@ -19,11 +19,11 @@ export {
     scheduleRecurringScan,
     removeRecurringScan,
     closeAllQueues,
-} from './queues.js';
+} from './queues';
 
 export {
     scheduleKeywordScan,
     removeKeywordSchedule,
     syncKeywordSchedules,
     getSchedulerStats,
-} from './scheduler.js';
+} from './scheduler';

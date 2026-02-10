@@ -4,4 +4,4 @@ export {
     stripForAI,
     htmlToMarkdown,
     setAIHeaders,
-} from './ai-view.middleware.js';
+} from './ai-view.middleware';

@@ -1,7 +1,7 @@
 import IORedis from 'ioredis';
-import { getRedisConnection } from '../queue/connection.js';
-import { logger } from '../logging/index.js';
-import { env } from '../../config/index.js';
+import { getRedisConnection } from '../queue/connection';
+import { logger } from '../logging/index';
+import { env } from '../../config/index';
 
 /**
  * Rate limit configuration

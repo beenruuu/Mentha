@@ -1,7 +1,7 @@
 import { Worker, Job } from 'bullmq';
-import { getRedisConnection, QUEUE_NAMES, AnalysisJobData, addNotificationJob } from '../infrastructure/queue/index.js';
-import { createSupabaseAdmin } from '../infrastructure/database/index.js';
-import { logger, createLogger } from '../infrastructure/logging/index.js';
+import { getRedisConnection, QUEUE_NAMES, AnalysisJobData, addNotificationJob } from '../infrastructure/queue/index';
+import { createSupabaseAdmin } from '../infrastructure/database/index';
+import { logger, createLogger } from '../infrastructure/logging/index';
 
 /**
  * LLM-as-a-Judge evaluation schema

@@ -1,6 +1,6 @@
-import { ISearchProvider, SearchOptions, SearchResult } from '../../domain/search/types.js';
-import { env } from '../../config/index.js';
-import { logger } from '../logging/index.js';
+import { ISearchProvider, SearchOptions, SearchResult } from '../../domain/search/types';
+import { env } from '../../config/index';
+import { logger } from '../logging/index';
 
 /**
  * Google Gemini API response format

@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { ISearchProvider, SearchResult, SearchOptions } from '../../domain/search/types.js';
-import { logger } from '../logging/index.js';
+import { ISearchProvider, SearchResult, SearchOptions } from '../../domain/search/types';
+import { logger } from '../logging/index';
 
 export class AnthropicProvider implements ISearchProvider {
     readonly name = 'claude';

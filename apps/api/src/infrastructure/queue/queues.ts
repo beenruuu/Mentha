@@ -1,6 +1,6 @@
 import { Queue, QueueOptions, JobsOptions } from 'bullmq';
-import { getRedisConnection } from './connection.js';
-import { logger } from '../logging/index.js';
+import { getRedisConnection } from './connection';
+import { logger } from '../logging/index';
 
 /**
  * Queue names enumeration

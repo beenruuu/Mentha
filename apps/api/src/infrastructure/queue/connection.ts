@@ -1,6 +1,6 @@
 import IORedis from 'ioredis';
-import { env } from '../../config/index.js';
-import { logger } from '../logging/index.js';
+import { env } from '../../config/index';
+import { logger } from '../logging/index';
 
 /**
  * Redis connection configuration for BullMQ

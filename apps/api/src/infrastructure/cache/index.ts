@@ -4,4 +4,4 @@ export {
     invalidateCache,
     getCacheStats,
     clearSearchCache,
-} from './semantic.cache.js';
+} from './semantic.cache';

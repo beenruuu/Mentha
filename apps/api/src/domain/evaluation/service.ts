@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import OpenAI from 'openai';
-import { env } from '../../config/index.js';
-import { logger } from '../../infrastructure/logging/index.js';
+import { env } from '../../config/index';
+import { logger } from '../../infrastructure/logging/index';
 
 /**
  * Evaluation result schema - validated with Zod

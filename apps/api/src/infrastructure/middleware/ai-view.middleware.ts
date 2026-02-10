@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '../logging/index.js';
+import { logger } from '../logging/index';
 
 /**
  * AI Bot User-Agents to detect

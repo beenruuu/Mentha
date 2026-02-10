@@ -1,7 +1,7 @@
-import { logger } from '../infrastructure/logging/index.js';
-import { closeRedisConnection, closeAllQueues } from '../infrastructure/queue/index.js';
-import { createScanWorker } from './scan.worker.js';
-import { createAnalysisWorker } from './analysis.worker.js';
+import { logger } from '../infrastructure/logging/index';
+import { closeRedisConnection, closeAllQueues } from '../infrastructure/queue/index';
+import { createScanWorker } from './scan.worker';
+import { createAnalysisWorker } from './analysis.worker';
 
 /**
  * Worker process entry point

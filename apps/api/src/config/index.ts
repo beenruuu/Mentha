@@ -1,1 +1,1 @@
-export { env, type Env } from './env.js';
+export { env, type Env } from './env';

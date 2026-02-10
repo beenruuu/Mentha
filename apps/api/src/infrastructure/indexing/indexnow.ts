@@ -1,10 +1,10 @@
-import { logger } from '../logging/index.js';
-import { env } from '../../config/index.js';
+import { logger } from '../logging/index';
+import { env } from '../../config/index';
 
 /**
  * IndexNow API integration
  * Proactively notifies search engines when content changes
- * 
+ *
  * Supported engines:
  * - Bing, Yandex, Seznam (via IndexNow)
  * - Google (via Indexing API - requires service account)
@@ -85,7 +85,7 @@ export async function submitToIndexNow(
 /**
  * Submit URL to Google Indexing API
  * Requires a Google Cloud service account with Indexing API access
- * 
+ *
  * Note: Google Indexing API is primarily for job postings and live streams
  * For regular content, use Google Search Console's URL inspection
  */

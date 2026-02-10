@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { createSupabaseAdmin } from '../infrastructure/database/index.js';
-import { logger } from '../infrastructure/logging/index.js';
+import { createSupabaseAdmin } from '../infrastructure/database/index';
+import { logger } from '../infrastructure/logging/index';
 
 const router = Router();
 

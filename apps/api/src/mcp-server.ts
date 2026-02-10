@@ -2,25 +2,25 @@
 /**
  * Mentha MCP Server
  * Exposes Mentha tools to AI Agents via Model Context Protocol
- * 
+ *
  * This allows AI assistants (Claude, ChatGPT) to directly use Mentha's
  * capabilities as native "tools" rather than requiring web scraping.
- * 
+ *
  * Usage: npx ts-node src/mcp-server.ts
  * Or configure in Claude Desktop's MCP settings
  */
 
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { Server } from '@modelcontextprotocol/sdk/server/index';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio';
 import {
     CallToolRequestSchema,
     ListToolsRequestSchema,
     ListResourcesRequestSchema,
     ReadResourceRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
-import { createSupabaseAdmin } from './infrastructure/database/index.js';
-import { createProvider } from './infrastructure/search/index.js';
-import { getEvaluationService } from './domain/evaluation/index.js';
+} from '@modelcontextprotocol/sdk/types';
+import { createSupabaseAdmin } from './infrastructure/database/index';
+import { createProvider } from './infrastructure/search/index';
+import { getEvaluationService } from './domain/evaluation/index';
 
 // Initialize MCP Server
 const server = new Server(
@@ -45,7 +45,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         tools: [
             {
                 name: 'analyze_brand_visibility',
-                description: `Analyze how a brand appears in AI-generated responses. 
+                description: `Analyze how a brand appears in AI-generated responses.
 Use this when the user wants to know if their brand is mentioned by ChatGPT, Perplexity, or other AI assistants when users ask relevant questions.
 Returns: visibility status, sentiment score, recommendation type, and competitor comparison.`,
                 inputSchema: {

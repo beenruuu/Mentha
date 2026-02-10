@@ -1,10 +1,10 @@
 import OpenAI from 'openai';
-import { env } from '../../config/index.js';
-import { logger } from '../logging/index.js';
+import { env } from '../../config/index';
+import { logger } from '../logging/index';
 
 /**
  * Red Team Service - Adversarial Testing for Brand Defense
- * 
+ *
  * Tests if AI can be manipulated to speak negatively about your brand
  * using your own documentation/content. If attacks succeed, you need
  * to "harden" your semantic content.

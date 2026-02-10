@@ -1,8 +1,8 @@
 import { Worker, Job } from 'bullmq';
-import { getRedisConnection } from '../infrastructure/queue/index.js';
-import { QUEUE_NAMES, ScanJobData, addAnalysisJob } from '../infrastructure/queue/index.js';
-import { createSupabaseAdmin } from '../infrastructure/database/index.js';
-import { logger, createLogger } from '../infrastructure/logging/index.js';
+import { getRedisConnection } from '../infrastructure/queue/index';
+import { QUEUE_NAMES, ScanJobData, addAnalysisJob } from '../infrastructure/queue/index';
+import { createSupabaseAdmin } from '../infrastructure/database/index';
+import { logger, createLogger } from '../infrastructure/logging/index';
 
 /**
  * Scan worker - processes search requests to LLM providers

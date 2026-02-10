@@ -4,4 +4,4 @@ export {
     EvaluationResultSchema,
     type EvaluationResult,
     type EvaluationRequest,
-} from './service.js';
+} from './service';

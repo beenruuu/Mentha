@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { createSupabaseAdmin } from '../infrastructure/database/index.js';
-import { logger } from '../infrastructure/logging/index.js';
+import { createSupabaseAdmin } from '../infrastructure/database/index';
+import { logger } from '../infrastructure/logging/index';
 
 const router = Router();
 

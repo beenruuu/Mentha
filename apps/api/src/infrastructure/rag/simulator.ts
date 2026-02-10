@@ -1,12 +1,12 @@
 import OpenAI from 'openai';
-import { createSupabaseAdmin } from '../database/index.js';
-import { env } from '../../config/index.js';
-import { logger } from '../logging/index.js';
+import { createSupabaseAdmin } from '../database/index';
+import { env } from '../../config/index';
+import { logger } from '../logging/index';
 
 /**
  * RAG Simulation Service
  * Tests if your own content is "AI-readable" before worrying about external visibility
- * 
+ *
  * "If your own RAG can't answer correctly using your docs, Perplexity won't either"
  */
 

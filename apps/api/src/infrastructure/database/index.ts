@@ -1,2 +1,2 @@
-export { createSupabaseClient, createSupabaseAdmin, testDatabaseConnection } from './client.js';
-export * from './types.js';
+export { createSupabaseClient, createSupabaseAdmin, testDatabaseConnection } from './client';
+export * from './types';
