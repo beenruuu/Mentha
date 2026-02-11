@@ -1,5 +1,3 @@
-// Shared Types for Mentha Platform
-
 export interface Project {
     id: string;
     name: string;
@@ -18,7 +16,17 @@ export interface Keyword {
 }
 
 export interface VisibilityScore {
-    score: number; // 0-100
+    score: number;
     trend: 'up' | 'down' | 'stable';
     change: number;
 }
+
+import { hc } from 'hono/client';
+import type { InferRequestType, InferResponseType } from 'hono/client';
+import type { Hono } from 'hono';
+
+export type { InferRequestType, InferResponseType };
+
+export const createApiClient = <T extends Hono<any, any, any> = any>(baseUrl: string): ReturnType<typeof hc<T>> => {
+    return hc<T>(baseUrl);
+};

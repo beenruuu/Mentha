@@ -1,127 +1,98 @@
-import express, { Request, Response, NextFunction } from 'express';
+import { Hono } from 'hono';
+import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
+import { cors } from 'hono/cors';
+import { compress } from 'hono/compress';
+import { secureHeaders } from 'hono/secure-headers';
 import path from 'path';
-import helmet from 'helmet';
-import cors from 'cors';
-import compression from 'compression';
 import { env } from './config/index';
 import { logger } from './infrastructure/logging/index';
 import { aiViewMiddleware } from './infrastructure/middleware/index';
-import { healthRouter } from './controllers/health.controller';
-import { projectsRouter } from './controllers/projects.controller';
-import { keywordsRouter } from './controllers/keywords.controller';
-import { scansRouter } from './controllers/scans.controller';
-import { knowledgeGraphRouter } from './controllers/knowledge-graph.controller';
-import { llmsTxtRouter } from './controllers/llms-txt.controller';
-import { dashboardRouter } from './controllers/dashboard.controller';
-import { edgeRouter } from './controllers/edge.controller';
+import healthRouter from './controllers/health.controller';
+import projectsRouter from './controllers/projects.controller';
+import keywordsRouter from './controllers/keywords.controller';
+import scansRouter from './controllers/scans.controller';
+import knowledgeGraphRouter from './controllers/knowledge-graph.controller';
+import llmsTxtRouter from './controllers/llms-txt.controller';
+import dashboardRouter from './controllers/dashboard.controller';
+import edgeRouter from './controllers/edge.controller';
+import webhooksRouter from './controllers/webhooks.controller';
 
-const app: express.Express = express();
+const app = new Hono();
 
-// =============================================================================
-// MIDDLEWARE
-// =============================================================================
-
-// Security headers
-// Security headers
-app.use(helmet({
+app.use(secureHeaders({
     contentSecurityPolicy: {
-        directives: {
-            defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
-            imgSrc: ["'self'", "data:", "https://api.dicebear.com", "https://www.google.com"],
-        },
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+        imgSrc: ["'self'", "data:", "https://api.dicebear.com", "https://www.google.com"],
     },
 }));
 
-// CORS configuration
-app.use(cors({
+app.use('*', cors({
     origin: env.NODE_ENV === 'production'
-        ? process.env['ALLOWED_ORIGINS']?.split(',')
+        ? (process.env['ALLOWED_ORIGINS']?.split(',') || [])
         : '*',
     credentials: true,
 }));
 
-// Compression
-app.use(compression());
+app.use(compress());
 
-// Body parsing
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-
-// AI Crawler Detection (sets req.isAIBot)
 app.use(aiViewMiddleware);
 
-// Request logging
-app.use((req: Request, _res: Response, next: NextFunction) => {
-    logger.debug(`${req.method} ${req.path}`, {
-        query: req.query,
-        ip: req.ip,
+app.use('*', async (c, next) => {
+    logger.debug(`${c.req.method} ${c.req.path}`, {
+        query: c.req.query(),
+        ip: c.req.header('x-forwarded-for') || c.req.header('x-real-ip'),
     });
-    next();
+    await next();
 });
 
-// =============================================================================
-// ROUTES
-// =============================================================================
+app.route('/health', healthRouter);
+app.route('/api/v1/projects', projectsRouter);
+app.route('/api/v1/keywords', keywordsRouter);
+app.route('/api/v1/scans', scansRouter);
+app.route('/api/v1/kg', knowledgeGraphRouter);
+app.route('/api/v1/dashboard', dashboardRouter);
+app.route('/api/v1/edge', edgeRouter);
+app.route('/api/v1/webhooks', webhooksRouter);
+app.route('/llms.txt', llmsTxtRouter);
 
-app.use('/health', healthRouter);
-app.use('/api/v1/projects', projectsRouter);
-app.use('/api/v1/keywords', keywordsRouter);
-app.use('/api/v1/scans', scansRouter);
+app.use('/shared/*', serveStatic({ root: path.join(process.cwd(), 'public') }));
+app.use('/dashboard/*', serveStatic({ root: path.join(process.cwd(), 'public') }));
+app.use('/optimization/*', serveStatic({ root: path.join(process.cwd(), 'public') }));
+app.use('/authority/*', serveStatic({ root: path.join(process.cwd(), 'public') }));
+app.use('/settings/*', serveStatic({ root: path.join(process.cwd(), 'public') }));
 
-// Knowledge Graph & AEO endpoints
-app.use('/api/v1/kg', knowledgeGraphRouter);
-app.use('/api/v1/dashboard', dashboardRouter);
-app.use('/api/v1/edge', edgeRouter);
-app.use('/llms.txt', llmsTxtRouter);
-
-// Dashboard UI (static files)
-app.use('/shared', express.static(path.join(process.cwd(), 'public', 'shared')));
-app.use('/dashboard', express.static(path.join(process.cwd(), 'public', 'dashboard')));
-app.use('/optimization', express.static(path.join(process.cwd(), 'public', 'optimization')));
-app.use('/authority', express.static(path.join(process.cwd(), 'public', 'authority')));
-app.use('/settings', express.static(path.join(process.cwd(), 'public', 'settings')));
-
-// =============================================================================
-// ERROR HANDLING
-// =============================================================================
-
-/**
- * 404 Handler
- */
-app.use((_req: Request, res: Response) => {
-    res.status(404).json({
+app.notFound((c) => {
+    return c.json({
         error: 'Not Found',
         message: 'The requested resource does not exist',
-    });
+    }, 404);
 });
 
-/**
- * Global error handler
- */
-app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+app.onError((err, c) => {
     logger.error('Unhandled error', {
         error: err.message,
         stack: err.stack,
     });
 
-    res.status(500).json({
+    return c.json({
         error: 'Internal Server Error',
         message: env.NODE_ENV === 'development' ? err.message : 'An unexpected error occurred',
-    });
+    }, 500);
 });
-
-// =============================================================================
-// SERVER STARTUP
-// =============================================================================
 
 const PORT = env.PORT;
 
-app.listen(PORT, () => {
+serve({
+    fetch: app.fetch,
+    port: PORT,
+}, () => {
     logger.info(`🌿 Mentha API server running on port ${PORT}`, {
         environment: env.NODE_ENV,
         port: PORT,
     });
 });
 
-export { app };
+export default app;
+export type AppType = typeof app;

@@ -1,1 +1,1 @@
-export { requireAuth, optionalAuth, isAuthenticated, type AuthenticatedRequest } from './auth';
+export { requireAuth, attachUser, isAuthenticated, getUser, type UserPayload, type AuthVariables } from './auth';
