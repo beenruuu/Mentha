@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
-import { createSupabaseAdmin } from '../infrastructure/database/index';
+import { eq, desc } from 'drizzle-orm';
+import { db, scanResults, scanJobs, keywords } from '../infrastructure/database/index';
 import { logger } from '../infrastructure/logging/index';
 
 const app = new Hono()
@@ -11,51 +12,54 @@ const app = new Hono()
             return c.json({ error: 'project_id is required' }, 400);
         }
 
-        const supabase = createSupabaseAdmin();
+        try {
+            const results = await db
+                .select({
+                    id: scanResults.id,
+                    brand_visibility: scanResults.brand_visibility,
+                    sentiment_score: scanResults.sentiment_score,
+                    recommendation_type: scanResults.recommendation_type,
+                    raw_response: scanResults.raw_response,
+                    analysis_json: scanResults.analysis_json,
+                    created_at: scanResults.created_at,
+                    engine: scanJobs.engine,
+                    project_id: keywords.project_id,
+                    query: keywords.query,
+                })
+                .from(scanResults)
+                .innerJoin(scanJobs, eq(scanResults.job_id, scanJobs.id))
+                .innerJoin(keywords, eq(scanJobs.keyword_id, keywords.id))
+                .where(eq(keywords.project_id, project_id))
+                .orderBy(desc(scanResults.created_at))
+                .limit(parseInt(limit, 10));
 
-        const { data: results, error } = await supabase
-            .from('scan_results')
-            .select(`
-                id,
-                brand_visibility,
-                sentiment_score,
-                recommendation_type,
-                raw_response,
-                analysis_json,
-                created_at,
-                scan_jobs!inner(
-                    engine,
-                    keywords!inner(project_id, query)
-                )
-            `)
-            .eq('scan_jobs.keywords.project_id', project_id)
-            .order('created_at', { ascending: false })
-            .limit(parseInt(limit, 10));
-
-        if (error) {
-            logger.error('Failed to list scan results', { error: error.message });
+            return c.json({
+                data: results
+            });
+        } catch (error) {
+            logger.error('Failed to list scan results', { error: (error as Error).message });
             return c.json({ error: 'Failed to list scan results' }, 500);
         }
-
-        return c.json({
-            data: results || []
-        });
     })
     .get('/:id', async (c) => {
         const id = c.req.param('id');
-        const supabase = createSupabaseAdmin();
 
-        const { data, error } = await supabase
-            .from('scan_results')
-            .select('*')
-            .eq('id', id)
-            .single();
+        try {
+            const data = await db
+                .select()
+                .from(scanResults)
+                .where(eq(scanResults.id, id))
+                .limit(1);
 
-        if (error) {
-            return c.json({ error: 'Scan result not found' }, 404);
+            if (data.length === 0) {
+                return c.json({ error: 'Scan result not found' }, 404);
+            }
+
+            return c.json({ data: data[0] });
+        } catch (error) {
+            logger.error('Failed to get scan result', { error: (error as Error).message });
+            return c.json({ error: 'Failed to get scan result' }, 500);
         }
-
-        return c.json({ data });
     });
 
 export default app;

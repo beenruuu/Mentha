@@ -1,4 +1,4 @@
-import { createSupabaseAdmin } from '../../infrastructure/database/index';
+import { db, keywords } from '../../infrastructure/database/index';
 import { logger } from '../../infrastructure/logging/index';
 
 export interface EntityProfile {
@@ -127,23 +127,20 @@ Return strictly a JSON array of strings. Example: ["query 1", "query 2"]`;
      * Save generated probes to database
      */
     public async saveProbes(projectId: string, probes: GeneratedProbe[]) {
-        const supabase = createSupabaseAdmin();
         const records = probes.map(p => ({
             project_id: projectId,
             query: p.query,
-            intent_category: p.intent_category,
-            intent: 'informational', // Legacy field backup
-            scan_frequency: 'weekly',
+            intent: 'informational',
+            scan_frequency: 'weekly' as const,
             is_active: true
         }));
 
-        const { error } = await supabase.from('keywords').insert(records);
-
-        if (error) {
-            logger.error('Failed to save generated probes', { error: error.message });
-            throw new Error(`Failed to save probes: ${error.message}`);
+        try {
+            await db.insert(keywords).values(records);
+            return records.length;
+        } catch (error) {
+            logger.error('Failed to save generated probes', { error: (error as Error).message });
+            throw new Error(`Failed to save probes: ${(error as Error).message}`);
         }
-
-        return records.length;
     }
 }

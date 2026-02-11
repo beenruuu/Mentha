@@ -1,6 +1,7 @@
 import { Worker, Job } from 'bullmq';
 import { getRedisConnection, QUEUE_NAMES, AnalysisJobData, addNotificationJob } from '../infrastructure/queue/index';
-import { createSupabaseAdmin } from '../infrastructure/database/index';
+import { eq } from 'drizzle-orm';
+import { db, scanResults } from '../infrastructure/database/index';
 import { logger, createLogger } from '../infrastructure/logging/index';
 
 /**
@@ -27,8 +28,6 @@ export function createAnalysisWorker() {
 
             log.info('Starting analysis job');
 
-            const supabase = createSupabaseAdmin();
-
             try {
                 // Build evaluation prompt
                 const evaluationPrompt = buildEvaluationPrompt(
@@ -51,20 +50,16 @@ export function createAnalysisWorker() {
                 };
 
                 // Update scan_results with analysis
-                const { error: updateError } = await supabase
-                    .from('scan_results')
-                    .update({
+                await db
+                    .update(scanResults)
+                    .set({
                         analysis_json: evaluation as unknown as Record<string, unknown>,
                         sentiment_score: evaluation.sentiment_score,
                         brand_visibility: evaluation.brand_visibility,
                         share_of_voice_rank: evaluation.share_of_voice_rank,
                         recommendation_type: evaluation.recommendation_type,
                     })
-                    .eq('id', job.data.scanJobId);
-
-                if (updateError) {
-                    throw new Error(`Failed to update analysis: ${updateError.message}`);
-                }
+                    .where(eq(scanResults.id, job.data.scanJobId));
 
                 log.info('Analysis completed', {
                     sentiment: evaluation.sentiment_score,

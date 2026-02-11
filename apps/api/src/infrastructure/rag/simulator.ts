@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
-import { createSupabaseAdmin } from '../database/index';
+import { eq } from 'drizzle-orm';
+import { db, entities, faqVectors, claims } from '../database/index';
 import { env } from '../../config/index';
 import { logger } from '../logging/index';
 
@@ -161,28 +162,46 @@ export class RAGSimulator {
      * Load FAQs from database and convert to chunks
      */
     async loadFAQChunks(entitySlug?: string): Promise<DocChunk[]> {
-        const supabase = createSupabaseAdmin();
-
-        let query = supabase
-            .from('faq_vectors')
-            .select('id, question, answer, category');
+        let data: Array<{
+            id: string;
+            question: string;
+            answer: string;
+            category: string | null;
+        }>;
 
         if (entitySlug) {
-            const { data: entity } = await supabase
-                .from('entities')
-                .select('id')
-                .eq('slug', entitySlug)
-                .single();
+            const entityData = await db
+                .select({ id: entities.id })
+                .from(entities)
+                .where(eq(entities.slug, entitySlug))
+                .limit(1);
 
-            if (entity) {
-                query = query.eq('entity_id', entity.id);
+            if (entityData.length > 0) {
+                data = await db
+                    .select({
+                        id: faqVectors.id,
+                        question: faqVectors.question,
+                        answer: faqVectors.answer,
+                        category: faqVectors.category,
+                    })
+                    .from(faqVectors)
+                    .where(eq(faqVectors.entity_id, entityData[0]!.id));
+            } else {
+                data = [];
             }
+        } else {
+            data = await db
+                .select({
+                    id: faqVectors.id,
+                    question: faqVectors.question,
+                    answer: faqVectors.answer,
+                    category: faqVectors.category,
+                })
+                .from(faqVectors);
         }
 
-        const { data } = await query;
-
         const chunks: DocChunk[] = [];
-        for (const faq of data ?? []) {
+        for (const faq of data) {
             const content = `Q: ${faq.question}\nA: ${faq.answer}`;
             chunks.push({
                 id: faq.id,
@@ -207,20 +226,34 @@ export class RAGSimulator {
      * Load claims from database and convert to chunks
      */
     async loadClaimChunks(entitySlug?: string): Promise<DocChunk[]> {
-        const supabase = createSupabaseAdmin();
-
-        let query = supabase
-            .from('claims')
-            .select('id, claim_text, claim_type, entities!inner(slug)');
+        let data: Array<{
+            id: string;
+            claim_text: string;
+            claim_type: string | null;
+        }>;
 
         if (entitySlug) {
-            query = query.eq('entities.slug', entitySlug);
+            data = await db
+                .select({
+                    id: claims.id,
+                    claim_text: claims.claim_text,
+                    claim_type: claims.claim_type,
+                })
+                .from(claims)
+                .innerJoin(entities, eq(claims.entity_id, entities.id))
+                .where(eq(entities.slug, entitySlug));
+        } else {
+            data = await db
+                .select({
+                    id: claims.id,
+                    claim_text: claims.claim_text,
+                    claim_type: claims.claim_type,
+                })
+                .from(claims);
         }
 
-        const { data } = await query;
-
         const chunks: DocChunk[] = [];
-        for (const claim of data ?? []) {
+        for (const claim of data) {
             chunks.push({
                 id: claim.id,
                 content: claim.claim_text,

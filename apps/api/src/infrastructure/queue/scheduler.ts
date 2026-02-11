@@ -1,5 +1,6 @@
 import { getQueue, QUEUE_NAMES, ScheduledJobData } from './queues';
-import { createSupabaseAdmin } from '../database/index';
+import { eq, inArray } from 'drizzle-orm';
+import { db, keywords } from '../database/index';
 import { logger } from '../logging/index';
 
 /**
@@ -83,37 +84,42 @@ export async function removeKeywordSchedule(keywordId: string): Promise<void> {
 export async function syncKeywordSchedules(): Promise<void> {
     logger.info('Syncing keyword schedules from database');
 
-    const supabase = createSupabaseAdmin();
+    try {
+        // Get all active keywords with automated scan frequencies
+        const keywordsData = await db
+            .select({
+                id: keywords.id,
+                scan_frequency: keywords.scan_frequency,
+                engines: keywords.engines,
+            })
+            .from(keywords)
+            .where(eq(keywords.is_active, true));
 
-    // Get all active keywords with automated scan frequencies
-    const { data: keywords, error } = await supabase
-        .from('keywords')
-        .select('id, scan_frequency, engines')
-        .eq('is_active', true)
-        .in('scan_frequency', ['daily', 'weekly']);
+        // Filter for daily/weekly frequencies
+        const filteredKeywords = keywordsData.filter(
+            k => k.scan_frequency === 'daily' || k.scan_frequency === 'weekly'
+        );
 
-    if (error) {
-        logger.error('Failed to fetch keywords for scheduling', { error: error.message });
-        return;
-    }
-
-    if (!keywords || keywords.length === 0) {
-        logger.info('No keywords to schedule');
-        return;
-    }
-
-    // Schedule each keyword
-    for (const keyword of keywords) {
-        if (keyword.scan_frequency === 'daily' || keyword.scan_frequency === 'weekly') {
-            const engines = Array.isArray(keyword.engines)
-                ? keyword.engines as string[]
-                : ['perplexity'];
-
-            await scheduleKeywordScan(keyword.id, keyword.scan_frequency, engines);
+        if (filteredKeywords.length === 0) {
+            logger.info('No keywords to schedule');
+            return;
         }
-    }
 
-    logger.info('Keyword schedules synced', { count: keywords.length });
+        // Schedule each keyword
+        for (const keyword of filteredKeywords) {
+            if (keyword.scan_frequency === 'daily' || keyword.scan_frequency === 'weekly') {
+                const engines = Array.isArray(keyword.engines)
+                    ? keyword.engines as string[]
+                    : ['perplexity'];
+
+                await scheduleKeywordScan(keyword.id, keyword.scan_frequency, engines);
+            }
+        }
+
+        logger.info('Keyword schedules synced', { count: filteredKeywords.length });
+    } catch (error) {
+        logger.error('Failed to sync keyword schedules', { error: (error as Error).message });
+    }
 }
 
 /**

@@ -1,6 +1,7 @@
 import { Worker, Job } from 'bullmq';
 import { getRedisConnection, QUEUE_NAMES, addScanJob } from '../infrastructure/queue/index';
-import { createSupabaseAdmin } from '../infrastructure/database/index';
+import { eq } from 'drizzle-orm';
+import { db, projects } from '../infrastructure/database/index';
 import { logger, createLogger } from '../infrastructure/logging/index';
 import { createProvider } from '../infrastructure/search/index';
 
@@ -80,7 +81,6 @@ export function createProbingWorker() {
                 queriesCount: goldenQueries.length
             });
 
-            const supabase = createSupabaseAdmin();
             const engines: Array<'openai' | 'perplexity' | 'gemini'> = ['openai', 'perplexity'];
             const results: Array<{
                 query: string;
@@ -178,18 +178,21 @@ export async function scheduleDailyProbing(
     projectId: string,
     goldenQueries: string[]
 ): Promise<void> {
-    const supabase = createSupabaseAdmin();
-
     // Get project info
-    const { data: project } = await supabase
-        .from('projects')
-        .select('name, domain')
-        .eq('id', projectId)
-        .single();
+    const projectData = await db
+        .select({
+            name: projects.name,
+            domain: projects.domain,
+        })
+        .from(projects)
+        .where(eq(projects.id, projectId))
+        .limit(1);
 
-    if (!project) {
+    if (projectData.length === 0) {
         throw new Error('Project not found');
     }
+
+    const project = projectData[0]!;
 
     // Import queue dynamically to avoid circular deps
     const { getQueue } = await import('../infrastructure/queue/index.js');

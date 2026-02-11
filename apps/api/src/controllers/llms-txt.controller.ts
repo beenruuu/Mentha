@@ -1,22 +1,24 @@
 import { Hono } from 'hono';
-import { createSupabaseAdmin } from '../infrastructure/database/index';
+import { sql, eq, gte, desc } from 'drizzle-orm';
+import { db, entities, claims, faqVectors } from '../infrastructure/database/index';
 import { logger } from '../infrastructure/logging/index';
 
 const app = new Hono()
     .get('/', async (c) => {
-        const supabase = createSupabaseAdmin();
-
         try {
-            const { data, error } = await supabase.rpc('generate_llms_txt');
+            const result = await db.execute(sql`SELECT generate_llms_txt()`);
 
-            if (error) {
-                logger.error('Failed to generate llms.txt', { error: error.message });
+            const data = result[0] && typeof result[0] === 'object' && 'generate_llms_txt' in result[0]
+                ? (result[0] as { generate_llms_txt: string }).generate_llms_txt
+                : null;
+
+            if (!data) {
                 return c.text('# llms.txt\n\nNo content available. Please configure your Knowledge Graph.', 200, {
                     'Content-Type': 'text/plain; charset=utf-8'
                 });
             }
 
-            return c.text(data || '# llms.txt\n\nNo content configured.', 200, {
+            return c.text(data, 200, {
                 'Content-Type': 'text/plain; charset=utf-8',
                 'Cache-Control': 'public, max-age=3600'
             });
@@ -26,31 +28,45 @@ const app = new Hono()
         }
     })
     .get('/full', async (c) => {
-        const supabase = createSupabaseAdmin();
-
         try {
-            const { data: entities } = await supabase
-                .from('entities')
-                .select('name, description, entity_type, url, disambiguating_description, same_as')
-                .eq('is_primary', true);
+            const entitiesData = await db
+                .select({
+                    name: entities.name,
+                    description: entities.description,
+                    entity_type: entities.entity_type,
+                    url: entities.url,
+                    disambiguating_description: entities.disambiguating_description,
+                    same_as: entities.same_as,
+                })
+                .from(entities)
+                .where(eq(entities.is_primary, true));
 
-            const { data: claims } = await supabase
-                .from('claims')
-                .select('claim_text, claim_type, importance, entities!inner(is_primary)')
-                .gte('importance', 5)
-                .order('importance', { ascending: false });
+            const claimsData = await db
+                .select({
+                    claim_text: claims.claim_text,
+                    claim_type: claims.claim_type,
+                    importance: claims.importance,
+                })
+                .from(claims)
+                .innerJoin(entities, eq(claims.entity_id, entities.id))
+                .where(gte(claims.importance, 5))
+                .orderBy(desc(claims.importance));
 
-            const { data: faqs } = await supabase
-                .from('faq_vectors')
-                .select('question, answer, category')
-                .eq('is_published', true)
+            const faqsData = await db
+                .select({
+                    question: faqVectors.question,
+                    answer: faqVectors.answer,
+                    category: faqVectors.category,
+                })
+                .from(faqVectors)
+                .where(eq(faqVectors.is_published, true))
                 .limit(20);
 
             let output = '# llms.txt - AI-Readable Content\n\n';
 
-            if (entities && entities.length > 0) {
+            if (entitiesData.length > 0) {
                 output += '## About\n\n';
-                for (const entity of entities) {
+                for (const entity of entitiesData) {
                     output += `### ${entity.name}\n\n`;
                     output += `${entity.description}\n\n`;
                     if (entity.disambiguating_description) {
@@ -69,17 +85,17 @@ const app = new Hono()
                 }
             }
 
-            if (claims && claims.length > 0) {
+            if (claimsData.length > 0) {
                 output += '## Key Facts\n\n';
-                for (const claim of claims) {
+                for (const claim of claimsData) {
                     output += `- ${claim.claim_text}\n`;
                 }
                 output += '\n';
             }
 
-            if (faqs && faqs.length > 0) {
+            if (faqsData.length > 0) {
                 output += '## Frequently Asked Questions\n\n';
-                for (const faq of faqs) {
+                for (const faq of faqsData) {
                     output += `### ${faq.question}\n\n`;
                     output += `${faq.answer}\n\n`;
                 }

@@ -1,7 +1,8 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { createSupabaseAdmin } from '../infrastructure/database/index';
+import { eq, desc } from 'drizzle-orm';
+import { db, keywords } from '../infrastructure/database/index';
 import { logger } from '../infrastructure/logging/index';
 
 const CreateKeywordSchema = z.object({
@@ -15,65 +16,57 @@ const CreateKeywordSchema = z.object({
 const app = new Hono()
     .get('/', async (c) => {
         const project_id = c.req.query('project_id');
-        const supabase = createSupabaseAdmin();
 
-        let query = supabase.from('keywords').select('*');
+        try {
+            const data = project_id
+                ? await db.select().from(keywords).where(eq(keywords.project_id, project_id)).orderBy(desc(keywords.created_at))
+                : await db.select().from(keywords).orderBy(desc(keywords.created_at));
 
-        if (project_id) {
-            query = query.eq('project_id', project_id);
-        }
-
-        const { data, error } = await query.order('created_at', { ascending: false });
-
-        if (error) {
-            logger.error('Failed to list keywords', { error: error.message });
+            return c.json({
+                data,
+                pagination: { total: data.length, page: 1, limit: 50 },
+            });
+        } catch (error) {
+            logger.error('Failed to list keywords', { error: (error as Error).message });
             return c.json({ error: 'Failed to list keywords' }, 500);
         }
-
-        return c.json({
-            data: data || [],
-            pagination: { total: data?.length || 0, page: 1, limit: 50 },
-        });
     })
     .post('/', zValidator('json', CreateKeywordSchema), async (c) => {
         const { project_id, query, intent, scan_frequency, engines } = c.req.valid('json');
-        const supabase = createSupabaseAdmin();
 
         logger.info('Creating keyword', { project_id, query, intent });
 
-        const { data, error } = await supabase
-            .from('keywords')
-            .insert({
-                project_id,
-                query,
-                intent,
-                scan_frequency,
-                engines,
-            })
-            .select()
-            .single();
+        try {
+            const result = await db
+                .insert(keywords)
+                .values({
+                    project_id,
+                    query,
+                    intent,
+                    scan_frequency,
+                    engines,
+                })
+                .returning();
 
-        if (error) {
-            logger.error('Failed to create keyword', { error: error.message });
-            return c.json({ error: 'Failed to create keyword', message: error.message }, 500);
+            return c.json({ data: result[0] }, 201);
+        } catch (error) {
+            logger.error('Failed to create keyword', { error: (error as Error).message });
+            return c.json({ error: 'Failed to create keyword', message: (error as Error).message }, 500);
         }
-
-        return c.json({ data }, 201);
     })
     .delete('/:id', async (c) => {
         const id = c.req.param('id');
-        const supabase = createSupabaseAdmin();
 
-        const { error } = await supabase
-            .from('keywords')
-            .delete()
-            .eq('id', id);
+        try {
+            await db
+                .delete(keywords)
+                .where(eq(keywords.id, id));
 
-        if (error) {
+            return c.body(null, 204);
+        } catch (error) {
+            logger.error('Failed to delete keyword', { error: (error as Error).message });
             return c.json({ error: 'Failed to delete keyword' }, 500);
         }
-
-        return c.body(null, 204);
     });
 
 export default app;

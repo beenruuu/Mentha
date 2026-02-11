@@ -1,7 +1,8 @@
 import { Worker, Job } from 'bullmq';
 import { getRedisConnection } from '../infrastructure/queue/index';
 import { QUEUE_NAMES, ScanJobData, addAnalysisJob } from '../infrastructure/queue/index';
-import { createSupabaseAdmin } from '../infrastructure/database/index';
+import { eq } from 'drizzle-orm';
+import { db, scanJobs, scanResults } from '../infrastructure/database/index';
 import { logger, createLogger } from '../infrastructure/logging/index';
 
 /**
@@ -17,17 +18,15 @@ export function createScanWorker() {
 
             log.info('Starting scan job', { engine: job.data.engine, query: job.data.query });
 
-            const supabase = createSupabaseAdmin();
-
             try {
                 // Update job status to processing
-                await supabase
-                    .from('scan_jobs')
-                    .update({
+                await db
+                    .update(scanJobs)
+                    .set({
                         status: 'processing',
-                        started_at: new Date().toISOString()
+                        started_at: new Date()
                     })
-                    .eq('id', job.data.keywordId); // Note: This should be the scan_job id, not keyword
+                    .where(eq(scanJobs.id, job.data.keywordId)); // Note: This should be the scan_job id, not keyword
 
                 // TODO: Call the appropriate search provider based on engine
                 // const provider = SearchProviderFactory.create(job.data.engine);
@@ -39,54 +38,53 @@ export function createScanWorker() {
                 const latencyMs = Date.now() - startTime;
 
                 // Store raw result immediately (checkpoint)
-                const { data: scanResult, error: insertError } = await supabase
-                    .from('scan_results')
-                    .insert({
+                const scanResult = await db
+                    .insert(scanResults)
+                    .values({
                         job_id: job.data.keywordId, // This should be scan_job id
                         raw_response: rawResponse,
                     })
-                    .select()
-                    .single();
+                    .returning();
 
-                if (insertError) {
-                    throw new Error(`Failed to store scan result: ${insertError.message}`);
+                if (!scanResult[0]) {
+                    throw new Error('Failed to store scan result');
                 }
 
                 log.info('Scan completed, queueing analysis', { latencyMs });
 
                 // Queue the analysis job
                 await addAnalysisJob({
-                    scanJobId: scanResult.id,
+                    scanJobId: scanResult[0].id,
                     rawResponse,
                     brand: job.data.brand,
                     competitors: job.data.competitors,
                 });
 
                 // Update job status
-                await supabase
-                    .from('scan_jobs')
-                    .update({
+                await db
+                    .update(scanJobs)
+                    .set({
                         status: 'completed',
                         latency_ms: latencyMs,
-                        completed_at: new Date().toISOString(),
+                        completed_at: new Date(),
                     })
-                    .eq('id', job.data.keywordId);
+                    .where(eq(scanJobs.id, job.data.keywordId));
 
-                return { success: true, resultId: scanResult.id, latencyMs };
+                return { success: true, resultId: scanResult[0].id, latencyMs };
 
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'Unknown error';
                 log.error('Scan job failed', { error: errorMessage });
 
                 // Update job as failed
-                await supabase
-                    .from('scan_jobs')
-                    .update({
+                await db
+                    .update(scanJobs)
+                    .set({
                         status: 'failed',
                         error_message: errorMessage,
-                        completed_at: new Date().toISOString(),
+                        completed_at: new Date(),
                     })
-                    .eq('id', job.data.keywordId);
+                    .where(eq(scanJobs.id, job.data.keywordId));
 
                 throw error;
             }

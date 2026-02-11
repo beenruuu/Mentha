@@ -1,7 +1,9 @@
 import { Hono } from 'hono';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
-import { createSupabaseAdmin } from '../infrastructure/database/index';
+import { eq, and } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
+import { db, domains, aiFirewallRules } from '../infrastructure/database/index';
 import { logger } from '../infrastructure/logging/index';
 
 const VerifyDomainSchema = z.object({
@@ -21,17 +23,20 @@ const app = new Hono()
             return c.json({ error: 'domain parameter required' }, 400);
         }
 
-        const supabase = createSupabaseAdmin();
+        try {
+            const result = await db.execute(
+                sql`SELECT * FROM resolve_tenant_from_domain(${domain})`
+            );
 
-        const { data, error } = await supabase.rpc('resolve_tenant_from_domain', {
-            p_domain: domain,
-        });
+            if (!result || result.length === 0) {
+                return c.json({ error: 'Tenant not found for domain' }, 404);
+            }
 
-        if (error || !data || data.length === 0) {
-            return c.json({ error: 'Domain not found or not verified' }, 404);
+            return c.json({ data: result[0] });
+        } catch (error) {
+            logger.error('Failed to resolve tenant', { error: (error as Error).message });
+            return c.json({ error: 'Failed to resolve tenant' }, 500);
         }
-
-        return c.json({ data: data[0] });
     })
     .get('/injection-payload', async (c) => {
         const domain = c.req.query('domain');
@@ -41,19 +46,20 @@ const app = new Hono()
             return c.json({ error: 'domain parameter required' }, 400);
         }
 
-        const supabase = createSupabaseAdmin();
+        try {
+            const result = await db.execute(
+                sql`SELECT * FROM get_edge_injection_payload(${domain}, ${path || '/'})`
+            );
 
-        const { data, error } = await supabase.rpc('get_edge_injection_payload', {
-            p_domain: domain,
-            p_path: path || '/',
-        });
+            if (!result || result.length === 0) {
+                return c.json({ error: 'No injection payload found' }, 404);
+            }
 
-        if (error) {
-            logger.error('Failed to get injection payload', { error: error.message });
+            return c.json({ data: result[0] });
+        } catch (error) {
+            logger.error('Failed to get injection payload', { error: (error as Error).message });
             return c.json({ error: 'Failed to get injection payload' }, 500);
         }
-
-        return c.json({ data });
     })
     .get('/firewall-rules', async (c) => {
         const tenant_id = c.req.query('tenant_id');
@@ -62,96 +68,125 @@ const app = new Hono()
             return c.json({ error: 'tenant_id parameter required' }, 400);
         }
 
-        const supabase = createSupabaseAdmin();
+        try {
+            const rules = await db
+                .select()
+                .from(aiFirewallRules)
+                .where(
+                    and(
+                        eq(aiFirewallRules.tenant_id, tenant_id),
+                        eq(aiFirewallRules.is_active, true)
+                    )
+                );
 
-        const { data, error } = await supabase
-            .from('ai_firewall_rules')
-            .select('bot_name, user_agent_pattern, action, priority')
-            .eq('tenant_id', tenant_id)
-            .eq('is_active', true)
-            .order('priority', { ascending: true });
-
-        if (error) {
+            return c.json({ data: rules });
+        } catch (error) {
+            logger.error('Failed to get firewall rules', { error: (error as Error).message });
             return c.json({ error: 'Failed to get firewall rules' }, 500);
         }
-
-        return c.json({ data: data || [] });
     })
     .post('/verify-domain', zValidator('json', VerifyDomainSchema), async (c) => {
-        const { tenant_id, domain } = c.req.valid('json');
-        const supabase = createSupabaseAdmin();
-
-        const { data: existing } = await supabase
-            .from('domains')
-            .select('id, is_verified')
-            .eq('domain', domain)
-            .single();
-
-        if (existing) {
-            return c.json({ error: 'Domain already registered' }, 409);
-        }
-
-        const { data, error } = await supabase
-            .from('domains')
-            .insert({
-                tenant_id,
-                domain,
-                verification_method: 'dns_txt',
-            })
-            .select('verification_token')
-            .single();
-
-        if (error) {
-            return c.json({ error: 'Failed to create domain' }, 500);
-        }
-
-        return c.json({
-            message: 'Domain created. Add DNS TXT record to verify.',
-            instructions: {
-                record_type: 'TXT',
-                record_name: `_mentha-challenge.${domain}`,
-                record_value: data.verification_token,
-            },
-        }, 201);
-    })
-    .post('/check-verification', zValidator('json', CheckVerificationSchema), async (c) => {
-        const { domain } = c.req.valid('json');
-        const supabase = createSupabaseAdmin();
-
-        const { data: domainData } = await supabase
-            .from('domains')
-            .select('id, verification_token')
-            .eq('domain', domain)
-            .single();
-
-        if (!domainData) {
-            return c.json({ error: 'Domain not found' }, 404);
-        }
+        const { tenant_id, domain: domainName } = c.req.valid('json');
 
         try {
-            const dnsResponse = await fetch(
-                `https://cloudflare-dns.com/dns-query?name=_mentha-challenge.${domain}&type=TXT`,
-                { headers: { Accept: 'application/dns-json' } }
-            );
+            const existing = await db
+                .select({
+                    id: domains.id,
+                    is_verified: domains.is_verified,
+                })
+                .from(domains)
+                .where(eq(domains.domain, domainName))
+                .limit(1);
 
-            const dnsData = (await dnsResponse.json()) as { Answer?: Array<{ data: string }> };
-            const txtRecords = dnsData.Answer?.map((a) => a.data.replace(/"/g, '')) || [];
+            if (existing.length > 0) {
+                return c.json({
+                    message: 'Domain already exists',
+                    verified: existing[0]!.is_verified,
+                });
+            }
 
-            if (txtRecords.includes(domainData.verification_token)) {
-                await supabase
-                    .from('domains')
-                    .update({ is_verified: true, verified_at: new Date().toISOString() })
-                    .eq('id', domainData.id);
+            const verificationToken = crypto.randomUUID();
 
-                return c.json({ verified: true, message: 'Domain verified successfully!' });
+            const result = await db
+                .insert(domains)
+                .values({
+                    tenant_id,
+                    domain: domainName,
+                    verification_token: verificationToken,
+                    verification_method: 'dns_txt',
+                    is_verified: false,
+                })
+                .returning({
+                    id: domains.id,
+                    verification_token: domains.verification_token,
+                });
+
+            return c.json({
+                message: 'Domain verification initiated',
+                domain_id: result[0]!.id,
+                verification_token: result[0]!.verification_token,
+            });
+        } catch (error) {
+            logger.error('Failed to verify domain', { error: (error as Error).message });
+            return c.json({ error: 'Failed to verify domain' }, 500);
+        }
+    })
+    .post('/check-verification', zValidator('json', CheckVerificationSchema), async (c) => {
+        const { domain: domainName } = c.req.valid('json');
+
+        try {
+            const domainData = await db
+                .select({
+                    id: domains.id,
+                    verification_token: domains.verification_token,
+                })
+                .from(domains)
+                .where(eq(domains.domain, domainName))
+                .limit(1);
+
+            if (domainData.length === 0) {
+                return c.json({ error: 'Domain not found' }, 404);
+            }
+
+            const verificationToken = domainData[0]!.verification_token;
+            let verified = false;
+
+            try {
+                const txtRecords = await fetch(`https://dns.google/resolve?name=_mentha-verify.${domainName}&type=TXT`)
+                    .then(res => res.json() as Promise<{ Answer?: Array<{ data: string }> }>);
+
+                if (txtRecords.Answer) {
+                    verified = txtRecords.Answer.some(record =>
+                        record.data.includes(verificationToken)
+                    );
+                }
+            } catch (dnsError) {
+                logger.warn('DNS verification check failed', { error: (dnsError as Error).message });
+            }
+
+            if (verified) {
+                await db
+                    .update(domains)
+                    .set({
+                        is_verified: true,
+                        verified_at: new Date(),
+                    })
+                    .where(eq(domains.id, domainData[0]!.id));
+
+                return c.json({
+                    verified: true,
+                    message: 'Domain successfully verified',
+                });
             }
 
             return c.json({
                 verified: false,
-                message: 'DNS record not found. Please wait for DNS propagation (up to 24h).',
+                message: 'Domain not yet verified',
+                verification_token: verificationToken,
             });
-        } catch {
-            return c.json({ error: 'Failed to check DNS' }, 500);
+        } catch (error) {
+            logger.error('Failed to check verification', { error: (error as Error).message });
+            return c.json({ error: 'Failed to check verification' }, 500);
         }
     });
 
