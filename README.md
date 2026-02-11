@@ -47,6 +47,16 @@ Applies to multi-modal results (images, videos) in platforms like **Google Gemin
 
 ---
 
+## Applications
+
+Mentha consists of three applications:
+
+1. **Web Interface** (`apps/web`) - Next.js dashboard for visual analytics
+2. **API Backend** (`apps/api`) - Express.js API server with all core services
+3. **CLI Tool** (`apps/cli`) - Interactive command-line interface ⭐ NEW
+
+---
+
 ## Features
 
 | Category | Feature | Description |
@@ -93,6 +103,23 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+### CLI Usage
+
+Run the interactive command-line interface:
+
+```bash
+# From project root
+pnpm cli
+
+# Or directly
+./mentha.sh
+
+# View available commands
+pnpm cli -- --help
+```
+
+See [CLI Documentation](apps/cli/README.md) for detailed usage.
+
 ---
 
 ## Usage
@@ -137,6 +164,12 @@ The web interface provides a visual command center for your brand monitoring:
                    │   PostgreSQL    │
                    │   (Supabase)    │
                    └─────────────────┘
+                            ▲
+                            │
+                   ┌────────┴─────────┐
+                   │   CLI Tool       │
+                   │  (Terminal UI)   │
+                   └──────────────────┘
 ```
 
 ## Contributing

@@ -3,20 +3,17 @@
   "version": "1.0.0",
   "description": "AEO/GEO Intelligence Platform Backend",
   "type": "module",
-  "main": "dist/app.js",
+  "main": "src/app.ts",
   "scripts": {
     "dev": "tsx watch src/app.ts",
-    "cli": "tsx src/cli.ts",
-    "setup": "tsx src/setup.ts",
-    "start:api": "node dist/app.js",
-    "start:worker": "node dist/workers/index.js",
+    "start:api": "tsx src/app.ts",
+    "start:worker": "tsx src/workers/index.ts",
     "build": "tsc",
-    "test": "jest --passWithNoTests",
-    "test:unit": "jest --testPathPattern=unit --passWithNoTests",
-    "test:integration": "jest --testPathPattern=integration --passWithNoTests",
-    "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "migrate": "tsx src/infrastructure/database/migrate.ts"
+    "test": "jest",
+    "test:unit": "jest --testPathPattern=unit",
+    "test:integration": "jest --testPathPattern=integration",
+    "lint": "eslint"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
