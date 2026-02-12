@@ -1,3 +1,5 @@
+import type { Context } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 import { getRedisConnection } from './queue';
 import { logger } from './logger';
 import { env } from '../config/env';
@@ -18,6 +20,11 @@ export const RATE_LIMITS = {
         limit: env.DEFAULT_DAILY_QUOTA,
         windowSeconds: 86400,
         keyPrefix: 'ratelimit:scan',
+    },
+    AUTH: {
+        limit: 5,
+        windowSeconds: 900,
+        keyPrefix: 'ratelimit:auth',
     },
 } as const;
 
@@ -134,4 +141,46 @@ export async function getUserQuota(userId: string): Promise<number> {
 
     const quotaStr = await redis.get(key);
     return quotaStr ? parseInt(quotaStr, 10) : env.DEFAULT_DAILY_QUOTA;
+}
+
+export function createAuthRateLimiter(maxAttempts: number = 5, windowMs: number = 15 * 60 * 1000) {
+    const windowSeconds = Math.floor(windowMs / 1000);
+
+    return async function authRateLimitMiddleware(c: Context, next: () => Promise<void>) {
+        const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
+                   c.req.header('x-real-ip') ||
+                   'unknown';
+
+        const redis = getRedisConnection();
+        const key = `ratelimit:auth:${ip}`;
+
+        const currentStr = await redis.get(key);
+        const current = currentStr ? parseInt(currentStr, 10) : 0;
+
+        if (current >= maxAttempts) {
+            const ttl = await redis.ttl(key);
+            const resetAt = new Date(Date.now() + ttl * 1000);
+
+            logger.warn('Auth rate limit exceeded', {
+                ip,
+                attempts: current,
+                resetAt: resetAt.toISOString()
+            });
+
+            throw new HTTPException(429, {
+                message: 'Too many authentication attempts. Please try again later.'
+            });
+        }
+
+        const newCount = await redis.incr(key);
+
+        if (newCount === 1) {
+            await redis.expire(key, windowSeconds);
+        }
+
+        c.header('X-RateLimit-Limit', maxAttempts.toString());
+        c.header('X-RateLimit-Remaining', Math.max(0, maxAttempts - newCount).toString());
+
+        await next();
+    };
 }

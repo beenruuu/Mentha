@@ -8,6 +8,7 @@ import { logger } from './core/logger';
 import { aiViewMiddleware } from './middlewares/ai-view';
 
 import healthRouter from './routers/health.router';
+import authRouter from './routers/auth.router';
 import projectsRouter from './routers/projects.router';
 import keywordsRouter from './routers/keywords.router';
 import scansRouter from './routers/scans.router';
@@ -48,6 +49,7 @@ app.use('*', async (c, next) => {
 
 const routes = app
     .route('/health', healthRouter)
+    .route('/api/v1/auth', authRouter)
     .route('/api/v1/projects', projectsRouter)
     .route('/api/v1/keywords', keywordsRouter)
     .route('/api/v1/scans', scansRouter)

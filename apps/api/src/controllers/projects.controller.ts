@@ -8,7 +8,8 @@ const projectService = getProjectService();
 export class ProjectController {
     static async list(c: Context) {
         try {
-            const data = await projectService.list();
+            const user = c.get('user');
+            const data = await projectService.list({ userId: user?.id });
             return c.json({
                 data,
                 pagination: { total: data.length, page: 1, limit: 20 },
@@ -22,6 +23,7 @@ export class ProjectController {
     static async create(c: Context) {
         const body = await c.req.json();
         const { name, domain, competitors, description } = body;
+        const user = c.get('user');
 
         try {
             const project = await projectService.create({
@@ -29,7 +31,7 @@ export class ProjectController {
                 domain,
                 competitors,
                 description,
-                user_id: '00000000-0000-0000-0000-000000000000',
+                user_id: user.id,
             });
 
             return c.json({ data: project }, 201);

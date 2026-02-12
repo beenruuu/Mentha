@@ -5,15 +5,19 @@ import { relations, sql } from 'drizzle-orm';
 // PROFILES (synced from auth.users)
 // =============================================================================
 export const profiles = pgTable('profiles', {
-    id: uuid('id').primaryKey(),
-    email: text('email'),
+    id: uuid('id').defaultRandom().primaryKey(),
+    email: text('email').notNull().unique(),
+    password_hash: text('password_hash').notNull(),
     display_name: text('display_name'),
+    role: text('role').default('user'),
     plan: text('plan').default('free'),
     daily_quota: integer('daily_quota').default(100),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (table) => ({
     planCheck: check('plan_check', sql`plan IN ('free', 'pro', 'enterprise')`),
+    roleCheck: check('role_check', sql`role IN ('user', 'admin')`),
+    emailIdx: index('idx_profiles_email').on(table.email),
 }));
 
 // =============================================================================

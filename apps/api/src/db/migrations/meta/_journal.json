@@ -8,6 +8,13 @@
       "when": 1770853185686,
       "tag": "0000_blue_sauron",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1770914883893,
+      "tag": "0001_flowery_kid_colt",
+      "breakpoints": true
     }
   ]
 }
