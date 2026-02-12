@@ -6,8 +6,8 @@ import { getWebhookService } from '../services/webhook.service';
 
 const webhookService = getWebhookService();
 
-export class WebhookController {
-    static async processUser(c: Context) {
+export const WebhookController = {
+    processUser: async (c: Context) => {
         const webhookSecret = c.req.header('x-webhook-secret');
 
         if (webhookSecret !== process.env.SUPABASE_WEBHOOK_SECRET) {
@@ -21,8 +21,10 @@ export class WebhookController {
             await webhookService.processUserWebhook(payload);
             return c.json({ success: true });
         } catch (error) {
-            logger.error('Webhook processing error', { error: (error as Error).message });
+            logger.error('Webhook processing error', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
-}
+    },
+} as const;

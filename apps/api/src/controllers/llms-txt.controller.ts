@@ -5,8 +5,8 @@ import { getLlmsTxtService } from '../services/llms-txt.service';
 
 const llmsTxtService = getLlmsTxtService();
 
-export class LlmsTxtController {
-    static async generate(c: Context) {
+export const LlmsTxtController = {
+    generate: async (c: Context) => {
         try {
             const content = await llmsTxtService.generate();
 
@@ -28,9 +28,9 @@ export class LlmsTxtController {
             logger.error('llms.txt error', { error: (error as Error).message });
             return c.text('# Error generating llms.txt', 500);
         }
-    }
+    },
 
-    static async generateFull(c: Context) {
+    generateFull: async (c: Context) => {
         try {
             const result = await llmsTxtService.generateMarkdown();
 
@@ -42,5 +42,5 @@ export class LlmsTxtController {
             logger.error('llms.txt/full error', { error: (error as Error).message });
             return c.text('# Error generating llms.txt', 500);
         }
-    }
-}
+    },
+} as const;

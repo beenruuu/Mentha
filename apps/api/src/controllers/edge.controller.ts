@@ -6,8 +6,8 @@ import { getDomainService } from '../services/domain.service';
 
 const domainService = getDomainService();
 
-export class EdgeController {
-    static async resolveTenant(c: Context) {
+export const EdgeController = {
+    resolveTenant: async (c: Context) => {
         const domain = c.req.query('domain');
 
         if (!domain) {
@@ -18,12 +18,14 @@ export class EdgeController {
             const tenantData = await domainService.resolveTenantFromDomain(domain);
             return c.json({ data: tenantData });
         } catch (error) {
-            logger.error('Failed to resolve tenant', { error: (error as Error).message });
+            logger.error('Failed to resolve tenant', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
+    },
 
-    static async getInjectionPayload(c: Context) {
+    getInjectionPayload: async (c: Context) => {
         const domain = c.req.query('domain');
         const path = c.req.query('path');
 
@@ -35,12 +37,14 @@ export class EdgeController {
             const payload = await domainService.getInjectionPayload(domain, path || '/');
             return c.json({ data: payload });
         } catch (error) {
-            logger.error('Failed to get injection payload', { error: (error as Error).message });
+            logger.error('Failed to get injection payload', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
+    },
 
-    static async getFirewallRules(c: Context) {
+    getFirewallRules: async (c: Context) => {
         const tenant_id = c.req.query('tenant_id');
 
         if (!tenant_id) {
@@ -51,12 +55,14 @@ export class EdgeController {
             const rules = await domainService.getFirewallRules(tenant_id);
             return c.json({ data: rules });
         } catch (error) {
-            logger.error('Failed to get firewall rules', { error: (error as Error).message });
+            logger.error('Failed to get firewall rules', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
+    },
 
-    static async verifyDomain(c: Context) {
+    verifyDomain: async (c: Context) => {
         const body = await c.req.json();
         const { tenant_id, domain: domainName } = body;
 
@@ -77,12 +83,14 @@ export class EdgeController {
                 verification_token: domain.verification_token,
             });
         } catch (error) {
-            logger.error('Failed to verify domain', { error: (error as Error).message });
+            logger.error('Failed to verify domain', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
+    },
 
-    static async checkVerification(c: Context) {
+    checkVerification: async (c: Context) => {
         const body = await c.req.json();
         const { domain: domainName } = body;
 
@@ -102,8 +110,10 @@ export class EdgeController {
                 message: 'Domain not yet verified',
             });
         } catch (error) {
-            logger.error('Failed to check verification', { error: (error as Error).message });
+            logger.error('Failed to check verification', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
-}
+    },
+} as const;

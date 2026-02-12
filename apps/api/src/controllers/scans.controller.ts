@@ -6,8 +6,8 @@ import { getScanService } from '../services/scan.service';
 
 const scanService = getScanService();
 
-export class ScanController {
-    static async list(c: Context) {
+export const ScanController = {
+    list: async (c: Context) => {
         const project_id = c.req.query('project_id');
         const limit = c.req.query('limit') || '20';
 
@@ -21,20 +21,24 @@ export class ScanController {
 
             return c.json({ data: results });
         } catch (error) {
-            logger.error('Failed to list scan results', { error: (error as Error).message });
+            logger.error('Failed to list scan results', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
+    },
 
-    static async getById(c: Context) {
+    getById: async (c: Context) => {
         const id = c.req.param('id');
 
         try {
             const result = await scanService.getResultById(id);
             return c.json({ data: result });
         } catch (error) {
-            logger.error('Failed to get scan result', { error: (error as Error).message });
+            logger.error('Failed to get scan result', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
-}
+    },
+} as const;

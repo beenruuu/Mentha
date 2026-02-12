@@ -8,8 +8,8 @@ import { getProfileService } from '../services/profile.service';
 
 const profileService = getProfileService();
 
-export class AuthController {
-    static async login(c: Context) {
+export const AuthController = {
+    login: async (c: Context) => {
         try {
             const body = await c.req.json();
             const { email, password } = body;
@@ -41,9 +41,9 @@ export class AuthController {
             logger.error('Login failed', { error: (error as Error).message });
             return handleHttpException(c, error);
         }
-    }
+    },
 
-    static async register(c: Context) {
+    register: async (c: Context) => {
         try {
             const body = await c.req.json();
             const { email, password, name } = body;
@@ -79,9 +79,9 @@ export class AuthController {
             logger.error('Registration failed', { error: (error as Error).message });
             return handleHttpException(c, error);
         }
-    }
+    },
 
-    static async me(c: Context) {
+    me: async (c: Context) => {
         try {
             const user = c.get('user');
 
@@ -103,8 +103,10 @@ export class AuthController {
                 },
             });
         } catch (error) {
-            logger.error('Failed to get user profile', { error: (error as Error).message });
+            logger.error('Failed to get user profile', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
-}
+    },
+} as const;

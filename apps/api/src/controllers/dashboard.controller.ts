@@ -6,8 +6,8 @@ import { getDashboardService } from '../services/dashboard.service';
 
 const dashboardService = getDashboardService();
 
-export class DashboardController {
-    static async getShareOfModel(c: Context) {
+export const DashboardController = {
+    getShareOfModel: async (c: Context) => {
         const project_id = c.req.query('project_id');
         const days = c.req.query('days') || '30';
 
@@ -34,12 +34,14 @@ export class DashboardController {
                 },
             });
         } catch (error) {
-            logger.error('Failed to get dashboard data', { error: (error as Error).message });
+            logger.error('Failed to get dashboard data', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
+    },
 
-    static async getKeywordPerformance(c: Context) {
+    getKeywordPerformance: async (c: Context) => {
         const project_id = c.req.query('project_id');
         const limit = c.req.query('limit') || '20';
 
@@ -62,12 +64,14 @@ export class DashboardController {
 
             return c.json({ data: keywordStats });
         } catch (error) {
-            logger.error('Failed to load keywords', { error: (error as Error).message });
+            logger.error('Failed to load keywords', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
+    },
 
-    static async getCitationAnalysis(c: Context) {
+    getCitationAnalysis: async (c: Context) => {
         const project_id = c.req.query('project_id');
         const limit = c.req.query('limit') || '100';
 
@@ -88,8 +92,10 @@ export class DashboardController {
                 },
             });
         } catch (error) {
-            logger.error('Citation analysis failed', { error: (error as Error).message });
+            logger.error('Citation analysis failed', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
-}
+    },
+} as const;

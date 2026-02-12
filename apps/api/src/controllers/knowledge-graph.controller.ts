@@ -6,18 +6,20 @@ import { getEntityService } from '../services/entity.service';
 
 const entityService = getEntityService();
 
-export class KnowledgeGraphController {
-    static async listEntities(c: Context) {
+export const KnowledgeGraphController = {
+    listEntities: async (c: Context) => {
         try {
             const data = await entityService.list();
             return c.json({ data });
         } catch (error) {
-            logger.error('Failed to list entities', { error: (error as Error).message });
+            logger.error('Failed to list entities', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
+    },
 
-    static async getEntityJsonLd(c: Context) {
+    getEntityJsonLd: async (c: Context) => {
         const slug = c.req.param('slug');
 
         try {
@@ -26,12 +28,15 @@ export class KnowledgeGraphController {
                 'Content-Type': 'application/ld+json',
             });
         } catch (error) {
-            logger.error('Failed to generate JSON-LD', { slug, error: (error as Error).message });
+            logger.error('Failed to generate JSON-LD', {
+                slug,
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
+    },
 
-    static async getEntityClaims(c: Context) {
+    getEntityClaims: async (c: Context) => {
         const slug = c.req.param('slug');
 
         try {
@@ -39,12 +44,14 @@ export class KnowledgeGraphController {
             const claims = await entityService.getClaimsByEntity(entity.id);
             return c.json({ data: claims });
         } catch (error) {
-            logger.error('Failed to list claims', { error: (error as Error).message });
+            logger.error('Failed to list claims', {
+                error: (error as Error).message,
+            });
             return handleHttpException(c, error);
         }
-    }
+    },
 
-    static async getEntityFaqs(c: Context) {
+    getEntityFaqs: async (c: Context) => {
         const slug = c.req.param('slug');
         const format = c.req.query('format');
 
@@ -77,5 +84,5 @@ export class KnowledgeGraphController {
             logger.error('Failed to list FAQs', { error: (error as Error).message });
             return handleHttpException(c, error);
         }
-    }
-}
+    },
+} as const;
