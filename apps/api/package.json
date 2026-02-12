@@ -1,5 +1,5 @@
 {
-  "name": "mentha-backend",
+  "name": "mentha-api",
   "version": "1.0.0",
   "description": "AEO/GEO Intelligence Platform Backend",
   "type": "module",

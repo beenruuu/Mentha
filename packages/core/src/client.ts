@@ -13,7 +13,7 @@ import type { MenthaClientConfig } from './types';
  * @example
  * ```typescript
  * import { createMenthaClient } from '@mentha/core';
- * import type { AppType } from 'mentha-backend';
+ * import type { AppType } from 'mentha-api';
  *
  * const client = createMenthaClient<AppType>({
  *   baseUrl: 'http://localhost:3000',
