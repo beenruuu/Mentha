@@ -1,7 +1,8 @@
 import type { Context } from 'hono';
-import { getEntityService } from '../services/entity.service';
+
 import { logger } from '../core/logger';
 import { handleHttpException } from '../exceptions/http';
+import { getEntityService } from '../services/entity.service';
 
 const entityService = getEntityService();
 
@@ -22,7 +23,7 @@ export class KnowledgeGraphController {
         try {
             const jsonld = await entityService.generateJsonLd(slug);
             return c.json(jsonld, 200, {
-                'Content-Type': 'application/ld+json'
+                'Content-Type': 'application/ld+json',
             });
         } catch (error) {
             logger.error('Failed to generate JSON-LD', { slug, error: (error as Error).message });
@@ -55,19 +56,19 @@ export class KnowledgeGraphController {
                 const faqJsonLd = {
                     '@context': 'https://schema.org',
                     '@type': 'FAQPage',
-                    'name': `Preguntas frecuentes sobre ${entity.name}`,
-                    'mainEntity': faqs.map((faq) => ({
+                    name: `Preguntas frecuentes sobre ${entity.name}`,
+                    mainEntity: faqs.map((faq) => ({
                         '@type': 'Question',
-                        'name': faq.question,
-                        'acceptedAnswer': {
+                        name: faq.question,
+                        acceptedAnswer: {
                             '@type': 'Answer',
-                            'text': faq.answer,
+                            text: faq.answer,
                         },
                     })),
                 };
 
                 return c.json(faqJsonLd, 200, {
-                    'Content-Type': 'application/ld+json'
+                    'Content-Type': 'application/ld+json',
                 });
             }
 

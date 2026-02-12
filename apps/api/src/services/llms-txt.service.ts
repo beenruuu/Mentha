@@ -1,8 +1,9 @@
-import { sql, eq, desc } from 'drizzle-orm';
-import { db } from '../db';
-import { entities, claims, faqVectors } from '../db/schema/knowledge-graph';
-import type { Entity, Claim, FaqVector } from '../db/types';
+import { desc, eq, sql } from 'drizzle-orm';
+
 import { logger } from '../core/logger';
+import { db } from '../db';
+import { claims, entities, faqVectors } from '../db/schema/knowledge-graph';
+import type { Claim, Entity, FaqVector } from '../db/types';
 
 export interface LlmsTxtContent {
     markdown: string;
@@ -27,9 +28,10 @@ export class LlmsTxtService {
 
         const result = await db.execute(sql`SELECT generate_llms_txt()`);
 
-        const content = result[0] && typeof result[0] === 'object' && 'generate_llms_txt' in result[0]
-            ? (result[0] as { generate_llms_txt: string }).generate_llms_txt
-            : null;
+        const content =
+            result[0] && typeof result[0] === 'object' && 'generate_llms_txt' in result[0]
+                ? (result[0] as { generate_llms_txt: string }).generate_llms_txt
+                : null;
 
         if (!content) {
             logger.warn('No llms.txt content available');
@@ -44,9 +46,20 @@ export class LlmsTxtService {
         logger.debug('Generating full llms.txt data');
 
         const [entitiesData, claimsData, faqsData] = await Promise.all([
-            db.select().from(entities).orderBy(desc(entities.is_primary), desc(entities.created_at)),
-            db.select().from(claims).where(eq(claims.is_verified, true)).orderBy(desc(claims.importance)),
-            db.select().from(faqVectors).where(eq(faqVectors.is_published, true)).orderBy(desc(faqVectors.view_count)),
+            db
+                .select()
+                .from(entities)
+                .orderBy(desc(entities.is_primary), desc(entities.created_at)),
+            db
+                .select()
+                .from(claims)
+                .where(eq(claims.is_verified, true))
+                .orderBy(desc(claims.importance)),
+            db
+                .select()
+                .from(faqVectors)
+                .where(eq(faqVectors.is_published, true))
+                .orderBy(desc(faqVectors.view_count)),
         ]);
 
         logger.info('Full llms.txt data generated', {
@@ -85,13 +98,13 @@ export class LlmsTxtService {
             claimsData = await db
                 .select()
                 .from(claims)
-                .where(eq(claims.entity_id, entity[0]!.id))
+                .where(eq(claims.entity_id, entity[0]?.id))
                 .orderBy(desc(claims.importance));
 
             faqsData = await db
                 .select()
                 .from(faqVectors)
-                .where(eq(faqVectors.entity_id, entity[0]!.id))
+                .where(eq(faqVectors.entity_id, entity[0]?.id))
                 .orderBy(desc(faqVectors.view_count));
         } else {
             const fullData = await this.generateFull();

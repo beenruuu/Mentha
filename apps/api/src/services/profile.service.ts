@@ -1,10 +1,11 @@
 import { eq } from 'drizzle-orm';
+
+import { comparePassword, hashPassword } from '../core/hash';
+import { logger } from '../core/logger';
 import { db } from '../db';
 import { profiles } from '../db/schema/core';
-import type { Profile, InsertProfile } from '../db/types';
-import { logger } from '../core/logger';
-import { hashPassword, comparePassword } from '../core/hash';
-import { NotFoundException, ConflictException, UnauthorizedException } from '../exceptions/http';
+import type { InsertProfile, Profile } from '../db/types';
+import { ConflictException, NotFoundException } from '../exceptions/http';
 
 export interface CreateProfileInput {
     email: string;
@@ -22,11 +23,7 @@ export class ProfileService {
     async findByEmail(email: string): Promise<Profile | null> {
         logger.debug('Finding profile by email', { email });
 
-        const data = await db
-            .select()
-            .from(profiles)
-            .where(eq(profiles.email, email))
-            .limit(1);
+        const data = await db.select().from(profiles).where(eq(profiles.email, email)).limit(1);
 
         return data[0] || null;
     }
@@ -34,11 +31,7 @@ export class ProfileService {
     async findById(id: string): Promise<Profile> {
         logger.debug('Finding profile by ID', { id });
 
-        const data = await db
-            .select()
-            .from(profiles)
-            .where(eq(profiles.id, id))
-            .limit(1);
+        const data = await db.select().from(profiles).where(eq(profiles.id, id)).limit(1);
 
         if (data.length === 0) {
             throw new NotFoundException('Profile not found');
@@ -63,10 +56,7 @@ export class ProfileService {
             display_name: input.display_name,
         };
 
-        const result = await db
-            .insert(profiles)
-            .values(profileData)
-            .returning();
+        const result = await db.insert(profiles).values(profileData).returning();
 
         if (!result[0]) {
             throw new Error('Failed to create profile');
@@ -115,10 +105,7 @@ export class ProfileService {
     async delete(id: string): Promise<void> {
         logger.info('Deleting profile', { id });
 
-        const result = await db
-            .delete(profiles)
-            .where(eq(profiles.id, id))
-            .returning();
+        const result = await db.delete(profiles).where(eq(profiles.id, id)).returning();
 
         if (result.length === 0) {
             throw new NotFoundException('Profile not found');

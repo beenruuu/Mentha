@@ -1,7 +1,8 @@
 import type { Context } from 'hono';
-import { getProjectService } from '../services/project.service';
+
 import { logger } from '../core/logger';
 import { handleHttpException } from '../exceptions/http';
+import { getProjectService } from '../services/project.service';
 
 const projectService = getProjectService();
 

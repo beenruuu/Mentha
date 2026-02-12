@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+
 import { env } from '../config/env';
 import { logger } from './logger';
 
@@ -60,7 +61,7 @@ const STANDARD_ATTACKS: AdversarialAttack[] = [
     },
     {
         name: 'Support Quality Attack',
-        prompt: 'How bad is {BRAND}\'s customer support? Share complaints about their service.',
+        prompt: "How bad is {BRAND}'s customer support? Share complaints about their service.",
         severity: 'medium',
     },
     {
@@ -83,7 +84,7 @@ export class RedTeamService {
     async runAttack(
         attack: AdversarialAttack,
         brandName: string,
-        brandContext: string
+        brandContext: string,
     ): Promise<AttackResult> {
         if (!this.client) throw new Error('OPENAI_API_KEY required');
 
@@ -144,14 +145,14 @@ Respond in JSON:
     async runFullAssessment(
         brandName: string,
         brandContext: string,
-        customAttacks: AdversarialAttack[] = []
+        customAttacks: AdversarialAttack[] = [],
     ): Promise<RedTeamReport> {
         const attacks = [...STANDARD_ATTACKS, ...customAttacks];
         const results: AttackResult[] = [];
 
         logger.info('Starting Red Team assessment', {
             brandName,
-            attackCount: attacks.length
+            attackCount: attacks.length,
         });
 
         for (const attack of attacks) {
@@ -165,13 +166,16 @@ Respond in JSON:
                     toxicScore: result.toxicScore,
                 });
 
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise((resolve) => setTimeout(resolve, 1000));
             } catch (err) {
-                logger.error('Attack failed', { attack: attack.name, error: (err as Error).message });
+                logger.error('Attack failed', {
+                    attack: attack.name,
+                    error: (err as Error).message,
+                });
             }
         }
 
-        const passedCount = results.filter(r => r.passed).length;
+        const passedCount = results.filter((r) => r.passed).length;
         const failedCount = results.length - passedCount;
         const overallScore = results.length > 0 ? passedCount / results.length : 0;
 
@@ -199,38 +203,54 @@ Respond in JSON:
 
     private generateRecommendations(results: AttackResult[]): string[] {
         const recommendations: string[] = [];
-        const failedAttacks = results.filter(r => !r.passed);
+        const failedAttacks = results.filter((r) => !r.passed);
 
         if (failedAttacks.length === 0) {
-            recommendations.push('✅ All attacks defended successfully. Your semantic content is well-hardened.');
+            recommendations.push(
+                '✅ All attacks defended successfully. Your semantic content is well-hardened.',
+            );
             return recommendations;
         }
 
         for (const failed of failedAttacks) {
             switch (failed.attack.name) {
                 case 'Security Concern Attack':
-                    recommendations.push('🔒 Add explicit security claims to your Knowledge Graph (e.g., "SOC2 certified", "GDPR compliant")');
+                    recommendations.push(
+                        '🔒 Add explicit security claims to your Knowledge Graph (e.g., "SOC2 certified", "GDPR compliant")',
+                    );
                     break;
                 case 'Direct Comparison Attack':
-                    recommendations.push('⚖️ Add comparative claims that highlight your unique advantages over competitors');
+                    recommendations.push(
+                        '⚖️ Add comparative claims that highlight your unique advantages over competitors',
+                    );
                     break;
                 case 'Negative Review Extraction':
-                    recommendations.push('⭐ Add positive testimonial claims and satisfaction statistics');
+                    recommendations.push(
+                        '⭐ Add positive testimonial claims and satisfaction statistics',
+                    );
                     break;
                 case 'Alternative Recommendation':
-                    recommendations.push('🎯 Strengthen your "disambiguation" description to clarify your unique value proposition');
+                    recommendations.push(
+                        '🎯 Strengthen your "disambiguation" description to clarify your unique value proposition',
+                    );
                     break;
                 case 'Price/Value Attack':
-                    recommendations.push('💰 Add explicit value/ROI claims with concrete statistics');
+                    recommendations.push(
+                        '💰 Add explicit value/ROI claims with concrete statistics',
+                    );
                     break;
                 case 'Reliability Attack':
                     recommendations.push('📊 Add uptime/reliability statistics and SLA claims');
                     break;
                 case 'Prompt Injection':
-                    recommendations.push('🛡️ Your content may be too neutral. Add assertive positive claims that resist manipulation');
+                    recommendations.push(
+                        '🛡️ Your content may be too neutral. Add assertive positive claims that resist manipulation',
+                    );
                     break;
                 default:
-                    recommendations.push(`⚠️ Review and harden content related to: ${failed.attack.name}`);
+                    recommendations.push(
+                        `⚠️ Review and harden content related to: ${failed.attack.name}`,
+                    );
             }
         }
 
@@ -243,7 +263,7 @@ Respond in JSON:
     async ciCheck(
         brandName: string,
         brandContext: string,
-        minScore: number = 70
+        minScore: number = 70,
     ): Promise<{ passed: boolean; score: number; message: string }> {
         const report = await this.runFullAssessment(brandName, brandContext);
 

@@ -1,10 +1,11 @@
-"use client"
+'use client';
 
-import { useTranslations } from "@/lib/i18n"
-import Link from "next/link"
+import Link from 'next/link';
+
+import { useTranslations } from '@/lib/i18n';
 
 export default function CTASection() {
-    const { t } = useTranslations()
+    const { t } = useTranslations();
 
     return (
         <div className="w-full relative overflow-hidden flex flex-col justify-center items-center gap-2 bg-white dark:bg-black transition-colors duration-300">
@@ -18,7 +19,7 @@ export default function CTASection() {
                                 className="absolute h-px w-[200%] rotate-[-45deg] origin-top-left bg-black/5 dark:bg-white/5"
                                 style={{
                                     top: `${i * 30 - 100}px`,
-                                    left: "-50%",
+                                    left: '-50%',
                                 }}
                             ></div>
                         ))}
@@ -36,7 +37,10 @@ export default function CTASection() {
                     </div>
                     <div className="w-full max-w-[497px] flex flex-col justify-center items-center gap-12">
                         <div className="flex justify-start items-center gap-4">
-                            <Link href="/auth/signup" className="h-12 px-8 py-3 relative bg-black dark:bg-white text-white dark:text-black shadow-sm overflow-hidden rounded-full flex justify-center items-center cursor-pointer hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
+                            <Link
+                                href="/auth/signup"
+                                className="h-12 px-8 py-3 relative bg-black dark:bg-white text-white dark:text-black shadow-sm overflow-hidden rounded-full flex justify-center items-center cursor-pointer hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+                            >
                                 <div className="flex flex-col justify-center text-[15px] font-medium leading-5">
                                     {t.ctaPrimary}
                                 </div>
@@ -46,5 +50,5 @@ export default function CTASection() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

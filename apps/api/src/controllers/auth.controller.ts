@@ -1,10 +1,10 @@
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { generateToken } from '../middlewares/auth';
+
 import { logger } from '../core/logger';
-import { handleHttpException } from '../exceptions/http';
+import { handleHttpException, UnauthorizedException } from '../exceptions/http';
+import { generateToken } from '../middlewares/auth';
 import { getProfileService } from '../services/profile.service';
-import { UnauthorizedException } from '../exceptions/http';
 
 const profileService = getProfileService();
 
@@ -62,16 +62,19 @@ export class AuthController {
 
             logger.info('User registered', { email: profile.email });
 
-            return c.json({
-                token,
-                user: {
-                    id: profile.id,
-                    email: profile.email,
-                    role: profile.role,
-                    display_name: profile.display_name,
-                    plan: profile.plan,
+            return c.json(
+                {
+                    token,
+                    user: {
+                        id: profile.id,
+                        email: profile.email,
+                        role: profile.role,
+                        display_name: profile.display_name,
+                        plan: profile.plan,
+                    },
                 },
-            }, 201);
+                201,
+            );
         } catch (error) {
             logger.error('Registration failed', { error: (error as Error).message });
             return handleHttpException(c, error);

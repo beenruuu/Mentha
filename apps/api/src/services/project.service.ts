@@ -1,8 +1,9 @@
-import { eq, desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
+
+import { logger } from '../core/logger';
 import { db } from '../db';
 import { projects } from '../db/schema/core';
-import type { Project, InsertProject } from '../db/types';
-import { logger } from '../core/logger';
+import type { InsertProject, Project } from '../db/types';
 import { NotFoundException } from '../exceptions/http';
 
 export interface CreateProjectInput {
@@ -46,11 +47,7 @@ export class ProjectService {
     async getById(id: string): Promise<Project> {
         logger.debug('Getting project by ID', { id });
 
-        const data = await db
-            .select()
-            .from(projects)
-            .where(eq(projects.id, id))
-            .limit(1);
+        const data = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
 
         if (data.length === 0) {
             throw new NotFoundException('Project not found');
@@ -60,7 +57,11 @@ export class ProjectService {
     }
 
     async create(input: CreateProjectInput): Promise<Project> {
-        logger.info('Creating project', { name: input.name, domain: input.domain, userId: input.user_id });
+        logger.info('Creating project', {
+            name: input.name,
+            domain: input.domain,
+            userId: input.user_id,
+        });
 
         const projectData: InsertProject = {
             name: input.name,
@@ -70,10 +71,7 @@ export class ProjectService {
             description: input.description,
         };
 
-        const result = await db
-            .insert(projects)
-            .values(projectData)
-            .returning();
+        const result = await db.insert(projects).values(projectData).returning();
 
         if (!result[0]) {
             throw new Error('Failed to create project');
@@ -106,10 +104,7 @@ export class ProjectService {
     async delete(id: string): Promise<void> {
         logger.info('Deleting project', { id });
 
-        const result = await db
-            .delete(projects)
-            .where(eq(projects.id, id))
-            .returning();
+        const result = await db.delete(projects).where(eq(projects.id, id)).returning();
 
         if (result.length === 0) {
             throw new NotFoundException('Project not found');

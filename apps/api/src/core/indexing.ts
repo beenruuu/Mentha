@@ -10,7 +10,7 @@ export async function submitToIndexNow(
     urls: string[],
     host: string,
     key: string,
-    keyLocation?: string
+    keyLocation?: string,
 ): Promise<{ success: boolean; errors: string[] }> {
     const errors: string[] = [];
 
@@ -69,7 +69,7 @@ export async function submitToIndexNow(
 export async function submitToGoogleIndexing(
     url: string,
     type: 'URL_UPDATED' | 'URL_DELETED' = 'URL_UPDATED',
-    _accessToken?: string
+    _accessToken?: string,
 ): Promise<{ success: boolean; error?: string }> {
     logger.info('Google Indexing API submission', { url, type });
 
@@ -81,18 +81,11 @@ export async function submitToGoogleIndexing(
 
 export async function triggerCriticalPagesIndexing(
     baseUrl: string,
-    indexNowKey: string
+    indexNowKey: string,
 ): Promise<void> {
-    const criticalPages = [
-        '/',
-        '/about',
-        '/services',
-        '/contact',
-        '/blog',
-        '/llms.txt',
-    ];
+    const criticalPages = ['/', '/about', '/services', '/contact', '/blog', '/llms.txt'];
 
-    const urls = criticalPages.map(page => `${baseUrl}${page}`);
+    const urls = criticalPages.map((page) => `${baseUrl}${page}`);
 
     const host = new URL(baseUrl).host;
     const result = await submitToIndexNow(urls, host, indexNowKey);
@@ -115,12 +108,12 @@ export async function pingSitemaps(sitemapUrl: string): Promise<void> {
             const response = await fetch(endpoint);
             logger.debug('Sitemap ping', {
                 endpoint: endpoint.split('?')[0],
-                status: response.status
+                status: response.status,
             });
         } catch (err) {
             logger.warn('Sitemap ping failed', {
                 endpoint,
-                error: (err as Error).message
+                error: (err as Error).message,
             });
         }
     }

@@ -1,10 +1,11 @@
+import chalk from 'chalk';
 import { Command } from 'commander';
 import ora from 'ora';
-import chalk from 'chalk';
+
+import config from '../config/index';
 import apiClient from '../services/api-client';
 import { formatter } from '../utils/formatter';
 import { table } from '../utils/table';
-import config from '../config/index';
 
 export const knowledgeGraphCommand = new Command('kg')
     .description('Manage Knowledge Graph entities and claims')
@@ -27,7 +28,7 @@ knowledgeGraphCommand
                 if (entities.length === 0) {
                     console.log(chalk.yellow('\nNo entities found in the Knowledge Graph.\n'));
                 } else {
-                    console.log('\n' + table.entities(entities) + '\n');
+                    console.log(`\n${table.entities(entities)}\n`);
                 }
             }
         } catch (error) {
@@ -51,7 +52,7 @@ knowledgeGraphCommand
             if (options.json || config.outputFormat === 'json') {
                 console.log(formatter.json(entity));
             } else {
-                console.log('\n' + table.entityDetails(entity) + '\n');
+                console.log(`\n${table.entityDetails(entity)}\n`);
             }
         } catch (error) {
             spinner.fail('Failed to fetch entity');
@@ -77,7 +78,7 @@ knowledgeGraphCommand
                 if (claims.length === 0) {
                     console.log(chalk.yellow('\nNo claims found for this entity.\n'));
                 } else {
-                    console.log('\n' + table.claims(claims) + '\n');
+                    console.log(`\n${table.claims(claims)}\n`);
                 }
             }
         } catch (error) {

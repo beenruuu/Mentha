@@ -1,8 +1,9 @@
 import { eq } from 'drizzle-orm';
+
+import { logger } from '../core/logger';
 import { db } from '../db';
 import { profiles } from '../db/schema/core';
-import type { Profile, InsertProfile } from '../db/types';
-import { logger } from '../core/logger';
+import type { InsertProfile, Profile } from '../db/types';
 
 export interface WebhookPayload {
     type: 'INSERT' | 'UPDATE' | 'DELETE';
@@ -37,10 +38,7 @@ export class WebhookService {
             daily_quota: 100,
         };
 
-        const result = await db
-            .insert(profiles)
-            .values(profileData)
-            .returning();
+        const result = await db.insert(profiles).values(profileData).returning();
 
         if (!result[0]) {
             throw new Error('Failed to create profile');

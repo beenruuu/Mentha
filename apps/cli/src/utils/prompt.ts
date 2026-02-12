@@ -1,4 +1,5 @@
 import inquirer from 'inquirer';
+
 import type { ProviderType } from '../types/index';
 
 export const prompt = {
@@ -20,7 +21,11 @@ export const prompt = {
     /**
      * Text input
      */
-    input: async (message: string, defaultValue?: string, validate?: (input: string) => boolean | string): Promise<string> => {
+    input: async (
+        message: string,
+        defaultValue?: string,
+        validate?: (input: string) => boolean | string,
+    ): Promise<string> => {
         const { answer } = await inquirer.prompt([
             {
                 type: 'input',
@@ -39,7 +44,7 @@ export const prompt = {
     select: async <T extends string>(
         message: string,
         choices: T[],
-        defaultValue?: T
+        defaultValue?: T,
     ): Promise<T> => {
         const { answer } = await inquirer.prompt([
             {
@@ -59,7 +64,7 @@ export const prompt = {
     multiSelect: async <T extends string>(
         message: string,
         choices: T[],
-        defaultValues?: T[]
+        defaultValues?: T[],
     ): Promise<T[]> => {
         const { answers } = await inquirer.prompt([
             {
@@ -80,7 +85,7 @@ export const prompt = {
         message: string,
         defaultValue?: number,
         min?: number,
-        max?: number
+        max?: number,
     ): Promise<number> => {
         const { answer } = await inquirer.prompt([
             {
@@ -225,7 +230,9 @@ export const prompt = {
     /**
      * Keyword creation prompts
      */
-    createKeyword: async (projectId: string): Promise<{
+    createKeyword: async (
+        projectId: string,
+    ): Promise<{
         project_id: string;
         query: string;
         intent: 'informational' | 'transactional' | 'navigational' | 'commercial';
@@ -407,9 +414,10 @@ export const prompt = {
         return {
             name: answers.name !== currentProject.name ? answers.name : undefined,
             domain: answers.domain !== currentProject.domain ? answers.domain : undefined,
-            competitors: JSON.stringify(competitors) !== JSON.stringify(currentProject.competitors)
-                ? competitors
-                : undefined,
+            competitors:
+                JSON.stringify(competitors) !== JSON.stringify(currentProject.competitors)
+                    ? competitors
+                    : undefined,
             description:
                 answers.description !== currentProject.description
                     ? answers.description

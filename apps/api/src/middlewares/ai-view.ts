@@ -1,4 +1,5 @@
-import { Context, MiddlewareHandler } from 'hono';
+import type { Context, MiddlewareHandler } from 'hono';
+
 import { logger } from '../core/logger';
 
 const AI_BOT_PATTERNS = [
@@ -21,12 +22,15 @@ export interface AIViewVariables {
 
 export function isAIBot(userAgent: string | undefined): boolean {
     if (!userAgent) return false;
-    return AI_BOT_PATTERNS.some(pattern =>
-        userAgent.toLowerCase().includes(pattern.toLowerCase())
+    return AI_BOT_PATTERNS.some((pattern) =>
+        userAgent.toLowerCase().includes(pattern.toLowerCase()),
     );
 }
 
-export const aiViewMiddleware: MiddlewareHandler<{ Variables: AIViewVariables }> = async (c, next) => {
+export const aiViewMiddleware: MiddlewareHandler<{ Variables: AIViewVariables }> = async (
+    c,
+    next,
+) => {
     const userAgent = c.req.header('user-agent');
     const isBot = isAIBot(userAgent);
 

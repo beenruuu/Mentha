@@ -65,7 +65,7 @@ export const formatter = {
      * Format recommendation type
      */
     recommendationType: (
-        type: 'direct_recommendation' | 'neutral_comparison' | 'negative_mention' | 'absent'
+        type: 'direct_recommendation' | 'neutral_comparison' | 'negative_mention' | 'absent',
     ): string => {
         const colors = {
             direct_recommendation: chalk.green('Direct Recommendation'),
@@ -106,10 +106,14 @@ export const formatter = {
     /**
      * Format token usage
      */
-    tokens: (usage?: { promptTokens: number; completionTokens: number; totalTokens: number }): string => {
+    tokens: (usage?: {
+        promptTokens: number;
+        completionTokens: number;
+        totalTokens: number;
+    }): string => {
         if (!usage) return 'N/A.js';
         return `${formatter.number(usage.promptTokens)} prompt + ${formatter.number(
-            usage.completionTokens
+            usage.completionTokens,
         )} completion = ${chalk.bold(formatter.number(usage.totalTokens))} total`;
     },
 
@@ -140,7 +144,7 @@ export const formatter = {
      */
     truncate: (text: string, maxLength: number): string => {
         if (text.length <= maxLength) return text;
-        return text.substring(0, maxLength - 3) + '....js';
+        return `${text.substring(0, maxLength - 3)}....js`;
     },
 
     /**

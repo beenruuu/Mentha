@@ -1,13 +1,13 @@
+import chalk from 'chalk';
 import { Command } from 'commander';
 import ora from 'ora';
-import chalk from 'chalk';
+
+import config from '../config/index';
 import apiClient from '../services/api-client';
 import { formatter } from '../utils/formatter';
 import { table } from '../utils/table';
-import config from '../config/index';
 
-export const scansCommand = new Command('scans')
-    .description('View scan results');
+export const scansCommand = new Command('scans').description('View scan results');
 
 scansCommand
     .command('list')
@@ -29,7 +29,7 @@ scansCommand
                 if (scans.length === 0) {
                     console.log(chalk.yellow('\nNo scan results found for this project.\n'));
                 } else {
-                    console.log('\n' + table.scans(scans) + '\n');
+                    console.log(`\n${table.scans(scans)}\n`);
                 }
             }
         } catch (error) {
@@ -53,16 +53,16 @@ scansCommand
             if (options.json || config.outputFormat === 'json') {
                 console.log(formatter.json(scan));
             } else {
-                console.log('\n' + table.scanDetails(scan) + '\n');
+                console.log(`\n${table.scanDetails(scan)}\n`);
 
                 console.log(chalk.cyan('Full Response:'));
                 console.log(chalk.gray('─'.repeat(100)));
                 console.log(scan.raw_response);
-                console.log(chalk.gray('─'.repeat(100)) + '\n');
+                console.log(`${chalk.gray('─'.repeat(100))}\n`);
 
                 if (scan.analysis_json && Object.keys(scan.analysis_json).length > 0) {
                     console.log(chalk.cyan('Analysis Data:'));
-                    console.log(formatter.json(scan.analysis_json) + '\n');
+                    console.log(`${formatter.json(scan.analysis_json)}\n`);
                 }
             }
         } catch (error) {

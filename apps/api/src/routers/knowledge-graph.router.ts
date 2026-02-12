@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+
 import { KnowledgeGraphController } from '../controllers/knowledge-graph.controller';
 
 const router = new Hono()

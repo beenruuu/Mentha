@@ -1,8 +1,9 @@
-import { eq, and, sql } from 'drizzle-orm';
-import { db } from '../db';
-import { domains, aiFirewallRules, tenants } from '../db/schema/tenants';
-import type { Domain, InsertDomain, AiFirewallRule, Tenant } from '../db/types';
+import { and, eq, sql } from 'drizzle-orm';
+
 import { logger } from '../core/logger';
+import { db } from '../db';
+import { aiFirewallRules, domains } from '../db/schema/tenants';
+import type { AiFirewallRule, Domain, InsertDomain } from '../db/types';
 import { NotFoundException } from '../exceptions/http';
 
 export interface TenantData {
@@ -38,9 +39,7 @@ export class DomainService {
     async resolveTenantFromDomain(domain: string): Promise<TenantData> {
         logger.debug('Resolving tenant from domain', { domain });
 
-        const result = await db.execute(
-            sql`SELECT * FROM resolve_tenant_from_domain(${domain})`
-        );
+        const result = await db.execute(sql`SELECT * FROM resolve_tenant_from_domain(${domain})`);
 
         if (!result || result.length === 0) {
             throw new NotFoundException('Tenant not found for domain');
@@ -53,7 +52,7 @@ export class DomainService {
         logger.debug('Getting injection payload', { domain, path });
 
         const result = await db.execute(
-            sql`SELECT * FROM get_injection_payload(${domain}, ${path || '/*'})`
+            sql`SELECT * FROM get_injection_payload(${domain}, ${path || '/*'})`,
         );
 
         if (!result || result.length === 0) {
@@ -70,10 +69,7 @@ export class DomainService {
             .select()
             .from(aiFirewallRules)
             .where(
-                and(
-                    eq(aiFirewallRules.tenant_id, tenantId),
-                    eq(aiFirewallRules.is_active, true)
-                )
+                and(eq(aiFirewallRules.tenant_id, tenantId), eq(aiFirewallRules.is_active, true)),
             )
             .orderBy(aiFirewallRules.priority);
 
@@ -86,12 +82,7 @@ export class DomainService {
         const domainData = await db
             .select()
             .from(domains)
-            .where(
-                and(
-                    eq(domains.tenant_id, tenantId),
-                    eq(domains.domain, domain)
-                )
-            )
+            .where(and(eq(domains.tenant_id, tenantId), eq(domains.domain, domain)))
             .limit(1);
 
         if (domainData.length === 0) {
@@ -157,10 +148,7 @@ export class DomainService {
     async create(data: InsertDomain): Promise<Domain> {
         logger.info('Creating domain', { domain: data.domain, tenantId: data.tenant_id });
 
-        const result = await db
-            .insert(domains)
-            .values(data)
-            .returning();
+        const result = await db.insert(domains).values(data).returning();
 
         if (!result[0]) {
             throw new Error('Failed to create domain');
@@ -173,10 +161,7 @@ export class DomainService {
     async delete(domainId: string): Promise<void> {
         logger.info('Deleting domain', { domainId });
 
-        const result = await db
-            .delete(domains)
-            .where(eq(domains.id, domainId))
-            .returning();
+        const result = await db.delete(domains).where(eq(domains.id, domainId)).returning();
 
         if (result.length === 0) {
             throw new NotFoundException('Domain not found');

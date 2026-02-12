@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
-import { ISearchProvider, SearchOptions, SearchResult, Citation } from '../../services/search.types';
+
 import { env } from '../../config/env';
+import type { ISearchProvider, SearchOptions, SearchResult } from '../../services/search.types';
 import { logger } from '../logger';
 
 /**
@@ -35,7 +36,8 @@ export class OpenAIProvider implements ISearchProvider {
 
         const startTime = Date.now();
 
-        let systemPrompt = options?.systemPrompt ??
+        let systemPrompt =
+            options?.systemPrompt ??
             'You are a knowledgeable assistant helping with brand research. Provide detailed, accurate information based on your knowledge. When discussing products or services, be objective and thorough.';
 
         // Geo-Spatial Context Injection
@@ -71,14 +73,15 @@ export class OpenAIProvider implements ISearchProvider {
                 content,
                 citations: [], // OpenAI doesn't provide citations
                 model: response.model,
-                usage: response.usage ? {
-                    promptTokens: response.usage.prompt_tokens,
-                    completionTokens: response.usage.completion_tokens,
-                    totalTokens: response.usage.total_tokens,
-                } : undefined,
+                usage: response.usage
+                    ? {
+                          promptTokens: response.usage.prompt_tokens,
+                          completionTokens: response.usage.completion_tokens,
+                          totalTokens: response.usage.total_tokens,
+                      }
+                    : undefined,
                 latencyMs,
             };
-
         } catch (error) {
             logger.error('OpenAI API error', { error: (error as Error).message });
             throw error;

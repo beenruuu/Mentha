@@ -1,7 +1,8 @@
 import type { Context } from 'hono';
-import { getDomainService } from '../services/domain.service';
+
 import { logger } from '../core/logger';
 import { BadRequestException, handleHttpException } from '../exceptions/http';
+import { getDomainService } from '../services/domain.service';
 
 const domainService = getDomainService();
 

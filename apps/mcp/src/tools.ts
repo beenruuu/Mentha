@@ -1,6 +1,6 @@
-import { createSupabaseAdmin } from "../../api/src/infrastructure/database";
-import { createProvider } from "../../api/src/infrastructure/search";
-import { getEvaluationService } from "../../api/src/domain/evaluation";
+import { getEvaluationService } from '../../api/src/domain/evaluation';
+import { createSupabaseAdmin } from '../../api/src/infrastructure/database';
+import { createProvider } from '../../api/src/infrastructure/search';
 
 export const analyzeBrandVisibility = async ({
     brand_name,
@@ -28,20 +28,24 @@ export const analyzeBrandVisibility = async ({
         content: [
             {
                 type: 'text' as const,
-                text: JSON.stringify({
-                    brand: brand_name,
-                    query,
-                    engine,
-                    visibility: evaluation.brand_visibility,
-                    sentiment_score: evaluation.sentiment_score,
-                    recommendation_type: evaluation.recommendation_type,
-                    share_of_voice_rank: evaluation.share_of_voice_rank,
-                    competitor_mentions: evaluation.competitor_mentions,
-                    key_phrases: evaluation.key_phrases,
-                    reasoning: evaluation.reasoning,
-                    raw_response_preview: result.content.substring(0, 500),
-                    citations: result.citations.slice(0, 5),
-                }, null, 2),
+                text: JSON.stringify(
+                    {
+                        brand: brand_name,
+                        query,
+                        engine,
+                        visibility: evaluation.brand_visibility,
+                        sentiment_score: evaluation.sentiment_score,
+                        recommendation_type: evaluation.recommendation_type,
+                        share_of_voice_rank: evaluation.share_of_voice_rank,
+                        competitor_mentions: evaluation.competitor_mentions,
+                        key_phrases: evaluation.key_phrases,
+                        reasoning: evaluation.reasoning,
+                        raw_response_preview: result.content.substring(0, 500),
+                        citations: result.citations.slice(0, 5),
+                    },
+                    null,
+                    2,
+                ),
             },
         ],
     };
@@ -64,20 +68,24 @@ export const getShareOfModel = async ({
         .gte('created_at', startDate.toISOString());
 
     const total = results?.length ?? 0;
-    const visible = results?.filter(r => r.brand_visibility).length ?? 0;
+    const visible = results?.filter((r) => r.brand_visibility).length ?? 0;
     const visibilityRate = total > 0 ? Math.round((visible / total) * 100) : 0;
 
     return {
         content: [
             {
                 type: 'text' as const,
-                text: JSON.stringify({
-                    project_id,
-                    period_days: days,
-                    total_scans: total,
-                    visible_count: visible,
-                    visibility_rate: `${visibilityRate}%`,
-                }, null, 2),
+                text: JSON.stringify(
+                    {
+                        project_id,
+                        period_days: days,
+                        total_scans: total,
+                        visible_count: visible,
+                        visibility_rate: `${visibilityRate}%`,
+                    },
+                    null,
+                    2,
+                ),
             },
         ],
     };
@@ -97,20 +105,26 @@ export const createBrandEntity = async ({
     same_as?: string[];
 }) => {
     const supabase = createSupabaseAdmin();
-    const slug = entityName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    const slug = entityName
+        .toLowerCase()
+        .replace(/\s+/g, '-')
+        .replace(/[^a-z0-9-]/g, '');
 
     const { error } = await supabase
         .from('entities')
-        .upsert({
-            entity_type: 'Organization',
-            name: entityName,
-            slug,
-            description,
-            url,
-            disambiguating_description,
-            same_as,
-            is_primary: true,
-        }, { onConflict: 'slug' })
+        .upsert(
+            {
+                entity_type: 'Organization',
+                name: entityName,
+                slug,
+                description,
+                url,
+                disambiguating_description,
+                same_as,
+                is_primary: true,
+            },
+            { onConflict: 'slug' },
+        )
         .select()
         .single();
 
@@ -146,7 +160,9 @@ export const addBrandClaim = async ({
         .single();
 
     if (!entity) {
-        return { content: [{ type: 'text' as const, text: `❌ Entity "${entity_slug}" not found` }] };
+        return {
+            content: [{ type: 'text' as const, text: `❌ Entity "${entity_slug}" not found` }],
+        };
     }
 
     const { error } = await supabase.from('claims').insert({

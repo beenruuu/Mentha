@@ -1,7 +1,8 @@
 import { eq } from 'drizzle-orm';
-import { db } from '../db';
-import { createLogger } from '../core/logger';
+
 import { scanResults } from '@/db/schema/core';
+import { createLogger } from '../core/logger';
+import { db } from '../db';
 
 export interface AnalysisJobData {
     scanJobId: string;
@@ -14,7 +15,11 @@ export interface EvaluationResult {
     sentiment_score: number;
     brand_visibility: boolean;
     share_of_voice_rank: number | null;
-    recommendation_type: 'direct_recommendation' | 'neutral_comparison' | 'negative_mention' | 'absent';
+    recommendation_type:
+        | 'direct_recommendation'
+        | 'neutral_comparison'
+        | 'negative_mention'
+        | 'absent';
     key_phrases: string[];
     competitor_mentions: Record<string, boolean>;
 }
@@ -31,10 +36,10 @@ export class AnalysisService {
         log.info('Starting analysis');
 
         try {
-            const evaluationPrompt = this.buildEvaluationPrompt(
+            const _evaluationPrompt = this.buildEvaluationPrompt(
                 data.rawResponse,
                 data.brand,
-                data.competitors
+                data.competitors,
             );
 
             const evaluation: EvaluationResult = {
@@ -63,7 +68,6 @@ export class AnalysisService {
             });
 
             return { success: true, evaluation };
-
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             log.error('Analysis failed', { error: errorMessage });
@@ -71,7 +75,11 @@ export class AnalysisService {
         }
     }
 
-    private buildEvaluationPrompt(rawResponse: string, brand: string, competitors: string[]): string {
+    private buildEvaluationPrompt(
+        rawResponse: string,
+        brand: string,
+        competitors: string[],
+    ): string {
         return `You are an expert brand reputation analyst. Evaluate the following AI-generated response for brand visibility and sentiment.
 
 TARGET BRAND: ${brand}

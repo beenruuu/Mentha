@@ -1,6 +1,7 @@
 import { createMiddleware } from 'hono/factory';
-import { jwt, sign } from 'hono/jwt';
 import { HTTPException } from 'hono/http-exception';
+import { jwt, sign } from 'hono/jwt';
+
 import { env } from '../config/env';
 
 export interface UserPayload {
@@ -38,7 +39,9 @@ export const attachUser = createMiddleware<{ Variables: AuthVariables }>(async (
     await next();
 });
 
-export const getUser = (c: { get: (key: string) => UserPayload | undefined }): UserPayload | undefined => {
+export const getUser = (c: {
+    get: (key: string) => UserPayload | undefined;
+}): UserPayload | undefined => {
     return c.get('user');
 };
 
@@ -81,7 +84,7 @@ export async function generateToken(user: UserPayload): Promise<string> {
 
 function parseExpiration(exp: string): number {
     const unit = exp.slice(-1);
-    const value = parseInt(exp.slice(0, -1));
+    const value = parseInt(exp.slice(0, -1), 10);
 
     switch (unit) {
         case 'd':

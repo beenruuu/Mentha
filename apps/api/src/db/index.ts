@@ -1,6 +1,7 @@
+import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import { sql } from 'drizzle-orm';
+
 import { env } from '../config/env';
 import { logger } from '../core/logger';
 

@@ -1,16 +1,17 @@
-import axios, { AxiosInstance, AxiosError } from 'axios';
+import axios, { type AxiosError, type AxiosInstance } from 'axios';
+
 import config from '../config/index';
 import type {
-    Project,
-    Keyword,
-    ScanResult,
-    Entity,
-    Claim,
-    ShareOfModelMetrics,
-    SentimentTrend,
-    TopCitation,
-    ApiResponse,
     ApiError,
+    ApiResponse,
+    Claim,
+    Entity,
+    Keyword,
+    Project,
+    ScanResult,
+    SentimentTrend,
+    ShareOfModelMetrics,
+    TopCitation,
 } from '../types/index';
 
 class ApiClient {
@@ -36,7 +37,7 @@ class ApiClient {
                 } else {
                     throw new Error(error.message || 'Request failed');
                 }
-            }
+            },
         );
     }
 
@@ -68,11 +69,11 @@ class ApiClient {
                 domain: string;
                 competitors: string[];
                 description: string;
-            }>
+            }>,
         ): Promise<Project> => {
             const response = await this.client.patch<ApiResponse<Project>>(
                 `/api/v1/projects/${id}`,
-                data
+                data,
             );
             return response.data.data;
         },
@@ -129,14 +130,14 @@ class ApiClient {
 
         entity: async (id: string): Promise<Entity> => {
             const response = await this.client.get<ApiResponse<Entity>>(
-                `/api/v1/kg/entities/${id}`
+                `/api/v1/kg/entities/${id}`,
             );
             return response.data.data;
         },
 
         claims: async (entityId: string): Promise<Claim[]> => {
             const response = await this.client.get<ApiResponse<Claim[]>>(
-                `/api/v1/kg/entities/${entityId}/claims`
+                `/api/v1/kg/entities/${entityId}/claims`,
             );
             return response.data.data;
         },
@@ -146,7 +147,7 @@ class ApiClient {
         shareOfModel: async (projectId: string): Promise<ShareOfModelMetrics> => {
             const response = await this.client.get<ApiResponse<ShareOfModelMetrics>>(
                 '/api/v1/dashboard/share-of-model',
-                { params: { project_id: projectId } }
+                { params: { project_id: projectId } },
             );
             return response.data.data;
         },
@@ -154,7 +155,7 @@ class ApiClient {
         sentimentTrends: async (projectId: string): Promise<SentimentTrend[]> => {
             const response = await this.client.get<ApiResponse<SentimentTrend[]>>(
                 '/api/v1/dashboard/sentiment-trends',
-                { params: { project_id: projectId } }
+                { params: { project_id: projectId } },
             );
             return response.data.data;
         },
@@ -162,7 +163,7 @@ class ApiClient {
         topCitations: async (projectId: string, limit: number = 10): Promise<TopCitation[]> => {
             const response = await this.client.get<ApiResponse<TopCitation[]>>(
                 '/api/v1/dashboard/top-citations',
-                { params: { project_id: projectId, limit } }
+                { params: { project_id: projectId, limit } },
             );
             return response.data.data;
         },
@@ -171,7 +172,7 @@ class ApiClient {
     health = {
         check: async (): Promise<{ status: string; timestamp: string }> => {
             const response = await this.client.get<{ status: string; timestamp: string }>(
-                '/health'
+                '/health',
             );
             return response.data;
         },

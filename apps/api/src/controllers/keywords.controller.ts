@@ -1,7 +1,8 @@
 import type { Context } from 'hono';
-import { getKeywordService } from '../services/keyword.service';
+
 import { logger } from '../core/logger';
 import { handleHttpException } from '../exceptions/http';
+import { getKeywordService } from '../services/keyword.service';
 
 const keywordService = getKeywordService();
 

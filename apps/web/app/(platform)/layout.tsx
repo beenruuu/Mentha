@@ -1,9 +1,10 @@
-"use client";
+'use client';
 
-import React from "react";
-import { Header } from "@/components/layout/Header";
-import { Dock } from "@/components/layout/Dock";
-import { ProjectProvider } from "@/context/ProjectContext";
+import type React from 'react';
+
+import { Dock } from '@/components/layout/Dock';
+import { Header } from '@/components/layout/Header';
+import { ProjectProvider } from '@/context/ProjectContext';
 
 export default function PlatformLayout({
     children,

@@ -1,8 +1,16 @@
-import { eq, desc, sql, and } from 'drizzle-orm';
-import { db } from '../db';
-import { entities, claims, faqVectors } from '../db/schema/knowledge-graph';
-import type { Entity, InsertEntity, Claim, InsertClaim, FaqVector, InsertFaqVector } from '../db/types';
+import { and, desc, eq } from 'drizzle-orm';
+
 import { logger } from '../core/logger';
+import { db } from '../db';
+import { claims, entities, faqVectors } from '../db/schema/knowledge-graph';
+import type {
+    Claim,
+    Entity,
+    FaqVector,
+    InsertClaim,
+    InsertEntity,
+    InsertFaqVector,
+} from '../db/types';
 import { NotFoundException } from '../exceptions/http';
 
 export interface EntityFilters {
@@ -12,16 +20,18 @@ export interface EntityFilters {
 }
 
 export class EntityService {
-    async list(): Promise<Array<{
-        id: string;
-        entity_type: string | null;
-        name: string;
-        slug: string;
-        description: string | null;
-        url: string | null;
-        is_primary: boolean | null;
-        created_at: Date | null;
-    }>> {
+    async list(): Promise<
+        Array<{
+            id: string;
+            entity_type: string | null;
+            name: string;
+            slug: string;
+            description: string | null;
+            url: string | null;
+            is_primary: boolean | null;
+            created_at: Date | null;
+        }>
+    > {
         logger.debug('Listing entities');
 
         const data = await db
@@ -77,11 +87,7 @@ export class EntityService {
     async getBySlug(slug: string): Promise<Entity> {
         logger.debug('Getting entity by slug', { slug });
 
-        const data = await db
-            .select()
-            .from(entities)
-            .where(eq(entities.slug, slug))
-            .limit(1);
+        const data = await db.select().from(entities).where(eq(entities.slug, slug)).limit(1);
 
         if (data.length === 0) {
             throw new NotFoundException('Entity not found');
@@ -93,16 +99,16 @@ export class EntityService {
     async create(data: InsertEntity): Promise<Entity> {
         logger.info('Creating entity', { name: data.name, type: data.entity_type });
 
-        const result = await db
-            .insert(entities)
-            .values(data)
-            .returning();
+        const result = await db.insert(entities).values(data).returning();
 
         if (!result[0]) {
             throw new Error('Failed to create entity');
         }
 
-        logger.info('Entity created successfully', { entityId: result[0].id, slug: result[0].slug });
+        logger.info('Entity created successfully', {
+            entityId: result[0].id,
+            slug: result[0].slug,
+        });
         return result[0];
     }
 
@@ -129,10 +135,7 @@ export class EntityService {
     async delete(slug: string): Promise<void> {
         logger.info('Deleting entity', { slug });
 
-        const result = await db
-            .delete(entities)
-            .where(eq(entities.slug, slug))
-            .returning();
+        const result = await db.delete(entities).where(eq(entities.slug, slug)).returning();
 
         if (result.length === 0) {
             throw new NotFoundException('Entity not found');
@@ -179,14 +182,16 @@ export class EntityService {
         return jsonLd;
     }
 
-    async getClaimsByEntity(entityId: string): Promise<Array<{
-        id: string;
-        claim_text: string;
-        claim_type: string | null;
-        importance: number | null;
-        source_url: string | null;
-        is_verified: boolean | null;
-    }>> {
+    async getClaimsByEntity(entityId: string): Promise<
+        Array<{
+            id: string;
+            claim_text: string;
+            claim_type: string | null;
+            importance: number | null;
+            source_url: string | null;
+            is_verified: boolean | null;
+        }>
+    > {
         logger.debug('Getting claims by entity', { entityId });
 
         const data = await db
@@ -205,11 +210,13 @@ export class EntityService {
         return data;
     }
 
-    async getFaqsByEntity(entityId: string): Promise<Array<{
-        question: string;
-        answer: string;
-        category: string | null;
-    }>> {
+    async getFaqsByEntity(entityId: string): Promise<
+        Array<{
+            question: string;
+            answer: string;
+            category: string | null;
+        }>
+    > {
         logger.debug('Getting FAQs by entity', { entityId });
 
         const data = await db
@@ -274,7 +281,10 @@ export class EntityService {
         return data;
     }
 
-    async addFaq(entitySlug: string, faqData: Omit<InsertFaqVector, 'entity_id'>): Promise<FaqVector> {
+    async addFaq(
+        entitySlug: string,
+        faqData: Omit<InsertFaqVector, 'entity_id'>,
+    ): Promise<FaqVector> {
         logger.info('Adding FAQ to entity', { entitySlug, question: faqData.question });
 
         const entity = await this.getBySlug(entitySlug);
@@ -302,11 +312,7 @@ export class EntityService {
             ? and(eq(entities.is_primary, true), eq(entities.tenant_id, tenantId))
             : eq(entities.is_primary, true);
 
-        const data = await db
-            .select()
-            .from(entities)
-            .where(conditions)
-            .limit(1);
+        const data = await db.select().from(entities).where(conditions).limit(1);
 
         return data.length > 0 ? data[0]! : null;
     }

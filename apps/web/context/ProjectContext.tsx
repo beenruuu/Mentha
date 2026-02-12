@@ -1,7 +1,9 @@
-"use client";
+'use client';
 
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { fetchFromApi } from "@/lib/api";
+import type React from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+
+import { fetchFromApi } from '@/lib/api';
 
 interface Project {
     id: string;
@@ -26,19 +28,19 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         async function loadProjects() {
             try {
-                const { data } = await fetchFromApi("/projects");
+                const { data } = await fetchFromApi('/projects');
                 setProjects(data);
 
                 // Try to recover from localStorage or pick first
-                const savedId = localStorage.getItem("mentha_project_id");
+                const savedId = localStorage.getItem('mentha_project_id');
                 if (savedId && data.find((p: Project) => p.id === savedId)) {
                     setSelectedProjectId(savedId);
                 } else if (data.length > 0) {
                     setSelectedProjectId(data[0].id);
-                    localStorage.setItem("mentha_project_id", data[0].id);
+                    localStorage.setItem('mentha_project_id', data[0].id);
                 }
             } catch (e) {
-                console.error("Failed to load projects", e);
+                console.error('Failed to load projects', e);
             } finally {
                 setIsLoading(false);
             }
@@ -50,7 +52,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
 
     const handleSetSelectedProjectId = (id: string) => {
         setSelectedProjectId(id);
-        localStorage.setItem("mentha_project_id", id);
+        localStorage.setItem('mentha_project_id', id);
     };
 
     return (
@@ -70,7 +72,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
 export function useProject() {
     const context = useContext(ProjectContext);
     if (context === undefined) {
-        throw new Error("useProject must be used within a ProjectProvider");
+        throw new Error('useProject must be used within a ProjectProvider');
     }
     return context;
 }

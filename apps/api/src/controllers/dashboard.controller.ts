@@ -1,7 +1,8 @@
 import type { Context } from 'hono';
-import { getDashboardService } from '../services/dashboard.service';
+
 import { logger } from '../core/logger';
 import { BadRequestException, handleHttpException } from '../exceptions/http';
+import { getDashboardService } from '../services/dashboard.service';
 
 const dashboardService = getDashboardService();
 
@@ -50,7 +51,7 @@ export class DashboardController {
             const limitNum = parseInt(limit, 10);
             const metrics = await dashboardService.getKeywordPerformance(project_id, limitNum);
 
-            const keywordStats = metrics.map(m => ({
+            const keywordStats = metrics.map((m) => ({
                 id: m.keyword_id,
                 keyword: m.query,
                 lastScanned: m.last_scanned_at,

@@ -1,8 +1,9 @@
 import type { Context } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import { getRedisConnection } from './queue';
-import { logger } from './logger';
+
 import { env } from '../config/env';
+import { logger } from './logger';
+import { getRedisConnection } from './queue';
 
 interface RateLimitConfig {
     limit: number;
@@ -30,7 +31,7 @@ export const RATE_LIMITS = {
 
 export async function checkRateLimit(
     userId: string,
-    config: RateLimitConfig = RATE_LIMITS.SCAN
+    config: RateLimitConfig = RATE_LIMITS.SCAN,
 ): Promise<{
     allowed: boolean;
     remaining: number;
@@ -59,7 +60,7 @@ export async function checkRateLimit(
 
 export async function incrementRateLimit(
     userId: string,
-    config: RateLimitConfig = RATE_LIMITS.SCAN
+    config: RateLimitConfig = RATE_LIMITS.SCAN,
 ): Promise<{
     allowed: boolean;
     current: number;
@@ -89,7 +90,7 @@ export async function incrementRateLimit(
 
 export async function getCurrentUsage(
     userId: string,
-    config: RateLimitConfig = RATE_LIMITS.SCAN
+    config: RateLimitConfig = RATE_LIMITS.SCAN,
 ): Promise<{
     used: number;
     limit: number;
@@ -99,10 +100,7 @@ export async function getCurrentUsage(
     const redis = getRedisConnection();
     const key = `${config.keyPrefix}:${userId}`;
 
-    const [currentStr, ttl] = await Promise.all([
-        redis.get(key),
-        redis.ttl(key),
-    ]);
+    const [currentStr, ttl] = await Promise.all([redis.get(key), redis.ttl(key)]);
 
     const used = currentStr ? parseInt(currentStr, 10) : 0;
     const remaining = Math.max(0, config.limit - used);
@@ -118,7 +116,7 @@ export async function getCurrentUsage(
 
 export async function resetRateLimit(
     userId: string,
-    config: RateLimitConfig = RATE_LIMITS.SCAN
+    config: RateLimitConfig = RATE_LIMITS.SCAN,
 ): Promise<void> {
     const redis = getRedisConnection();
     const key = `${config.keyPrefix}:${userId}`;
@@ -147,9 +145,10 @@ export function createAuthRateLimiter(maxAttempts: number = 5, windowMs: number 
     const windowSeconds = Math.floor(windowMs / 1000);
 
     return async function authRateLimitMiddleware(c: Context, next: () => Promise<void>) {
-        const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
-                   c.req.header('x-real-ip') ||
-                   'unknown';
+        const ip =
+            c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
+            c.req.header('x-real-ip') ||
+            'unknown';
 
         const redis = getRedisConnection();
         const key = `ratelimit:auth:${ip}`;
@@ -164,11 +163,11 @@ export function createAuthRateLimiter(maxAttempts: number = 5, windowMs: number 
             logger.warn('Auth rate limit exceeded', {
                 ip,
                 attempts: current,
-                resetAt: resetAt.toISOString()
+                resetAt: resetAt.toISOString(),
             });
 
             throw new HTTPException(429, {
-                message: 'Too many authentication attempts. Please try again later.'
+                message: 'Too many authentication attempts. Please try again later.',
             });
         }
 

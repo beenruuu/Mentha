@@ -1,8 +1,9 @@
-import { eq, desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
+
+import { createLogger, logger } from '../core/logger';
 import { db } from '../db';
-import { logger, createLogger } from '../core/logger';
-import { scanJobs, scanResults, keywords } from '../db/schema/core';
-import type { ScanResult, ScanJob } from '../db/types';
+import { keywords, scanJobs, scanResults } from '../db/schema/core';
+import type { ScanResult } from '../db/types';
 import { NotFoundException } from '../exceptions/http';
 
 export interface ScanJobData {
@@ -31,7 +32,7 @@ export class ScanService {
                 .update(scanJobs)
                 .set({
                     status: 'processing',
-                    started_at: new Date()
+                    started_at: new Date(),
                 })
                 .where(eq(scanJobs.id, data.keywordId));
 
@@ -63,7 +64,6 @@ export class ScanService {
                 .where(eq(scanJobs.id, data.keywordId));
 
             return { success: true, resultId: scanResult[0].id, latencyMs };
-
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
             log.error('Scan failed', { error: errorMessage });
@@ -81,18 +81,20 @@ export class ScanService {
         }
     }
 
-    async listResults(filters: { projectId: string; limit?: number }): Promise<Array<{
-        id: string;
-        brand_visibility: boolean | null;
-        sentiment_score: number | null;
-        recommendation_type: string | null;
-        raw_response: string | null;
-        analysis_json: unknown;
-        created_at: Date | null;
-        engine: string;
-        project_id: string;
-        query: string;
-    }>> {
+    async listResults(filters: { projectId: string; limit?: number }): Promise<
+        Array<{
+            id: string;
+            brand_visibility: boolean | null;
+            sentiment_score: number | null;
+            recommendation_type: string | null;
+            raw_response: string | null;
+            analysis_json: unknown;
+            created_at: Date | null;
+            engine: string;
+            project_id: string;
+            query: string;
+        }>
+    > {
         logger.debug('Listing scan results', { projectId: filters.projectId });
 
         const limit = filters.limit || 20;
@@ -123,11 +125,7 @@ export class ScanService {
     async getResultById(id: string): Promise<ScanResult> {
         logger.debug('Getting scan result by ID', { id });
 
-        const data = await db
-            .select()
-            .from(scanResults)
-            .where(eq(scanResults.id, id))
-            .limit(1);
+        const data = await db.select().from(scanResults).where(eq(scanResults.id, id)).limit(1);
 
         if (data.length === 0) {
             throw new NotFoundException('Scan result not found');
@@ -147,21 +145,26 @@ export class ScanService {
             .orderBy(desc(scanResults.created_at))
             .limit(1);
 
-        return data.length > 0 ? data[0]!.scan_results : null;
+        return data.length > 0 ? data[0]?.scan_results : null;
     }
 
-    async getResultsByProject(projectId: string, limit: number = 20): Promise<Array<{
-        id: string;
-        brand_visibility: boolean | null;
-        sentiment_score: number | null;
-        recommendation_type: string | null;
-        raw_response: string | null;
-        analysis_json: unknown;
-        created_at: Date | null;
-        engine: string;
-        project_id: string;
-        query: string;
-    }>> {
+    async getResultsByProject(
+        projectId: string,
+        limit: number = 20,
+    ): Promise<
+        Array<{
+            id: string;
+            brand_visibility: boolean | null;
+            sentiment_score: number | null;
+            recommendation_type: string | null;
+            raw_response: string | null;
+            analysis_json: unknown;
+            created_at: Date | null;
+            engine: string;
+            project_id: string;
+            query: string;
+        }>
+    > {
         return this.listResults({ projectId, limit });
     }
 }

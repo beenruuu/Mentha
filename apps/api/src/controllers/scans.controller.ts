@@ -1,7 +1,8 @@
 import type { Context } from 'hono';
-import { getScanService } from '../services/scan.service';
+
 import { logger } from '../core/logger';
 import { BadRequestException, handleHttpException } from '../exceptions/http';
+import { getScanService } from '../services/scan.service';
 
 const scanService = getScanService();
 

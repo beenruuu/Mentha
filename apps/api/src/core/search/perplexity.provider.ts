@@ -1,5 +1,10 @@
-import { ISearchProvider, SearchOptions, SearchResult, Citation } from '../../services/search.types';
 import { env } from '../../config/env';
+import type {
+    Citation,
+    ISearchProvider,
+    SearchOptions,
+    SearchResult,
+} from '../../services/search.types';
 import { logger } from '../logger';
 
 /**
@@ -86,7 +91,8 @@ export class PerplexityProvider implements ISearchProvider {
 
         const startTime = Date.now();
 
-        let systemPrompt = options?.systemPrompt ??
+        let systemPrompt =
+            options?.systemPrompt ??
             'You are a helpful research assistant. Provide detailed, accurate answers with citations to sources. Be thorough and cite your sources using numbered references.';
 
         // Geo-Spatial Context Injection
@@ -107,7 +113,10 @@ export class PerplexityProvider implements ISearchProvider {
             return_citations: true,
         };
 
-        logger.debug('Perplexity API request', { model: this.defaultModel, queryLength: query.length });
+        logger.debug('Perplexity API request', {
+            model: this.defaultModel,
+            queryLength: query.length,
+        });
 
         const controller = new AbortController();
         const timeout = options?.timeout ?? 60000; // Default 60s timeout
@@ -117,7 +126,7 @@ export class PerplexityProvider implements ISearchProvider {
             const response = await fetch(`${this.baseUrl}/chat/completions`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${this.apiKey}`,
+                    Authorization: `Bearer ${this.apiKey}`,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(requestBody),
@@ -132,7 +141,7 @@ export class PerplexityProvider implements ISearchProvider {
                 throw new Error(`Perplexity API error: ${response.status} - ${errorText}`);
             }
 
-            const data = await response.json() as PerplexityResponse;
+            const data = (await response.json()) as PerplexityResponse;
             const latencyMs = Date.now() - startTime;
 
             const content = data.choices[0]?.message?.content ?? '';
@@ -151,14 +160,15 @@ export class PerplexityProvider implements ISearchProvider {
                 content,
                 citations,
                 model: data.model,
-                usage: data.usage ? {
-                    promptTokens: data.usage.prompt_tokens,
-                    completionTokens: data.usage.completion_tokens,
-                    totalTokens: data.usage.total_tokens,
-                } : undefined,
+                usage: data.usage
+                    ? {
+                          promptTokens: data.usage.prompt_tokens,
+                          completionTokens: data.usage.completion_tokens,
+                          totalTokens: data.usage.total_tokens,
+                      }
+                    : undefined,
                 latencyMs,
             };
-
         } catch (error) {
             clearTimeout(timeoutId);
 
@@ -176,15 +186,19 @@ export class PerplexityProvider implements ISearchProvider {
     private mapCitations(content: string, citationUrls: string[]): Citation[] {
         const referencedPositions = extractCitationReferences(content);
 
-        return citationUrls.map((url, index): Citation => ({
-            position: index,
-            url,
-            domain: extractDomain(url),
-            title: undefined, // Perplexity doesn't always provide titles
-        })).filter((_, index) =>
-            // Only include citations that are actually referenced in the text
-            referencedPositions.includes(index + 1)
-        );
+        return citationUrls
+            .map(
+                (url, index): Citation => ({
+                    position: index,
+                    url,
+                    domain: extractDomain(url),
+                    title: undefined, // Perplexity doesn't always provide titles
+                }),
+            )
+            .filter((_, index) =>
+                // Only include citations that are actually referenced in the text
+                referencedPositions.includes(index + 1),
+            );
     }
 
     /**

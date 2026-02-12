@@ -1,9 +1,10 @@
-import OpenAI from 'openai';
 import { eq } from 'drizzle-orm';
-import { db } from '../db';
-import { env } from '../config/env';
-import { logger } from './logger';
+import OpenAI from 'openai';
+
 import { claims, entities, faqVectors } from '@/db/schema/knowledge-graph';
+import { env } from '../config/env';
+import { db } from '../db';
+import { logger } from './logger';
 
 interface DocChunk {
     id: string;
@@ -57,17 +58,17 @@ export class RAGSimulator {
     private findRelevantChunks(
         queryEmbedding: number[],
         chunks: DocChunk[],
-        topK: number = 5
+        topK: number = 5,
     ): DocChunk[] {
         const scored = chunks
-            .filter(c => c.embedding)
-            .map(chunk => ({
+            .filter((c) => c.embedding)
+            .map((chunk) => ({
                 chunk,
                 score: this.cosineSimilarity(queryEmbedding, chunk.embedding!),
             }))
             .sort((a, b) => b.score - a.score);
 
-        return scored.slice(0, topK).map(s => s.chunk);
+        return scored.slice(0, topK).map((s) => s.chunk);
     }
 
     async simulateRAG(query: string, chunks: DocChunk[]): Promise<RAGResult> {
@@ -88,7 +89,7 @@ export class RAGSimulator {
         }
 
         const context = relevantChunks
-            .map(c => `[Source: ${c.source}]\n${c.content}`)
+            .map((c) => `[Source: ${c.source}]\n${c.content}`)
             .join('\n\n---\n\n');
 
         const response = await this.client.chat.completions.create({
@@ -110,13 +111,12 @@ export class RAGSimulator {
         const answer = response.choices[0]?.message?.content ?? 'Unable to generate answer';
         const tokensUsed = response.usage?.total_tokens ?? 0;
 
-        const confidence = Math.min(relevantChunks.length / 5, 1) *
-            (answer.length > 50 ? 1 : 0.5);
+        const confidence = Math.min(relevantChunks.length / 5, 1) * (answer.length > 50 ? 1 : 0.5);
 
         return {
             query,
             answer,
-            sourcesUsed: relevantChunks.map(c => c.source),
+            sourcesUsed: relevantChunks.map((c) => c.source),
             confidence,
             tokensUsed,
         };
@@ -146,7 +146,7 @@ export class RAGSimulator {
                         category: faqVectors.category,
                     })
                     .from(faqVectors)
-                    .where(eq(faqVectors.entity_id, entityData[0]!.id));
+                    .where(eq(faqVectors.entity_id, entityData[0]?.id));
             } else {
                 data = [];
             }
@@ -174,7 +174,7 @@ export class RAGSimulator {
         for (const chunk of chunks) {
             try {
                 chunk.embedding = await this.embed(chunk.content);
-            } catch (err) {
+            } catch (_err) {
                 logger.warn('Failed to embed chunk', { id: chunk.id });
             }
         }
@@ -221,7 +221,7 @@ export class RAGSimulator {
         for (const chunk of chunks) {
             try {
                 chunk.embedding = await this.embed(chunk.content);
-            } catch (err) {
+            } catch (_err) {
                 logger.warn('Failed to embed chunk', { id: chunk.id });
             }
         }
@@ -231,7 +231,7 @@ export class RAGSimulator {
 
     async runQualityTest(
         testQueries: string[],
-        entitySlug?: string
+        entitySlug?: string,
     ): Promise<{
         score: number;
         results: Array<{ query: string; passed: boolean; answer: string }>;
@@ -243,7 +243,11 @@ export class RAGSimulator {
         if (allChunks.length === 0) {
             return {
                 score: 0,
-                results: testQueries.map(q => ({ query: q, passed: false, answer: 'No content available' })),
+                results: testQueries.map((q) => ({
+                    query: q,
+                    passed: false,
+                    answer: 'No content available',
+                })),
             };
         }
 
@@ -267,7 +271,7 @@ export class RAGSimulator {
             }
         }
 
-        const score = results.filter(r => r.passed).length / results.length;
+        const score = results.filter((r) => r.passed).length / results.length;
 
         return { score, results };
     }

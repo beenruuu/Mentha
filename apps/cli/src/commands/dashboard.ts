@@ -1,13 +1,15 @@
+import chalk from 'chalk';
 import { Command } from 'commander';
 import ora from 'ora';
-import chalk from 'chalk';
+
+import config from '../config/index';
 import apiClient from '../services/api-client';
 import { formatter } from '../utils/formatter';
 import { table } from '../utils/table';
-import config from '../config/index';
 
-export const dashboardCommand = new Command('dashboard')
-    .description('View dashboard metrics and analytics');
+export const dashboardCommand = new Command('dashboard').description(
+    'View dashboard metrics and analytics',
+);
 
 dashboardCommand
     .command('som')
@@ -24,28 +26,29 @@ dashboardCommand
             if (options.json || config.outputFormat === 'json') {
                 console.log(formatter.json(metrics));
             } else {
-                console.log('\n' + chalk.cyan.bold('Share of Model Metrics') + '\n');
+                console.log(`\n${chalk.cyan.bold('Share of Model Metrics')}\n`);
 
                 const data = {
                     'Project ID': metrics.project_id,
                     'Visibility Rate': formatter.percentage(metrics.visibility_rate),
                     'Total Scans': formatter.number(metrics.total_scans),
                     'Visible Scans': formatter.number(metrics.visible_scans),
-                    'Period': metrics.period,
+                    Period: metrics.period,
                 };
 
-                console.log(table.keyValue(data) + '\n');
+                console.log(`${table.keyValue(data)}\n`);
 
-                const visibilityColor = metrics.visibility_rate > 0.7
-                    ? chalk.green
-                    : metrics.visibility_rate > 0.4
-                    ? chalk.yellow
-                    : chalk.red;
+                const visibilityColor =
+                    metrics.visibility_rate > 0.7
+                        ? chalk.green
+                        : metrics.visibility_rate > 0.4
+                          ? chalk.yellow
+                          : chalk.red;
 
                 console.log(
-                    visibilityColor.bold(
-                        `📊 Your brand appears in ${formatter.percentage(metrics.visibility_rate)} of AI responses`
-                    ) + '\n'
+                    `${visibilityColor.bold(
+                        `📊 Your brand appears in ${formatter.percentage(metrics.visibility_rate)} of AI responses`,
+                    )}\n`,
                 );
             }
         } catch (error) {
@@ -75,21 +78,21 @@ dashboardCommand
                     return;
                 }
 
-                console.log('\n' + chalk.cyan.bold('Sentiment Trends') + '\n');
+                console.log(`\n${chalk.cyan.bold('Sentiment Trends')}\n`);
 
                 const tbl = table.keyValue({
                     'Total Data Points': formatter.number(trends.length),
                     'Date Range': `${trends[trends.length - 1]?.date} to ${trends[0]?.date}`,
                 });
 
-                console.log(tbl + '\n');
+                console.log(`${tbl}\n`);
 
-                console.log(chalk.cyan('Daily Sentiment:') + '\n');
+                console.log(`${chalk.cyan('Daily Sentiment:')}\n`);
 
                 trends.slice(0, 10).forEach((trend) => {
                     const sentimentBar = generateSentimentBar(trend.average_sentiment);
                     console.log(
-                        `${chalk.gray(trend.date)} ${formatter.sentiment(trend.average_sentiment)} ${sentimentBar} (${trend.scan_count} scans)`
+                        `${chalk.gray(trend.date)} ${formatter.sentiment(trend.average_sentiment)} ${sentimentBar} (${trend.scan_count} scans)`,
                     );
                 });
 
@@ -118,7 +121,9 @@ dashboardCommand
         try {
             const limit = parseInt(options.limit, 10);
             const citations = await apiClient.dashboard.topCitations(options.projectId, limit);
-            spinner.succeed(`Found ${citations.length} top citation source${citations.length === 1 ? '' : 's'}`);
+            spinner.succeed(
+                `Found ${citations.length} top citation source${citations.length === 1 ? '' : 's'}`,
+            );
 
             if (options.json || config.outputFormat === 'json') {
                 console.log(formatter.json(citations));
@@ -128,14 +133,14 @@ dashboardCommand
                     return;
                 }
 
-                console.log('\n' + chalk.cyan.bold('Top Citations') + '\n');
-                console.log(table.topCitations(citations) + '\n');
+                console.log(`\n${chalk.cyan.bold('Top Citations')}\n`);
+                console.log(`${table.topCitations(citations)}\n`);
 
                 const totalCitations = citations.reduce((sum, c) => sum + c.citation_count, 0);
                 console.log(
-                    chalk.blue.bold(
-                        `📌 Total citations from top ${citations.length} sources: ${formatter.number(totalCitations)}`
-                    ) + '\n'
+                    `${chalk.blue.bold(
+                        `📌 Total citations from top ${citations.length} sources: ${formatter.number(totalCitations)}`,
+                    )}\n`,
                 );
             }
         } catch (error) {

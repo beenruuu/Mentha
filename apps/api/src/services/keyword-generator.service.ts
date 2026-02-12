@@ -1,7 +1,8 @@
-import { keywords } from '@/db/schema/core';
-import { db } from '../db';
-import { logger } from '../core/logger';
 import OpenAI from 'openai';
+
+import { keywords } from '@/db/schema/core';
+import { logger } from '../core/logger';
+import { db } from '../db';
 
 export interface EntityProfile {
     brandName: string;
@@ -23,45 +24,52 @@ export class KeywordGeneratorService {
 
     constructor() {
         this.client = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY
+            apiKey: process.env.OPENAI_API_KEY,
         });
     }
 
     async generateProbes(profile: EntityProfile): Promise<GeneratedProbe[]> {
         const probes: GeneratedProbe[] = [];
-        const { brandName, industry, coreCategory, targetAudience, keyProblem, countryCode = 'ES' } = profile;
+        const {
+            brandName,
+            industry,
+            coreCategory,
+            targetAudience,
+            keyProblem,
+            countryCode = 'ES',
+        } = profile;
 
         const personas = [
             {
-                name: "The Bargain Hunter",
-                intent: "transactional",
-                focus: "price sensitivity, discounts, deals, cheapest options",
-                count: 3
+                name: 'The Bargain Hunter',
+                intent: 'transactional',
+                focus: 'price sensitivity, discounts, deals, cheapest options',
+                count: 3,
             },
             {
-                name: "The Quality Seeker",
-                intent: "comparison",
-                focus: "durability, warranty, reviews, premium vs budget",
-                count: 3
+                name: 'The Quality Seeker',
+                intent: 'comparison',
+                focus: 'durability, warranty, reviews, premium vs budget',
+                count: 3,
             },
             {
-                name: "The Local Shopper",
-                intent: "transactional",
-                focus: "near me, open now, parking, physical store location",
-                count: 3
+                name: 'The Local Shopper',
+                intent: 'transactional',
+                focus: 'near me, open now, parking, physical store location',
+                count: 3,
             },
             {
-                name: "The Skeptic",
-                intent: "safety",
-                focus: "is it a scam, legit, returns policy, customer complaints",
-                count: 3
+                name: 'The Skeptic',
+                intent: 'safety',
+                focus: 'is it a scam, legit, returns policy, customer complaints',
+                count: 3,
             },
             {
-                name: "The Category Explorer",
-                intent: "discovery",
+                name: 'The Category Explorer',
+                intent: 'discovery',
                 focus: `best ${coreCategory}, top rated ${industry}`,
-                count: 3
-            }
+                count: 3,
+            },
         ];
 
         const promises = personas.map(async (persona) => {
@@ -83,43 +91,49 @@ Return strictly a JSON array of strings. Example: ["query 1", "query 2"]`;
 
             try {
                 const response = await this.client.chat.completions.create({
-                    model: "gpt-4o-mini",
+                    model: 'gpt-4o-mini',
                     messages: [
-                        { role: "system", content: systemPrompt },
-                        { role: "user", content: `Generate ${persona.count} queries for ${brandName} regarding ${keyProblem}.` }
+                        { role: 'system', content: systemPrompt },
+                        {
+                            role: 'user',
+                            content: `Generate ${persona.count} queries for ${brandName} regarding ${keyProblem}.`,
+                        },
                     ],
-                    response_format: { type: "json_object" },
-                    temperature: 0.7
+                    response_format: { type: 'json_object' },
+                    temperature: 0.7,
                 });
 
                 const content = response.choices[0]?.message?.content || '{"queries": []}';
                 const parsed = JSON.parse(content);
-                const rawQueries: string[] = Array.isArray(parsed) ? parsed : (parsed.queries || parsed.list || []);
+                const rawQueries: string[] = Array.isArray(parsed)
+                    ? parsed
+                    : parsed.queries || parsed.list || [];
 
-                return rawQueries.map(q => ({
+                return rawQueries.map((q) => ({
                     query: q,
-                    intent_category: persona.intent as GeneratedProbe['intent_category']
+                    intent_category: persona.intent as GeneratedProbe['intent_category'],
                 }));
-
             } catch (err) {
-                logger.error(`Failed to generate for persona ${persona.name}`, { error: (err as Error).message });
+                logger.error(`Failed to generate for persona ${persona.name}`, {
+                    error: (err as Error).message,
+                });
                 return [];
             }
         });
 
         const results = await Promise.all(promises);
-        results.forEach(group => probes.push(...group));
+        results.forEach((group) => probes.push(...group));
 
         return probes;
     }
 
     async saveProbes(projectId: string, probes: GeneratedProbe[]): Promise<number> {
-        const records = probes.map(p => ({
+        const records = probes.map((p) => ({
             project_id: projectId,
             query: p.query,
             intent: 'informational' as const,
             scan_frequency: 'weekly' as const,
-            is_active: true
+            is_active: true,
         }));
 
         try {

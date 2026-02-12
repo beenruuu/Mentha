@@ -1,14 +1,14 @@
+import chalk from 'chalk';
 import { Command } from 'commander';
 import ora from 'ora';
-import chalk from 'chalk';
+
+import config from '../config/index';
 import apiClient from '../services/api-client';
 import { formatter } from '../utils/formatter';
-import { table } from '../utils/table';
 import { prompt } from '../utils/prompt';
-import config from '../config/index';
+import { table } from '../utils/table';
 
-export const projectsCommand = new Command('projects')
-    .description('Manage projects');
+export const projectsCommand = new Command('projects').description('Manage projects');
 
 projectsCommand
     .command('list')
@@ -25,9 +25,13 @@ projectsCommand
                 console.log(formatter.json(projects));
             } else {
                 if (projects.length === 0) {
-                    console.log(chalk.yellow('\nNo projects found. Create one with: mentha projects create\n'));
+                    console.log(
+                        chalk.yellow(
+                            '\nNo projects found. Create one with: mentha projects create\n',
+                        ),
+                    );
                 } else {
-                    console.log('\n' + table.projects(projects) + '\n');
+                    console.log(`\n${table.projects(projects)}\n`);
                 }
             }
         } catch (error) {
@@ -73,7 +77,7 @@ projectsCommand
             if (options.json || config.outputFormat === 'json') {
                 console.log(formatter.json(project));
             } else {
-                console.log('\n' + table.projectDetails(project) + '\n');
+                console.log(`\n${table.projectDetails(project)}\n`);
                 console.log(formatter.success(`Project ID: ${project.id}`));
             }
         } catch (error) {
@@ -97,7 +101,7 @@ projectsCommand
             if (options.json || config.outputFormat === 'json') {
                 console.log(formatter.json(project));
             } else {
-                console.log('\n' + table.projectDetails(project) + '\n');
+                console.log(`\n${table.projectDetails(project)}\n`);
             }
         } catch (error) {
             spinner.fail('Failed to fetch project');
@@ -141,7 +145,7 @@ projectsCommand
                 });
 
                 updateData = Object.fromEntries(
-                    Object.entries(prompts).filter(([, value]) => value !== undefined)
+                    Object.entries(prompts).filter(([, value]) => value !== undefined),
                 );
 
                 if (Object.keys(updateData).length === 0) {
@@ -164,7 +168,7 @@ projectsCommand
             if (options.json || config.outputFormat === 'json') {
                 console.log(formatter.json(project));
             } else {
-                console.log('\n' + table.projectDetails(project) + '\n');
+                console.log(`\n${table.projectDetails(project)}\n`);
             }
         } catch (error) {
             spinner.fail('Failed to update project');
@@ -181,7 +185,7 @@ projectsCommand
         if (!options.yes) {
             const confirmed = await prompt.confirm(
                 `Are you sure you want to delete project ${id}?`,
-                false
+                false,
             );
 
             if (!confirmed) {

@@ -1,14 +1,14 @@
+import chalk from 'chalk';
 import { Command } from 'commander';
 import ora from 'ora';
-import chalk from 'chalk';
+
+import config from '../config/index';
 import apiClient from '../services/api-client';
 import { formatter } from '../utils/formatter';
-import { table } from '../utils/table';
 import { prompt } from '../utils/prompt';
-import config from '../config/index';
+import { table } from '../utils/table';
 
-export const keywordsCommand = new Command('keywords')
-    .description('Manage keywords');
+export const keywordsCommand = new Command('keywords').description('Manage keywords');
 
 keywordsCommand
     .command('list')
@@ -26,9 +26,13 @@ keywordsCommand
                 console.log(formatter.json(keywords));
             } else {
                 if (keywords.length === 0) {
-                    console.log(chalk.yellow('\nNo keywords found. Create one with: mentha keywords create\n'));
+                    console.log(
+                        chalk.yellow(
+                            '\nNo keywords found. Create one with: mentha keywords create\n',
+                        ),
+                    );
                 } else {
-                    console.log('\n' + table.keywords(keywords) + '\n');
+                    console.log(`\n${table.keywords(keywords)}\n`);
                 }
             }
         } catch (error) {
@@ -43,7 +47,10 @@ keywordsCommand
     .description('Create a new keyword')
     .option('-p, --project-id <id>', 'Project ID')
     .option('-q, --query <text>', 'Search query')
-    .option('-i, --intent <type>', 'Intent type (informational, transactional, navigational, commercial)')
+    .option(
+        '-i, --intent <type>',
+        'Intent type (informational, transactional, navigational, commercial)',
+    )
     .option('-f, --frequency <freq>', 'Scan frequency (daily, weekly, manual)')
     .option('-e, --engines <engines>', 'Engines (comma-separated)')
     .option('-j, --json', 'Output as JSON')
@@ -85,7 +92,7 @@ keywordsCommand
             if (options.json || config.outputFormat === 'json') {
                 console.log(formatter.json(keyword));
             } else {
-                console.log('\n' + table.keywords([keyword]) + '\n');
+                console.log(`\n${table.keywords([keyword])}\n`);
                 console.log(formatter.success(`Keyword ID: ${keyword.id}`));
             }
         } catch (error) {
@@ -103,7 +110,7 @@ keywordsCommand
         if (!options.yes) {
             const confirmed = await prompt.confirm(
                 `Are you sure you want to delete keyword ${id}?`,
-                false
+                false,
             );
 
             if (!confirmed) {

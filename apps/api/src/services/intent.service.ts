@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
-import { zodResponseFormat } from "openai/helpers/zod";
+import { zodResponseFormat } from 'openai/helpers/zod';
 import { z } from 'zod';
+
 import { env } from '../config/env';
 import { logger } from '../core/logger';
 
@@ -15,28 +16,40 @@ export enum IntentType {
     PRICE_CHECK = 'PRICE_CHECK',
     CUSTOMER_SUPPORT = 'CUSTOMER_SUPPORT',
     LOCATION_FINDER = 'LOCATION_FINDER',
-    UNKNOWN = 'UNKNOWN'
+    UNKNOWN = 'UNKNOWN',
 }
 
 export const EntitySchema = z.object({
-    brand_name: z.string().optional().describe("Name of the brand if explicitly mentioned"),
-    product_category: z.string().optional().describe("Broad category (e.g., 'shoes', 'CRM software')"),
-    specific_product: z.string().optional().describe("Specific item or model (e.g., 'Air Jordan 1', 'Salesforce Sales Cloud')"),
-    quantity: z.number().optional().describe("Number of items if specified"),
-    date_context: z.string().date().optional().describe("Any date mentioned, normalized to YYYY-MM-DD")
+    brand_name: z.string().optional().describe('Name of the brand if explicitly mentioned'),
+    product_category: z
+        .string()
+        .optional()
+        .describe("Broad category (e.g., 'shoes', 'CRM software')"),
+    specific_product: z
+        .string()
+        .optional()
+        .describe("Specific item or model (e.g., 'Air Jordan 1', 'Salesforce Sales Cloud')"),
+    quantity: z.number().optional().describe('Number of items if specified'),
+    date_context: z
+        .string()
+        .date()
+        .optional()
+        .describe('Any date mentioned, normalized to YYYY-MM-DD'),
 });
 
 export const IntentExtractionSchema = z.object({
-    _thinking_process: z.string().describe(
-        "Analyze the user query step-by-step. Identify verbs, entities, and apply the INDUSTRY CONTEXT rules. E.g., 'User says sign up. Context is Retail. In Retail, sign up means Registration. Therefore, Intent is ACCOUNT_REGISTRATION'."
-    ),
-    primary_intent: z.nativeEnum(IntentType).describe(
-        "The canonical intent category based on the industry context map."
-    ),
+    _thinking_process: z
+        .string()
+        .describe(
+            "Analyze the user query step-by-step. Identify verbs, entities, and apply the INDUSTRY CONTEXT rules. E.g., 'User says sign up. Context is Retail. In Retail, sign up means Registration. Therefore, Intent is ACCOUNT_REGISTRATION'.",
+        ),
+    primary_intent: z
+        .nativeEnum(IntentType)
+        .describe('The canonical intent category based on the industry context map.'),
     entities: EntitySchema,
-    confidence_level: z.enum(['HIGH', 'MEDIUM', 'LOW']).describe(
-        "Confidence in the extraction. Mark LOW if query is ambiguous or noisy."
-    )
+    confidence_level: z
+        .enum(['HIGH', 'MEDIUM', 'LOW'])
+        .describe('Confidence in the extraction. Mark LOW if query is ambiguous or noisy.'),
 });
 
 export type IntentExtractionResult = z.infer<typeof IntentExtractionSchema>;
@@ -54,33 +67,33 @@ export interface BrandContext {
 }
 
 export const INDUSTRY_PRESETS: Record<string, BrandContext> = {
-    'retail': {
+    retail: {
         industryName: 'Retail & E-commerce',
         description: 'Selling physical products to end consumers (B2C).',
         verbMap: {
             signup: IntentType.ACCOUNT_REGISTRATION,
             buy: IntentType.PRODUCT_PURCHASE,
-            price: IntentType.COMMERCIAL_INVESTIGATION
-        }
+            price: IntentType.COMMERCIAL_INVESTIGATION,
+        },
     },
-    'saas': {
+    saas: {
         industryName: 'SaaS (Software as a Service)',
         description: 'Selling digital subscriptions to businesses (B2B).',
         verbMap: {
             signup: IntentType.TRIAL_INITIATION,
             buy: IntentType.TRIAL_INITIATION,
-            price: IntentType.PRICE_CHECK
-        }
+            price: IntentType.PRICE_CHECK,
+        },
     },
-    'local': {
+    local: {
         industryName: 'Local Services',
         description: 'Providing physical services at a location or home.',
         verbMap: {
             signup: IntentType.SERVICE_BOOKING,
             buy: IntentType.SERVICE_BOOKING,
-            price: IntentType.PRICE_CHECK
-        }
-    }
+            price: IntentType.PRICE_CHECK,
+        },
+    },
 };
 
 function buildContextBlock(context: BrandContext): string {
@@ -121,28 +134,27 @@ RULES:
 
         try {
             const completion = await this.client.beta.chat.completions.parse({
-                model: "gpt-4o-2024-08-06",
+                model: 'gpt-4o-2024-08-06',
                 messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: query },
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: query },
                 ],
-                response_format: zodResponseFormat(IntentExtractionSchema, "intent_extraction"),
+                response_format: zodResponseFormat(IntentExtractionSchema, 'intent_extraction'),
             });
 
             const result = completion.choices[0]?.message?.parsed;
 
             if (!result) {
-                throw new Error("Failed to parse intent extraction result");
+                throw new Error('Failed to parse intent extraction result');
             }
 
             logger.info('Intent Extracted', {
                 query,
                 intent: result.primary_intent,
-                confidence: result.confidence_level
+                confidence: result.confidence_level,
             });
 
             return result;
-
         } catch (error) {
             logger.error('Intent Extraction Failed', { error });
             throw error;

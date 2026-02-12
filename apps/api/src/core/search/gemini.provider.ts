@@ -1,5 +1,5 @@
-import { ISearchProvider, SearchOptions, SearchResult } from '../../services/search.types';
 import { env } from '../../config/env';
+import type { ISearchProvider, SearchOptions, SearchResult } from '../../services/search.types';
 import { logger } from '../logger';
 
 /**
@@ -55,15 +55,14 @@ export class GeminiProvider implements ISearchProvider {
 
         const startTime = Date.now();
 
-        const systemPrompt = options?.systemPrompt ??
+        const systemPrompt =
+            options?.systemPrompt ??
             'You are a knowledgeable research assistant. Provide detailed, accurate information. Be thorough and objective in your analysis.';
 
         const requestBody = {
             contents: [
                 {
-                    parts: [
-                        { text: `${systemPrompt}\n\nUser Query: ${query}` },
-                    ],
+                    parts: [{ text: `${systemPrompt}\n\nUser Query: ${query}` }],
                 },
             ],
             generationConfig: {
@@ -98,7 +97,7 @@ export class GeminiProvider implements ISearchProvider {
                 throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
             }
 
-            const data = await response.json() as GeminiResponse;
+            const data = (await response.json()) as GeminiResponse;
             const latencyMs = Date.now() - startTime;
 
             const content = data.candidates[0]?.content?.parts[0]?.text ?? '';
@@ -113,14 +112,15 @@ export class GeminiProvider implements ISearchProvider {
                 content,
                 citations: [], // Gemini doesn't provide structured citations
                 model: this.defaultModel,
-                usage: data.usageMetadata ? {
-                    promptTokens: data.usageMetadata.promptTokenCount,
-                    completionTokens: data.usageMetadata.candidatesTokenCount,
-                    totalTokens: data.usageMetadata.totalTokenCount,
-                } : undefined,
+                usage: data.usageMetadata
+                    ? {
+                          promptTokens: data.usageMetadata.promptTokenCount,
+                          completionTokens: data.usageMetadata.candidatesTokenCount,
+                          totalTokens: data.usageMetadata.totalTokenCount,
+                      }
+                    : undefined,
                 latencyMs,
             };
-
         } catch (error) {
             clearTimeout(timeoutId);
 

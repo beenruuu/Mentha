@@ -21,12 +21,14 @@ export interface VisibilityScore {
     change: number;
 }
 
-import { hc } from 'hono/client';
-import type { InferRequestType, InferResponseType } from 'hono/client';
 import type { Hono } from 'hono';
+import type { InferRequestType, InferResponseType } from 'hono/client';
+import { hc } from 'hono/client';
 
 export type { InferRequestType, InferResponseType };
 
-export const createApiClient = <T extends Hono<any, any, any> = any>(baseUrl: string): ReturnType<typeof hc<T>> => {
+export const createApiClient = <T extends Hono<any, any, any> = any>(
+    baseUrl: string,
+): ReturnType<typeof hc<T>> => {
     return hc<T>(baseUrl);
 };

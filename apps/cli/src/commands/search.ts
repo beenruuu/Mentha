@@ -1,18 +1,20 @@
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import chalk from 'chalk';
 import { Command } from 'commander';
 import ora from 'ora';
-import chalk from 'chalk';
+
+import config from '../config/index';
+import type { Citation, ProviderType, SearchOptions } from '../types/index';
 import { formatter } from '../utils/formatter';
 import { prompt } from '../utils/prompt';
-import config from '../config/index';
-import type { ProviderType, SearchOptions, Citation } from '../types/index';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-export const searchCommand = new Command('search')
-    .description('Execute search queries with LLM providers');
+export const searchCommand = new Command('search').description(
+    'Execute search queries with LLM providers',
+);
 
 searchCommand
     .command('query <text>')
@@ -42,7 +44,10 @@ searchCommand
         const spinner = ora(`Searching with ${formatter.provider(provider)}...`).start();
 
         try {
-            const apiSearchPath = resolve(__dirname, '../../../api/src/infrastructure/search/factory');
+            const apiSearchPath = resolve(
+                __dirname,
+                '../../../api/src/infrastructure/search/factory',
+            );
             const { createProvider } = await import(apiSearchPath);
             const searchProvider = createProvider(provider);
 
@@ -55,10 +60,10 @@ searchCommand
             if (options.json || config.outputFormat === 'json') {
                 console.log(formatter.json(result));
             } else {
-                console.log('\n' + chalk.cyan.bold('Response:'));
+                console.log(`\n${chalk.cyan.bold('Response:')}`);
                 console.log(chalk.gray('─'.repeat(100)));
                 console.log(result.content);
-                console.log(chalk.gray('─'.repeat(100)) + '\n');
+                console.log(`${chalk.gray('─'.repeat(100))}\n`);
 
                 if (result.citations.length > 0) {
                     console.log(chalk.cyan.bold('Citations:'));
@@ -66,10 +71,12 @@ searchCommand
                         console.log(
                             `${chalk.yellow(`${index + 1}.`)} ${chalk.blue(citation.url)} - ${
                                 citation.title || formatter.domain(citation.url)
-                            }`
+                            }`,
                         );
                         if (citation.snippet) {
-                            console.log(`   ${chalk.gray(formatter.truncate(citation.snippet, 80))}`);
+                            console.log(
+                                `   ${chalk.gray(formatter.truncate(citation.snippet, 80))}`,
+                            );
                         }
                     });
                     console.log('');
@@ -84,7 +91,11 @@ searchCommand
             spinner.fail('Search failed');
             console.error(formatter.error((error as Error).message));
             console.log(chalk.yellow('\nTip: Make sure API keys are configured in apps/api/.env'));
-            console.log(chalk.gray('Required: PERPLEXITY_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY'));
+            console.log(
+                chalk.gray(
+                    'Required: PERPLEXITY_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY',
+                ),
+            );
             process.exit(1);
         }
     });
@@ -107,7 +118,10 @@ searchCommand
         const spinner = ora(`Searching with ${formatter.provider(options.provider)}...`).start();
 
         try {
-            const apiSearchPath = resolve(__dirname, '../../../api/src/infrastructure/search/factory');
+            const apiSearchPath = resolve(
+                __dirname,
+                '../../../api/src/infrastructure/search/factory',
+            );
             const { createProvider } = await import(apiSearchPath);
             const searchProvider = createProvider(options.provider);
 
@@ -126,10 +140,10 @@ searchCommand
 
             spinner.succeed(`Search completed in ${formatter.latency(endTime - startTime)}`);
 
-            console.log('\n' + chalk.cyan.bold('Response:'));
+            console.log(`\n${chalk.cyan.bold('Response:')}`);
             console.log(chalk.gray('─'.repeat(100)));
             console.log(result.content);
-            console.log(chalk.gray('─'.repeat(100)) + '\n');
+            console.log(`${chalk.gray('─'.repeat(100))}\n`);
 
             if (result.citations.length > 0) {
                 console.log(chalk.cyan.bold('Citations:'));
@@ -137,7 +151,7 @@ searchCommand
                     console.log(
                         `${chalk.yellow(`${index + 1}.`)} ${chalk.blue(citation.url)} - ${
                             citation.title || formatter.domain(citation.url)
-                        }`
+                        }`,
                     );
                     if (citation.snippet) {
                         console.log(`   ${chalk.gray(formatter.truncate(citation.snippet, 80))}`);
@@ -179,11 +193,18 @@ searchCommand
 
         if (provider === 'perplexity') {
             console.log(chalk.yellow('Note: Perplexity is optimized for search, not chat.'));
-            console.log(chalk.yellow('Consider using openai, gemini, or claude for better chat experience.\n'));
+            console.log(
+                chalk.yellow(
+                    'Consider using openai, gemini, or claude for better chat experience.\n',
+                ),
+            );
         }
 
         try {
-            const apiSearchPath = resolve(__dirname, '../../../api/src/infrastructure/search/factory');
+            const apiSearchPath = resolve(
+                __dirname,
+                '../../../api/src/infrastructure/search/factory',
+            );
             const { createProvider } = await import(apiSearchPath);
             const searchProvider = createProvider(provider);
 
@@ -192,11 +213,15 @@ searchCommand
                     chalk.green('You:'),
                     undefined,
                     (input: string) => {
-                        if (input.length < 1 && input.toLowerCase() !== 'exit' && input.toLowerCase() !== 'quit') {
+                        if (
+                            input.length < 1 &&
+                            input.toLowerCase() !== 'exit' &&
+                            input.toLowerCase() !== 'quit'
+                        ) {
                             return 'Message cannot be empty.js';
                         }
                         return true;
-                    }
+                    },
                 );
 
                 const lowerMsg = userMessage.toLowerCase().trim();
@@ -217,17 +242,21 @@ searchCommand
                     const result = await searchProvider.search(userMessage, {
                         temperature: 0.7,
                         maxTokens: 2000,
-                        systemPrompt: 'You are a helpful AI assistant. Provide clear, concise, and accurate responses.',
+                        systemPrompt:
+                            'You are a helpful AI assistant. Provide clear, concise, and accurate responses.',
                     });
 
                     spinner.stop();
 
                     console.log(chalk.cyan('\nAI:'), result.content);
-                    console.log(chalk.gray(`\n(${formatter.latency(result.latencyMs)}, ${formatter.tokens(result.usage)})\n`));
-
+                    console.log(
+                        chalk.gray(
+                            `\n(${formatter.latency(result.latencyMs)}, ${formatter.tokens(result.usage)})\n`,
+                        ),
+                    );
                 } catch (error) {
                     spinner.fail('Error getting response');
-                    console.error(formatter.error((error as Error).message + '\n'));
+                    console.error(formatter.error(`${(error as Error).message}\n`));
                 }
             }
         } catch (error) {
@@ -245,7 +274,10 @@ searchCommand
         const spinner = ora('Testing provider connections...').start();
 
         try {
-            const apiSearchPath = resolve(__dirname, '../../../api/src/infrastructure/search/factory');
+            const apiSearchPath = resolve(
+                __dirname,
+                '../../../api/src/infrastructure/search/factory',
+            );
             const { testAllProviders } = await import(apiSearchPath);
             const results = await testAllProviders();
 
@@ -254,7 +286,7 @@ searchCommand
             if (options.json || config.outputFormat === 'json') {
                 console.log(formatter.json(results));
             } else {
-                console.log('\n' + chalk.cyan.bold('Provider Connectivity:') + '\n');
+                console.log(`\n${chalk.cyan.bold('Provider Connectivity:')}\n`);
 
                 Object.entries(results).forEach(([provider, status]) => {
                     const icon = status ? chalk.green('✓') : chalk.red('✗');

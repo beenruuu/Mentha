@@ -1,9 +1,17 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import * as Tools from "./tools";
-import * as Resources from "./resources";
-import { RESOURCE_METADATA, TOOL_DESCRIPTIONS } from "./constants";
-import { addBrandClaimSchema, analyzeBrandVisibilitySchema, createBrandEntitySchema, generateLlmsTxtSchema, getShareOfModelSchema, listProjectsSchema } from "./schemas";
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+
+import { RESOURCE_METADATA, TOOL_DESCRIPTIONS } from './constants';
+import * as Resources from './resources';
+import {
+    addBrandClaimSchema,
+    analyzeBrandVisibilitySchema,
+    createBrandEntitySchema,
+    generateLlmsTxtSchema,
+    getShareOfModelSchema,
+    listProjectsSchema,
+} from './schemas';
+import * as Tools from './tools';
 
 const server = new McpServer({
     name: 'mentha',
@@ -16,7 +24,7 @@ server.registerTool(
         description: TOOL_DESCRIPTIONS.analyzeBrandVisibility,
         inputSchema: analyzeBrandVisibilitySchema,
     },
-    Tools.analyzeBrandVisibility
+    Tools.analyzeBrandVisibility,
 );
 
 server.registerTool(
@@ -25,7 +33,7 @@ server.registerTool(
         description: TOOL_DESCRIPTIONS.getShareOfModel,
         inputSchema: getShareOfModelSchema,
     },
-    Tools.getShareOfModel
+    Tools.getShareOfModel,
 );
 
 server.registerTool(
@@ -34,7 +42,7 @@ server.registerTool(
         description: TOOL_DESCRIPTIONS.createBrandEntity,
         inputSchema: createBrandEntitySchema,
     },
-    Tools.createBrandEntity
+    Tools.createBrandEntity,
 );
 
 server.registerTool(
@@ -43,7 +51,7 @@ server.registerTool(
         description: TOOL_DESCRIPTIONS.addBrandClaim,
         inputSchema: addBrandClaimSchema,
     },
-    Tools.addBrandClaim
+    Tools.addBrandClaim,
 );
 
 server.registerTool(
@@ -52,7 +60,7 @@ server.registerTool(
         description: TOOL_DESCRIPTIONS.generateLlmsTxt,
         inputSchema: generateLlmsTxtSchema,
     },
-    Tools.generateLlmsTxt
+    Tools.generateLlmsTxt,
 );
 
 server.registerTool(
@@ -61,21 +69,21 @@ server.registerTool(
         description: TOOL_DESCRIPTIONS.listProjects,
         inputSchema: listProjectsSchema,
     },
-    Tools.listProjects
+    Tools.listProjects,
 );
 
 server.registerResource(
     'llms-txt',
     'mentha://llms.txt',
     RESOURCE_METADATA.llmsTxt,
-    Resources.readLlmsTxt
+    Resources.readLlmsTxt,
 );
 
 server.registerResource(
     'entity',
     'mentha://entity/{slug}',
     RESOURCE_METADATA.entity,
-    Resources.readEntity
+    Resources.readEntity,
 );
 
 async function main() {

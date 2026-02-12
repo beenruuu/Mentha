@@ -1,7 +1,8 @@
-import crypto from 'crypto';
-import { getRedisConnection } from './queue';
-import { logger } from './logger';
+import crypto from 'node:crypto';
+
 import { env } from '../config/env';
+import { logger } from './logger';
+import { getRedisConnection } from './queue';
 
 interface CacheEntry {
     content: string;
@@ -48,7 +49,7 @@ export async function setCachedResult(
         content: string;
         citations: unknown[];
         model: string;
-    }
+    },
 ): Promise<void> {
     const redis = getRedisConnection();
     const key = generateCacheKey(query, provider);

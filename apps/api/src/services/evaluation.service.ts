@@ -1,5 +1,6 @@
-import { z } from 'zod';
 import OpenAI from 'openai';
+import { z } from 'zod';
+
 import { env } from '../config/env';
 import { logger } from '../core/logger';
 
@@ -15,8 +16,11 @@ export const EvaluationResultSchema = z.object({
     ]),
     key_phrases: z.array(z.string()),
     competitor_mentions: z.record(z.string(), z.boolean()),
-    hallucination_flag: z.boolean().default(false).describe("True if the text invents facts/products"),
-    compliance_warning: z.string().nullable().describe("Warning for scams/legal issues"),
+    hallucination_flag: z
+        .boolean()
+        .default(false)
+        .describe('True if the text invents facts/products'),
+    compliance_warning: z.string().nullable().describe('Warning for scams/legal issues'),
     reasoning: z.string().optional(),
 });
 
@@ -97,7 +101,6 @@ export class EvaluationService {
             });
 
             return result.data;
-
         } catch (error) {
             logger.error('Evaluation failed', { error: (error as Error).message });
             throw error;
@@ -143,10 +146,12 @@ Scoring Guidelines:
     }
 
     private buildUserPrompt(request: EvaluationRequest): string {
-        const competitorList = request.competitors.map(c => {
-            const context = request.competitorContexts?.[c];
-            return context ? `"${c}" (Context: ${context})` : `"${c}"`;
-        }).join('\n- ');
+        const competitorList = request.competitors
+            .map((c) => {
+                const context = request.competitorContexts?.[c];
+                return context ? `"${c}" (Context: ${context})` : `"${c}"`;
+            })
+            .join('\n- ');
 
         return `Evaluate the following AI-generated response for the brand "${request.brandName}".
 
@@ -163,7 +168,10 @@ ${request.rawResponse}
 Provide your evaluation as JSON. Remember the Entity Resolution rules: do NOT count false positives if the context doesn't match.`;
     }
 
-    private async autoCorrect(originalResponse: string, validationError: z.ZodError): Promise<EvaluationResult> {
+    private async autoCorrect(
+        originalResponse: string,
+        validationError: z.ZodError,
+    ): Promise<EvaluationResult> {
         if (!this.client) {
             throw new Error('OPENAI_API_KEY is required');
         }
@@ -183,7 +191,11 @@ Return ONLY the corrected JSON, nothing else.`;
         const response = await this.client.chat.completions.create({
             model: this.model,
             messages: [
-                { role: 'system', content: 'You are a JSON correction assistant. Fix the JSON to match the required schema.' },
+                {
+                    role: 'system',
+                    content:
+                        'You are a JSON correction assistant. Fix the JSON to match the required schema.',
+                },
                 { role: 'user', content: correctionPrompt },
             ],
             response_format: { type: 'json_object' },

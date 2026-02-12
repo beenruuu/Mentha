@@ -1,8 +1,9 @@
-import { eq, desc } from 'drizzle-orm';
+import { desc, eq } from 'drizzle-orm';
+
+import { logger } from '../core/logger';
 import { db } from '../db';
 import { keywords } from '../db/schema/core';
-import type { Keyword, InsertKeyword } from '../db/types';
-import { logger } from '../core/logger';
+import type { InsertKeyword, Keyword } from '../db/types';
 import { NotFoundException } from '../exceptions/http';
 
 export interface CreateKeywordInput {
@@ -59,11 +60,7 @@ export class KeywordService {
     async getById(id: string): Promise<Keyword> {
         logger.debug('Getting keyword by ID', { id });
 
-        const data = await db
-            .select()
-            .from(keywords)
-            .where(eq(keywords.id, id))
-            .limit(1);
+        const data = await db.select().from(keywords).where(eq(keywords.id, id)).limit(1);
 
         if (data.length === 0) {
             throw new NotFoundException('Keyword not found');
@@ -84,10 +81,7 @@ export class KeywordService {
             is_active: true,
         };
 
-        const result = await db
-            .insert(keywords)
-            .values(keywordData)
-            .returning();
+        const result = await db.insert(keywords).values(keywordData).returning();
 
         if (!result[0]) {
             throw new Error('Failed to create keyword');
@@ -120,10 +114,7 @@ export class KeywordService {
     async delete(id: string): Promise<void> {
         logger.info('Deleting keyword', { id });
 
-        const result = await db
-            .delete(keywords)
-            .where(eq(keywords.id, id))
-            .returning();
+        const result = await db.delete(keywords).where(eq(keywords.id, id)).returning();
 
         if (result.length === 0) {
             throw new NotFoundException('Keyword not found');

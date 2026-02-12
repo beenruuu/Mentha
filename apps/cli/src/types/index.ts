@@ -22,7 +22,11 @@ export interface ScanResult {
     id: string;
     brand_visibility: boolean;
     sentiment_score: number;
-    recommendation_type: 'direct_recommendation' | 'neutral_comparison' | 'negative_mention' | 'absent';
+    recommendation_type:
+        | 'direct_recommendation'
+        | 'neutral_comparison'
+        | 'negative_mention'
+        | 'absent';
     raw_response: string;
     analysis_json: Record<string, unknown>;
     created_at: string;

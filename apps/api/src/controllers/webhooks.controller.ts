@@ -1,7 +1,8 @@
 import type { Context } from 'hono';
-import { getWebhookService } from '../services/webhook.service';
+
 import { logger } from '../core/logger';
-import { UnauthorizedException, handleHttpException } from '../exceptions/http';
+import { handleHttpException, UnauthorizedException } from '../exceptions/http';
+import { getWebhookService } from '../services/webhook.service';
 
 const webhookService = getWebhookService();
 
@@ -9,7 +10,7 @@ export class WebhookController {
     static async processUser(c: Context) {
         const webhookSecret = c.req.header('x-webhook-secret');
 
-        if (webhookSecret !== process.env['SUPABASE_WEBHOOK_SECRET']) {
+        if (webhookSecret !== process.env.SUPABASE_WEBHOOK_SECRET) {
             logger.warn('Invalid webhook secret');
             throw new UnauthorizedException('Invalid webhook secret');
         }

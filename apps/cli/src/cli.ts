@@ -1,14 +1,15 @@
-import { Command } from 'commander';
 import chalk from 'chalk';
-import { projectsCommand } from './commands/projects';
+import { Command } from 'commander';
+
+import { dashboardCommand } from './commands/dashboard';
 import { keywordsCommand } from './commands/keywords';
+import { knowledgeGraphCommand } from './commands/knowledge-graph';
+import { projectsCommand } from './commands/projects';
 import { scansCommand } from './commands/scans';
 import { searchCommand } from './commands/search';
-import { knowledgeGraphCommand } from './commands/knowledge-graph';
-import { dashboardCommand } from './commands/dashboard';
+import config from './config/index';
 import apiClient from './services/api-client';
 import { formatter } from './utils/formatter';
-import config from './config/index';
 
 const program = new Command();
 
@@ -29,7 +30,9 @@ program
         } catch (error) {
             console.error(formatter.error('API health check failed'));
             console.error(formatter.error((error as Error).message));
-            console.log(chalk.yellow(`\nMake sure the API server is running at: ${config.apiBaseUrl}`));
+            console.log(
+                chalk.yellow(`\nMake sure the API server is running at: ${config.apiBaseUrl}`),
+            );
             process.exit(1);
         }
     });
@@ -62,24 +65,26 @@ program.on('--help', () => {
 
 if (process.argv.length === 2) {
     console.log(chalk.cyan.bold('\n🌿 Welcome to Mentha CLI\n'));
-    console.log('An interactive command-line interface for the Mentha AEO/GEO Intelligence Platform.\n');
+    console.log(
+        'An interactive command-line interface for the Mentha AEO/GEO Intelligence Platform.\n',
+    );
     console.log(`API URL: ${chalk.green(config.apiBaseUrl)}\n`);
     console.log('Available commands:');
-    console.log('  ' + chalk.yellow('health') + '          - Check API server health');
-    console.log('  ' + chalk.yellow('projects') + '        - Manage projects');
-    console.log('  ' + chalk.yellow('keywords') + '        - Manage keywords');
-    console.log('  ' + chalk.yellow('scans') + '           - View scan results');
-    console.log('  ' + chalk.yellow('search') + '          - AI search & chat (NEW! 🤖)');
-    console.log('  ' + chalk.yellow('kg') + '              - Manage Knowledge Graph');
-    console.log('  ' + chalk.yellow('dashboard') + '       - View metrics and analytics');
+    console.log(`  ${chalk.yellow('health')}          - Check API server health`);
+    console.log(`  ${chalk.yellow('projects')}        - Manage projects`);
+    console.log(`  ${chalk.yellow('keywords')}        - Manage keywords`);
+    console.log(`  ${chalk.yellow('scans')}           - View scan results`);
+    console.log(`  ${chalk.yellow('search')}          - AI search & chat (NEW! 🤖)`);
+    console.log(`  ${chalk.yellow('kg')}              - Manage Knowledge Graph`);
+    console.log(`  ${chalk.yellow('dashboard')}       - View metrics and analytics`);
     console.log('');
     console.log(chalk.cyan('🤖 AI Features:'));
     console.log('  mentha search query "your question"  - Ask AI anything');
     console.log('  mentha search interactive            - Interactive search mode');
     console.log('  mentha search chat                   - Chat with AI');
     console.log('');
-    console.log('Use ' + chalk.cyan('mentha --help') + ' for more information.');
-    console.log('Use ' + chalk.cyan('mentha <command> --help') + ' for command-specific help.\n');
+    console.log(`Use ${chalk.cyan('mentha --help')} for more information.`);
+    console.log(`Use ${chalk.cyan('mentha <command> --help')} for command-specific help.\n`);
 } else {
     program.parse(process.argv);
 }

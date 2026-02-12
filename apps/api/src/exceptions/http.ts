@@ -1,4 +1,4 @@
-import { Context } from 'hono';
+import type { Context } from 'hono';
 
 export class HttpException extends Error {
     public readonly statusCode: number;
@@ -88,6 +88,6 @@ export function handleHttpException(c: Context, error: unknown) {
             error: error instanceof Error ? error.message : 'Internal Server Error',
             statusCode: 500,
         },
-        500
+        500,
     );
 }

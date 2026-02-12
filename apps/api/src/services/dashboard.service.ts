@@ -1,7 +1,8 @@
-import { eq, gte, desc, and } from 'drizzle-orm';
-import { db } from '../db';
-import { scanResults, scanJobs, keywords, citations } from '../db/schema/core';
+import { and, desc, eq, gte } from 'drizzle-orm';
+
 import { logger } from '../core/logger';
+import { db } from '../db';
+import { citations, keywords, scanJobs, scanResults } from '../db/schema/core';
 
 export interface ShareOfModelMetrics {
     totalScans: number;
@@ -70,16 +71,11 @@ export class DashboardService {
             .from(scanResults)
             .innerJoin(scanJobs, eq(scanResults.job_id, scanJobs.id))
             .innerJoin(keywords, eq(scanJobs.keyword_id, keywords.id))
-            .where(
-                and(
-                    eq(keywords.project_id, projectId),
-                    gte(scanResults.created_at, startDate)
-                )
-            )
+            .where(and(eq(keywords.project_id, projectId), gte(scanResults.created_at, startDate)))
             .orderBy(desc(scanResults.created_at));
 
         const totalScans = results.length;
-        const visibleCount = results.filter(r => r.brand_visibility === true).length;
+        const visibleCount = results.filter((r) => r.brand_visibility === true).length;
         const visibilityRate = totalScans > 0 ? Math.round((visibleCount / totalScans) * 100) : 0;
 
         const byEngine: Record<string, EngineMetrics> = {};
@@ -110,32 +106,38 @@ export class DashboardService {
         }
 
         const sentiments = results
-            .filter(r => r.sentiment_score != null)
-            .map(r => r.sentiment_score as number);
-        const avgSentiment = sentiments.length > 0
-            ? Math.round((sentiments.reduce((a, b) => a + b, 0) / sentiments.length) * 100) / 100
-            : null;
+            .filter((r) => r.sentiment_score != null)
+            .map((r) => r.sentiment_score as number);
+        const avgSentiment =
+            sentiments.length > 0
+                ? Math.round((sentiments.reduce((a, b) => a + b, 0) / sentiments.length) * 100) /
+                  100
+                : null;
 
         const timeline: TimelineEntry[] = [];
         for (let i = 6; i >= 0; i--) {
             const date = new Date();
             date.setDate(date.getDate() - i);
             const dateStr = date.toISOString().split('T')[0]!;
-            const dayResults = results.filter(r => {
+            const dayResults = results.filter((r) => {
                 const createdDate = r.created_at?.toISOString().split('T')[0];
                 return createdDate === dateStr;
             });
             const daySentiments = dayResults
-                .filter(r => r.sentiment_score != null)
-                .map(r => r.sentiment_score as number);
+                .filter((r) => r.sentiment_score != null)
+                .map((r) => r.sentiment_score as number);
 
             timeline.push({
                 date: dateStr,
                 scans: dayResults.length,
-                visible: dayResults.filter(r => r.brand_visibility).length,
-                sentiment: daySentiments.length > 0
-                    ? Math.round((daySentiments.reduce((a, b) => a + b, 0) / daySentiments.length) * 100) / 100
-                    : null
+                visible: dayResults.filter((r) => r.brand_visibility).length,
+                sentiment:
+                    daySentiments.length > 0
+                        ? Math.round(
+                              (daySentiments.reduce((a, b) => a + b, 0) / daySentiments.length) *
+                                  100,
+                          ) / 100
+                        : null,
             });
         }
 
@@ -177,15 +179,19 @@ export class DashboardService {
                 .where(eq(scanJobs.keyword_id, kw.keyword_id));
 
             const totalScans = results.length;
-            const visibleScans = results.filter(r => r.brand_visibility === true).length;
-            const visibilityRate = totalScans > 0 ? Math.round((visibleScans / totalScans) * 100) : 0;
+            const visibleScans = results.filter((r) => r.brand_visibility === true).length;
+            const visibilityRate =
+                totalScans > 0 ? Math.round((visibleScans / totalScans) * 100) : 0;
 
             const sentiments = results
-                .filter(r => r.sentiment_score != null)
-                .map(r => r.sentiment_score as number);
-            const avgSentiment = sentiments.length > 0
-                ? Math.round((sentiments.reduce((a, b) => a + b, 0) / sentiments.length) * 100) / 100
-                : null;
+                .filter((r) => r.sentiment_score != null)
+                .map((r) => r.sentiment_score as number);
+            const avgSentiment =
+                sentiments.length > 0
+                    ? Math.round(
+                          (sentiments.reduce((a, b) => a + b, 0) / sentiments.length) * 100,
+                      ) / 100
+                    : null;
 
             metrics.push({
                 keyword_id: kw.keyword_id,
@@ -222,9 +228,12 @@ export class DashboardService {
             .limit(limit);
 
         const totalCitations = data.length;
-        const uniqueDomains = new Set(data.map(c => c.domain).filter(Boolean)).size;
+        const uniqueDomains = new Set(data.map((c) => c.domain).filter(Boolean)).size;
 
-        const domainCounts: Record<string, { count: number; is_brand: boolean; is_competitor: boolean }> = {};
+        const domainCounts: Record<
+            string,
+            { count: number; is_brand: boolean; is_competitor: boolean }
+        > = {};
         for (const citation of data) {
             const domain = citation.domain || 'unknown';
             if (!domainCounts[domain]) {

@@ -1,9 +1,9 @@
-import { ISearchProvider, ProviderType } from '../../services/search.types';
-import { PerplexityProvider } from './perplexity.provider';
-import { OpenAIProvider } from './openai.provider';
-import { GeminiProvider } from './gemini.provider';
-import { AnthropicProvider } from './anthropic.provider';
+import type { ISearchProvider, ProviderType } from '../../services/search.types';
 import { logger } from '../logger';
+import { AnthropicProvider } from './anthropic.provider';
+import { GeminiProvider } from './gemini.provider';
+import { OpenAIProvider } from './openai.provider';
+import { PerplexityProvider } from './perplexity.provider';
 
 /**
  * Provider instance cache (singleton pattern)

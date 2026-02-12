@@ -1,10 +1,11 @@
-import IORedis from 'ioredis';
-import { Queue, QueueOptions, JobsOptions } from 'bullmq';
+import { type JobsOptions, Queue, type QueueOptions } from 'bullmq';
 import { eq } from 'drizzle-orm';
-import { env } from '../config/env';
-import { logger } from './logger';
-import { db } from '../db';
+import IORedis from 'ioredis';
+
 import { keywords } from '@/db/schema/core';
+import { env } from '../config/env';
+import { db } from '../db';
+import { logger } from './logger';
 
 export function createRedisConnection(): IORedis {
     const connection = new IORedis(env.REDIS_URL, {
@@ -66,7 +67,7 @@ export const QUEUE_NAMES = {
     SCHEDULED: 'scheduled-queue',
 } as const;
 
-export type QueueName = typeof QUEUE_NAMES[keyof typeof QUEUE_NAMES];
+export type QueueName = (typeof QUEUE_NAMES)[keyof typeof QUEUE_NAMES];
 
 const defaultQueueOptions: QueueOptions = {
     connection: getRedisConnection(),
@@ -134,7 +135,11 @@ export async function addScanJob(data: ScanJobData, options?: JobsOptions) {
         priority: 2,
         ...options,
     });
-    logger.info('Scan job added', { jobId: job.id, keywordId: data.keywordId, engine: data.engine });
+    logger.info('Scan job added', {
+        jobId: job.id,
+        keywordId: data.keywordId,
+        engine: data.engine,
+    });
     return job;
 }
 
@@ -159,7 +164,7 @@ export async function scheduleRecurringScan(
     keywordId: string,
     engines: string[],
     cronPattern: string,
-    jitterMinutes: number = 30
+    jitterMinutes: number = 30,
 ) {
     const queue = getQueue<ScheduledJobData>(QUEUE_NAMES.SCHEDULED);
 
@@ -174,7 +179,7 @@ export async function scheduleRecurringScan(
                 offset: jitterMs,
             },
             jobId: `recurring-${keywordId}`,
-        }
+        },
     );
 
     logger.info('Recurring scan scheduled', {
@@ -212,7 +217,7 @@ function getJitterMs(maxMinutes: number = 59): number {
 export async function scheduleKeywordScan(
     keywordId: string,
     frequency: 'daily' | 'weekly',
-    engines: string[]
+    engines: string[],
 ): Promise<void> {
     const queue = getQueue<ScheduledJobData>(QUEUE_NAMES.SCHEDULED);
     const cronPattern = CRON_PATTERNS[frequency];
@@ -229,7 +234,7 @@ export async function scheduleKeywordScan(
                 offset: jitterMs,
             },
             jobId: `recurring-${keywordId}`,
-        }
+        },
     );
 
     logger.info('Keyword scheduled for recurring scan', {
@@ -245,7 +250,7 @@ export async function removeKeywordSchedule(keywordId: string): Promise<void> {
 
     try {
         const repeatableJobs = await queue.getRepeatableJobs();
-        const job = repeatableJobs.find(j => j.id === `recurring-${keywordId}`);
+        const job = repeatableJobs.find((j) => j.id === `recurring-${keywordId}`);
 
         if (job) {
             await queue.removeRepeatableByKey(job.key);
@@ -254,7 +259,7 @@ export async function removeKeywordSchedule(keywordId: string): Promise<void> {
     } catch (error) {
         logger.warn('Failed to remove keyword schedule', {
             keywordId,
-            error: (error as Error).message
+            error: (error as Error).message,
         });
     }
 }
@@ -273,7 +278,7 @@ export async function syncKeywordSchedules(): Promise<void> {
             .where(eq(keywords.is_active, true));
 
         const filteredKeywords = keywordsData.filter(
-            k => k.scan_frequency === 'daily' || k.scan_frequency === 'weekly'
+            (k) => k.scan_frequency === 'daily' || k.scan_frequency === 'weekly',
         );
 
         if (filteredKeywords.length === 0) {
@@ -284,7 +289,7 @@ export async function syncKeywordSchedules(): Promise<void> {
         for (const keyword of filteredKeywords) {
             if (keyword.scan_frequency === 'daily' || keyword.scan_frequency === 'weekly') {
                 const engines = Array.isArray(keyword.engines)
-                    ? keyword.engines as string[]
+                    ? (keyword.engines as string[])
                     : ['perplexity'];
 
                 await scheduleKeywordScan(keyword.id, keyword.scan_frequency, engines);
@@ -306,7 +311,7 @@ export async function getSchedulerStats(): Promise<{
 
     let nextRun: Date | null = null;
     if (repeatableJobs.length > 0) {
-        const nextTimestamp = Math.min(...repeatableJobs.map(j => j.next ?? Infinity));
+        const nextTimestamp = Math.min(...repeatableJobs.map((j) => j.next ?? Infinity));
         if (nextTimestamp !== Infinity) {
             nextRun = new Date(nextTimestamp);
         }

@@ -1,6 +1,7 @@
-import Table from 'cli-table3';
 import chalk from 'chalk';
-import type { Project, Keyword, ScanResult, Entity, Claim, TopCitation } from '../types/index';
+import Table from 'cli-table3';
+
+import type { Claim, Entity, Keyword, Project, ScanResult, TopCitation } from '../types/index';
 import { formatter } from './formatter';
 
 export const table = {
@@ -48,7 +49,7 @@ export const table = {
             [chalk.cyan('Competitors'), project.competitors?.join(', ') || 'None'],
             [chalk.cyan('Description'), project.description || 'N/A'],
             [chalk.cyan('Created'), new Date(project.created_at).toLocaleString()],
-            [chalk.cyan('Updated'), new Date(project.updated_at).toLocaleString()]
+            [chalk.cyan('Updated'), new Date(project.updated_at).toLocaleString()],
         );
 
         return tbl.toString();
@@ -130,9 +131,12 @@ export const table = {
             [chalk.cyan('ID'), scan.id],
             [chalk.cyan('Brand Visibility'), formatter.visibility(scan.brand_visibility)],
             [chalk.cyan('Sentiment Score'), formatter.sentiment(scan.sentiment_score)],
-            [chalk.cyan('Recommendation Type'), formatter.recommendationType(scan.recommendation_type)],
+            [
+                chalk.cyan('Recommendation Type'),
+                formatter.recommendationType(scan.recommendation_type),
+            ],
             [chalk.cyan('Created'), new Date(scan.created_at).toLocaleString()],
-            [chalk.cyan('Raw Response'), chalk.gray(formatter.truncate(scan.raw_response, 200))]
+            [chalk.cyan('Raw Response'), chalk.gray(formatter.truncate(scan.raw_response, 200))],
         );
 
         return tbl.toString();
@@ -180,7 +184,7 @@ export const table = {
             [chalk.cyan('Name'), entity.name],
             [chalk.cyan('Type'), entity.type],
             [chalk.cyan('Description'), entity.description || 'N/A'],
-            [chalk.cyan('Created'), new Date(entity.created_at).toLocaleString()]
+            [chalk.cyan('Created'), new Date(entity.created_at).toLocaleString()],
         );
 
         return tbl.toString();
@@ -218,11 +222,7 @@ export const table = {
      */
     topCitations: (citations: TopCitation[]): string => {
         const tbl = new Table({
-            head: [
-                chalk.cyan('Domain'),
-                chalk.cyan('Citations'),
-                chalk.cyan('URLs'),
-            ],
+            head: [chalk.cyan('Domain'), chalk.cyan('Citations'), chalk.cyan('URLs')],
             colWidths: [30, 12, 58],
             wordWrap: true,
         });

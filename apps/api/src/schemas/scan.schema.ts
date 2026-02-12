@@ -28,7 +28,9 @@ export const createScanResultSchema = z.object({
     sentiment_score: z.number().min(-1).max(1).optional(),
     brand_visibility: z.boolean().optional(),
     share_of_voice_rank: z.number().int().positive().optional(),
-    recommendation_type: z.enum(['direct_recommendation', 'neutral_comparison', 'negative_mention', 'absent']).optional(),
+    recommendation_type: z
+        .enum(['direct_recommendation', 'neutral_comparison', 'negative_mention', 'absent'])
+        .optional(),
     token_count: z.number().int().positive().optional(),
 });
 

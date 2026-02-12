@@ -1,7 +1,14 @@
-import type { InferSelectModel, InferInsertModel } from 'drizzle-orm';
-import { profiles, projects, keywords, scanJobs, scanResults, citations } from './schema/core';
-import { tenants, domains, aiFirewallRules, edgeInjectionConfig } from './schema/tenants';
-import { entities, entityRelationships, claims, faqVectors, actionSchemas } from './schema/knowledge-graph';
+import type { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+
+import type { citations, keywords, profiles, projects, scanJobs, scanResults } from './schema/core';
+import type {
+    actionSchemas,
+    claims,
+    entities,
+    entityRelationships,
+    faqVectors,
+} from './schema/knowledge-graph';
+import type { aiFirewallRules, domains, edgeInjectionConfig, tenants } from './schema/tenants';
 
 export type Profile = InferSelectModel<typeof profiles>;
 export type InsertProfile = InferInsertModel<typeof profiles>;
