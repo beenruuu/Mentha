@@ -1,22 +1,21 @@
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
-import { serveStatic } from '@hono/node-server/serve-static';
 import { cors } from 'hono/cors';
 import { compress } from 'hono/compress';
 import { secureHeaders } from 'hono/secure-headers';
-import path from 'path';
-import { env } from './config/index';
-import { logger } from './infrastructure/logging/index';
-import { aiViewMiddleware } from './infrastructure/middleware/index';
-import healthRouter from './controllers/health.controller';
-import projectsRouter from './controllers/projects.controller';
-import keywordsRouter from './controllers/keywords.controller';
-import scansRouter from './controllers/scans.controller';
-import knowledgeGraphRouter from './controllers/knowledge-graph.controller';
-import llmsTxtRouter from './controllers/llms-txt.controller';
-import dashboardRouter from './controllers/dashboard.controller';
-import edgeRouter from './controllers/edge.controller';
-import webhooksRouter from './controllers/webhooks.controller';
+import { env } from './config/env';
+import { logger } from './core/logger';
+import { aiViewMiddleware } from './middlewares/ai-view';
+
+import healthRouter from './routers/health.router';
+import projectsRouter from './routers/projects.router';
+import keywordsRouter from './routers/keywords.router';
+import scansRouter from './routers/scans.router';
+import knowledgeGraphRouter from './routers/knowledge-graph.router';
+import llmsTxtRouter from './routers/llms-txt.router';
+import dashboardRouter from './routers/dashboard.router';
+import edgeRouter from './routers/edge.router';
+import webhooksRouter from './routers/webhooks.router';
 
 const app = new Hono();
 
@@ -47,21 +46,16 @@ app.use('*', async (c, next) => {
     await next();
 });
 
-app.route('/health', healthRouter);
-app.route('/api/v1/projects', projectsRouter);
-app.route('/api/v1/keywords', keywordsRouter);
-app.route('/api/v1/scans', scansRouter);
-app.route('/api/v1/kg', knowledgeGraphRouter);
-app.route('/api/v1/dashboard', dashboardRouter);
-app.route('/api/v1/edge', edgeRouter);
-app.route('/api/v1/webhooks', webhooksRouter);
-app.route('/llms.txt', llmsTxtRouter);
-
-app.use('/shared/*', serveStatic({ root: path.join(process.cwd(), 'public') }));
-app.use('/dashboard/*', serveStatic({ root: path.join(process.cwd(), 'public') }));
-app.use('/optimization/*', serveStatic({ root: path.join(process.cwd(), 'public') }));
-app.use('/authority/*', serveStatic({ root: path.join(process.cwd(), 'public') }));
-app.use('/settings/*', serveStatic({ root: path.join(process.cwd(), 'public') }));
+const routes = app
+    .route('/health', healthRouter)
+    .route('/api/v1/projects', projectsRouter)
+    .route('/api/v1/keywords', keywordsRouter)
+    .route('/api/v1/scans', scansRouter)
+    .route('/api/v1/kg', knowledgeGraphRouter)
+    .route('/api/v1/dashboard', dashboardRouter)
+    .route('/api/v1/edge', edgeRouter)
+    .route('/api/v1/webhooks', webhooksRouter)
+    .route('/llms.txt', llmsTxtRouter);
 
 app.notFound((c) => {
     return c.json({
@@ -95,4 +89,4 @@ serve({
 });
 
 export default app;
-export type AppType = typeof app;
+export type AppType = typeof routes;

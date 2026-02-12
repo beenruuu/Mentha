@@ -1,15 +1,16 @@
-import { Hono } from 'hono';
+import type { Context } from 'hono';
 
-const app = new Hono()
-    .get('/', (c) => {
+export class HealthController {
+    static async check(c: Context) {
         return c.json({
             status: 'healthy',
             timestamp: new Date().toISOString(),
             uptime: process.uptime(),
             version: process.env['npm_package_version'] || '1.0.0',
         });
-    })
-    .get('/ready', (c) => {
+    }
+
+    static async ready(c: Context) {
         return c.json({
             status: 'ready',
             checks: {
@@ -17,7 +18,5 @@ const app = new Hono()
                 redis: 'pending',
             },
         });
-    });
-
-export default app;
-export type HealthAppType = typeof app;
+    }
+}

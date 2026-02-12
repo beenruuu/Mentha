@@ -1,26 +1,18 @@
-import { Hono } from 'hono';
-import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
-import { eq, desc } from 'drizzle-orm';
-import { db, keywords } from '../infrastructure/database/index';
-import { logger } from '../infrastructure/logging/index';
+import type { Context } from 'hono';
+import { getKeywordService } from '../services/keyword.service';
+import { logger } from '../core/logger';
+import { handleHttpException } from '../exceptions/http';
 
-const CreateKeywordSchema = z.object({
-    project_id: z.string().uuid('Invalid project ID'),
-    query: z.string().min(2, 'Query must be at least 2 characters'),
-    intent: z.enum(['informational', 'transactional', 'navigational', 'commercial']).default('informational'),
-    scan_frequency: z.enum(['daily', 'weekly', 'manual']).default('weekly'),
-    engines: z.array(z.enum(['perplexity', 'openai', 'gemini'])).default(['perplexity']),
-});
+const keywordService = getKeywordService();
 
-const app = new Hono()
-    .get('/', async (c) => {
+export class KeywordController {
+    static async list(c: Context) {
         const project_id = c.req.query('project_id');
 
         try {
             const data = project_id
-                ? await db.select().from(keywords).where(eq(keywords.project_id, project_id)).orderBy(desc(keywords.created_at))
-                : await db.select().from(keywords).orderBy(desc(keywords.created_at));
+                ? await keywordService.listByProject(project_id)
+                : await keywordService.list();
 
             return c.json({
                 data,
@@ -28,46 +20,39 @@ const app = new Hono()
             });
         } catch (error) {
             logger.error('Failed to list keywords', { error: (error as Error).message });
-            return c.json({ error: 'Failed to list keywords' }, 500);
+            return handleHttpException(c, error);
         }
-    })
-    .post('/', zValidator('json', CreateKeywordSchema), async (c) => {
-        const { project_id, query, intent, scan_frequency, engines } = c.req.valid('json');
+    }
 
-        logger.info('Creating keyword', { project_id, query, intent });
+    static async create(c: Context) {
+        const body = await c.req.json();
+        const { project_id, query, intent, scan_frequency, engines } = body;
 
         try {
-            const result = await db
-                .insert(keywords)
-                .values({
-                    project_id,
-                    query,
-                    intent,
-                    scan_frequency,
-                    engines,
-                })
-                .returning();
+            const keyword = await keywordService.create({
+                project_id,
+                query,
+                intent,
+                scan_frequency,
+                engines,
+            });
 
-            return c.json({ data: result[0] }, 201);
+            return c.json({ data: keyword }, 201);
         } catch (error) {
             logger.error('Failed to create keyword', { error: (error as Error).message });
-            return c.json({ error: 'Failed to create keyword', message: (error as Error).message }, 500);
+            return handleHttpException(c, error);
         }
-    })
-    .delete('/:id', async (c) => {
+    }
+
+    static async delete(c: Context) {
         const id = c.req.param('id');
 
         try {
-            await db
-                .delete(keywords)
-                .where(eq(keywords.id, id));
-
+            await keywordService.delete(id);
             return c.body(null, 204);
         } catch (error) {
             logger.error('Failed to delete keyword', { error: (error as Error).message });
-            return c.json({ error: 'Failed to delete keyword' }, 500);
+            return handleHttpException(c, error);
         }
-    });
-
-export default app;
-export type KeywordsAppType = typeof app;
+    }
+}
