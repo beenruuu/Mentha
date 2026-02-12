@@ -2,8 +2,10 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import ora from 'ora';
 
+import { client } from '../client';
 import config from '../config/index';
-import apiClient from '../services/api-client';
+import type { ShareOfModelMetrics, TopCitation } from '../types';
+import { apiCall } from '../utils/api';
 import { formatter } from '../utils/formatter';
 import { table } from '../utils/table';
 
@@ -20,7 +22,11 @@ dashboardCommand
         const spinner = ora('Fetching Share of Model metrics...').start();
 
         try {
-            const metrics = await apiClient.dashboard.shareOfModel(options.projectId);
+            const metrics = await apiCall<ShareOfModelMetrics>(
+                client.api.v1.dashboard['share-of-model'].$get({
+                    query: { project_id: options.projectId },
+                }),
+            );
             spinner.succeed('Metrics retrieved');
 
             if (options.json || config.outputFormat === 'json') {
@@ -29,25 +35,25 @@ dashboardCommand
                 console.log(`\n${chalk.cyan.bold('Share of Model Metrics')}\n`);
 
                 const data = {
-                    'Project ID': metrics.project_id,
-                    'Visibility Rate': formatter.percentage(metrics.visibility_rate),
-                    'Total Scans': formatter.number(metrics.total_scans),
-                    'Visible Scans': formatter.number(metrics.visible_scans),
-                    Period: metrics.period,
+                    'Visibility Rate': formatter.percentage(metrics.summary.visibilityRate),
+                    'Total Scans': formatter.number(metrics.summary.totalScans),
+                    'Visible Scans': formatter.number(metrics.summary.visibleCount),
+                    'Avg Sentiment': formatter.sentiment(metrics.summary.avgSentiment),
+                    Period: metrics.summary.period,
                 };
 
                 console.log(`${table.keyValue(data)}\n`);
 
                 const visibilityColor =
-                    metrics.visibility_rate > 0.7
+                    metrics.summary.visibilityRate > 0.7
                         ? chalk.green
-                        : metrics.visibility_rate > 0.4
+                        : metrics.summary.visibilityRate > 0.4
                           ? chalk.yellow
                           : chalk.red;
 
                 console.log(
                     `${visibilityColor.bold(
-                        `📊 Your brand appears in ${formatter.percentage(metrics.visibility_rate)} of AI responses`,
+                        `📊 Your brand appears in ${formatter.percentage(metrics.summary.visibilityRate)} of AI responses`,
                     )}\n`,
                 );
             }
@@ -67,8 +73,15 @@ dashboardCommand
         const spinner = ora('Fetching sentiment trends...').start();
 
         try {
-            const trends = await apiClient.dashboard.sentimentTrends(options.projectId);
-            spinner.succeed('Sentiment trends retrieved');
+            const metrics = await apiCall<ShareOfModelMetrics>(
+                client.api.v1.dashboard['share-of-model'].$get({
+                    query: { project_id: options.projectId },
+                }),
+            );
+
+            // Extract timeline data as trends
+            const trends = metrics.timeline || [];
+            spinner.succeed('Timeline data retrieved');
 
             if (options.json || config.outputFormat === 'json') {
                 console.log(formatter.json(trends));
@@ -120,7 +133,18 @@ dashboardCommand
 
         try {
             const limit = parseInt(options.limit, 10);
-            const citations = await apiClient.dashboard.topCitations(options.projectId, limit);
+            const response = await apiCall<{
+                topDomains: TopCitation[];
+                summary: { totalCitations: number; uniqueDomains: number };
+            }>(
+                client.api.v1.dashboard.citations.$get({
+                    query: {
+                        project_id: options.projectId,
+                        limit: limit.toString(),
+                    },
+                }),
+            );
+            const citations = response.topDomains;
             spinner.succeed(
                 `Found ${citations.length} top citation source${citations.length === 1 ? '' : 's'}`,
             );

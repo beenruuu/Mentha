@@ -13,7 +13,7 @@
     "check": "biome check --write ."
   },
   "dependencies": {
-    "axios": "^1.6.7",
+    "@mentha/core": "workspace:*",
     "chalk": "^5.3.0",
     "cli-table3": "^0.6.3",
     "commander": "^12.0.0",
@@ -24,6 +24,7 @@
   "devDependencies": {
     "@types/inquirer": "^9.0.7",
     "@types/node": "^22.5.0",
+    "mentha-api": "workspace:*",
     "tsx": "^4.17.0",
     "typescript": "^5.5.4"
   },

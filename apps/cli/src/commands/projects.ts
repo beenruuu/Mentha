@@ -2,8 +2,10 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import ora from 'ora';
 
+import { client } from '../client';
 import config from '../config/index';
-import apiClient from '../services/api-client';
+import type { Project } from '../types';
+import { apiCall } from '../utils/api';
 import { formatter } from '../utils/formatter';
 import { prompt } from '../utils/prompt';
 import { table } from '../utils/table';
@@ -18,7 +20,7 @@ projectsCommand
         const spinner = ora('Fetching projects...').start();
 
         try {
-            const projects = await apiClient.projects.list();
+            const projects = await apiCall<Project[]>(client.api.v1.projects.$get());
             spinner.succeed(`Found ${projects.length} project(s)`);
 
             if (options.json || config.outputFormat === 'json') {
@@ -71,7 +73,11 @@ projectsCommand
         const spinner = ora('Creating project...').start();
 
         try {
-            const project = await apiClient.projects.create(projectData);
+            const project = await apiCall<Project>(
+                client.api.v1.projects.$post({
+                    json: projectData,
+                }),
+            );
             spinner.succeed('Project created successfully');
 
             if (options.json || config.outputFormat === 'json') {
@@ -95,7 +101,11 @@ projectsCommand
         const spinner = ora('Fetching project...').start();
 
         try {
-            const project = await apiClient.projects.get(id);
+            const project = await apiCall<Project>(
+                client.api.v1.projects[':id'].$get({
+                    param: { id },
+                }),
+            );
             spinner.succeed('Project retrieved');
 
             if (options.json || config.outputFormat === 'json') {
@@ -133,7 +143,11 @@ projectsCommand
         } else {
             const spinner = ora('Fetching current project data...').start();
             try {
-                const currentProject = await apiClient.projects.get(id);
+                const currentProject = await apiCall<Project>(
+                    client.api.v1.projects[':id'].$get({
+                        param: { id },
+                    }),
+                );
                 spinner.stop();
 
                 console.log(chalk.cyan('\n✏️  Update project\n'));
@@ -162,7 +176,12 @@ projectsCommand
         const spinner = ora('Updating project...').start();
 
         try {
-            const project = await apiClient.projects.update(id, updateData);
+            const project = await apiCall<Project>(
+                client.api.v1.projects[':id'].$patch({
+                    param: { id },
+                    json: updateData,
+                } as any),
+            );
             spinner.succeed('Project updated successfully');
 
             if (options.json || config.outputFormat === 'json') {
@@ -197,7 +216,9 @@ projectsCommand
         const spinner = ora('Deleting project...').start();
 
         try {
-            await apiClient.projects.delete(id);
+            await client.api.v1.projects[':id'].$delete({
+                param: { id },
+            });
             spinner.succeed('Project deleted successfully');
         } catch (error) {
             spinner.fail('Failed to delete project');

@@ -1,6 +1,7 @@
 import chalk from 'chalk';
 import { Command } from 'commander';
 
+import { client } from './client';
 import { dashboardCommand } from './commands/dashboard';
 import { keywordsCommand } from './commands/keywords';
 import { knowledgeGraphCommand } from './commands/knowledge-graph';
@@ -8,7 +9,7 @@ import { projectsCommand } from './commands/projects';
 import { scansCommand } from './commands/scans';
 import { searchCommand } from './commands/search';
 import config from './config/index';
-import apiClient from './services/api-client';
+import { handleResponse } from './utils/api';
 import { formatter } from './utils/formatter';
 
 const program = new Command();
@@ -23,7 +24,8 @@ program
     .description('Check API server health')
     .action(async () => {
         try {
-            const health = await apiClient.health.check();
+            const response = await client.health.$get();
+            const health = await handleResponse<{ status: string; timestamp: string }>(response);
             console.log(formatter.success(`API is healthy (${health.status})`));
             console.log(chalk.gray(`Server time: ${health.timestamp}`));
             console.log(chalk.gray(`API URL: ${config.apiBaseUrl}`));

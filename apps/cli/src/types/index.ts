@@ -89,11 +89,25 @@ export interface Claim {
 }
 
 export interface ShareOfModelMetrics {
-    project_id: string;
-    visibility_rate: number;
-    total_scans: number;
-    visible_scans: number;
-    period: string;
+    summary: {
+        totalScans: number;
+        visibleCount: number;
+        visibilityRate: number;
+        avgSentiment: number;
+        period: string;
+    };
+    byEngine: Array<{
+        engine: string;
+        totalScans: number;
+        visibleCount: number;
+        visibilityRate: number;
+    }>;
+    byType: Array<{
+        type: string;
+        count: number;
+        percentage: number;
+    }>;
+    timeline: SentimentTrend[];
 }
 
 export interface SentimentTrend {
@@ -106,19 +120,4 @@ export interface TopCitation {
     domain: string;
     citation_count: number;
     urls: string[];
-}
-
-export interface ApiResponse<T> {
-    data: T;
-    pagination?: {
-        total: number;
-        page: number;
-        limit: number;
-    };
-}
-
-export interface ApiError {
-    error: string;
-    message?: string;
-    details?: Record<string, unknown>;
 }

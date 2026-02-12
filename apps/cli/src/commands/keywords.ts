@@ -2,8 +2,10 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import ora from 'ora';
 
+import { client } from '../client';
 import config from '../config/index';
-import apiClient from '../services/api-client';
+import type { Keyword } from '../types';
+import { apiCall } from '../utils/api';
 import { formatter } from '../utils/formatter';
 import { prompt } from '../utils/prompt';
 import { table } from '../utils/table';
@@ -19,7 +21,11 @@ keywordsCommand
         const spinner = ora('Fetching keywords...').start();
 
         try {
-            const keywords = await apiClient.keywords.list(options.projectId);
+            const keywords = await apiCall<Keyword[]>(
+                client.api.v1.keywords.$get({
+                    query: options.projectId ? { project_id: options.projectId } : {},
+                }),
+            );
             spinner.succeed(`Found ${keywords.length} keyword(s)`);
 
             if (options.json || config.outputFormat === 'json') {
@@ -86,7 +92,11 @@ keywordsCommand
         const spinner = ora('Creating keyword...').start();
 
         try {
-            const keyword = await apiClient.keywords.create(keywordData);
+            const keyword = await apiCall<Keyword>(
+                client.api.v1.keywords.$post({
+                    json: keywordData,
+                }),
+            );
             spinner.succeed('Keyword created successfully');
 
             if (options.json || config.outputFormat === 'json') {
@@ -122,7 +132,9 @@ keywordsCommand
         const spinner = ora('Deleting keyword...').start();
 
         try {
-            await apiClient.keywords.delete(id);
+            await client.api.v1.keywords[':id'].$delete({
+                param: { id },
+            });
             spinner.succeed('Keyword deleted successfully');
         } catch (error) {
             spinner.fail('Failed to delete keyword');

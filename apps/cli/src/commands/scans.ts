@@ -2,8 +2,10 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import ora from 'ora';
 
+import { client } from '../client';
 import config from '../config/index';
-import apiClient from '../services/api-client';
+import type { ScanResult } from '../types';
+import { apiCall } from '../utils/api';
 import { formatter } from '../utils/formatter';
 import { table } from '../utils/table';
 
@@ -20,7 +22,14 @@ scansCommand
 
         try {
             const limit = parseInt(options.limit, 10);
-            const scans = await apiClient.scans.list(options.projectId, limit);
+            const scans = await apiCall<ScanResult[]>(
+                client.api.v1.scans.$get({
+                    query: {
+                        project_id: options.projectId,
+                        limit: limit.toString(),
+                    },
+                }),
+            );
             spinner.succeed(`Found ${scans.length} scan result(s)`);
 
             if (options.json || config.outputFormat === 'json') {
@@ -47,7 +56,11 @@ scansCommand
         const spinner = ora('Fetching scan result...').start();
 
         try {
-            const scan = await apiClient.scans.get(id);
+            const scan = await apiCall<ScanResult>(
+                client.api.v1.scans[':id'].$get({
+                    param: { id },
+                }),
+            );
             spinner.succeed('Scan result retrieved');
 
             if (options.json || config.outputFormat === 'json') {

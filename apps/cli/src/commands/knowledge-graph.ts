@@ -2,8 +2,10 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 import ora from 'ora';
 
+import { client } from '../client';
 import config from '../config/index';
-import apiClient from '../services/api-client';
+import type { Claim, Entity } from '../types';
+import { apiCall } from '../utils/api';
 import { formatter } from '../utils/formatter';
 import { table } from '../utils/table';
 
@@ -19,7 +21,7 @@ knowledgeGraphCommand
         const spinner = ora('Fetching entities...').start();
 
         try {
-            const entities = await apiClient.knowledgeGraph.entities();
+            const entities = await apiCall<Entity[]>(client.api.v1.kg.entities.$get());
             spinner.succeed(`Found ${entities.length} entit${entities.length === 1 ? 'y' : 'ies'}`);
 
             if (options.json || config.outputFormat === 'json') {
@@ -46,7 +48,11 @@ knowledgeGraphCommand
         const spinner = ora('Fetching entity details...').start();
 
         try {
-            const entity = await apiClient.knowledgeGraph.entity(id);
+            const entity = await apiCall<Entity>(
+                client.api.v1.kg.entities[':slug'].jsonld.$get({
+                    param: { slug: id },
+                }),
+            );
             spinner.succeed('Entity retrieved');
 
             if (options.json || config.outputFormat === 'json') {
@@ -69,7 +75,11 @@ knowledgeGraphCommand
         const spinner = ora('Fetching claims...').start();
 
         try {
-            const claims = await apiClient.knowledgeGraph.claims(entityId);
+            const claims = await apiCall<Claim[]>(
+                client.api.v1.kg.entities[':slug'].claims.$get({
+                    param: { slug: entityId },
+                }),
+            );
             spinner.succeed(`Found ${claims.length} claim${claims.length === 1 ? '' : 's'}`);
 
             if (options.json || config.outputFormat === 'json') {
