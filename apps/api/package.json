@@ -4,6 +4,16 @@
   "description": "AEO/GEO Intelligence Platform Backend",
   "type": "module",
   "main": "src/app.ts",
+  "exports": {
+    ".": {
+      "types": "./src/app.ts",
+      "default": "./src/app.ts"
+    },
+    "./types": {
+      "types": "./src/app.ts",
+      "default": "./src/app.ts"
+    }
+  },
   "scripts": {
     "dev": "tsx watch src/app.ts",
     "start:api": "tsx src/app.ts",
