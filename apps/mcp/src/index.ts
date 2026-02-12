@@ -3,56 +3,13 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 
 import { RESOURCE_METADATA, TOOL_DESCRIPTIONS } from './constants';
 import * as Resources from './resources';
-import {
-    addBrandClaimSchema,
-    analyzeBrandVisibilitySchema,
-    createBrandEntitySchema,
-    generateLlmsTxtSchema,
-    getShareOfModelSchema,
-    listProjectsSchema,
-} from './schemas';
+import { generateLlmsTxtSchema, listProjectsSchema } from './schemas';
 import * as Tools from './tools';
 
 const server = new McpServer({
     name: 'mentha',
     version: '1.0.0',
 });
-
-server.registerTool(
-    'analyze_brand_visibility',
-    {
-        description: TOOL_DESCRIPTIONS.analyzeBrandVisibility,
-        inputSchema: analyzeBrandVisibilitySchema,
-    },
-    Tools.analyzeBrandVisibility,
-);
-
-server.registerTool(
-    'get_share_of_model',
-    {
-        description: TOOL_DESCRIPTIONS.getShareOfModel,
-        inputSchema: getShareOfModelSchema,
-    },
-    Tools.getShareOfModel,
-);
-
-server.registerTool(
-    'create_brand_entity',
-    {
-        description: TOOL_DESCRIPTIONS.createBrandEntity,
-        inputSchema: createBrandEntitySchema,
-    },
-    Tools.createBrandEntity,
-);
-
-server.registerTool(
-    'add_brand_claim',
-    {
-        description: TOOL_DESCRIPTIONS.addBrandClaim,
-        inputSchema: addBrandClaimSchema,
-    },
-    Tools.addBrandClaim,
-);
 
 server.registerTool(
     'generate_llms_txt',

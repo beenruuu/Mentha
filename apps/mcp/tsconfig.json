@@ -5,8 +5,9 @@
     "moduleResolution": "Bundler",
     "lib": ["ES2022"],
     "types": ["node"],
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "skipLibCheck": true
   },
-  "include": ["src/**/*", "../api/src/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
 }
