@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Mentha Configuration</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/shared/styles.css">
+    <style>
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">
+                    <svg id="Capa_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 40 40">
+                        <path fill="#000000"
+                            d="M19.7,26.3l3.2-4.2c1.7-2.6,3.5-5.4,3.9-8.5l-1.8,3.4c-1.3,1.8-2.6,3.8-4.1,5.4s-2.3,2.3-2.7,2.4-.2,0-.2-.2c-1-3.3-1.1-7.5.3-10.7s6.4-8,9.5-10.6,2.5-2.1,2.7-2c2.5,4.1,4.3,9.4,3.1,14.3-1.5,6.1-7.9,10.2-13.9,10.7Z" />
+                        <path fill="#000000"
+                            d="M33.7,20.5v15.1c0,1-1.6,2.5-2.6,2.7-2.4.4-4.2-1-4.4-3.4s-.2-6.1,0-8,0-.4.2-.6,1.7-.9,2.1-1.2c1.8-1.2,3.3-2.7,4.7-4.5Z" />
+                        <path fill="#000000"
+                            d="M16.3,25.4c-.1.1-.9-.6-1.1-.7-1.6-1.5-3.1-3.8-4-5.8-.3,0-.1.3,0,.4.6,2.5,2.6,4.8,4.1,6.9-3.5-.3-7.2-2.6-8.2-6.2s.4-5.7,1.7-8.4c.1,0,1.4,1,1.6,1.1,1.9,1.6,5,4.4,5.8,6.7s.4,4,0,6Z" />
+                        <path fill="#000000"
+                            d="M7.3,24.4c1.9,2,4.3,3.2,7,3.9-.3,2.2.5,6.1-.4,8.1s-3.4,2.6-5.1,1.5-1.5-1.6-1.5-2.2v-11.2Z" />
+                        <path fill="#000000"
+                            d="M23.9,27.5v8.1c0,.4-.8,1.6-1.1,1.9-1.6,1.4-4.4,1.1-5.4-.9s-.5-1.4-.5-1.6v-6.7c2.4,0,4.7-.1,7-.8Z" />
+                    </svg>
+                </div>
+                <img class="brand-favicon" id="brandFavicon" src="" alt="" style="display: none;">
+                <!-- Project Dropdown -->
+                <div class="project-dropdown">
+                    <button class="project-selector" id="projectSelector">
+                        <span id="projectName">Select Project</span>
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" />
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu" id="projectMenu">
+                        <div class="dropdown-items" id="projectList"></div>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-action" id="addBrandBtn">Add Brand</button>
+                    </div>
+                </div>
+            </div>
+            <div class="header-center">
+                <button class="period-selector">
+                    <span>Configuration</span>
+                </button>
+            </div>
+            <div class="header-right">
+                <div class="avatar">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=mentha" alt="User">
+                </div>
+                <button class="icon-btn hamburger-btn">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M3 5H17M3 10H17M3 15H17" stroke="currentColor" stroke-width="1.5"
+                            stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <div class="settings-grid">
+            <!-- Project Settings -->
+            <section class="card">
+                <div class="card-header">
+                    <span class="card-title">Project Details</span>
+                </div>
+                <form id="projectForm" style="margin-top: 16px;">
+                    <div class="form-group">
+                        <label class="form-label">Brand Name</label>
+                        <input type="text" id="pName" class="form-input" placeholder="e.g. Acme Corp">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Domain URL</label>
+                        <input type="text" id="pDomain" class="form-input" placeholder="https://acme.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea id="pDesc" class="form-input" style="height: 80px;"
+                            placeholder="What does this brand do?"></textarea>
+                    </div>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </form>
+            </section>
+
+            <!-- Keywords Management -->
+            <section class="card">
+                <div class="card-header">
+                    <span class="card-title">Tracked Keywords</span>
+                </div>
+                <div id="keywordList" style="margin-top: 16px;">
+                    <!-- Keywords -->
+                </div>
+                <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border-light);">
+                    <p style="font-size: 11px; color: var(--text-muted);">To add keywords, use the CLI:
+                        <code>npm run cli</code>
+                    </p>
+                </div>
+            </section>
+        </div>
+
+        <!-- Floating Dock -->
+        <nav class="floating-dock">
+            <button class="dock-btn" title="Dashboard" data-page="dashboard">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <path d="M3 10L10 3L17 10M5 8.5V16H8V12H12V16H15V8.5" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </button>
+            <button class="dock-btn" title="Optimization" data-page="optimization">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                </svg>
+            </button>
+            <button class="dock-btn" title="Authority" data-page="authority">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8" r="7" />
+                    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88" />
+                </svg>
+            </button>
+            <button class="dock-btn" title="Keywords" data-page="dashboard">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+            </button>
+            <button class="dock-btn badge" data-count="17" title="Notifications">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                    <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M7 10L9 12L13 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                        stroke-linejoin="round" />
+                </svg>
+            </button>
+            <button class="dock-btn active" title="Configuration" data-page="settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3" />
+                    <path
+                        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+            </button>
+        </nav>
+    </div>
+
+    <script src="/shared/app.js"></script>
+    <script src="/shared/nav.js"></script>
+    <script>
+        async function loadSettings() {
+            const projectId = localStorage.getItem('mentha_project_id');
+            if (!projectId) return;
+
+            try {
+                // Load Project
+                const pRes = await fetch(`/api/v1/projects/${projectId}`);
+                const { data: project } = await pRes.json();
+
+                document.getElementById('pName').value = project.name;
+                document.getElementById('pDomain').value = project.domain;
+                document.getElementById('pDesc').value = project.description || '';
+
+                // Load Keywords
+                const kRes = await fetch(`/api/v1/keywords?project_id=${projectId}`);
+                const { data: keywords } = await kRes.json();
+
+                const kwList = document.getElementById('keywordList');
+                kwList.innerHTML = keywords.map(kw => `
+                    <div style="display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-light);">
+                        <span style="font-size: 14px; font-weight: 500;">${kw.keyword}</span>
+                        <span style="font-size: 12px; color: var(--text-muted);">${kw.category || 'General'}</span>
+                    </div>
+                `).join('');
+
+            } catch (e) {
+                console.error('Failed to load settings', e);
+            }
+        }
+
+        document.getElementById('projectForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const projectId = localStorage.getItem('mentha_project_id');
+            const name = document.getElementById('pName').value;
+            const domain = document.getElementById('pDomain').value;
+            const description = document.getElementById('pDesc').value;
+
+            try {
+                const res = await fetch(`/api/v1/projects/${projectId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, domain, description })
+                });
+                if (res.ok) alert('Settings saved successfully!');
+            } catch (e) {
+                alert('Failed to save settings');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', loadSettings);
+    </script>
+</body>
+
+</html>
