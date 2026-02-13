@@ -1,0 +1,41 @@
+from app.core.supabase import get_supabase_client
+
+
+class SupabaseAuthService:
+    """Service for handling Supabase authentication."""
+
+    def __init__(self):
+        """Initialize the Supabase client."""
+        self.supabase = get_supabase_client()
+
+    async def get_user(self, jwt_token: str):
+        """Get user data from a JWT token."""
+        # Use the Supabase client to get user information
+        response = self.supabase.auth.get_user(jwt_token)
+        return response.user
+
+    async def sign_in_with_provider_token(self, provider: str, token: str) -> str:
+        """Exchange a provider token (Google, LinkedIn) for a Supabase token."""
+        if provider not in ["google", "linkedin"]:
+            raise ValueError(f"Unsupported provider: {provider}")
+
+        response = self.supabase.auth.sign_in_with_oauth_provider(provider=provider, access_token=token)
+
+        if not response.session or not response.session.access_token:
+            raise ValueError(f"Failed to authenticate with {provider}")
+
+        return response.session.access_token
+
+    async def delete_user(self, user_id: str):
+        """Delete a user from Supabase Auth (Admin only)."""
+        # Using the service key client allows admin operations
+        response = self.supabase.auth.admin.delete_user(user_id)
+        return response
+
+
+# Dependency to get the auth service
+def get_auth_service() -> SupabaseAuthService:
+    """Return an instance of the Supabase auth service."""
+    return SupabaseAuthService()
+
+

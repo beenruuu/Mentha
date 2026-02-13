@@ -1,0 +1,247 @@
+---
+description: Template for creating new React components
+globs: []
+alwaysApply: false
+---
+
+# React Component Template
+
+Use this template when creating new React components:
+
+```tsx
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
+
+// Types
+interface ComponentNameProps {
+  // Required props
+  title: string
+  data: DataType[]
+
+  // Optional props
+  onAction?: (item: DataType) => void
+  className?: string
+  variant?: 'default' | 'compact' | 'detailed'
+  loading?: boolean
+}
+
+interface DataType {
+  id: string
+  name: string
+  // Add other fields as needed
+}
+
+// Main component
+export default function ComponentName({
+  title,
+  data,
+  onAction,
+  className = '',
+  variant = 'default',
+  loading = false
+}: ComponentNameProps) {
+  // State
+  const [selectedItem, setSelectedItem] = useState<DataType | null>(null)
+  const [isProcessing, setIsProcessing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Hooks
+  const router = useRouter()
+
+  // Effects
+  useEffect(() => {
+    // Component initialization logic
+    if (data.length === 0 && !loading) {
+      setError('No data available')
+    } else {
+      setError(null)
+    }
+  }, [data, loading])
+
+  // Event handlers
+  const handleItemSelect = useCallback((item: DataType) => {
+    setSelectedItem(item)
+    setError(null)
+  }, [])
+
+  const handleAction = useCallback(async (item: DataType) => {
+    if (!onAction) return
+
+    try {
+      setIsProcessing(true)
+      setError(null)
+
+      await onAction(item)
+
+      // Optional: Reset selection after successful action
+      setSelectedItem(null)
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred'
+      setError(errorMessage)
+      console.error('Action failed:', err)
+    } finally {
+      setIsProcessing(false)
+    }
+  }, [onAction])
+
+  const handleNavigation = useCallback((path: string) => {
+    router.push(path)
+  }, [router])
+
+  // Render helpers
+  const renderItem = (item: DataType) => (
+    <div
+      key={item.id}
+      className={`
+        p-4 border rounded-lg cursor-pointer transition-colors
+        ${selectedItem?.id === item.id
+          ? 'border-blue-500 bg-blue-50'
+          : 'border-gray-200 hover:border-gray-300'
+        }
+      `}
+      onClick={() => handleItemSelect(item)}
+    >
+      <h3 className="font-medium text-gray-900">{item.name}</h3>
+      {/* Add more item details based on variant */}
+    </div>
+  )
+
+  const renderEmptyState = () => (
+    <div className="text-center py-8">
+      <div className="text-gray-500 mb-4">
+        {loading ? 'Loading...' : 'No items found'}
+      </div>
+      {!loading && (
+        <button
+          onClick={() => handleNavigation('/create')}
+          className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+        >
+          Create New Item
+        </button>
+      )}
+    </div>
+  )
+
+  const renderError = () => (
+    <div className="p-4 bg-red-50 border border-red-200 rounded-md">
+      <div className="flex">
+        <div className="flex-shrink-0">
+          <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+        </div>
+        <div className="ml-3">
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      </div>
+    </div>
+  )
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className={`animate-pulse ${className}`}>
+        <div className="h-8 bg-gray-200 rounded mb-4"></div>
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-16 bg-gray-200 rounded"></div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Main render
+  return (
+    <div className={`component-container ${className}`}>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+
+        {selectedItem && (
+          <button
+            onClick={() => handleAction(selectedItem)}
+            disabled={isProcessing}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isProcessing ? 'Processing...' : 'Take Action'}
+          </button>
+        )}
+      </div>
+
+      {/* Error display */}
+      {error && renderError()}
+
+      {/* Content */}
+      <div className="space-y-4">
+        {data.length === 0 ? (
+          renderEmptyState()
+        ) : (
+          <div className={`
+            grid gap-4
+            ${variant === 'compact' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'}
+          `}>
+            {data.map(renderItem)}
+          </div>
+        )}
+      </div>
+
+      {/* Footer actions */}
+      {data.length > 0 && (
+        <div className="mt-6 flex justify-between items-center">
+          <p className="text-sm text-gray-500">
+            {data.length} item{data.length !== 1 ? 's' : ''} total
+          </p>
+
+          <div className="space-x-2">
+            <button
+              onClick={() => handleNavigation('/create')}
+              className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+            >
+              Add New
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Optional: Export types for reuse
+export type { ComponentNameProps, DataType }
+```
+
+## Key Template Elements
+
+1. **TypeScript interfaces** for props and data types
+2. **State management** with useState for component state
+3. **Effect hooks** for initialization and side effects
+4. **Event handlers** with proper error handling
+5. **Memoized callbacks** using useCallback for performance
+6. **Loading states** with skeleton UI
+7. **Error handling** with user-friendly error display
+8. **Empty states** with call-to-action
+9. **Responsive design** with Tailwind CSS classes
+10. **Accessibility** considerations with proper ARIA attributes
+11. **Navigation** using Next.js router
+12. **Conditional rendering** based on state
+13. **Reusable render methods** for complex UI parts
+14. **Export types** for component reusability
+
+## Usage Example
+
+```tsx
+import ComponentName from '@/components/ComponentName'
+
+// In parent component
+<ComponentName
+  title="My Items"
+  data={items}
+  onAction={handleItemAction}
+  variant="compact"
+  loading={isLoading}
+  className="my-custom-styles"
+/>
+```
