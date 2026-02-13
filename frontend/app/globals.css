@@ -1,0 +1,262 @@
+﻿/* Flag icons (svg sprites) */
+@import 'flag-icons/css/flag-icons.min.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --mentha: #2DD4BF;
+    --mentha-rgb: 45 212 191;
+    --background: 0 0% 100%;
+    /* Pure White */
+    --foreground: 240 10% 3.9%;
+    /* Zinc 950 */
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    /* Zinc 900 */
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    /* Zinc 100 */
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    /* Zinc 200 */
+    --input: 240 5.9% 90%;
+    --ring: 240 5% 64.9%;
+    --radius: 0.75rem;
+    --font-instrument-serif: "Instrument Serif", ui-serif, serif;
+    --color-1: 0 100% 63%;
+    --color-2: 270 100% 63%;
+    --color-3: 210 100% 63%;
+    --color-4: 195 100% 63%;
+    --color-5: 90 100% 63%;
+  }
+
+  .dark {
+    --mentha: #16a085;
+    --mentha-rgb: 22 160 133;
+    --background: 0 0% 0%;
+    /* Pure Black */
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    /* Zinc 800 */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+html,
+body,
+#__next {
+  height: 100%;
+}
+
+html,
+body {
+  overflow-x: hidden;
+}
+
+/* ============================================
+   SCROLLBAR STYLING - Mentha Green Color
+   ============================================ */
+
+/* WebKit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2DD4BF;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #14b8a6;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:active {
+  background: #0d9488;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Dark mode scrollbar */
+.dark ::-webkit-scrollbar-thumb {
+  background: #16a085;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #1abc9c;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2DD4BF transparent;
+}
+
+.dark * {
+  scrollbar-color: #16a085 transparent;
+}
+
+@layer utilities {
+
+  /* Settings panel blur effect - only blur main content area (the rounded container) */
+  body[data-settings-open="true"] main.dashboard-main {
+    filter: blur(2px) brightness(0.85);
+    transition: filter 0.2s ease;
+    pointer-events: none;
+  }
+
+  @keyframes mentha-snake {
+    to {
+      stroke-dashoffset: -480;
+    }
+  }
+
+  @keyframes counter-spin {
+    from {
+      transform: rotate(0deg);
+    }
+
+    to {
+      transform: rotate(-360deg);
+    }
+  }
+
+  @keyframes mentha-shimmer {
+    0% {
+      transform: translateX(-150%) rotate(-25deg);
+      opacity: 0;
+    }
+
+    40% {
+      opacity: 0.6;
+    }
+
+    100% {
+      transform: translateX(150%) rotate(-25deg);
+      opacity: 0;
+    }
+  }
+
+  .mentha-logo-outline {
+    background: transparent;
+    overflow: visible;
+  }
+
+  .mentha-outline-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+  }
+
+  .mentha-outline-stroke {
+    stroke: var(--mentha);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 480;
+    stroke-dashoffset: 0;
+    animation: mentha-snake 3.6s linear infinite;
+    filter: drop-shadow(0 4px 8px rgba(var(--mentha-rgb), 0.08));
+  }
+
+  .mentha-logo-inner svg {
+    display: block;
+  }
+
+  .mentha-logo-outline::after {
+    content: '';
+    position: absolute;
+    left: -50%;
+    top: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.65) 50%, rgba(255, 255, 255, 0) 70%);
+    transform: rotate(-25deg) translateX(-150%);
+    animation: mentha-shimmer 2.6s ease-in-out infinite;
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    border-radius: inherit;
+    opacity: 0.95;
+  }
+
+  /* Slight outer glow using a pseudo-element to enhance the aurora effect */
+  .mentha-outline-stroke {
+    /* add subtle glow via shadow-like stroke using filter, keeping stroke itself crisp */
+    filter: drop-shadow(0 0 8px rgba(var(--mentha-rgb), 0.18));
+  }
+}
+
+/* Custom styles for the landing page v0 */
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+.font-instrument-serif {
+  font-family: var(--font-instrument-serif);
+  font-display: swap;
+}
+
+.mix-blend-multiply {
+  mix-blend-mode: multiply;
+}
+
+.backdrop-blur-custom {
+  backdrop-filter: blur(8.25px);
+}
