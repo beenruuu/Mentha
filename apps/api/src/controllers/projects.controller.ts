@@ -1,161 +1,91 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { z } from 'zod';
-import { createSupabaseAdmin } from '../infrastructure/database/index.js';
-import { logger } from '../infrastructure/logging/index.js';
+import type { Context } from 'hono';
 
-const router = Router();
+import { logger } from '../core/logger';
+import { handleHttpException } from '../exceptions/http';
+import { getProjectService } from '../services/project.service';
 
-// =============================================================================
-// VALIDATION SCHEMAS
-// =============================================================================
+const projectService = getProjectService();
 
-const CreateProjectSchema = z.object({
-    name: z.string().min(3, 'Project name must be at least 3 characters'),
-    domain: z.string().url('Domain must be a valid URL'),
-    competitors: z.array(z.string().url()).max(5, 'Maximum 5 competitors allowed').default([]),
-    description: z.string().optional(),
-});
-
-const UpdateProjectSchema = CreateProjectSchema.partial();
-
-// =============================================================================
-// MIDDLEWARE
-// =============================================================================
-
-function validate<T>(schema: z.Schema<T>) {
-    return (req: Request, res: Response, next: NextFunction) => {
-        const result = schema.safeParse(req.body);
-        if (!result.success) {
-            res.status(400).json({
-                error: 'Validation Error',
-                details: result.error.flatten().fieldErrors,
+export const ProjectController = {
+    list: async (c: Context) => {
+        try {
+            const user = c.get('user');
+            const data = await projectService.list({ userId: user?.id });
+            return c.json({
+                data,
+                pagination: { total: data.length, page: 1, limit: 20 },
             });
-            return;
+        } catch (error) {
+            logger.error('Failed to list projects', {
+                error: (error as Error).message,
+            });
+            return handleHttpException(c, error);
         }
-        req.body = result.data;
-        next();
-    };
-}
+    },
 
-// =============================================================================
-// ROUTES
-// =============================================================================
+    create: async (c: Context) => {
+        const body = await c.req.json();
+        const { name, domain, competitors, description } = body;
+        const user = c.get('user');
 
-/**
- * GET /api/v1/projects
- * List all projects
- */
-router.get('/', async (_req: Request, res: Response) => {
-    const supabase = createSupabaseAdmin();
+        try {
+            const project = await projectService.create({
+                name,
+                domain,
+                competitors,
+                description,
+                user_id: user.id,
+            });
 
-    const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .order('created_at', { ascending: false });
+            return c.json({ data: project }, 201);
+        } catch (error) {
+            logger.error('Failed to create project', {
+                error: (error as Error).message,
+            });
+            return handleHttpException(c, error);
+        }
+    },
 
-    if (error) {
-        logger.error('Failed to list projects', { error: error.message });
-        res.status(500).json({ error: 'Failed to list projects' });
-        return;
-    }
+    getById: async (c: Context) => {
+        const id = c.req.param('id');
 
-    res.json({
-        data: data ?? [],
-        pagination: { total: data?.length ?? 0, page: 1, limit: 20 },
-    });
-});
+        try {
+            const project = await projectService.getById(id);
+            return c.json({ data: project });
+        } catch (error) {
+            logger.error('Failed to get project', {
+                error: (error as Error).message,
+            });
+            return handleHttpException(c, error);
+        }
+    },
 
-/**
- * POST /api/v1/projects
- * Create a new project
- */
-router.post('/', validate(CreateProjectSchema), async (req: Request, res: Response) => {
-    const { name, domain, competitors, description } = req.body;
-    const supabase = createSupabaseAdmin();
+    update: async (c: Context) => {
+        const id = c.req.param('id');
+        const updates = await c.req.json();
 
-    logger.info('Creating project', { name, domain });
+        try {
+            const project = await projectService.update(id, updates);
+            return c.json({ data: project });
+        } catch (error) {
+            logger.error('Failed to update project', {
+                error: (error as Error).message,
+            });
+            return handleHttpException(c, error);
+        }
+    },
 
-    const { data, error } = await supabase
-        .from('projects')
-        .insert({
-            name,
-            domain,
-            competitors,
-            description,
-        })
-        .select()
-        .single();
+    delete: async (c: Context) => {
+        const id = c.req.param('id');
 
-    if (error) {
-        logger.error('Failed to create project', { error: error.message });
-        res.status(500).json({ error: 'Failed to create project', message: error.message });
-        return;
-    }
-
-    res.status(201).json({ data });
-});
-
-/**
- * GET /api/v1/projects/:id
- */
-router.get('/:id', async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const supabase = createSupabaseAdmin();
-
-    const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-    if (error || !data) {
-        res.status(404).json({ error: 'Project not found' });
-        return;
-    }
-
-    res.json({ data });
-});
-
-/**
- * PATCH /api/v1/projects/:id
- */
-router.patch('/:id', validate(UpdateProjectSchema), async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const supabase = createSupabaseAdmin();
-
-    const { data, error } = await supabase
-        .from('projects')
-        .update(req.body)
-        .eq('id', id)
-        .select()
-        .single();
-
-    if (error) {
-        res.status(500).json({ error: 'Failed to update project' });
-        return;
-    }
-
-    res.json({ data });
-});
-
-/**
- * DELETE /api/v1/projects/:id
- */
-router.delete('/:id', async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const supabase = createSupabaseAdmin();
-
-    const { error } = await supabase
-        .from('projects')
-        .delete()
-        .eq('id', id);
-
-    if (error) {
-        res.status(500).json({ error: 'Failed to delete project' });
-        return;
-    }
-
-    res.status(204).send();
-});
-
-export { router as projectsRouter };
+        try {
+            await projectService.delete(id);
+            return c.body(null, 204);
+        } catch (error) {
+            logger.error('Failed to delete project', {
+                error: (error as Error).message,
+            });
+            return handleHttpException(c, error);
+        }
+    },
+} as const;

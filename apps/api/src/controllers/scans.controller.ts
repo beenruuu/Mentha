@@ -1,73 +1,44 @@
-import { Router, Request, Response } from 'express';
-import { createSupabaseAdmin } from '../infrastructure/database/index.js';
-import { logger } from '../infrastructure/logging/index.js';
+import type { Context } from 'hono';
 
-const router = Router();
+import { logger } from '../core/logger';
+import { BadRequestException, handleHttpException } from '../exceptions/http';
+import { getScanService } from '../services/scan.service';
 
-/**
- * GET /api/v1/scans
- * List scan results for a project (Detailed Logs)
- */
-router.get('/', async (req: Request, res: Response) => {
-    const { project_id, limit = '20' } = req.query;
+const scanService = getScanService();
 
-    if (!project_id) {
-        res.status(400).json({ error: 'project_id is required' });
-        return;
-    }
+export const ScanController = {
+    list: async (c: Context) => {
+        const project_id = c.req.query('project_id');
+        const limit = c.req.query('limit') || '20';
 
-    const supabase = createSupabaseAdmin();
+        if (!project_id) {
+            throw new BadRequestException('project_id is required');
+        }
 
-    const { data: results, error } = await supabase
-        .from('scan_results')
-        .select(`
-            id,
-            brand_visibility,
-            sentiment_score,
-            recommendation_type,
-            raw_response,
-            analysis_json,
-            created_at,
-            scan_jobs!inner(
-                engine,
-                keywords!inner(project_id, query)
-            )
-        `)
-        .eq('scan_jobs.keywords.project_id', project_id)
-        .order('created_at', { ascending: false })
-        .limit(parseInt(limit as string, 10));
+        try {
+            const limitNum = parseInt(limit, 10);
+            const results = await scanService.getResultsByProject(project_id, limitNum);
 
-    if (error) {
-        logger.error('Failed to list scan results', { error: error.message });
-        res.status(500).json({ error: 'Failed to list scan results' });
-        return;
-    }
+            return c.json({ data: results });
+        } catch (error) {
+            logger.error('Failed to list scan results', {
+                error: (error as Error).message,
+            });
+            return handleHttpException(c, error);
+        }
+    },
 
-    res.json({
-        data: results ?? []
-    });
-});
+    getById: async (c: Context) => {
+        const id = c.req.param('id');
 
-/**
- * GET /api/v1/scans/:id
- * Get scan job status and results
- */
-router.get('/:id', async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const supabase = createSupabaseAdmin();
-
-    const { data, error } = await supabase
-        .from('scan_results')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-    if (error) {
-        res.status(404).json({ error: 'Scan result not found' });
-        return;
-    }
-
-    res.json({ data });
-});
-
-export { router as scansRouter };
+        try {
+            const result = await scanService.getResultById(id);
+            return c.json({ data: result });
+        } catch (error) {
+            logger.error('Failed to get scan result', {
+                error: (error as Error).message,
+            });
+            return handleHttpException(c, error);
+        }
+    },
+} as const;

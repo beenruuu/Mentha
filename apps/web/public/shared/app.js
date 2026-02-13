@@ -32,7 +32,9 @@ async function fetchProjects() {
 
 async function fetchDashboardData(projectId, days = 30) {
     try {
-        const response = await fetch(`${API_BASE}/dashboard/share-of-model?project_id=${projectId}&days=${days}`);
+        const response = await fetch(
+            `${API_BASE}/dashboard/share-of-model?project_id=${projectId}&days=${days}`,
+        );
         if (!response.ok) throw new Error('Failed to fetch dashboard data');
         const { data } = await response.json();
         return data;
@@ -56,7 +58,9 @@ async function fetchKeywords(projectId) {
 
 async function fetchCitations(projectId, limit = 20) {
     try {
-        const response = await fetch(`${API_BASE}/dashboard/citations?project_id=${projectId}&limit=${limit}`);
+        const response = await fetch(
+            `${API_BASE}/dashboard/citations?project_id=${projectId}&limit=${limit}`,
+        );
         if (!response.ok) throw new Error('Failed to fetch citations');
         const { data } = await response.json();
         return data;
@@ -74,7 +78,7 @@ function initProjectDropdown() {
     const dropdown = document.querySelector('.project-dropdown');
     const selector = document.getElementById('projectSelector');
     const menu = document.getElementById('projectMenu');
-    const projectList = document.getElementById('projectList');
+    const _projectList = document.getElementById('projectList');
     const addBrandBtn = document.getElementById('addBrandBtn');
 
     if (!selector || !menu) return;
@@ -115,15 +119,19 @@ function renderProjectList() {
         return;
     }
 
-    projectList.innerHTML = projects.map(p => `
+    projectList.innerHTML = projects
+        .map(
+            (p) => `
         <button class="dropdown-item ${p.id === currentProjectId ? 'active' : ''}" data-id="${p.id}">
             <span>${escapeHtml(p.name)}</span>
             <span style="color: var(--text-muted); font-size: 12px;">${escapeHtml(p.domain || '')}</span>
         </button>
-    `).join('');
+    `,
+        )
+        .join('');
 
     // Set current project name and favicon
-    const current = projects.find(p => p.id === currentProjectId);
+    const current = projects.find((p) => p.id === currentProjectId);
     if (current) {
         projectName.textContent = current.name;
         updateFavicon(current.domain);
@@ -135,7 +143,7 @@ function renderProjectList() {
     }
 
     // Add click handlers
-    projectList.querySelectorAll('.dropdown-item').forEach(item => {
+    projectList.querySelectorAll('.dropdown-item').forEach((item) => {
         item.addEventListener('click', () => {
             const id = item.dataset.id;
             if (id) selectProject(id);
@@ -155,13 +163,15 @@ function updateFavicon(domain) {
             if (domain.startsWith('http')) {
                 hostname = new URL(domain).hostname;
             }
-        } catch (e) {
+        } catch (_e) {
             console.warn('Invalid domain for favicon:', domain);
         }
 
         favicon.src = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
         favicon.style.display = 'block';
-        favicon.onerror = () => { favicon.style.display = 'none'; };
+        favicon.onerror = () => {
+            favicon.style.display = 'none';
+        };
     } else {
         favicon.style.display = 'none';
     }
@@ -172,14 +182,14 @@ async function selectProject(projectId) {
     localStorage.setItem('mentha_project_id', projectId);
 
     // Update UI
-    const current = projects.find(p => p.id === projectId);
+    const current = projects.find((p) => p.id === projectId);
     if (current) {
         document.getElementById('projectName').textContent = current.name;
         updateFavicon(current.domain);
     }
 
     // Update active state in dropdown
-    document.querySelectorAll('.dropdown-item').forEach(item => {
+    document.querySelectorAll('.dropdown-item').forEach((item) => {
         item.classList.toggle('active', item.dataset.id === projectId);
     });
 
@@ -245,15 +255,17 @@ function updateMetrics(data) {
     if (!data?.summary) return;
 
     const { totalScans, visibleCount, visibilityRate, avgSentiment } = data.summary;
-    const absentRate = data.byType?.absent && totalScans > 0
-        ? Math.round((data.byType.absent / totalScans) * 100)
-        : 0;
+    const absentRate =
+        data.byType?.absent && totalScans > 0
+            ? Math.round((data.byType.absent / totalScans) * 100)
+            : 0;
 
     // Update metric values with animation
     animateNumber('totalScans', totalScans || 0);
     animateNumber('visibleCount', visibleCount || 0);
     document.getElementById('absentRate').textContent = `${absentRate}%`;
-    document.getElementById('avgSentiment').textContent = avgSentiment !== null ? avgSentiment.toFixed(2) : '--';
+    document.getElementById('avgSentiment').textContent =
+        avgSentiment !== null ? avgSentiment.toFixed(2) : '--';
 
     // Update visibility score
     updateVisibilityScore(visibilityRate || 0);
@@ -264,13 +276,13 @@ function animateNumber(elementId, targetValue) {
     if (!element) return;
 
     const duration = 1000;
-    const start = parseInt(element.textContent) || 0;
+    const start = parseInt(element.textContent, 10) || 0;
     const startTime = performance.now();
 
     function update(currentTime) {
         const elapsed = currentTime - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const easeOut = 1 - (1 - progress) ** 3;
         const value = Math.round(start + (targetValue - start) * easeOut);
         element.textContent = value.toLocaleString();
 
@@ -336,14 +348,14 @@ function renderChart(timeline) {
         chartInstance = new Chart(ctx, {
             type: 'line',
             data: { labels: [], datasets: [] },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { responsive: true, maintainAspectRatio: false },
         });
         return;
     }
 
-    const labels = timeline.map(t => t.date);
-    const scansData = timeline.map(t => t.scans);
-    const visibleData = timeline.map(t => t.visible);
+    const labels = timeline.map((t) => t.date);
+    const scansData = timeline.map((t) => t.scans);
+    const visibleData = timeline.map((t) => t.visible);
 
     chartInstance = new Chart(ctx, {
         type: 'line',
@@ -370,8 +382,8 @@ function renderChart(timeline) {
                     tension: 0.4,
                     pointRadius: 0,
                     pointHoverRadius: 4,
-                }
-            ]
+                },
+            ],
         },
         options: {
             responsive: true,
@@ -384,19 +396,19 @@ function renderChart(timeline) {
                     bodyColor: '#fff',
                     padding: 12,
                     borderRadius: 8,
-                }
+                },
             },
             scales: {
                 x: { display: false },
-                y: { display: false, beginAtZero: true }
+                y: { display: false, beginAtZero: true },
             },
-            interaction: { intersect: false, mode: 'index' }
-        }
+            interaction: { intersect: false, mode: 'index' },
+        },
     });
 
     const xAxisEl = document.querySelector('.chart-x-axis');
     if (xAxisEl && labels.length > 0) {
-        xAxisEl.innerHTML = labels.map(l => `<span>${l.slice(5)}</span>`).join('');
+        xAxisEl.innerHTML = labels.map((l) => `<span>${l.slice(5)}</span>`).join('');
     }
 }
 
@@ -410,12 +422,14 @@ function renderMiniBars(timeline) {
         return;
     }
 
-    const maxScans = Math.max(...timeline.map(t => t.scans), 1);
+    const maxScans = Math.max(...timeline.map((t) => t.scans), 1);
 
-    container.innerHTML = timeline.map(t => {
-        const height = Math.max(4, (t.scans / maxScans) * 100);
-        return `<div class="mini-bar" style="height: ${height}%"></div>`;
-    }).join('');
+    container.innerHTML = timeline
+        .map((t) => {
+            const height = Math.max(4, (t.scans / maxScans) * 100);
+            return `<div class="mini-bar" style="height: ${height}%"></div>`;
+        })
+        .join('');
 
     const recentScans = document.getElementById('recentScans');
     if (recentScans) {
@@ -438,12 +452,16 @@ function renderKeywordsTable(keywords) {
         return;
     }
 
-    container.innerHTML = keywords.map(kw => `
+    container.innerHTML = keywords
+        .map(
+            (kw) => `
         <div class="table-row">
             <span class="table-keyword">${escapeHtml(kw.keyword)}</span>
             <span class="table-value">${kw.visibilityRate}%</span>
         </div>
-    `).join('');
+    `,
+        )
+        .join('');
 }
 
 function renderCitationsTable(citations) {
@@ -460,12 +478,16 @@ function renderCitationsTable(citations) {
         return;
     }
 
-    container.innerHTML = citations.map(c => `
+    container.innerHTML = citations
+        .map(
+            (c) => `
         <div class="table-row">
             <span class="table-keyword">${escapeHtml(c.domain)}</span>
             <span class="table-value">${c.count}</span>
         </div>
-    `).join('');
+    `,
+        )
+        .join('');
 }
 
 function renderEnginesTable(byEngine) {
@@ -484,12 +506,16 @@ function renderEnginesTable(byEngine) {
         return;
     }
 
-    container.innerHTML = engines.map(([engine, stats]) => `
+    container.innerHTML = engines
+        .map(
+            ([engine, stats]) => `
         <div class="table-row">
             <span class="table-keyword">${capitalize(engine)}</span>
             <span class="table-value">${stats.rate}% (${stats.visible}/${stats.total})</span>
         </div>
-    `).join('');
+    `,
+        )
+        .join('');
 }
 
 // ============================================
@@ -514,9 +540,9 @@ function capitalize(str) {
 function initTabs() {
     const tabs = document.querySelectorAll('.tab');
 
-    tabs.forEach(tab => {
+    tabs.forEach((tab) => {
         tab.addEventListener('click', async () => {
-            tabs.forEach(t => t.classList.remove('active'));
+            tabs.forEach((t) => t.classList.remove('active'));
             tab.classList.add('active');
 
             const tabName = tab.dataset.tab;

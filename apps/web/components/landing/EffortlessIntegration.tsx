@@ -1,29 +1,34 @@
-"use client"
+'use client';
 
-import type React from "react"
-import Image from "next/image"
+import type React from 'react';
 
 interface EffortlessIntegrationProps {
-    width?: number | string
-    height?: number | string
-    className?: string
+    width?: number | string;
+    height?: number | string;
+    className?: string;
 }
 
 /**
  * Effortless Integration – AI Engines constellation with rotation
  * Two concentric rings with AI provider logos positioned on ring axes
  */
-const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({ width = 482, height = 300, className = "" }) => {
+const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({
+    width = 482,
+    height = 300,
+    className = '',
+}) => {
     return (
         <div
             className={className}
             style={{
                 width,
                 height,
-                position: "relative",
-                overflow: "hidden",
-                maskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
-                WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)",
+                position: 'relative',
+                overflow: 'hidden',
+                maskImage:
+                    'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
+                WebkitMaskImage:
+                    'linear-gradient(to bottom, transparent 0%, black 15%, black 85%, transparent 100%)',
             }}
         >
             {/* CSS for animations */}
@@ -44,10 +49,10 @@ const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({ width = 4
                 style={{
                     width: 64,
                     height: 64,
-                    borderRadius: "50%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                 }}
             >
                 <img src="/mentha.svg" alt="Mentha" style={{ width: 40, height: 40 }} />
@@ -59,13 +64,11 @@ const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({ width = 4
                 style={{
                     width: 160,
                     height: 160,
-                    animation: "orbit 20s linear infinite",
+                    animation: 'orbit 20s linear infinite',
                 }}
             >
                 {/* Ring border */}
-                <div
-                    className="absolute inset-0 rounded-full border border-emerald-500/30 dark:border-emerald-400/25"
-                />
+                <div className="absolute inset-0 rounded-full border border-emerald-500/30 dark:border-emerald-400/25" />
 
                 {/* OpenAI - left */}
                 <div
@@ -74,17 +77,22 @@ const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({ width = 4
                         width: 40,
                         height: 40,
                         left: 0,
-                        top: "50%",
+                        top: '50%',
                         marginLeft: -20,
                         marginTop: -20,
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        animation: "counter-orbit 20s linear infinite",
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        animation: 'counter-orbit 20s linear infinite',
                     }}
                 >
-                    <img src="/providers/openai.svg" alt="OpenAI" className="dark:invert" style={{ width: 20, height: 20 }} />
+                    <img
+                        src="/providers/openai.svg"
+                        alt="OpenAI"
+                        className="dark:invert"
+                        style={{ width: 20, height: 20 }}
+                    />
                 </div>
 
                 {/* Claude - right */}
@@ -94,17 +102,21 @@ const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({ width = 4
                         width: 40,
                         height: 40,
                         right: 0,
-                        top: "50%",
+                        top: '50%',
                         marginRight: -20,
                         marginTop: -20,
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        animation: "counter-orbit 20s linear infinite",
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        animation: 'counter-orbit 20s linear infinite',
                     }}
                 >
-                    <img src="/providers/claude-color.svg" alt="Claude" style={{ width: 20, height: 20 }} />
+                    <img
+                        src="/providers/claude-color.svg"
+                        alt="Claude"
+                        style={{ width: 20, height: 20 }}
+                    />
                 </div>
             </div>
 
@@ -114,13 +126,11 @@ const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({ width = 4
                 style={{
                     width: 240,
                     height: 240,
-                    animation: "orbit 30s linear infinite reverse",
+                    animation: 'orbit 30s linear infinite reverse',
                 }}
             >
                 {/* Ring border */}
-                <div
-                    className="absolute inset-0 rounded-full border border-emerald-500/20 dark:border-emerald-400/20"
-                />
+                <div className="absolute inset-0 rounded-full border border-emerald-500/20 dark:border-emerald-400/20" />
 
                 {/* Gemini - top */}
                 <div
@@ -128,18 +138,22 @@ const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({ width = 4
                     style={{
                         width: 40,
                         height: 40,
-                        left: "50%",
+                        left: '50%',
                         top: 0,
                         marginLeft: -20,
                         marginTop: -20,
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        animation: "counter-orbit 30s linear infinite reverse",
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        animation: 'counter-orbit 30s linear infinite reverse',
                     }}
                 >
-                    <img src="/providers/gemini-color.svg" alt="Gemini" style={{ width: 20, height: 20 }} />
+                    <img
+                        src="/providers/gemini-color.svg"
+                        alt="Gemini"
+                        style={{ width: 20, height: 20 }}
+                    />
                 </div>
 
                 {/* Perplexity - bottom */}
@@ -148,22 +162,26 @@ const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({ width = 4
                     style={{
                         width: 40,
                         height: 40,
-                        left: "50%",
+                        left: '50%',
                         bottom: 0,
                         marginLeft: -20,
                         marginBottom: -20,
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        animation: "counter-orbit 30s linear infinite reverse",
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        animation: 'counter-orbit 30s linear infinite reverse',
                     }}
                 >
-                    <img src="/providers/perplexity-color.svg" alt="Perplexity" style={{ width: 20, height: 20 }} />
+                    <img
+                        src="/providers/perplexity-color.svg"
+                        alt="Perplexity"
+                        style={{ width: 20, height: 20 }}
+                    />
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default EffortlessIntegration
+export default EffortlessIntegration;

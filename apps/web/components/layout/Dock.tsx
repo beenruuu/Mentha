@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export function Dock() {
     const pathname = usePathname();
@@ -12,7 +12,7 @@ export function Dock() {
         <nav className="floating-dock">
             <Link
                 href="/"
-                className={`dock-btn ${isActive("/") ? "active" : ""}`}
+                className={`dock-btn ${isActive('/') ? 'active' : ''}`}
                 title="Dashboard"
             >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -28,7 +28,7 @@ export function Dock() {
 
             <Link
                 href="/optimization"
-                className={`dock-btn ${isActive("/optimization") ? "active" : ""}`}
+                className={`dock-btn ${isActive('/optimization') ? 'active' : ''}`}
                 title="Optimization"
             >
                 {/* Wrench Icon */}
@@ -48,7 +48,7 @@ export function Dock() {
 
             <Link
                 href="/authority"
-                className={`dock-btn ${isActive("/authority") ? "active" : ""}`}
+                className={`dock-btn ${isActive('/authority') ? 'active' : ''}`}
                 title="Authority"
             >
                 {/* Medal Icon */}
@@ -69,7 +69,7 @@ export function Dock() {
 
             <Link
                 href="/keywords"
-                className={`dock-btn ${isActive("/keywords") ? "active" : ""}`}
+                className={`dock-btn ${isActive('/keywords') ? 'active' : ''}`}
                 title="Keywords"
             >
                 <svg
@@ -102,7 +102,7 @@ export function Dock() {
 
             <Link
                 href="/settings"
-                className={`dock-btn ${isActive("/settings") ? "active" : ""}`}
+                className={`dock-btn ${isActive('/settings') ? 'active' : ''}`}
                 title="Configuration"
             >
                 {/* Gear Icon */}

@@ -1,8 +1,9 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
-import { useProject } from "@/context/ProjectContext";
-import { fetchFromApi } from "@/lib/api";
+import { useEffect, useState } from 'react';
+
+import { useProject } from '@/context/ProjectContext';
+import { fetchFromApi } from '@/lib/api';
 
 export function MetricsGrid() {
     const { selectedProject } = useProject();
@@ -15,25 +16,45 @@ export function MetricsGrid() {
         async function loadMetrics() {
             setLoading(true);
             try {
-                const { data } = await fetchFromApi(`/dashboard/share-of-model?project_id=${selectedProject!.id}`);
+                const { data } = await fetchFromApi(
+                    `/dashboard/share-of-model?project_id=${selectedProject?.id}`,
+                );
                 setMetrics(data.summary);
             } catch (e) {
-                console.error("Failed to fetch metrics", e);
+                console.error('Failed to fetch metrics', e);
             } finally {
                 setLoading(false);
             }
         }
         loadMetrics();
-    }, [selectedProject?.id]);
+    }, [selectedProject?.id, selectedProject]);
 
     if (loading || !metrics) {
         return (
             <section className="metrics-grid">
                 {[...Array(4)].map((_, i) => (
-                    <div key={i} className="metric-card" style={{ height: '100px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                        <div className="skeleton" style={{ width: '60%', height: '14px', borderRadius: '4px' }}></div>
-                        <div className="skeleton" style={{ width: '40%', height: '24px', borderRadius: '4px' }}></div>
-                        <div className="skeleton" style={{ width: '80%', height: '12px', borderRadius: '4px' }}></div>
+                    <div
+                        key={i}
+                        className="metric-card"
+                        style={{
+                            height: '100px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '12px',
+                        }}
+                    >
+                        <div
+                            className="skeleton"
+                            style={{ width: '60%', height: '14px', borderRadius: '4px' }}
+                        ></div>
+                        <div
+                            className="skeleton"
+                            style={{ width: '40%', height: '24px', borderRadius: '4px' }}
+                        ></div>
+                        <div
+                            className="skeleton"
+                            style={{ width: '80%', height: '12px', borderRadius: '4px' }}
+                        ></div>
                     </div>
                 ))}
             </section>
@@ -64,7 +85,9 @@ export function MetricsGrid() {
                     <span className="metric-dot dot-red"></span>
                 </div>
                 <div className="metric-value">{metrics.avgSentiment || '0.00'}</div>
-                <div className="metric-delta positive">{metrics.avgSentiment > 0 ? 'Positive' : 'Neutral'}</div>
+                <div className="metric-delta positive">
+                    {metrics.avgSentiment > 0 ? 'Positive' : 'Neutral'}
+                </div>
             </div>
             <div className="metric-card">
                 <div className="metric-header">

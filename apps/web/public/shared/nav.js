@@ -5,7 +5,7 @@
 function initNavigation() {
     const dockButtons = document.querySelectorAll('.dock-btn');
 
-    dockButtons.forEach(btn => {
+    dockButtons.forEach((btn) => {
         btn.addEventListener('click', () => {
             const page = btn.getAttribute('data-page');
             if (page) {

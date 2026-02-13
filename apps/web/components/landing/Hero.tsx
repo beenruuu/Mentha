@@ -1,11 +1,8 @@
-"use client";
-
-import React from 'react';
+'use client';
 
 export function Hero() {
     return (
         <div className="relative bg-white dark:bg-black pt-32 md:pt-40 flex flex-col items-center transition-colors duration-300">
-
             {/* Text Content */}
             <div className="max-w-4xl mx-auto text-center px-6 mb-8 relative z-10">
                 <div className="mb-6 flex justify-center">
@@ -20,7 +17,8 @@ export function Hero() {
                 </h1>
 
                 <p className="text-lg text-gray-500 dark:text-gray-400 mb-8 max-w-lg mx-auto leading-relaxed font-normal">
-                    Understand your AI visibility and how engines engage with your brand in realtime.
+                    Understand your AI visibility and how engines engage with your brand in
+                    realtime.
                 </p>
 
                 <div className="flex items-center justify-center gap-3">
@@ -44,7 +42,6 @@ export function Hero() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent pointer-events-none" />
                 </div>
             </div>
-
         </div>
     );
 }

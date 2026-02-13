@@ -1,27 +1,18 @@
-"use client";
+'use client';
 
-import React from "react";
 import {
+    CategoryScale,
     Chart as ChartJS,
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
     Legend,
-} from "chart.js";
-import { Line } from "react-chartjs-2";
-
-ChartJS.register(
-    CategoryScale,
     LinearScale,
-    PointElement,
     LineElement,
+    PointElement,
     Title,
     Tooltip,
-    Legend
-);
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 interface SentimentChartProps {
     data: Array<{ date: string; sentiment: number | null }>;
@@ -36,14 +27,14 @@ export function SentimentChart({ data }: SentimentChartProps) {
         }),
         datasets: [
             {
-                label: "Sentiment Score",
+                label: 'Sentiment Score',
                 data: data.map((d) => d.sentiment),
-                borderColor: "#f87171", // Reddish for sentiment
-                backgroundColor: "rgba(248, 113, 113, 0.1)",
+                borderColor: '#f87171', // Reddish for sentiment
+                backgroundColor: 'rgba(248, 113, 113, 0.1)',
                 tension: 0.3,
                 pointRadius: 4,
-                pointBackgroundColor: "#f87171",
-                spanGaps: true
+                pointBackgroundColor: '#f87171',
+                spanGaps: true,
             },
         ],
     };
@@ -61,19 +52,19 @@ export function SentimentChart({ data }: SentimentChartProps) {
                 min: -1,
                 max: 1,
                 grid: {
-                    color: "rgba(255, 255, 255, 0.05)",
+                    color: 'rgba(255, 255, 255, 0.05)',
                 },
                 ticks: {
-                    color: "#9CA3AF"
-                }
+                    color: '#9CA3AF',
+                },
             },
             x: {
                 grid: {
                     display: false,
                 },
                 ticks: {
-                    color: "#9CA3AF"
-                }
+                    color: '#9CA3AF',
+                },
             },
         },
     };

@@ -1,13 +1,12 @@
-import React from 'react';
-import { Navbar } from '@/components/landing/Navbar';
-import { Hero } from '@/components/landing/Hero';
-import { Introduction } from '@/components/landing/Introduction';
-import { Features } from '@/components/landing/Features';
-import Pricing from '@/components/landing/Pricing';
-import Integrations from '@/components/landing/Integrations';
-import FAQSection from '@/components/landing/FAQSection';
 import CTASection from '@/components/landing/CTASection';
+import FAQSection from '@/components/landing/FAQSection';
+import { Features } from '@/components/landing/Features';
 import { Footer } from '@/components/landing/Footer';
+import { Hero } from '@/components/landing/Hero';
+import Integrations from '@/components/landing/Integrations';
+import { Introduction } from '@/components/landing/Introduction';
+import { Navbar } from '@/components/landing/Navbar';
+import Pricing from '@/components/landing/Pricing';
 
 export default function LandingContent() {
     return (

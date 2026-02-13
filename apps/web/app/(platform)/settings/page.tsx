@@ -1,20 +1,21 @@
-"use client";
+'use client';
 
-import React, { useEffect, useState } from "react";
-import { useProject } from "@/context/ProjectContext";
+import { useEffect, useState } from 'react';
+
+import { useProject } from '@/context/ProjectContext';
 
 export default function SettingsPage() {
     const { selectedProject } = useProject();
     const [formData, setFormData] = useState({
-        name: "",
-        domain: ""
+        name: '',
+        domain: '',
     });
 
     useEffect(() => {
         if (selectedProject) {
             setFormData({
                 name: selectedProject.name,
-                domain: selectedProject.domain
+                domain: selectedProject.domain,
             });
         }
     }, [selectedProject]);
@@ -27,34 +28,86 @@ export default function SettingsPage() {
                 </button>
             </div>
 
-            <div className="settings-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginTop: "24px" }}>
+            <div
+                className="settings-grid"
+                style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '24px',
+                    marginTop: '24px',
+                }}
+            >
                 {/* Project Settings */}
                 <section className="card">
                     <div className="card-header">
                         <span className="card-title">Project Details</span>
                     </div>
-                    <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "20px" }}>
+                    <div
+                        style={{
+                            marginTop: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '20px',
+                        }}
+                    >
                         <div className="form-group">
-                            <label style={{ display: "block", marginBottom: "8px", fontSize: "13px", fontWeight: 500, color: "var(--text-secondary)" }}>Brand Name</label>
+                            <label
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '8px',
+                                    fontSize: '13px',
+                                    fontWeight: 500,
+                                    color: 'var(--text-secondary)',
+                                }}
+                            >
+                                Brand Name
+                            </label>
                             <input
                                 type="text"
                                 className="form-input"
                                 value={formData.name}
                                 readOnly
-                                style={{ width: "100%", padding: "10px", background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px", opacity: 0.7 }}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    background: 'var(--bg-secondary)',
+                                    border: '1px solid var(--border)',
+                                    borderRadius: '8px',
+                                    opacity: 0.7,
+                                }}
                             />
                         </div>
                         <div className="form-group">
-                            <label style={{ display: "block", marginBottom: "8px", fontSize: "13px", fontWeight: 500, color: "var(--text-secondary)" }}>Domain URL</label>
+                            <label
+                                style={{
+                                    display: 'block',
+                                    marginBottom: '8px',
+                                    fontSize: '13px',
+                                    fontWeight: 500,
+                                    color: 'var(--text-secondary)',
+                                }}
+                            >
+                                Domain URL
+                            </label>
                             <input
                                 type="text"
                                 className="form-input"
                                 value={formData.domain}
                                 readOnly
-                                style={{ width: "100%", padding: "10px", background: "var(--bg-secondary)", border: "1px solid var(--border)", borderRadius: "8px", opacity: 0.7 }}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px',
+                                    background: 'var(--bg-secondary)',
+                                    border: '1px solid var(--border)',
+                                    borderRadius: '8px',
+                                    opacity: 0.7,
+                                }}
                             />
                         </div>
-                        <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Editing projects is coming soon to the SaaS interface. Contact support to change these values.</p>
+                        <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                            Editing projects is coming soon to the SaaS interface. Contact support
+                            to change these values.
+                        </p>
                     </div>
                 </section>
 
@@ -63,14 +116,33 @@ export default function SettingsPage() {
                     <div className="card-header">
                         <span className="card-title">Instance Health</span>
                     </div>
-                    <div style={{ marginTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <div
+                        style={{
+                            marginTop: '16px',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '12px',
+                        }}
+                    >
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Status</span>
-                            <span style={{ fontSize: '14px', color: 'var(--green)', fontWeight: 600 }}>Active</span>
+                            <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                                Status
+                            </span>
+                            <span
+                                style={{ fontSize: '14px', color: 'var(--green)', fontWeight: 600 }}
+                            >
+                                Active
+                            </span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                            <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>DB Connection</span>
-                            <span style={{ fontSize: '14px', color: 'var(--green)', fontWeight: 600 }}>Connected</span>
+                            <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+                                DB Connection
+                            </span>
+                            <span
+                                style={{ fontSize: '14px', color: 'var(--green)', fontWeight: 600 }}
+                            >
+                                Connected
+                            </span>
                         </div>
                     </div>
                 </section>
