@@ -1,6 +1,0 @@
-export { BrandPageSkeleton } from './brand-page-skeleton'
-export { BrandCompetitorsPageSkeleton } from './brand-competitors-page-skeleton'
-export { DashboardPageSkeleton } from './dashboard-page-skeleton'
-export { CompetitorsPageSkeleton } from './competitors-page-skeleton'
-export { NotificationsPageSkeleton } from './notifications-page-skeleton'
-export { SettingsPageSkeleton } from './settings-page-skeleton'
