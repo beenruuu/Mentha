@@ -1,62 +1,19 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# Dependencies
-node_modules/
-**/node_modules/
-package-lock.json
-
-# Next.js
-.next/
-**/.next/
-/out/
-/build
-
-# Python
-**/__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-venv/
-.venv/
-*.egg-info/
-
-# Environment files
+node_modules
+.next
+dist
+build
+.turbo
+.cache
+.DS_Store
 .env
 .env.local
-.env.*.local
-!.env.local.example
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# Debug logs
+.env.development.local
+.env.test.local
+.env.production.local
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
-
-# Vercel
-.vercel
-
-# TypeScript
-*.tsbuildinfo
-next-env.d.ts
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Temporary files
-*.tmp
-*.temp
-.git_changes.txt
-
-# Subprojects (separate repos)
-black-seo-analyzer/
-python-seo-analyzer/
-firegeo/
-python-seo-analyzer.worktrees/
+pnpm-debug.log*
+.idea
+.vscode
+*.log
