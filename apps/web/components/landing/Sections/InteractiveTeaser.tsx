@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, Loader2, Cpu } from 'lucide-react';
-import { analyzeBrandPresence } from '../../services/geminiService';
+
 
 const InteractiveTeaser: React.FC = () => {
   const [brand, setBrand] = useState('');
@@ -15,7 +15,7 @@ const InteractiveTeaser: React.FC = () => {
     setLoading(true);
     setResult(null);
     
-    const data = await analyzeBrandPresence(brand, category);
+    // Aquí iría la lógica si se requiere analizar la marca, actualmente deshabilitado
     setResult(data);
     setLoading(false);
   };

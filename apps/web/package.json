@@ -11,6 +11,7 @@
     "check": "biome check --write ."
   },
   "dependencies": {
+    "@google/genai": "^1.41.0",
     "chart.js": "^4.5.1",
     "framer-motion": "^12.29.2",
     "geist": "^1.5.1",
