@@ -74,7 +74,7 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden absolute top-20 left-0 w-full h-screen bg-inherit border-t border-mentha-forest dark:border-mentha-beige flex flex-col p-8 space-y-8 animate-in slide-in-from-top-10 duration-300">
+        <div className="md:hidden absolute top-20 left-0 w-full h-screen bg-mentha-beige dark:bg-mentha-dark bg-opacity-95 dark:bg-opacity-95 border-t border-mentha-forest dark:border-mentha-beige flex flex-col p-8 space-y-8 animate-in slide-in-from-top-10 duration-300 z-50 backdrop-blur-sm">
            {navLinks.map((link) => (
             <a 
               key={link.label} 
