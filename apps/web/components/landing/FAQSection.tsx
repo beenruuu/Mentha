@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { Plus, Minus } from "lucide-react";
+import { Minus, Plus } from 'lucide-react';
+import React, { useState } from 'react';
 
-import { useTranslations } from "@/lib/i18n";
+import { useTranslations } from '@/lib/i18n';
 
 export default function FAQSection(): JSX.Element {
     const { t } = useTranslations();
@@ -22,17 +22,22 @@ export default function FAQSection(): JSX.Element {
             <div className="grid grid-cols-1 md:grid-cols-12 min-h-[600px]">
                 <div className="md:col-span-4 p-12 md:p-24 border-b md:border-b-0 md:border-r border-mentha-forest dark:border-mentha-beige flex flex-col justify-between">
                     <div>
-                        <span className="font-mono text-xs uppercase tracking-widest text-mentha-mint mb-4 block">/// FAQ_MODULE</span>
-                        <h2 className="font-serif text-5xl leading-tight">
-                            {t.faqsTitle}
-                        </h2>
+                        <span className="font-mono text-xs uppercase tracking-widest text-mentha-mint mb-4 block">
+                            /// FAQ_MODULE
+                        </span>
+                        <h2 className="font-serif text-5xl leading-tight">{t.faqsTitle}</h2>
                     </div>
-                    <p className="font-sans opacity-70 mt-8">Understanding the paradigm shift is not easy. Here we simplify it.</p>
+                    <p className="font-sans opacity-70 mt-8">
+                        Understanding the paradigm shift is not easy. Here we simplify it.
+                    </p>
                 </div>
 
                 <div className="md:col-span-8">
                     {faqs.map((faq, index) => (
-                        <div key={index} className="border-b border-mentha-forest dark:border-mentha-beige last:border-b-0">
+                        <div
+                            key={index}
+                            className="border-b border-mentha-forest dark:border-mentha-beige last:border-b-0"
+                        >
                             <button
                                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
                                 className="w-full text-left p-8 md:p-12 flex justify-between items-center group hover:text-mentha-mint transition-colors duration-300"
@@ -43,7 +48,9 @@ export default function FAQSection(): JSX.Element {
                                 </span>
                             </button>
 
-                            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openIndex === index ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
+                            <div
+                                className={`overflow-hidden transition-all duration-500 ease-in-out ${openIndex === index ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}
+                            >
                                 <div className="p-8 md:p-12 pt-0 font-sans text-lg opacity-70 max-w-3xl leading-relaxed">
                                     {faq.a}
                                 </div>

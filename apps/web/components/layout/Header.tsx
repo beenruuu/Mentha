@@ -1,111 +1,134 @@
 'use client';
 
-import Link from 'next/link';
-import { useState } from 'react';
+import { Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 
 import { useProject } from '@/context/ProjectContext';
-// We would import the SVG paths or components here, but for now we embed them.
+import { cn } from '@/lib/utils';
+import { useSidebar } from './SidebarContext';
 
 export function Header() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { projects, selectedProject, setSelectedProjectId, isLoading } = useProject();
+    const { isCollapsed, toggle } = useSidebar();
+    const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    const toggleTheme = () => {
+        setTheme(theme === 'light' ? 'dark' : 'light');
+    };
 
     return (
-        <header className="header">
-            <div className="header-left">
-                <Link href="/" className="logo">
-                    {/* Mentha Leaf Logo without Tick */}
-                    <svg
-                        id="Capa_1"
-                        xmlns="http://www.w3.org/2000/svg"
-                        version="1.1"
-                        viewBox="0 0 40 40"
-                    >
-                        <path
-                            fill="#000000"
-                            d="M19.7,26.3l3.2-4.2c1.7-2.6,3.5-5.4,3.9-8.5l-1.8,3.4c-1.3,1.8-2.6,3.8-4.1,5.4s-2.3,2.3-2.7,2.4-.2,0-.2-.2c-1-3.3-1.1-7.5.3-10.7s6.4-8,9.5-10.6,2.5-2.1,2.7-2c2.5,4.1,4.3,9.4,3.1,14.3-1.5,6.1-7.9,10.2-13.9,10.7Z"
-                        />
-                        <path
-                            fill="#000000"
-                            d="M33.7,20.5v15.1c0,1-1.6,2.5-2.6,2.7-2.4.4-4.2-1-4.4-3.4s-.2-6.1,0-8,0-.4.2-.6,1.7-.9,2.1-1.2c1.8-1.2,3.3-2.7,4.7-4.5Z"
-                        />
-                        <path
-                            fill="#000000"
-                            d="M16.3,25.4c-.1.1-.9-.6-1.1-.7-1.6-1.5-3.1-3.8-4-5.8-.3,0-.1.3,0,.4.6,2.5,2.6,4.8,4.1,6.9-3.5-.3-7.2-2.6-8.2-6.2s.4-5.7,1.7-8.4c.1,0,1.4,1,1.6,1.1,1.9,1.6,5,4.4,5.8,6.7s.4,4,0,6Z"
-                        />
-                        <path
-                            fill="#000000"
-                            d="M7.3,24.4c1.9,2,4.3,3.2,7,3.9-.3,2.2.5,6.1-.4,8.1s-3.4,2.6-5.1,1.5-1.5-1.6-1.5-2.2v-11.2Z"
-                        />
-                        <path
-                            fill="#000000"
-                            d="M23.9,27.5v8.1c0,.4-.8,1.6-1.1,1.9-1.6,1.4-4.4,1.1-5.4-.9s-.5-1.4-.5-1.6v-6.7c2.4,0,4.7-.1,7-.8Z"
-                        />
-                    </svg>
-                </Link>
-                <div className={`project-dropdown ${isDropdownOpen ? 'open' : ''}`}>
+        <header
+            className={cn(
+                'fixed top-0 right-0 z-30 h-16 border-b border-mentha-forest/10 dark:border-mentha-beige/10 bg-mentha-beige dark:bg-mentha-dark transition-all duration-300',
+                isCollapsed ? 'left-16' : 'left-60',
+            )}
+        >
+            <div className="flex h-full items-center justify-between px-6">
+                <div className="flex items-center gap-4">
                     <button
-                        className="project-selector"
-                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        type="button"
+                        onClick={toggle}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-mentha-forest/5 dark:hover:bg-white/5 transition-colors text-mentha-forest dark:text-mentha-beige"
+                        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                     >
-                        <span>
-                            {isLoading ? 'Loading...' : selectedProject?.name || 'Select Project'}
-                        </span>
-                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                            <path
-                                d="M3 4.5L6 7.5L9 4.5"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                strokeLinecap="round"
-                            />
-                        </svg>
-                    </button>
-                    <div className="dropdown-menu">
-                        <div className="dropdown-items">
-                            {projects.map((p) => (
-                                <button
-                                    key={p.id}
-                                    className={`dropdown-item ${p.id === selectedProject?.id ? 'active' : ''}`}
-                                    onClick={() => {
-                                        setSelectedProjectId(p.id);
-                                        setIsDropdownOpen(false);
-                                    }}
-                                >
-                                    {p.name}
-                                </button>
-                            ))}
-                            {projects.length === 0 && !isLoading && (
-                                <div className="dropdown-item">No brands found</div>
-                            )}
-                        </div>
-                        <div className="dropdown-divider"></div>
-                        <button className="dropdown-action">Add Brand</button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="header-center">
-                <button className="period-selector">
-                    <span>Overview</span>
-                </button>
-            </div>
-
-            <div className="header-right">
-                {/* Avatar Top */}
-                <div className="avatar">
-                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=mentha" alt="User" />
-                </div>
-                {/* Hamburger Bottom */}
-                <button className="icon-btn hamburger-btn">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                        <path
-                            d="M3 5H17M3 10H17M3 15H17"
+                        <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 20 20"
+                            fill="none"
                             stroke="currentColor"
                             strokeWidth="1.5"
                             strokeLinecap="round"
-                        />
-                    </svg>
-                </button>
+                        >
+                            {isCollapsed ? (
+                                <path d="M7 4L13 10L7 16" />
+                            ) : (
+                                <path d="M6 4L6 16M14 4L14 16" />
+                            )}
+                        </svg>
+                    </button>
+
+                    <div className="relative">
+                        <button
+                            type="button"
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-mentha-forest/5 dark:hover:bg-white/5 transition-colors"
+                        >
+                            <span className="font-serif text-lg text-mentha-forest dark:text-mentha-beige">
+                                {isLoading
+                                    ? 'Loading...'
+                                    : selectedProject?.name || 'Select Project'}
+                            </span>
+                            <svg
+                                width="12"
+                                height="12"
+                                viewBox="0 0 12 12"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                className="text-mentha-forest/60 dark:text-mentha-beige/60"
+                            >
+                                <path d="M3 4.5L6 7.5L9 4.5" strokeLinecap="round" />
+                            </svg>
+                        </button>
+
+                        {isDropdownOpen && (
+                            <div className="absolute top-full left-0 mt-1 w-56 rounded-2xl border border-mentha-forest/10 dark:border-mentha-beige/10 bg-mentha-beige dark:bg-mentha-dark shadow-lg z-20 overflow-hidden">
+                                <div className="p-1 max-h-64 overflow-y-auto">
+                                    {projects.map((project) => (
+                                        <button
+                                            type="button"
+                                            key={project.id}
+                                            onClick={() => {
+                                                setSelectedProjectId(project.id);
+                                                setIsDropdownOpen(false);
+                                            }}
+                                            className={cn(
+                                                'w-full px-3 py-2 text-left rounded-xl text-sm transition-colors font-serif',
+                                                project.id === selectedProject?.id
+                                                    ? 'bg-mentha-mint/10 text-mentha-mint'
+                                                    : 'hover:bg-mentha-forest/5 dark:hover:bg-white/5 text-mentha-forest dark:text-mentha-beige',
+                                            )}
+                                        >
+                                            {project.name}
+                                        </button>
+                                    ))}
+                                    {projects.length === 0 && !isLoading && (
+                                        <p className="px-3 py-2 text-sm text-mentha-forest/60 dark:text-mentha-beige/60 font-sans">
+                                            No projects found
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="border-t border-mentha-forest/10 dark:border-mentha-beige/10 p-1">
+                                    <button
+                                        type="button"
+                                        className="w-full px-3 py-2 text-left rounded-xl text-sm text-mentha-mint hover:bg-mentha-mint/5 transition-colors font-serif"
+                                    >
+                                        + Add Project
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    <button
+                        type="button"
+                        onClick={toggleTheme}
+                        className="p-2 rounded-full border border-mentha-forest/20 dark:border-mentha-beige/20 transition-all hover:opacity-60 text-mentha-forest dark:text-mentha-beige"
+                        aria-label="Toggle Theme"
+                    >
+                        {mounted && theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                    </button>
+                </div>
             </div>
         </header>
     );

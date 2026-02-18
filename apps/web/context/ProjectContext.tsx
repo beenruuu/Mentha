@@ -9,6 +9,7 @@ interface Project {
     id: string;
     name: string;
     domain: string;
+    competitors?: string[];
 }
 
 interface ProjectContextType {

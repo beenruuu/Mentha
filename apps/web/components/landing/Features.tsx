@@ -19,14 +19,9 @@ export function Features() {
                     {/* Feature 1: Privacy - Tall card or normal */}
                     <div className="group p-8 rounded-3xl bg-gray-50 dark:bg-mentha-dark/80 border border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 transition-all duration-300">
                         <div className="w-12 h-12 rounded-full bg-white dark:bg-white/10 flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                            <Shield
-                                className="w-6 h-6 text-current"
-                                strokeWidth={1.5}
-                            />
+                            <Shield className="w-6 h-6 text-current" strokeWidth={1.5} />
                         </div>
-                        <h3 className="text-xl font-medium text-current mb-3">
-                            Privacy First
-                        </h3>
+                        <h3 className="text-xl font-medium text-current mb-3">Privacy First</h3>
                         <p className="text-gray-500 dark:text-gray-400 font-light leading-relaxed">
                             No tracking cookies. Fully compliant with GDPR, CCPA and PECR. Your data
                             remains yours.
@@ -40,9 +35,7 @@ export function Features() {
                         <div className="w-12 h-12 rounded-full bg-[#35d499] flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
                             <Zap className="w-6 h-6 text-white" strokeWidth={1.5} />
                         </div>
-                        <h3 className="text-xl font-medium text-current mb-3">
-                            Realtime Data
-                        </h3>
+                        <h3 className="text-xl font-medium text-current mb-3">Realtime Data</h3>
                         <p className="text-gray-500 dark:text-gray-400 font-light leading-relaxed">
                             See how Answer Engines reference your content the moment it happens. No
                             delays.
@@ -52,10 +45,7 @@ export function Features() {
                     {/* Feature 3: Insights */}
                     <div className="group p-8 rounded-3xl bg-gray-50 dark:bg-mentha-dark/80 border border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 transition-all duration-300">
                         <div className="w-12 h-12 rounded-full bg-white dark:bg-white/10 flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform duration-300">
-                            <Sparkles
-                                className="w-6 h-6 text-current"
-                                strokeWidth={1.5}
-                            />
+                            <Sparkles className="w-6 h-6 text-current" strokeWidth={1.5} />
                         </div>
                         <h3 className="text-xl font-medium text-black dark:text-white mb-3">
                             AI Insights
