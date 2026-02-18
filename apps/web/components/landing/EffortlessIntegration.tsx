@@ -45,7 +45,7 @@ const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({
 
             {/* Central hub - Mentha (static) */}
             <div
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-neutral-900 shadow-xl border border-black/5 dark:border-white/10 z-20"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-mentha-dark shadow-xl border border-mentha-forest dark:border-mentha-beige z-20"
                 style={{
                     width: 64,
                     height: 64,
@@ -68,11 +68,11 @@ const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({
                 }}
             >
                 {/* Ring border */}
-                <div className="absolute inset-0 rounded-full border border-emerald-500/30 dark:border-emerald-400/25" />
+                <div className="absolute inset-0 rounded-full border border-mentha-forest dark:border-emerald-400/25" />
 
                 {/* OpenAI - left */}
                 <div
-                    className="absolute bg-white dark:bg-neutral-800 shadow-lg border border-black/5 dark:border-white/10"
+                    className="absolute bg-white dark:bg-mentha-dark/90 shadow-lg border border-mentha-forest dark:border-mentha-beige"
                     style={{
                         width: 40,
                         height: 40,
@@ -97,7 +97,7 @@ const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({
 
                 {/* Claude - right */}
                 <div
-                    className="absolute bg-white dark:bg-neutral-800 shadow-lg border border-black/5 dark:border-white/10"
+                    className="absolute bg-white dark:bg-mentha-dark/90 shadow-lg border border-mentha-forest dark:border-mentha-beige"
                     style={{
                         width: 40,
                         height: 40,
@@ -130,11 +130,11 @@ const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({
                 }}
             >
                 {/* Ring border */}
-                <div className="absolute inset-0 rounded-full border border-emerald-500/20 dark:border-emerald-400/20" />
+                <div className="absolute inset-0 rounded-full border border-mentha-forest dark:border-emerald-400/20" />
 
                 {/* Gemini - top */}
                 <div
-                    className="absolute bg-white dark:bg-neutral-800 shadow-lg border border-black/5 dark:border-white/10"
+                    className="absolute bg-white dark:bg-mentha-dark/90 shadow-lg border border-mentha-forest dark:border-mentha-beige"
                     style={{
                         width: 40,
                         height: 40,
@@ -158,7 +158,7 @@ const EffortlessIntegration: React.FC<EffortlessIntegrationProps> = ({
 
                 {/* Perplexity - bottom */}
                 <div
-                    className="absolute bg-white dark:bg-neutral-800 shadow-lg border border-black/5 dark:border-white/10"
+                    className="absolute bg-white dark:bg-mentha-dark/90 shadow-lg border border-mentha-forest dark:border-mentha-beige"
                     style={{
                         width: 40,
                         height: 40,

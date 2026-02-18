@@ -5,13 +5,13 @@ import Tag from './Tag';
 
 export function Introduction() {
     return (
-        <section className="pt-24 pb-6 lg:pt-32 lg:pb-10 bg-white dark:bg-black transition-colors duration-300">
+        <section className="pt-24 pb-6 lg:pt-32 lg:pb-10 bg-white dark:bg-mentha-dark transition-colors duration-300">
             <div className="container max-w-5xl mx-auto px-6">
                 <div className="flex justify-center mb-8">
                     <Tag>New Era of SEO</Tag>
                 </div>
                 <div className="text-center">
-                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-light text-black dark:text-white mb-8 tracking-tight">
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-light text-current mb-8 tracking-tight">
                         Your SEO deserves more.
                     </h2>
                     <ScrollReveal

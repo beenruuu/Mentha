@@ -16,7 +16,7 @@ export function Footer() {
     if (!mounted) return null;
 
     return (
-        <footer className="bg-gray-50 dark:bg-[#0A0A0A] text-black dark:text-white py-20 border-t border-gray-200 dark:border-white/5 transition-colors duration-300">
+        <footer className="bg-gray-50 dark:bg-mentha-dark text-black dark:text-mentha-beige py-20 border-t border-gray-200 dark:border-white/5 transition-colors duration-300">
             <div className="max-w-4xl mx-auto px-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-20">
                     <div className="col-span-1 md:col-span-1">
@@ -89,7 +89,7 @@ export function Footer() {
                         © 2026 Mentha Labs. Built for the future of search.
                     </div>
 
-                    <div className="bg-white dark:bg-[#1A1A1A] p-1 rounded-full border border-gray-200 dark:border-white/10 flex items-center shadow-sm dark:shadow-2xl transition-colors">
+                    <div className="bg-white dark:bg-mentha-dark p-1 rounded-full border border-gray-200 dark:border-white/10 flex items-center shadow-sm dark:shadow-2xl transition-colors">
                         <ThemeButton
                             isActive={theme === 'system'}
                             onSelect={() => setTheme('system')}
@@ -184,7 +184,7 @@ function ThemeButton({
         <button
             type="button"
             onClick={onSelect}
-            className={`py-1.5 px-3 rounded-full transition-all duration-300 ${isActive ? 'bg-gray-100 dark:bg-[#2A2A2A] text-black dark:text-white shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300'}`}
+            className={`py-1.5 px-3 rounded-full transition-all duration-300 ${isActive ? 'bg-gray-100 dark:bg-mentha-dark text-black dark:text-mentha-beige shadow-sm' : 'text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300'}`}
         >
             {icon}
         </button>

@@ -8,7 +8,7 @@ export default function CTASection() {
     const { t } = useTranslations();
 
     return (
-        <div className="w-full relative overflow-hidden flex flex-col justify-center items-center gap-2 bg-white dark:bg-black transition-colors duration-300">
+        <div className="w-full relative overflow-hidden flex flex-col justify-center items-center gap-2 bg-white dark:bg-mentha-dark transition-colors duration-300">
             {/* Content */}
             <div className="self-stretch px-6 md:px-24 py-6 md:py-10 flex justify-center items-center gap-6 relative z-10">
                 <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none opacity-30">
@@ -16,7 +16,7 @@ export default function CTASection() {
                         {Array.from({ length: 40 }).map((_, i) => (
                             <div
                                 key={i}
-                                className="absolute h-px w-[200%] rotate-[-45deg] origin-top-left bg-black/5 dark:bg-white/5"
+                                className="absolute h-px w-[200%] rotate-[-45deg] origin-top-left bg-mentha-dark/5 dark:bg-white/5"
                                 style={{
                                     top: `${i * 30 - 100}px`,
                                     left: '-50%',

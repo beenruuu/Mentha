@@ -8,7 +8,22 @@ const config: Config = {
         './components/**/*.{js,ts,jsx,tsx,mdx}',
     ],
     theme: {
-        extend: {},
+        extend: {
+            colors: {
+                mentha: {
+                    beige: '#F7F5F0',
+                    dark: '#07140B',
+                    forest: '#0A1A12',
+                    mint: '#73D29B',
+                    muted: '#A3B0A6',
+                },
+            },
+            fontFamily: {
+                serif: ['"Instrument Serif"', 'serif'],
+                sans: ['"Inter"', 'sans-serif'],
+                mono: ['"Space Mono"', 'monospace'],
+            },
+        },
     },
     plugins: [],
 };

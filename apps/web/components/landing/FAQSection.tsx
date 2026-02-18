@@ -1,130 +1,57 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import React, { useState } from "react";
+import { Plus, Minus } from "lucide-react";
 
-import { useTranslations } from '@/lib/i18n';
-import { cn } from '@/lib/utils';
+import { useTranslations } from "@/lib/i18n";
 
-function ChevronDownIcon({ className }: { className?: string }) {
-    return (
-        <svg
-            className={className}
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-        >
-            <path
-                d="m6 9 6 6 6-6"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-            />
-        </svg>
-    );
-}
-
-export default function FAQSection() {
+export default function FAQSection(): JSX.Element {
     const { t } = useTranslations();
-    const [openItem, setOpenItem] = useState<number | null>(0);
+    const [openIndex, setOpenIndex] = useState<number | null>(null);
 
-    const faqData = [
-        {
-            question: t.faqQuestion1,
-            answer: t.faqAnswer1,
-        },
-        {
-            question: t.faqQuestion2,
-            answer: t.faqAnswer2,
-        },
-        {
-            question: t.faqQuestion3,
-            answer: t.faqAnswer3,
-        },
-        {
-            question: t.faqQuestion4,
-            answer: t.faqAnswer4,
-        },
-        {
-            question: t.faqQuestion5,
-            answer: t.faqAnswer5,
-        },
+    const faqs = [
+        { q: t.faqQuestion1, a: t.faqAnswer1 },
+        { q: t.faqQuestion2, a: t.faqAnswer2 },
+        { q: t.faqQuestion3, a: t.faqAnswer3 },
+        { q: t.faqQuestion4, a: t.faqAnswer4 },
+        { q: t.faqQuestion5, a: t.faqAnswer5 },
     ];
 
-    const toggleItem = (index: number) => {
-        setOpenItem((prev) => (prev === index ? null : index));
-    };
-
     return (
-        <div
-            id="faq"
-            className="w-full flex justify-center items-start bg-white dark:bg-black transition-colors duration-300"
-        >
-            <div className="container max-w-5xl px-6 py-6 md:py-10 flex flex-col lg:flex-row justify-start items-start gap-6 lg:gap-12">
-                {/* Left Column - Header */}
-                <div className="w-full lg:flex-1 flex flex-col justify-center items-start gap-4 lg:py-5">
-                    <div className="w-full flex flex-col justify-center text-4xl md:text-5xl font-light text-black dark:text-white tracking-tight">
-                        {t.faqsTitle}
+        <section className="border-b border-mentha-forest dark:border-mentha-beige">
+            <div className="grid grid-cols-1 md:grid-cols-12 min-h-[600px]">
+                <div className="md:col-span-4 p-12 md:p-24 border-b md:border-b-0 md:border-r border-mentha-forest dark:border-mentha-beige flex flex-col justify-between">
+                    <div>
+                        <span className="font-mono text-xs uppercase tracking-widest text-mentha-mint mb-4 block">/// FAQ_MODULE</span>
+                        <h2 className="font-serif text-5xl leading-tight">
+                            {t.faqsTitle}
+                        </h2>
                     </div>
+                    <p className="font-sans opacity-70 mt-8">Understanding the paradigm shift is not easy. Here we simplify it.</p>
                 </div>
 
-                {/* Right Column - FAQ Items */}
-                <div className="w-full lg:flex-1 flex flex-col justify-center items-center">
-                    <div className="w-full flex flex-col">
-                        {faqData.map((item, index) => {
-                            const isOpen = openItem === index;
+                <div className="md:col-span-8">
+                    {faqs.map((faq, index) => (
+                        <div key={index} className="border-b border-mentha-forest dark:border-mentha-beige last:border-b-0">
+                            <button
+                                onClick={() => setOpenIndex(openIndex === index ? null : index)}
+                                className="w-full text-left p-8 md:p-12 flex justify-between items-center group hover:text-mentha-mint transition-colors duration-300"
+                            >
+                                <span className="font-serif text-xl md:text-2xl pr-8">{faq.q}</span>
+                                <span className="border border-mentha-forest dark:border-mentha-beige p-1 rounded-full flex-shrink-0 transition-transform duration-300 group-hover:border-mentha-mint group-hover:text-mentha-mint">
+                                    {openIndex === index ? <Minus size={16} /> : <Plus size={16} />}
+                                </span>
+                            </button>
 
-                            return (
-                                <div
-                                    key={index}
-                                    className={`w-full border-b border-black/10 dark:border-white/10 overflow-hidden transition-colors duration-300 ${isOpen ? 'bg-emerald-50/10 dark:bg-emerald-500/5' : ''}`}
-                                >
-                                    <button
-                                        onClick={() => toggleItem(index)}
-                                        className="w-full px-0 py-6 flex justify-between items-center gap-5 text-left hover:opacity-70 transition-opacity duration-200"
-                                        aria-expanded={isOpen}
-                                    >
-                                        <div
-                                            className={cn(
-                                                'flex-1 text-lg font-light transition-colors duration-300',
-                                                isOpen
-                                                    ? 'text-[#35d499]'
-                                                    : 'text-black dark:text-white',
-                                            )}
-                                        >
-                                            {item.question}
-                                        </div>
-                                        <div className="flex justify-center items-center">
-                                            <ChevronDownIcon
-                                                className={cn(
-                                                    'w-5 h-5 transition-transform duration-300 ease-in-out',
-                                                    isOpen
-                                                        ? 'rotate-180 text-[#35d499]'
-                                                        : 'text-black/40 dark:text-white/40',
-                                                )}
-                                            />
-                                        </div>
-                                    </button>
-
-                                    <div
-                                        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                                            isOpen
-                                                ? 'max-h-[500px] opacity-100'
-                                                : 'max-h-0 opacity-0'
-                                        }`}
-                                    >
-                                        <div className="pb-6 text-gray-500 dark:text-gray-400 text-base font-light leading-7 max-w-[90%]">
-                                            {item.answer}
-                                        </div>
-                                    </div>
+                            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openIndex === index ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}`}>
+                                <div className="p-8 md:p-12 pt-0 font-sans text-lg opacity-70 max-w-3xl leading-relaxed">
+                                    {faq.a}
                                 </div>
-                            );
-                        })}
-                    </div>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
-        </div>
+        </section>
     );
 }

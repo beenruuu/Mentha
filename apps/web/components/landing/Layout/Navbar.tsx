@@ -1,8 +1,6 @@
-"use client";
-
-import React, { useState } from 'react';
+import React from 'react';
 import { Menu, X, Moon, Sun } from 'lucide-react';
-import { Theme } from '../types';
+import { Theme } from '@/components/types';
 
 interface NavbarProps {
   theme: Theme;
@@ -10,18 +8,18 @@ interface NavbarProps {
 }
 
 const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = React.useState(false);
 
   const navLinks = [
-    { label: 'Servicios', href: '#services' },
-    { label: 'Metodología', href: '#shift' },
-    { label: 'Casos', href: '#cases' },
+    { label: 'Services', href: '#services' },
+    { label: 'Methodology', href: '#shift' },
+    { label: 'Cases', href: '#cases' },
     { label: 'Insights', href: '#footer' },
   ];
 
   return (
     <nav className="fixed top-0 left-0 w-full z-40 border-b border-mentha-forest dark:border-mentha-beige transition-colors duration-500 bg-opacity-90 backdrop-blur-sm mix-blend-hard-light">
-      <div className="max-w-[1920px] mx-auto px-6 h-20 flex items-center justify-between">
+      <div className="max-w-[1920px] mx-auto px-8 md:px-16 lg:px-24 h-20 flex items-center justify-between">
         {/* Logo */}
         <div className="flex-shrink-0">
           <a href="#" className="font-serif text-3xl tracking-tight">Mentha<span className="text-mentha-mint text-4xl">.</span></a>
@@ -43,7 +41,7 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
         {/* Actions */}
         <div className="hidden md:flex items-center space-x-6">
           <button 
-            onClick={() => { console.debug('[Navbar] toggleTheme called, prior:', theme); toggleTheme(); }}
+            onClick={toggleTheme}
             className={`
               p-2 rounded-full border border-mentha-forest dark:border-mentha-beige transition-all
               hover:opacity-60
@@ -62,7 +60,7 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
                   : 'bg-mentha-beige text-mentha-forest border border-transparent hover:bg-transparent hover:text-mentha-beige hover:border-mentha-beige'}
             `}
           >
-            AUDITA TU MARCA
+            AUDIT YOUR BRAND
           </a>
         </div>
 
