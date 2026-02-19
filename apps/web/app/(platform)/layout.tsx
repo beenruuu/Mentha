@@ -2,9 +2,9 @@
 
 import type React from 'react';
 
-import { Header } from '@/components/layout/Header';
-import { Sidebar } from '@/components/layout/Sidebar';
-import { SidebarProvider, useSidebar } from '@/components/layout/SidebarContext';
+import { Header } from '@/components/layout/header';
+import { Sidebar } from '@/components/layout/sidebar';
+import { SidebarProvider, useSidebar } from '@/components/layout/sidebar-context';
 import { ProjectProvider } from '@/context/ProjectContext';
 import { cn } from '@/lib/utils';
 
