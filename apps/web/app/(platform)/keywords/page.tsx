@@ -1,6 +1,6 @@
 'use client';
 
-import { KeywordsTable } from '@/components/keywords/KeywordsTable';
+import { KeywordsTable } from '@/components/keywords/keywords-table';
 
 export default function KeywordsPage() {
     return (
