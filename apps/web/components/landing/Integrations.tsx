@@ -1,7 +1,7 @@
 'use client';
 
 import EffortlessIntegration from '@/components/landing/EffortlessIntegration';
-import Tag from '@/components/landing/Tag';
+import Tag from '@/components/ui/tag';
 import { useTranslations } from '@/lib/i18n';
 
 export default function Integrations() {

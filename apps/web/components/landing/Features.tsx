@@ -2,7 +2,7 @@
 
 import { Shield, Sparkles, Zap } from 'lucide-react';
 
-import Tag from './Tag';
+import Tag from '@/components/ui/tag';
 
 export function Features() {
     return (

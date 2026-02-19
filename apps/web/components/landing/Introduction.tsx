@@ -1,7 +1,7 @@
 'use client';
 
 import { ScrollReveal } from '@/components/ui/scroll-reveal';
-import Tag from './Tag';
+import Tag from '@/components/ui/tag';
 
 export function Introduction() {
     return (
