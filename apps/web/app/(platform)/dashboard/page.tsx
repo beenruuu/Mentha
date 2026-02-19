@@ -1,10 +1,10 @@
 'use client';
 
-import { EngineBreakdown } from '@/components/dashboard/EngineBreakdown';
-import { MetricCards } from '@/components/dashboard/MetricCards';
-import { RecentScans } from '@/components/dashboard/RecentScans';
-import { TopKeywords } from '@/components/dashboard/TopKeywords';
-import { VisibilityChartCard } from '@/components/dashboard/VisibilityChartCard';
+import { EngineBreakdown } from '@/components/dashboard/engine-breakdown';
+import { MetricCards } from '@/components/dashboard/metric-cards';
+import { RecentScans } from '@/components/dashboard/recent-scans';
+import { TopKeywords } from '@/components/dashboard/top-keywords';
+import { VisibilityChartCard } from '@/components/dashboard/visibility-chart-card';
 
 export default function DashboardPage() {
     return (
