@@ -108,7 +108,7 @@ const navItems = [
 
 export function Sidebar() {
     const pathname = usePathname();
-    const { isCollapsed } = useSidebar();
+    const { isCollapsed, toggle } = useSidebar();
 
     const isActive = (href: string) => {
         if (href === '/dashboard') {
@@ -141,6 +141,26 @@ export function Sidebar() {
                             <span className="font-serif text-2xl text-mentha-mint">.</span>
                         )}
                     </Link>
+                    {/* Botón para colapsar/expandir sidebar */}
+                    <button
+                        type="button"
+                        className="ml-auto w-8 h-8 flex items-center justify-center rounded-lg hover:bg-mentha-forest/5 dark:hover:bg-white/5 transition-colors text-mentha-forest dark:text-mentha-beige"
+                        aria-label={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
+                        onClick={toggle}
+                    >
+                        {/* Icono de plegar/desplegar */}
+                        {isCollapsed ? (
+                            // Icono de expandir (flecha a la derecha)
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                                <path d="M8 5l4 5-4 5" />
+                            </svg>
+                        ) : (
+                            // Icono de colapsar (flecha a la izquierda)
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                                <path d="M12 5l-4 5 4 5" />
+                            </svg>
+                        )}
+                    </button>
                 </div>
 
                 <nav className="flex-1 space-y-1 p-3 overflow-y-auto">

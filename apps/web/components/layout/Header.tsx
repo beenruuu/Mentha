@@ -32,28 +32,7 @@ export function Header() {
         >
             <div className="flex h-full items-center justify-between px-6">
                 <div className="flex items-center gap-4">
-                    <button
-                        type="button"
-                        onClick={toggle}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-mentha-forest/5 dark:hover:bg-white/5 transition-colors text-mentha-forest dark:text-mentha-beige"
-                        aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-                    >
-                        <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 20 20"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.5"
-                            strokeLinecap="round"
-                        >
-                            {isCollapsed ? (
-                                <path d="M7 4L13 10L7 16" />
-                            ) : (
-                                <path d="M6 4L6 16M14 4L14 16" />
-                            )}
-                        </svg>
-                    </button>
+                    {/* Botón de colapsar sidebar eliminado, ahora está en el sidebar */}
 
                     <div className="relative">
                         <button
