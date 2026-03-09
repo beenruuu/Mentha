@@ -17,6 +17,7 @@ import llmsTxtRouter from './routers/llms-txt.router';
 import projectsRouter from './routers/projects.router';
 import scansRouter from './routers/scans.router';
 import webhooksRouter from './routers/webhooks.router';
+import openrouterRouter from './routers/openrouter.router';
 
 const app = new Hono();
 
@@ -60,6 +61,7 @@ const routes = app
     .route('/api/v1/dashboard', dashboardRouter)
     .route('/api/v1/edge', edgeRouter)
     .route('/api/v1/webhooks', webhooksRouter)
+    .route('/api/v1/ai', openrouterRouter)
     .route('/llms.txt', llmsTxtRouter);
 
 app.notFound((c) => {

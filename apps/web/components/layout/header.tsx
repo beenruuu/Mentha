@@ -1,8 +1,9 @@
 'use client';
 
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, LogOut } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { useProject } from '@/context/ProjectContext';
 import { cn } from '@/lib/utils';
@@ -14,6 +15,7 @@ export function Header() {
     const { isCollapsed, toggle } = useSidebar();
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
+    const router = useRouter();
 
     useEffect(() => {
         setMounted(true);
@@ -21,6 +23,12 @@ export function Header() {
 
     const toggleTheme = () => {
         setTheme(theme === 'light' ? 'dark' : 'light');
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('mentha_token');
+        localStorage.removeItem('mentha_user');
+        router.push('/login');
     };
 
     return (
@@ -106,6 +114,14 @@ export function Header() {
                         aria-label="Toggle Theme"
                     >
                         {mounted && theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="p-2 rounded-full border border-red-500/20 text-red-500 transition-all hover:bg-red-500/10"
+                        aria-label="Logout"
+                    >
+                        <LogOut size={16} />
                     </button>
                 </div>
             </div>

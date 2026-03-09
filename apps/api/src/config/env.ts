@@ -27,6 +27,7 @@ const envSchema = z.object({
     PERPLEXITY_API_KEY: z.string().optional(),
     OPENAI_API_KEY: z.string().optional(),
     GOOGLE_AI_KEY: z.string().optional(),
+    OPENROUTER_API_KEY: z.string().optional(),
 
     // Rate Limiting
     DEFAULT_DAILY_QUOTA: z.string().default('100').transform(Number),
