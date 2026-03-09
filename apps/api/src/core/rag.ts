@@ -146,7 +146,7 @@ export class RAGSimulator {
                         category: faqVectors.category,
                     })
                     .from(faqVectors)
-                    .where(eq(faqVectors.entity_id, entityData[0]?.id));
+                    .where(eq(faqVectors.entity_id, entityData[0]!.id));
             } else {
                 data = [];
             }

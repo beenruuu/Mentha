@@ -2,9 +2,9 @@ import { type JobsOptions, Queue, type QueueOptions } from 'bullmq';
 import { eq } from 'drizzle-orm';
 import IORedis from 'ioredis';
 
-import { keywords } from '@/db/schema/core';
 import { env } from '../config/env';
 import { db } from '../db';
+import { keywords } from '../db/schema/core.js';
 import { logger } from './logger';
 
 export function createRedisConnection(): IORedis {
