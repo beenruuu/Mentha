@@ -98,13 +98,13 @@ export class LlmsTxtService {
             claimsData = await db
                 .select()
                 .from(claims)
-                .where(eq(claims.entity_id, entity[0]?.id))
+                .where(eq(claims.entity_id, entity[0]!.id))
                 .orderBy(desc(claims.importance));
 
             faqsData = await db
                 .select()
                 .from(faqVectors)
-                .where(eq(faqVectors.entity_id, entity[0]?.id))
+                .where(eq(faqVectors.entity_id, entity[0]!.id))
                 .orderBy(desc(faqVectors.view_count));
         } else {
             const fullData = await this.generateFull();

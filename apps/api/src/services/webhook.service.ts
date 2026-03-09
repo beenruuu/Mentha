@@ -33,7 +33,8 @@ export class WebhookService {
 
         const profileData: InsertProfile = {
             id: userId,
-            email: email || null,
+            email: email || '',
+            password_hash: '',
             plan: 'free',
             daily_quota: 100,
         };
@@ -57,7 +58,7 @@ export class WebhookService {
         const result = await db
             .update(profiles)
             .set({
-                email: email || null,
+                email: email || '',
                 updated_at: new Date(),
             })
             .where(eq(profiles.id, userId))

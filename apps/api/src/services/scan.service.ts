@@ -145,7 +145,7 @@ export class ScanService {
             .orderBy(desc(scanResults.created_at))
             .limit(1);
 
-        return data.length > 0 ? data[0]?.scan_results : null;
+        return data.length > 0 ? (data[0]?.scan_results ?? null) : null;
     }
 
     async getResultsByProject(
