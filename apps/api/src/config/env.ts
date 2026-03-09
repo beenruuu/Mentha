@@ -8,7 +8,7 @@ dotenv.config();
  */
 const envSchema = z.object({
     // Server
-    PORT: z.string().default('3000').transform(Number),
+    PORT: z.string().default('4000').transform(Number),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
     // Database (Supabase PostgreSQL via Drizzle ORM)

@@ -24,7 +24,8 @@ export const profiles = pgTable(
         display_name: text('display_name'),
         role: text('role').default('user'),
         plan: text('plan').default('free'),
-        daily_quota: integer('daily_quota').default(100),
+        daily_quota: integer('daily_quota').default(0),
+        credit_balance: integer('credit_balance').default(0),
         created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
         updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
     },
@@ -32,6 +33,26 @@ export const profiles = pgTable(
         planCheck: check('plan_check', sql`plan IN ('free', 'pro', 'enterprise')`),
         roleCheck: check('role_check', sql`role IN ('user', 'admin')`),
         emailIdx: index('idx_profiles_email').on(table.email),
+    }),
+);
+
+// =============================================================================
+// CREDIT TRANSACTIONS
+// =============================================================================
+export const creditTransactions = pgTable(
+    'credit_transactions',
+    {
+        id: uuid('id').defaultRandom().primaryKey(),
+        user_id: uuid('user_id').notNull(),
+        amount: integer('amount').notNull(), // Positive for top-ups, negative for usage
+        type: text('type').notNull(), // 'usage', 'top-up', 'refund', 'daily_reset'
+        description: text('description'),
+        metadata: jsonb('metadata').default({}),
+        created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    },
+    (table) => ({
+        userIdIdx: index('idx_credits_user_id').on(table.user_id),
+        typeCheck: check('type_check', sql`type IN ('usage', 'top-up', 'refund', 'daily_reset')`),
     }),
 );
 

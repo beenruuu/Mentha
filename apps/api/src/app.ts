@@ -18,6 +18,7 @@ import projectsRouter from './routers/projects.router';
 import scansRouter from './routers/scans.router';
 import webhooksRouter from './routers/webhooks.router';
 import openrouterRouter from './routers/openrouter.router';
+import billingRouter from './routers/billing.router';
 
 const app = new Hono();
 
@@ -34,8 +35,19 @@ app.use(
 app.use(
     '*',
     cors({
-        origin: env.NODE_ENV === 'production' ? process.env.ALLOWED_ORIGINS?.split(',') || [] : '*',
+        origin: (origin) => {
+            // Allow all origins in development, specifically for Codespaces
+            if (env.NODE_ENV === 'development') return origin;
+            
+            const allowed = process.env.ALLOWED_ORIGINS?.split(',') || [];
+            if (allowed.includes(origin)) return origin;
+            
+            return null;
+        },
         credentials: true,
+        allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+        allowHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+        exposeHeaders: ['Content-Length', 'X-JSON'],
     }),
 );
 
@@ -62,6 +74,7 @@ const routes = app
     .route('/api/v1/edge', edgeRouter)
     .route('/api/v1/webhooks', webhooksRouter)
     .route('/api/v1/ai', openrouterRouter)
+    .route('/api/v1/billing', billingRouter)
     .route('/llms.txt', llmsTxtRouter);
 
 app.notFound((c) => {

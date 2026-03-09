@@ -2,7 +2,8 @@ import type { Context } from 'hono';
 
 import { env } from '../config/env';
 import { logger } from '../core/logger';
-import { handleHttpException } from '../exceptions/http';
+import { handleHttpException, BadRequestException } from '../exceptions/http';
+import { CreditService } from '../core/credits';
 
 export const OpenRouterController = {
     chatCompletions: async (c: Context): Promise<Response> => {
@@ -11,11 +12,33 @@ export const OpenRouterController = {
                 throw new Error('OPENROUTER_API_KEY is not configured');
             }
 
+            const user = c.get('user');
+            if (!user) {
+                throw new Error('User not authenticated');
+            }
+
             const body = await c.req.json();
+            const model = body.model || 'google/gemini-2.5-flash';
+
+            // Check and deduct credits
+            const cost = CreditService.getModelCost(model);
+            const hasCredits = await CreditService.deductCredits(
+                user.id,
+                cost,
+                `AI Chat Completion: ${model}`,
+                { model }
+            );
+
+            if (!hasCredits) {
+                return c.json({ 
+                    error: 'Insufficient credits', 
+                    message: 'You have exhausted your daily quota or credit balance.' 
+                }, 402) as any;
+            }
 
             // Setup default model and other OpenRouter specific params
             const payload = {
-                model: body.model || 'google/gemini-2.5-flash',
+                model: model,
                 messages: body.messages || [],
                 ...body,
             };

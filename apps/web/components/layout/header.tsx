@@ -1,9 +1,10 @@
 'use client';
 
-import { Moon, Sun, LogOut } from 'lucide-react';
+import { Moon, Sun, LogOut, Coins } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { fetchFromApi } from '@/lib/api';
 
 import { useProject } from '@/context/ProjectContext';
 import { cn } from '@/lib/utils';
@@ -12,13 +13,30 @@ import { useSidebar } from './sidebar-context';
 export function Header() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { projects, selectedProject, setSelectedProjectId, isLoading } = useProject();
-    const { isCollapsed, toggle } = useSidebar();
+    const { isCollapsed } = useSidebar();
     const { theme, setTheme } = useTheme();
     const [mounted, setMounted] = useState(false);
+    const [user, setUser] = useState<any>(null);
     const router = useRouter();
 
     useEffect(() => {
         setMounted(true);
+        const storedUser = localStorage.getItem('mentha_user');
+        if (storedUser) {
+            try {
+                setUser(JSON.parse(storedUser));
+            } catch (e) {
+                console.error('Failed to parse stored user', e);
+            }
+        }
+
+        // Fetch fresh user data (including credits)
+        fetchFromApi('/auth/me').then(data => {
+            if (data?.user) {
+                setUser(data.user);
+                localStorage.setItem('mentha_user', JSON.stringify(data.user));
+            }
+        }).catch(() => {});
     }, []);
 
     const toggleTheme = () => {
@@ -40,8 +58,6 @@ export function Header() {
         >
             <div className="flex h-full items-center justify-between px-6">
                 <div className="flex items-center gap-4">
-                    {/* Botón de colapsar sidebar eliminado, ahora está en el sidebar */}
-
                     <div className="relative">
                         <button
                             type="button"
@@ -107,6 +123,14 @@ export function Header() {
                 </div>
 
                 <div className="flex items-center gap-4">
+                    {user && (
+                        <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-mentha-mint/10 border border-mentha-mint/20 text-mentha-mint">
+                            <Coins size={14} />
+                            <span className="font-mono text-xs font-bold">
+                                {(user.credit_balance || 0) + (user.daily_quota || 0)} CREDITS
+                            </span>
+                        </div>
+                    )}
                     <button
                         type="button"
                         onClick={toggleTheme}

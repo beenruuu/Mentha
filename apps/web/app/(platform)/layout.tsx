@@ -1,6 +1,8 @@
 'use client';
 
 import type React from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { Header } from '@/components/layout/header';
 import { Sidebar } from '@/components/layout/sidebar';
@@ -10,6 +12,25 @@ import { cn } from '@/lib/utils';
 
 function PlatformLayoutInner({ children }: { children: React.ReactNode }) {
     const { isCollapsed } = useSidebar();
+    const router = useRouter();
+    const [isAuthChecking, setIsAuthChecking] = useState(true);
+
+    useEffect(() => {
+        const token = localStorage.getItem('mentha_token');
+        if (!token) {
+            router.push('/login');
+        } else {
+            setIsAuthChecking(false);
+        }
+    }, [router]);
+
+    if (isAuthChecking) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-mentha-beige dark:bg-mentha-dark">
+                <div className="w-8 h-8 border-2 border-mentha-mint border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     return (
         <>

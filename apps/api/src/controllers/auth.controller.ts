@@ -9,7 +9,7 @@ import { getProfileService } from '../services/profile.service';
 const profileService = getProfileService();
 
 export const AuthController = {
-    login: async (c: Context) => {
+    login: async (c: Context): Promise<Response> => {
         try {
             const body = await c.req.json();
             const { email, password } = body;
@@ -81,7 +81,7 @@ export const AuthController = {
         }
     },
 
-    me: async (c: Context) => {
+    me: async (c: Context): Promise<Response> => {
         try {
             const user = c.get('user');
 
