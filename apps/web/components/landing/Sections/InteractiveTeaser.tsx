@@ -16,6 +16,13 @@ const InteractiveTeaser: React.FC = () => {
     setResult(null);
     
     // Aquí iría la lógica si se requiere analizar la marca, actualmente deshabilitado
+    const data = {
+      visibilityScore: 42,
+      sentiment: "Neutral",
+      topAssociation: "Legacy Provider",
+      simulationOutput: `While ${brand} is known in the ${category} space, it is rarely mentioned as a top-tier modern solution compared to its competitors.`,
+      recommendation: "Focus on feature parity content and modernize the developer documentation to improve AI retrieval."
+    };
     setResult(data);
     setLoading(false);
   };
