@@ -6,8 +6,9 @@ import { secureHeaders } from 'hono/secure-headers';
 
 import { env } from './config/env';
 import { logger } from './core/logger';
+import { auth } from './core/auth';
 import { aiViewMiddleware } from './middlewares/ai-view';
-import authRouter from './routers/auth.router';
+import { authMiddleware } from './middlewares/auth';
 import dashboardRouter from './routers/dashboard.router';
 import edgeRouter from './routers/edge.router';
 import healthRouter from './routers/health.router';
@@ -36,12 +37,9 @@ app.use(
     '*',
     cors({
         origin: (origin) => {
-            // Allow all origins in development, specifically for Codespaces
             if (env.NODE_ENV === 'development') return origin;
-            
             const allowed = process.env.ALLOWED_ORIGINS?.split(',') || [];
             if (allowed.includes(origin)) return origin;
-            
             return null;
         },
         credentials: true,
@@ -52,8 +50,8 @@ app.use(
 );
 
 app.use(compress());
-
 app.use(aiViewMiddleware);
+app.use('*', authMiddleware);
 
 app.use('*', async (c, next) => {
     logger.debug(`${c.req.method} ${c.req.path}`, {
@@ -63,9 +61,11 @@ app.use('*', async (c, next) => {
     await next();
 });
 
+// Better Auth Handler
+app.on(['POST', 'GET'], '/api/v1/auth/*', (c) => auth.handler(c.req.raw));
+
 const routes = app
     .route('/health', healthRouter)
-    .route('/api/v1/auth', authRouter)
     .route('/api/v1/projects', projectsRouter)
     .route('/api/v1/keywords', keywordsRouter)
     .route('/api/v1/scans', scansRouter)

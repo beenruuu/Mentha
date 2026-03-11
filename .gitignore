@@ -17,3 +17,5 @@ pnpm-debug.log*
 .idea
 .vscode
 *.log
+.vercel
+.env*.local

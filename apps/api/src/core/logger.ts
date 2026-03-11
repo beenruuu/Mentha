@@ -1,27 +1,26 @@
-import winston from 'winston';
-
+import pino from 'pino';
 import { env } from '../config/env';
 
-const { combine, timestamp, json, printf, colorize } = winston.format;
-
-const devFormat = combine(
-    colorize(),
-    timestamp({ format: 'HH:mm:ss' }),
-    printf(({ level, message, timestamp, ...meta }) => {
-        const metaStr = Object.keys(meta).length ? JSON.stringify(meta) : '';
-        return `${timestamp} ${level}: ${message} ${metaStr}`;
-    }),
-);
-
-const prodFormat = combine(timestamp(), json());
-
-export const logger = winston.createLogger({
+export const logger = pino({
     level: env.NODE_ENV === 'production' ? 'info' : 'debug',
-    format: env.NODE_ENV === 'production' ? prodFormat : devFormat,
-    defaultMeta: { service: 'mentha-api' },
-    transports: [new winston.transports.Console()],
+    base: {
+        service: 'mentha-api',
+        env: env.NODE_ENV,
+    },
+    transport: env.NODE_ENV !== 'production' 
+        ? {
+            target: 'pino-pretty',
+            options: {
+                colorize: true,
+                translateTime: 'HH:MM:ss',
+                ignore: 'pid,hostname,service,env',
+            },
+        } 
+        : undefined,
 });
 
 export function createLogger(context: Record<string, unknown>) {
     return logger.child(context);
 }
+
+export type Logger = typeof logger;

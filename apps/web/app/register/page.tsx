@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { fetchFromApi } from '@/lib/api';
+import { signUp } from '@/lib/auth-client';
 import { Loader2 } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -20,16 +20,19 @@ export default function RegisterPage() {
         setError('');
 
         try {
-            const data = await fetchFromApi('/auth/register', {
-                method: 'POST',
-                body: JSON.stringify({ name, email, password })
+            await signUp.email({ 
+                name,
+                email, 
+                password,
+                fetchOptions: {
+                    onSuccess: () => {
+                        router.push('/dashboard');
+                    },
+                    onError: (ctx) => {
+                        setError(ctx.error.message || 'Registration failed');
+                    }
+                }
             });
-
-            if (data.token) {
-                localStorage.setItem('mentha_token', data.token);
-                localStorage.setItem('mentha_user', JSON.stringify(data.user));
-                router.push('/dashboard');
-            }
         } catch (err: any) {
             setError(err.message || 'Registration failed');
         } finally {

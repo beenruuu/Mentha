@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { fetchFromApi } from '@/lib/api';
+import { signIn } from '@/lib/auth-client';
 import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
@@ -19,16 +19,18 @@ export default function LoginPage() {
         setError('');
 
         try {
-            const data = await fetchFromApi('/auth/login', {
-                method: 'POST',
-                body: JSON.stringify({ email, password })
+            await signIn.email({ 
+                email, 
+                password,
+                fetchOptions: {
+                    onSuccess: () => {
+                        router.push('/dashboard');
+                    },
+                    onError: (ctx) => {
+                        setError(ctx.error.message || 'Login failed');
+                    }
+                }
             });
-
-            if (data.token) {
-                localStorage.setItem('mentha_token', data.token);
-                localStorage.setItem('mentha_user', JSON.stringify(data.user));
-                router.push('/dashboard');
-            }
         } catch (err: any) {
             setError(err.message || 'Login failed');
         } finally {

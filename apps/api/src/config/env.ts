@@ -17,11 +17,9 @@ const envSchema = z.object({
     // Redis
     REDIS_URL: z.string().default('redis://localhost:6379'),
 
-    // JWT Authentication
-    JWT_SECRET: z.string().min(32),
-    JWT_EXPIRES_IN: z.string().default('7d'),
-    JWT_ALGORITHM: z.enum(['HS256', 'HS384', 'HS512']).default('HS256'),
-    JWT_ISSUER: z.string().optional(),
+    // Authentication (Better Auth)
+    BETTER_AUTH_SECRET: z.string().min(32),
+    BETTER_AUTH_URL: z.string().url().default('http://localhost:4000'),
 
     // LLM Providers
     PERPLEXITY_API_KEY: z.string().optional(),

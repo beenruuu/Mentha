@@ -1,73 +1,67 @@
 'use client';
 
 import {
-    CategoryScale,
-    Chart as ChartJS,
-    Legend,
-    LinearScale,
-    LineElement,
-    PointElement,
-    Title,
+    Line,
+    LineChart,
+    ResponsiveContainer,
     Tooltip,
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
-
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+    XAxis,
+    YAxis,
+    CartesianGrid,
+} from 'recharts';
 
 interface SentimentChartProps {
     data: Array<{ date: string; sentiment: number | null }>;
 }
 
 export function SentimentChart({ data }: SentimentChartProps) {
-    // Filter out nulls for the line chart if needed, or just let Chart.js handle it
-    const chartData = {
-        labels: data.map((d) => {
-            const date = new Date(d.date);
-            return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-        }),
-        datasets: [
-            {
-                label: 'Sentiment Score',
-                data: data.map((d) => d.sentiment),
-                borderColor: '#f87171', // Reddish for sentiment
-                backgroundColor: 'rgba(248, 113, 113, 0.1)',
-                tension: 0.3,
-                pointRadius: 4,
-                pointBackgroundColor: '#f87171',
-                spanGaps: true,
-            },
-        ],
-    };
+    const chartData = data.map((d) => {
+        const date = new Date(d.date);
+        return {
+            ...d,
+            formattedDate: date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        };
+    });
 
-    const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false,
-            },
-        },
-        scales: {
-            y: {
-                min: -1,
-                max: 1,
-                grid: {
-                    color: 'rgba(255, 255, 255, 0.05)',
-                },
-                ticks: {
-                    color: '#9CA3AF',
-                },
-            },
-            x: {
-                grid: {
-                    display: false,
-                },
-                ticks: {
-                    color: '#9CA3AF',
-                },
-            },
-        },
-    };
-
-    return <Line options={options} data={chartData} />;
+    return (
+        <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255, 255, 255, 0.05)" />
+                <XAxis
+                    dataKey="formattedDate"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#9CA3AF', fontSize: 10 }}
+                    minTickGap={30}
+                    padding={{ left: 10, right: 10 }}
+                />
+                <YAxis
+                    domain={[-1, 1]}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#9CA3AF', fontSize: 10 }}
+                />
+                <Tooltip
+                    contentStyle={{
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '12px',
+                    }}
+                    itemStyle={{ color: '#f87171' }}
+                    labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
+                />
+                <Line
+                    type="monotone"
+                    dataKey="sentiment"
+                    stroke="#f87171"
+                    strokeWidth={2}
+                    dot={{ r: 4, fill: '#f87171', strokeWidth: 0 }}
+                    activeDot={{ r: 6 }}
+                    connectNulls
+                />
+            </LineChart>
+        </ResponsiveContainer>
+    );
 }

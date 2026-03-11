@@ -16,16 +16,15 @@ const getApiBaseUrl = () => {
 export const API_BASE_URL = getApiBaseUrl();
 
 export async function fetchFromApi(endpoint: string, options: RequestInit = {}) {
-    let token = '';
-    if (typeof window !== 'undefined') {
-        token = localStorage.getItem('mentha_token') || '';
+    // Enforce credentials include to send BetterAuth session cookies
+    if (!options.credentials) {
+        options.credentials = 'include';
     }
 
     const res = await fetch(`${API_BASE_URL}${endpoint}`, {
         ...options,
         headers: {
             'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
             ...options.headers,
         },
     });

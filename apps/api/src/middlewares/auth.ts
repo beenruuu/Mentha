@@ -1,54 +1,51 @@
 import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
-import { jwt, sign } from 'hono/jwt';
-
-import { env } from '../config/env';
+import { auth } from '../core/auth';
 
 export interface UserPayload {
     id: string;
-    email?: string;
+    email: string;
+    name: string;
     role?: string;
+    plan?: string;
 }
 
 export interface AuthVariables {
     user: UserPayload;
+    session: any;
 }
 
-export const requireAuth = jwt({
-    secret: env.JWT_SECRET,
-    alg: env.JWT_ALGORITHM,
-});
+export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
+    const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+    });
 
-export const attachUser = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
-    const payload = c.get('jwtPayload');
-
-    if (!payload || typeof payload !== 'object') {
+    if (!session) {
+        c.set('user', undefined as any);
+        c.set('session', undefined as any);
         await next();
         return;
     }
 
-    if ('sub' in payload) {
-        const user: UserPayload = {
-            id: payload.sub as string,
-            email: (payload as { email?: string }).email,
-            role: (payload as { role?: string }).role,
-        };
-        c.set('user', user);
-    }
+    c.set('user', {
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
+        role: (session.user as any).role,
+        plan: (session.user as any).plan,
+    });
+    c.set('session', session.session);
 
     await next();
 });
 
-export const getUser = (c: {
-    get: (key: string) => UserPayload | undefined;
-}): UserPayload | undefined => {
-    return c.get('user');
-};
-
-export const isAuthenticated = (c: { get: (key: string) => UserPayload | undefined }): boolean => {
+export const requireAuth = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
     const user = c.get('user');
-    return !!user?.id;
-};
+    if (!user) {
+        throw new HTTPException(401, { message: 'Unauthorized' });
+    }
+    await next();
+});
 
 export const requireRole = (allowedRoles: string[]) => {
     return createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
@@ -66,36 +63,13 @@ export const requireRole = (allowedRoles: string[]) => {
     });
 };
 
-export async function generateToken(user: UserPayload): Promise<string> {
-    const expiresIn = env.JWT_EXPIRES_IN;
-    const expirationSeconds = parseExpiration(expiresIn);
+export const getUser = (c: {
+    get: (key: string) => UserPayload | undefined;
+}): UserPayload | undefined => {
+    return c.get('user');
+};
 
-    const payload = {
-        sub: user.id,
-        email: user.email,
-        role: user.role,
-        exp: Math.floor(Date.now() / 1000) + expirationSeconds,
-        iat: Math.floor(Date.now() / 1000),
-        iss: env.JWT_ISSUER,
-    };
-
-    return await sign(payload, env.JWT_SECRET, env.JWT_ALGORITHM);
-}
-
-function parseExpiration(exp: string): number {
-    const unit = exp.slice(-1);
-    const value = parseInt(exp.slice(0, -1), 10);
-
-    switch (unit) {
-        case 'd':
-            return value * 24 * 60 * 60;
-        case 'h':
-            return value * 60 * 60;
-        case 'm':
-            return value * 60;
-        case 's':
-            return value;
-        default:
-            return 60 * 60 * 24 * 7;
-    }
-}
+export const isAuthenticated = (c: { get: (key: string) => UserPayload | undefined }): boolean => {
+    const user = c.get('user');
+    return !!user?.id;
+};

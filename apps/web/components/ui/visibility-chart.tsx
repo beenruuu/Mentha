@@ -1,111 +1,67 @@
 'use client';
 
 import {
-    CategoryScale,
-    Chart as ChartJS,
-    Filler,
-    Legend,
-    LinearScale,
-    LineElement,
-    PointElement,
-    Title,
+    Area,
+    AreaChart,
+    ResponsiveContainer,
     Tooltip,
-} from 'chart.js';
-import { Line } from 'react-chartjs-2';
-
-ChartJS.register(
-    CategoryScale,
-    LinearScale,
-    PointElement,
-    LineElement,
-    Title,
-    Tooltip,
-    Filler,
-    Legend,
-);
+    XAxis,
+    YAxis,
+    CartesianGrid,
+} from 'recharts';
 
 interface VisibilityChartProps {
     data: Array<{ date: string; visible: number; scans: number }>;
 }
 
 export function VisibilityChart({ data }: VisibilityChartProps) {
-    const chartData = {
-        labels: data.map((d) => {
-            const date = new Date(d.date);
-            return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-        }),
-        datasets: [
-            {
-                fill: true,
-                label: 'Brand Visibility',
-                data: data.map((d) => d.visible),
-                borderColor: '#10b982',
-                backgroundColor: (context: any) => {
-                    const ctx = context.chart.ctx;
-                    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-                    gradient.addColorStop(0, 'rgba(16, 185, 130, 0.15)');
-                    gradient.addColorStop(1, 'rgba(16, 185, 130, 0)');
-                    return gradient;
-                },
-                borderWidth: 2,
-                tension: 0.5,
-                pointRadius: 0,
-                pointHoverRadius: 6,
-                pointHoverBackgroundColor: '#10b982',
-                pointHoverBorderColor: '#fff',
-                pointHoverBorderWidth: 2,
-            },
-        ],
-    };
+    const chartData = data.map((d) => {
+        const date = new Date(d.date);
+        return {
+            ...d,
+            formattedDate: date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        };
+    });
 
-    const options = {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                display: false,
-            },
-            tooltip: {
-                mode: 'index' as const,
-                intersect: false,
-                backgroundColor: 'rgba(15, 23, 42, 0.9)',
-                titleColor: '#94a3b8',
-                bodyColor: '#fff',
-                padding: 12,
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                borderWidth: 1,
-            },
-        },
-        interaction: {
-            mode: 'nearest' as const,
-            axis: 'x' as const,
-            intersect: false,
-        },
-        scales: {
-            y: {
-                display: false,
-                beginAtZero: true,
-            },
-            x: {
-                grid: {
-                    display: false,
-                },
-                ticks: {
-                    color: '#4b5563',
-                    font: {
-                        size: 10,
-                    },
-                    padding: 20,
-                    maxRotation: 0,
-                    autoSkip: true,
-                    maxTicksLimit: 7,
-                },
-                border: {
-                    display: false,
-                },
-            },
-        },
-    };
-
-    return <Line options={options} data={chartData} />;
+    return (
+        <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <defs>
+                    <linearGradient id="colorVisibility" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b982" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="#10b982" stopOpacity={0} />
+                    </linearGradient>
+                </defs>
+                <XAxis
+                    dataKey="formattedDate"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#4b5563', fontSize: 10 }}
+                    minTickGap={30}
+                    padding={{ left: 10, right: 10 }}
+                />
+                <YAxis hide domain={['auto', 'auto']} />
+                <Tooltip
+                    contentStyle={{
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        borderRadius: '8px',
+                        color: '#fff',
+                        fontSize: '12px',
+                    }}
+                    itemStyle={{ color: '#10b982' }}
+                    labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
+                />
+                <Area
+                    type="monotone"
+                    dataKey="visible"
+                    stroke="#10b982"
+                    strokeWidth={2}
+                    fillOpacity={1}
+                    fill="url(#colorVisibility)"
+                    animationDuration={1500}
+                />
+            </AreaChart>
+        </ResponsiveContainer>
+    );
 }
