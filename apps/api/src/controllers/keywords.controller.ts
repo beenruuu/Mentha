@@ -1,0 +1,74 @@
+import type { Context } from 'hono';
+
+import { logger } from '../core/logger';
+import { handleHttpException } from '../exceptions/http';
+import { getKeywordService } from '../services/keyword.service';
+
+const keywordService = getKeywordService();
+
+export const KeywordController = {
+    list: async (c: Context) => {
+        const project_id = c.req.query('project_id');
+
+        try {
+            const data = project_id
+                ? await keywordService.listByProject(project_id)
+                : await keywordService.list();
+
+            return c.json({
+                data,
+                pagination: { total: data.length, page: 1, limit: 50 },
+            });
+        } catch (error) {
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to list keywords',
+            );
+            return handleHttpException(c, error);
+        }
+    },
+
+    create: async (c: Context) => {
+        const body = await c.req.json();
+        const { project_id, query, intent, scan_frequency, engines } = body;
+
+        try {
+            const keyword = await keywordService.create({
+                project_id,
+                query,
+                intent,
+                scan_frequency,
+                engines,
+            });
+
+            return c.json({ data: keyword }, 201);
+        } catch (error) {
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to create keyword',
+            );
+            return handleHttpException(c, error);
+        }
+    },
+
+    delete: async (c: Context) => {
+        const id = c.req.param('id');
+
+        try {
+            await keywordService.delete(id);
+            return c.body(null, 204);
+        } catch (error) {
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to delete keyword',
+            );
+            return handleHttpException(c, error);
+        }
+    },
+} as const;

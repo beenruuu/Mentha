@@ -1,0 +1,56 @@
+import dotenv from 'dotenv';
+import { z } from 'zod';
+
+dotenv.config();
+
+/**
+ * Environment configuration schema with validation
+ */
+const envSchema = z.object({
+    // Server
+    PORT: z.string().default('4000').transform(Number),
+    NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+
+    // Database (Supabase PostgreSQL via Drizzle ORM)
+    DATABASE_URL: z.string().url(),
+
+    // Redis
+    REDIS_URL: z.string().default('redis://localhost:6379'),
+
+    // Authentication (Better Auth)
+    BETTER_AUTH_SECRET: z.string().min(32),
+    BETTER_AUTH_URL: z.string().url().default('http://localhost:4000'),
+
+    // LLM Providers
+    PERPLEXITY_API_KEY: z.string().optional(),
+    OPENAI_API_KEY: z.string().optional(),
+    GOOGLE_AI_KEY: z.string().optional(),
+    OPENROUTER_API_KEY: z.string().optional(),
+
+    // Rate Limiting
+    DEFAULT_DAILY_QUOTA: z.string().default('100').transform(Number),
+
+    // Cache
+    CACHE_TTL_HOURS: z.string().default('24').transform(Number),
+});
+
+/**
+ * Validated environment configuration
+ * Throws detailed error if validation fails
+ */
+function validateEnv() {
+    const result = envSchema.safeParse(process.env);
+
+    if (!result.success) {
+        const formatted = result.error.format();
+        console.error('❌ Invalid environment configuration:');
+        console.error(JSON.stringify(formatted, null, 2));
+        throw new Error('Environment validation failed');
+    }
+
+    return result.data;
+}
+
+export const env = validateEnv();
+
+export type Env = z.infer<typeof envSchema>;
