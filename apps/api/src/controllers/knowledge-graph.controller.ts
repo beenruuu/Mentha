@@ -12,9 +12,12 @@ export const KnowledgeGraphController = {
             const data = await entityService.list();
             return c.json({ data });
         } catch (error) {
-            logger.error('Failed to list entities', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to list entities',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -28,10 +31,13 @@ export const KnowledgeGraphController = {
                 'Content-Type': 'application/ld+json',
             });
         } catch (error) {
-            logger.error('Failed to generate JSON-LD', {
-                slug,
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    slug,
+                    error: (error as Error).message,
+                },
+                'Failed to generate JSON-LD',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -44,9 +50,12 @@ export const KnowledgeGraphController = {
             const claims = await entityService.getClaimsByEntity(entity.id);
             return c.json({ data: claims });
         } catch (error) {
-            logger.error('Failed to list claims', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to list claims',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -81,7 +90,7 @@ export const KnowledgeGraphController = {
 
             return c.json({ data: faqs });
         } catch (error) {
-            logger.error('Failed to list FAQs', { error: (error as Error).message });
+            logger.error({ error: (error as Error).message }, 'Failed to list FAQs');
             return handleHttpException(c, error);
         }
     },

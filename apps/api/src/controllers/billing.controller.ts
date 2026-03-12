@@ -1,8 +1,9 @@
-import type { Context } from 'hono';
 import { desc, eq } from 'drizzle-orm';
+import type { Context } from 'hono';
+
+import { logger } from '../core/logger';
 import { db } from '../db';
 import { creditTransactions, profiles } from '../db/schema/core';
-import { logger } from '../core/logger';
 import { handleHttpException } from '../exceptions/http';
 
 export const BillingController = {
@@ -23,7 +24,7 @@ export const BillingController = {
 
             return c.json({ data: transactions });
         } catch (error) {
-            logger.error('Failed to fetch transactions', { error: (error as Error).message });
+            logger.error({ error: (error as Error).message }, 'Failed to fetch transactions');
             return handleHttpException(c, error);
         }
     },
@@ -59,14 +60,14 @@ export const BillingController = {
                     })
                     .returning();
 
-                return c.json({ 
-                    message: 'Credits added successfully', 
-                    transaction 
+                return c.json({
+                    message: 'Credits added successfully',
+                    transaction,
                 });
             });
         } catch (error) {
-            logger.error('Top-up failed', { error: (error as Error).message });
+            logger.error({ error: (error as Error).message }, 'Top-up failed');
             return handleHttpException(c, error);
         }
-    }
+    },
 };

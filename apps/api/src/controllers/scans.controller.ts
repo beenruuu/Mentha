@@ -17,13 +17,19 @@ export const ScanController = {
 
         try {
             const limitNum = parseInt(limit, 10);
-            const results = await scanService.getResultsByProject(project_id, limitNum);
+            const results = await scanService.listResults({
+                projectId: project_id,
+                limit: limitNum,
+            });
 
             return c.json({ data: results });
         } catch (error) {
-            logger.error('Failed to list scan results', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to list scan results',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -35,9 +41,12 @@ export const ScanController = {
             const result = await scanService.getResultById(id);
             return c.json({ data: result });
         } catch (error) {
-            logger.error('Failed to get scan result', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to get scan result',
+            );
             return handleHttpException(c, error);
         }
     },

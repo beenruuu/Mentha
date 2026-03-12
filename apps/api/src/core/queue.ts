@@ -25,7 +25,7 @@ export function createRedisConnection(): IORedis {
     });
 
     connection.on('error', (err) => {
-        logger.error('Redis connection error', { error: err.message });
+        logger.error({ error: err.message }, 'Redis connection error');
     });
 
     return connection;
@@ -52,10 +52,10 @@ export async function testRedisConnection(): Promise<boolean> {
     try {
         const connection = getRedisConnection();
         const pong = await connection.ping();
-        logger.info('Redis connection test passed', { response: pong });
+        logger.info({ response: pong }, 'Redis connection test passed');
         return pong === 'PONG';
     } catch (err) {
-        logger.error('Redis connection test failed', { error: (err as Error).message });
+        logger.error({ error: (err as Error).message }, 'Redis connection test failed');
         return false;
     }
 }
@@ -135,18 +135,21 @@ export async function addScanJob(data: ScanJobData, options?: JobsOptions) {
         priority: 2,
         ...options,
     });
-    logger.info('Scan job added', {
-        jobId: job.id,
-        keywordId: data.keywordId,
-        engine: data.engine,
-    });
+    logger.info(
+        {
+            jobId: job.id,
+            keywordId: data.keywordId,
+            engine: data.engine,
+        },
+        'Scan job added',
+    );
     return job;
 }
 
 export async function addAnalysisJob(data: AnalysisJobData, options?: JobsOptions) {
     const queue = getQueue<AnalysisJobData>(QUEUE_NAMES.ANALYSIS);
     const job = await queue.add('analyze', data, options);
-    logger.debug('Analysis job added', { jobId: job.id, scanJobId: data.scanJobId });
+    logger.debug({ jobId: job.id, scanJobId: data.scanJobId }, 'Analysis job added');
     return job;
 }
 
@@ -156,7 +159,7 @@ export async function addNotificationJob(data: NotificationJobData, options?: Jo
         priority: 3,
         ...options,
     });
-    logger.debug('Notification job added', { jobId: job.id, type: data.type });
+    logger.debug({ jobId: job.id, type: data.type }, 'Notification job added');
     return job;
 }
 
@@ -182,11 +185,14 @@ export async function scheduleRecurringScan(
         },
     );
 
-    logger.info('Recurring scan scheduled', {
-        keywordId,
-        cronPattern,
-        jitterMs,
-    });
+    logger.info(
+        {
+            keywordId,
+            cronPattern,
+            jitterMs,
+        },
+        'Recurring scan scheduled',
+    );
 
     return job;
 }
@@ -194,7 +200,7 @@ export async function scheduleRecurringScan(
 export async function removeRecurringScan(keywordId: string) {
     const queue = getQueue<ScheduledJobData>(QUEUE_NAMES.SCHEDULED);
     await queue.removeRepeatableByKey(`scheduled-scan:recurring-${keywordId}:::${keywordId}`);
-    logger.info('Recurring scan removed', { keywordId });
+    logger.info({ keywordId }, 'Recurring scan removed');
 }
 
 export async function closeAllQueues(): Promise<void> {
@@ -237,12 +243,15 @@ export async function scheduleKeywordScan(
         },
     );
 
-    logger.info('Keyword scheduled for recurring scan', {
-        keywordId,
-        frequency,
-        cronPattern,
-        jitterMinutes: Math.round(jitterMs / 60000),
-    });
+    logger.info(
+        {
+            keywordId,
+            frequency,
+            cronPattern,
+            jitterMinutes: Math.round(jitterMs / 60000),
+        },
+        'Keyword scheduled for recurring scan',
+    );
 }
 
 export async function removeKeywordSchedule(keywordId: string): Promise<void> {
@@ -254,13 +263,16 @@ export async function removeKeywordSchedule(keywordId: string): Promise<void> {
 
         if (job) {
             await queue.removeRepeatableByKey(job.key);
-            logger.info('Keyword schedule removed', { keywordId });
+            logger.info({ keywordId }, 'Keyword schedule removed');
         }
     } catch (error) {
-        logger.warn('Failed to remove keyword schedule', {
-            keywordId,
-            error: (error as Error).message,
-        });
+        logger.warn(
+            {
+                keywordId,
+                error: (error as Error).message,
+            },
+            'Failed to remove keyword schedule',
+        );
     }
 }
 
@@ -296,9 +308,9 @@ export async function syncKeywordSchedules(): Promise<void> {
             }
         }
 
-        logger.info('Keyword schedules synced', { count: filteredKeywords.length });
+        logger.info({ count: filteredKeywords.length }, 'Keyword schedules synced');
     } catch (error) {
-        logger.error('Failed to sync keyword schedules', { error: (error as Error).message });
+        logger.error({ error: (error as Error).message }, 'Failed to sync keyword schedules');
     }
 }
 

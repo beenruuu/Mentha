@@ -37,7 +37,7 @@ export interface VerificationStatus {
 
 export class DomainService {
     async resolveTenantFromDomain(domain: string): Promise<TenantData> {
-        logger.debug('Resolving tenant from domain', { domain });
+        logger.debug({ domain }, 'Resolving tenant from domain');
 
         const result = await db.execute(sql`SELECT * FROM resolve_tenant_from_domain(${domain})`);
 
@@ -49,7 +49,7 @@ export class DomainService {
     }
 
     async getInjectionPayload(domain: string, path?: string): Promise<InjectionPayload> {
-        logger.debug('Getting injection payload', { domain, path });
+        logger.debug({ domain, path }, 'Getting injection payload');
 
         const result = await db.execute(
             sql`SELECT * FROM get_injection_payload(${domain}, ${path || '/*'})`,
@@ -63,7 +63,7 @@ export class DomainService {
     }
 
     async getFirewallRules(tenantId: string): Promise<AiFirewallRule[]> {
-        logger.debug('Getting firewall rules', { tenantId });
+        logger.debug({ tenantId }, 'Getting firewall rules');
 
         const rules = await db
             .select()
@@ -77,7 +77,7 @@ export class DomainService {
     }
 
     async verifyDomain(tenantId: string, domain: string): Promise<VerificationResult> {
-        logger.info('Verifying domain', { tenantId, domain });
+        logger.info({ tenantId, domain }, 'Verifying domain');
 
         const domainData = await db
             .select()
@@ -113,7 +113,7 @@ export class DomainService {
                 })
                 .where(eq(domains.id, domainRecord.id));
 
-            logger.info('Domain verified successfully', { domain, method });
+            logger.info({ domain, method }, 'Domain verified successfully');
         }
 
         return {
@@ -125,7 +125,7 @@ export class DomainService {
     }
 
     async checkVerification(domain: string): Promise<VerificationStatus> {
-        logger.debug('Checking verification status', { domain });
+        logger.debug({ domain }, 'Checking verification status');
 
         const domainData = await db
             .select({
@@ -146,7 +146,7 @@ export class DomainService {
     }
 
     async create(data: InsertDomain): Promise<Domain> {
-        logger.info('Creating domain', { domain: data.domain, tenantId: data.tenant_id });
+        logger.info({ domain: data.domain, tenantId: data.tenant_id }, 'Creating domain');
 
         const result = await db.insert(domains).values(data).returning();
 
@@ -154,12 +154,12 @@ export class DomainService {
             throw new Error('Failed to create domain');
         }
 
-        logger.info('Domain created successfully', { domainId: result[0].id });
+        logger.info({ domainId: result[0].id }, 'Domain created successfully');
         return result[0];
     }
 
     async delete(domainId: string): Promise<void> {
-        logger.info('Deleting domain', { domainId });
+        logger.info({ domainId }, 'Deleting domain');
 
         const result = await db.delete(domains).where(eq(domains.id, domainId)).returning();
 
@@ -167,16 +167,16 @@ export class DomainService {
             throw new NotFoundException('Domain not found');
         }
 
-        logger.info('Domain deleted successfully', { domainId });
+        logger.info({ domainId }, 'Domain deleted successfully');
     }
 
     private async verifyDnsTxt(domain: string, token: string): Promise<boolean> {
         try {
             const txtRecord = `mentha-verification=${token}`;
-            logger.debug('Checking DNS TXT record', { domain, expectedRecord: txtRecord });
+            logger.debug({ domain, expectedRecord: txtRecord }, 'Checking DNS TXT record');
             return false;
         } catch (error) {
-            logger.error('DNS verification failed', { error: (error as Error).message });
+            logger.error({ error: (error as Error).message }, 'DNS verification failed');
             return false;
         }
     }
@@ -188,7 +188,7 @@ export class DomainService {
             const metaTag = `<meta name="mentha-verification" content="${token}">`;
             return html.includes(metaTag);
         } catch (error) {
-            logger.error('Meta tag verification failed', { error: (error as Error).message });
+            logger.error({ error: (error as Error).message }, 'Meta tag verification failed');
             return false;
         }
     }
@@ -199,7 +199,7 @@ export class DomainService {
             const content = await response.text();
             return content.trim() === token;
         } catch (error) {
-            logger.error('File verification failed', { error: (error as Error).message });
+            logger.error({ error: (error as Error).message }, 'File verification failed');
             return false;
         }
     }

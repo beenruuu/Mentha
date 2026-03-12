@@ -1,7 +1,8 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { db } from '../db';
+
 import { env } from '../config/env';
+import { db } from '../db';
 import * as authSchema from '../db/schema/auth';
 
 export const auth = betterAuth({
@@ -24,9 +25,13 @@ export const auth = betterAuth({
                 type: 'string',
                 defaultValue: 'free',
             },
-            creditBalance: {
-                type: 'string',
-                defaultValue: '0',
+            credit_balance: {
+                type: 'number',
+                defaultValue: 0,
+            },
+            daily_quota: {
+                type: 'number',
+                defaultValue: 0,
             },
         },
     },

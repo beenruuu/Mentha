@@ -1,7 +1,7 @@
 // Detect API URL: Priority to ENV, then current window origin (replacing 3000 with 4000), then localhost
 const getApiBaseUrl = () => {
     if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-    
+
     if (typeof window !== 'undefined') {
         // If we are in a codespace or similar, the URL usually changes the port in the subdomain
         const origin = window.location.origin;
@@ -9,7 +9,7 @@ const getApiBaseUrl = () => {
             return origin.replace('-3000', '-4000') + '/api/v1';
         }
     }
-    
+
     return 'http://localhost:4000/api/v1';
 };
 

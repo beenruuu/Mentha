@@ -1,8 +1,9 @@
+import { eq } from 'drizzle-orm';
+
 import { hashPassword } from './src/core/hash';
+import { logger } from './src/core/logger';
 import { db } from './src/db';
 import { profiles } from './src/db/schema/core';
-import { logger } from './src/core/logger';
-import { eq } from 'drizzle-orm';
 
 async function seedAdmin() {
     const email = 'admin@admin';
@@ -14,15 +15,16 @@ async function seedAdmin() {
 
         // Check if exists
         const existing = await db.select().from(profiles).where(eq(profiles.email, email)).limit(1);
-        
+
         if (existing.length > 0) {
             logger.info('Admin user already exists. Updating password and role...');
             const passwordHash = await hashPassword(password);
-            await db.update(profiles)
-                .set({ 
-                    password_hash: passwordHash, 
+            await db
+                .update(profiles)
+                .set({
+                    password_hash: passwordHash,
                     role: 'admin',
-                    credit_balance: 1000000 // Unlimited-ish for admin
+                    credit_balance: 1000000, // Unlimited-ish for admin
                 })
                 .where(eq(profiles.email, email));
         } else {
@@ -34,7 +36,7 @@ async function seedAdmin() {
                 display_name: displayName,
                 role: 'admin',
                 plan: 'enterprise',
-                credit_balance: 1000000
+                credit_balance: 1000000,
             });
         }
 

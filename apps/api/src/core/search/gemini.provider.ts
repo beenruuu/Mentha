@@ -71,10 +71,13 @@ export class GeminiProvider implements ISearchProvider {
             },
         };
 
-        logger.debug('Gemini API request', {
-            model: this.defaultModel,
-            queryLength: query.length,
-        });
+        logger.debug(
+            {
+                model: this.defaultModel,
+                queryLength: query.length,
+            },
+            'Gemini API request',
+        );
 
         const controller = new AbortController();
         const timeout = options?.timeout ?? 60000;
@@ -96,10 +99,13 @@ export class GeminiProvider implements ISearchProvider {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                logger.error('Gemini API error', {
-                    status: response.status,
-                    body: errorText,
-                });
+                logger.error(
+                    {
+                        status: response.status,
+                        body: errorText,
+                    },
+                    'Gemini API error',
+                );
                 throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
             }
 
@@ -108,11 +114,14 @@ export class GeminiProvider implements ISearchProvider {
 
             const content = data.candidates[0]?.content?.parts[0]?.text ?? '';
 
-            logger.info('Gemini search completed', {
-                model: this.defaultModel,
-                latencyMs,
-                tokenUsage: data.usageMetadata?.totalTokenCount,
-            });
+            logger.info(
+                {
+                    model: this.defaultModel,
+                    latencyMs,
+                    tokenUsage: data.usageMetadata?.totalTokenCount,
+                },
+                'Gemini search completed',
+            );
 
             return {
                 content,
@@ -150,9 +159,12 @@ export class GeminiProvider implements ISearchProvider {
             await this.search('Hello', { maxTokens: 10, timeout: 10000 });
             return true;
         } catch (error) {
-            logger.error('Gemini connection test failed', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Gemini connection test failed',
+            );
             return false;
         }
     }

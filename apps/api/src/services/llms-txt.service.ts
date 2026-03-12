@@ -62,11 +62,14 @@ export class LlmsTxtService {
                 .orderBy(desc(faqVectors.view_count)),
         ]);
 
-        logger.info('Full llms.txt data generated', {
-            entities: entitiesData.length,
-            claims: claimsData.length,
-            faqs: faqsData.length,
-        });
+        logger.info(
+            {
+                entities: entitiesData.length,
+                claims: claimsData.length,
+                faqs: faqsData.length,
+            },
+            'Full llms.txt data generated',
+        );
 
         return {
             entities: entitiesData,
@@ -77,7 +80,7 @@ export class LlmsTxtService {
     }
 
     async generateMarkdown(entitySlug?: string): Promise<LlmsTxtContent> {
-        logger.debug('Generating markdown llms.txt', { entitySlug });
+        logger.debug({ entitySlug }, 'Generating markdown llms.txt');
 
         let entitiesData: Entity[];
         let claimsData: Claim[];

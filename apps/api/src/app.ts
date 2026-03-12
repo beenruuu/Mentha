@@ -5,21 +5,21 @@ import { cors } from 'hono/cors';
 import { secureHeaders } from 'hono/secure-headers';
 
 import { env } from './config/env';
-import { logger } from './core/logger';
 import { auth } from './core/auth';
+import { logger } from './core/logger';
 import { aiViewMiddleware } from './middlewares/ai-view';
 import { authMiddleware } from './middlewares/auth';
+import billingRouter from './routers/billing.router';
 import dashboardRouter from './routers/dashboard.router';
 import edgeRouter from './routers/edge.router';
 import healthRouter from './routers/health.router';
 import keywordsRouter from './routers/keywords.router';
 import knowledgeGraphRouter from './routers/knowledge-graph.router';
 import llmsTxtRouter from './routers/llms-txt.router';
+import openrouterRouter from './routers/openrouter.router';
 import projectsRouter from './routers/projects.router';
 import scansRouter from './routers/scans.router';
 import webhooksRouter from './routers/webhooks.router';
-import openrouterRouter from './routers/openrouter.router';
-import billingRouter from './routers/billing.router';
 
 const app = new Hono();
 
@@ -54,10 +54,13 @@ app.use(aiViewMiddleware);
 app.use('*', authMiddleware);
 
 app.use('*', async (c, next) => {
-    logger.debug(`${c.req.method} ${c.req.path}`, {
-        query: c.req.query(),
-        ip: c.req.header('x-forwarded-for') || c.req.header('x-real-ip'),
-    });
+    logger.debug(
+        {
+            query: c.req.query(),
+            ip: c.req.header('x-forwarded-for') || c.req.header('x-real-ip'),
+        },
+        `${c.req.method} ${c.req.path}`,
+    );
     await next();
 });
 
@@ -88,10 +91,13 @@ app.notFound((c) => {
 });
 
 app.onError((err, c) => {
-    logger.error('Unhandled error', {
-        error: err.message,
-        stack: err.stack,
-    });
+    logger.error(
+        {
+            error: err.message,
+            stack: err.stack,
+        },
+        'Unhandled error',
+    );
 
     return c.json(
         {
@@ -110,10 +116,13 @@ serve(
         port: PORT,
     },
     () => {
-        logger.info(`🌿 Mentha API server running on port ${PORT}`, {
-            environment: env.NODE_ENV,
-            port: PORT,
-        });
+        logger.info(
+            {
+                environment: env.NODE_ENV,
+                port: PORT,
+            },
+            `🌿 Mentha API server running on port ${PORT}`,
+        );
     },
 );
 

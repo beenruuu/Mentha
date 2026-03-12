@@ -30,14 +30,14 @@ export async function getCachedResult(query: string, provider: string): Promise<
         const cached = await redis.get(key);
 
         if (cached) {
-            logger.debug('Cache hit', { provider, keyPrefix: key.substring(0, 20) });
+            logger.debug({ provider, keyPrefix: key.substring(0, 20) }, 'Cache hit');
             return JSON.parse(cached) as CacheEntry;
         }
 
-        logger.debug('Cache miss', { provider });
+        logger.debug({ provider }, 'Cache miss');
         return null;
     } catch (error) {
-        logger.warn('Cache get error', { error: (error as Error).message });
+        logger.warn({ error: (error as Error).message }, 'Cache get error');
         return null;
     }
 }
@@ -63,12 +63,15 @@ export async function setCachedResult(
         const ttlSeconds = env.CACHE_TTL_HOURS * 3600;
         await redis.setex(key, ttlSeconds, JSON.stringify(entry));
 
-        logger.debug('Result cached', {
-            provider,
-            ttlHours: env.CACHE_TTL_HOURS,
-        });
+        logger.debug(
+            {
+                provider,
+                ttlHours: env.CACHE_TTL_HOURS,
+            },
+            'Result cached',
+        );
     } catch (error) {
-        logger.warn('Cache set error', { error: (error as Error).message });
+        logger.warn({ error: (error as Error).message }, 'Cache set error');
     }
 }
 
@@ -77,7 +80,7 @@ export async function invalidateCache(query: string, provider: string): Promise<
     const key = generateCacheKey(query, provider);
 
     await redis.del(key);
-    logger.debug('Cache invalidated', { provider });
+    logger.debug({ provider }, 'Cache invalidated');
 }
 
 export async function getCacheStats(): Promise<{
@@ -107,6 +110,6 @@ export async function clearSearchCache(): Promise<number> {
         await redis.del(...keys);
     }
 
-    logger.info('Search cache cleared', { keysDeleted: keys.length });
+    logger.info({ keysDeleted: keys.length }, 'Search cache cleared');
     return keys.length;
 }

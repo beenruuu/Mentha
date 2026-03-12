@@ -21,9 +21,12 @@ export const WebhookController = {
             await webhookService.processUserWebhook(payload);
             return c.json({ success: true });
         } catch (error) {
-            logger.error('Webhook processing error', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Webhook processing error',
+            );
             return handleHttpException(c, error);
         }
     },

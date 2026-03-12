@@ -16,9 +16,12 @@ export const ProjectController = {
                 pagination: { total: data.length, page: 1, limit: 20 },
             });
         } catch (error) {
-            logger.error('Failed to list projects', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to list projects',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -39,9 +42,12 @@ export const ProjectController = {
 
             return c.json({ data: project }, 201);
         } catch (error) {
-            logger.error('Failed to create project', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to create project',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -53,9 +59,12 @@ export const ProjectController = {
             const project = await projectService.getById(id);
             return c.json({ data: project });
         } catch (error) {
-            logger.error('Failed to get project', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to get project',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -68,9 +77,12 @@ export const ProjectController = {
             const project = await projectService.update(id, updates);
             return c.json({ data: project });
         } catch (error) {
-            logger.error('Failed to update project', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to update project',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -82,9 +94,12 @@ export const ProjectController = {
             await projectService.delete(id);
             return c.body(null, 204);
         } catch (error) {
-            logger.error('Failed to delete project', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to delete project',
+            );
             return handleHttpException(c, error);
         }
     },

@@ -29,7 +29,7 @@ export interface KeywordFilters {
 
 export class KeywordService {
     async list(filters?: KeywordFilters): Promise<Keyword[]> {
-        logger.debug('Listing keywords', { filters });
+        logger.debug({ filters }, 'Listing keywords');
 
         let query = db.select().from(keywords).orderBy(desc(keywords.created_at));
 
@@ -46,7 +46,7 @@ export class KeywordService {
     }
 
     async listByProject(projectId: string): Promise<Keyword[]> {
-        logger.debug('Listing keywords by project', { projectId });
+        logger.debug({ projectId }, 'Listing keywords by project');
 
         const data = await db
             .select()
@@ -58,7 +58,7 @@ export class KeywordService {
     }
 
     async getById(id: string): Promise<Keyword> {
-        logger.debug('Getting keyword by ID', { id });
+        logger.debug({ id }, 'Getting keyword by ID');
 
         const data = await db.select().from(keywords).where(eq(keywords.id, id)).limit(1);
 
@@ -70,7 +70,7 @@ export class KeywordService {
     }
 
     async create(input: CreateKeywordInput): Promise<Keyword> {
-        logger.info('Creating keyword', { projectId: input.project_id, query: input.query });
+        logger.info({ projectId: input.project_id, query: input.query }, 'Creating keyword');
 
         const keywordData: InsertKeyword = {
             project_id: input.project_id,
@@ -87,12 +87,12 @@ export class KeywordService {
             throw new Error('Failed to create keyword');
         }
 
-        logger.info('Keyword created successfully', { keywordId: result[0].id });
+        logger.info({ keywordId: result[0].id }, 'Keyword created successfully');
         return result[0];
     }
 
     async update(id: string, input: UpdateKeywordInput): Promise<Keyword> {
-        logger.info('Updating keyword', { id, updates: Object.keys(input) });
+        logger.info({ id, updates: Object.keys(input) }, 'Updating keyword');
 
         const result = await db
             .update(keywords)
@@ -107,12 +107,12 @@ export class KeywordService {
             throw new NotFoundException('Keyword not found');
         }
 
-        logger.info('Keyword updated successfully', { keywordId: id });
+        logger.info({ keywordId: id }, 'Keyword updated successfully');
         return result[0]!;
     }
 
     async delete(id: string): Promise<void> {
-        logger.info('Deleting keyword', { id });
+        logger.info({ id }, 'Deleting keyword');
 
         const result = await db.delete(keywords).where(eq(keywords.id, id)).returning();
 
@@ -120,11 +120,11 @@ export class KeywordService {
             throw new NotFoundException('Keyword not found');
         }
 
-        logger.info('Keyword deleted successfully', { keywordId: id });
+        logger.info({ keywordId: id }, 'Keyword deleted successfully');
     }
 
     async toggleActive(id: string, isActive: boolean): Promise<Keyword> {
-        logger.info('Toggling keyword active status', { id, isActive });
+        logger.info({ id, isActive }, 'Toggling keyword active status');
 
         const result = await db
             .update(keywords)

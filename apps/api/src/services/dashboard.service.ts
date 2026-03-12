@@ -53,7 +53,7 @@ export interface CitationAnalysis {
 
 export class DashboardService {
     async getShareOfModel(projectId: string, days: number = 30): Promise<ShareOfModelMetrics> {
-        logger.debug('Calculating Share of Model metrics', { projectId, days });
+        logger.debug({ projectId, days }, 'Calculating Share of Model metrics');
 
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
@@ -153,7 +153,7 @@ export class DashboardService {
     }
 
     async getKeywordPerformance(projectId: string, limit: number = 20): Promise<KeywordMetrics[]> {
-        logger.debug('Getting keyword performance', { projectId, limit });
+        logger.debug({ projectId, limit }, 'Getting keyword performance');
 
         const keywordData = await db
             .select({
@@ -207,7 +207,7 @@ export class DashboardService {
     }
 
     async getCitationAnalysis(projectId: string, limit: number = 100): Promise<CitationAnalysis> {
-        logger.debug('Analyzing citations', { projectId, limit });
+        logger.debug({ projectId, limit }, 'Analyzing citations');
 
         const data = await db
             .select({

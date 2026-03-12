@@ -1,13 +1,13 @@
 'use client';
 
 import {
+    CartesianGrid,
     Line,
     LineChart,
     ResponsiveContainer,
     Tooltip,
     XAxis,
     YAxis,
-    CartesianGrid,
 } from 'recharts';
 
 interface SentimentChartProps {
@@ -26,7 +26,11 @@ export function SentimentChart({ data }: SentimentChartProps) {
     return (
         <ResponsiveContainer width="100%" height="100%">
             <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255, 255, 255, 0.05)" />
+                <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="rgba(255, 255, 255, 0.05)"
+                />
                 <XAxis
                     dataKey="formattedDate"
                     axisLine={false}

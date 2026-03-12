@@ -108,10 +108,13 @@ export class PerplexityProvider implements ISearchProvider {
             return_citations: true,
         };
 
-        logger.debug('Perplexity API request', {
-            model: this.defaultModel,
-            queryLength: query.length,
-        });
+        logger.debug(
+            {
+                model: this.defaultModel,
+                queryLength: query.length,
+            },
+            'Perplexity API request',
+        );
 
         const controller = new AbortController();
         const timeout = options?.timeout ?? 60000; // Default 60s timeout
@@ -132,10 +135,13 @@ export class PerplexityProvider implements ISearchProvider {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                logger.error('Perplexity API error', {
-                    status: response.status,
-                    body: errorText,
-                });
+                logger.error(
+                    {
+                        status: response.status,
+                        body: errorText,
+                    },
+                    'Perplexity API error',
+                );
                 throw new Error(`Perplexity API error: ${response.status} - ${errorText}`);
             }
 
@@ -147,12 +153,15 @@ export class PerplexityProvider implements ISearchProvider {
             // Extract and map citations
             const citations = this.mapCitations(content, data.citations ?? []);
 
-            logger.info('Perplexity search completed', {
-                model: data.model,
-                latencyMs,
-                citationsCount: citations.length,
-                tokenUsage: data.usage?.total_tokens,
-            });
+            logger.info(
+                {
+                    model: data.model,
+                    latencyMs,
+                    citationsCount: citations.length,
+                    tokenUsage: data.usage?.total_tokens,
+                },
+                'Perplexity search completed',
+            );
 
             return {
                 content,
@@ -212,9 +221,12 @@ export class PerplexityProvider implements ISearchProvider {
             await this.search('What is 2+2?', { maxTokens: 50, timeout: 10000 });
             return true;
         } catch (error) {
-            logger.error('Perplexity connection test failed', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Perplexity connection test failed',
+            );
             return false;
         }
     }

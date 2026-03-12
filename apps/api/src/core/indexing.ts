@@ -40,23 +40,29 @@ export async function submitToIndexNow(
             });
 
             if (response.ok || response.status === 202) {
-                logger.info('IndexNow submission successful', {
-                    endpoint,
-                    urlCount: urls.length,
-                });
+                logger.info(
+                    {
+                        endpoint,
+                        urlCount: urls.length,
+                    },
+                    'IndexNow submission successful',
+                );
             } else {
                 const text = await response.text();
                 errors.push(`${endpoint}: ${response.status} - ${text}`);
-                logger.warn('IndexNow submission failed', {
-                    endpoint,
-                    status: response.status,
-                    body: text,
-                });
+                logger.warn(
+                    {
+                        endpoint,
+                        status: response.status,
+                        body: text,
+                    },
+                    'IndexNow submission failed',
+                );
             }
         } catch (err) {
             const message = (err as Error).message;
             errors.push(`${endpoint}: ${message}`);
-            logger.error('IndexNow request error', { endpoint, error: message });
+            logger.error({ endpoint, error: message }, 'IndexNow request error');
         }
     }
 
@@ -71,7 +77,7 @@ export async function submitToGoogleIndexing(
     type: 'URL_UPDATED' | 'URL_DELETED' = 'URL_UPDATED',
     _accessToken?: string,
 ): Promise<{ success: boolean; error?: string }> {
-    logger.info('Google Indexing API submission', { url, type });
+    logger.info({ url, type }, 'Google Indexing API submission');
 
     return {
         success: true,
@@ -91,9 +97,9 @@ export async function triggerCriticalPagesIndexing(
     const result = await submitToIndexNow(urls, host, indexNowKey);
 
     if (result.success) {
-        logger.info('Critical pages indexing triggered', { urlCount: urls.length });
+        logger.info({ urlCount: urls.length }, 'Critical pages indexing triggered');
     } else {
-        logger.warn('Some indexing submissions failed', { errors: result.errors });
+        logger.warn({ errors: result.errors }, 'Some indexing submissions failed');
     }
 }
 
@@ -106,15 +112,21 @@ export async function pingSitemaps(sitemapUrl: string): Promise<void> {
     for (const endpoint of pingEndpoints) {
         try {
             const response = await fetch(endpoint);
-            logger.debug('Sitemap ping', {
-                endpoint: endpoint.split('?')[0],
-                status: response.status,
-            });
+            logger.debug(
+                {
+                    endpoint: endpoint.split('?')[0],
+                    status: response.status,
+                },
+                'Sitemap ping',
+            );
         } catch (err) {
-            logger.warn('Sitemap ping failed', {
-                endpoint,
-                error: (err as Error).message,
-            });
+            logger.warn(
+                {
+                    endpoint,
+                    error: (err as Error).message,
+                },
+                'Sitemap ping failed',
+            );
         }
     }
 }

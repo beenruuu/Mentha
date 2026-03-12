@@ -3,11 +3,11 @@
 import {
     Area,
     AreaChart,
+    CartesianGrid,
     ResponsiveContainer,
     Tooltip,
     XAxis,
     YAxis,
-    CartesianGrid,
 } from 'recharts';
 
 interface VisibilityChartProps {

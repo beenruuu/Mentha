@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+
 import { fetchFromApi } from '@/lib/api';
 
 export default function PlaygroundPage() {
@@ -17,8 +18,8 @@ export default function PlaygroundPage() {
                 method: 'POST',
                 body: JSON.stringify({
                     model,
-                    messages: [{ role: 'user', content: prompt }]
-                })
+                    messages: [{ role: 'user', content: prompt }],
+                }),
             });
             setResponse(data.choices?.[0]?.message?.content || JSON.stringify(data, null, 2));
         } catch (err: any) {
@@ -29,15 +30,24 @@ export default function PlaygroundPage() {
 
     return (
         <div className="p-8 max-w-4xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <h1 className="text-4xl font-serif mb-2 text-mentha-forest dark:text-mentha-beige">AI Playground</h1>
-            <p className="font-mono text-sm opacity-70 mb-8">Test prompts using OpenRouter models directly from your dashboard.</p>
-            
-            <form onSubmit={handleSubmit} className="space-y-6 bg-mentha-mint/5 p-6 md:p-8 border border-mentha-forest/20 rounded-xl">
+            <h1 className="text-4xl font-serif mb-2 text-mentha-forest dark:text-mentha-beige">
+                AI Playground
+            </h1>
+            <p className="font-mono text-sm opacity-70 mb-8">
+                Test prompts using OpenRouter models directly from your dashboard.
+            </p>
+
+            <form
+                onSubmit={handleSubmit}
+                className="space-y-6 bg-mentha-mint/5 p-6 md:p-8 border border-mentha-forest/20 rounded-xl"
+            >
                 <div>
-                    <label className="block text-sm font-mono uppercase tracking-wider mb-2">Model</label>
-                    <select 
-                        value={model} 
-                        onChange={e => setModel(e.target.value)}
+                    <label className="block text-sm font-mono uppercase tracking-wider mb-2">
+                        Model
+                    </label>
+                    <select
+                        value={model}
+                        onChange={(e) => setModel(e.target.value)}
                         className="w-full bg-mentha-beige dark:bg-mentha-dark border border-mentha-forest/20 p-3 rounded focus:outline-none focus:border-mentha-mint font-sans"
                     >
                         <option value="google/gemini-2.5-flash">Gemini 2.5 Flash</option>
@@ -47,18 +57,20 @@ export default function PlaygroundPage() {
                     </select>
                 </div>
                 <div>
-                    <label className="block text-sm font-mono uppercase tracking-wider mb-2">Prompt</label>
-                    <textarea 
-                        value={prompt} 
-                        onChange={e => setPrompt(e.target.value)}
+                    <label className="block text-sm font-mono uppercase tracking-wider mb-2">
+                        Prompt
+                    </label>
+                    <textarea
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
                         className="w-full h-40 bg-mentha-beige dark:bg-mentha-dark border border-mentha-forest/20 p-4 rounded focus:outline-none focus:border-mentha-mint font-sans"
                         placeholder="Write something to the AI..."
                         required
                     />
                 </div>
                 <div className="flex justify-end">
-                    <button 
-                        type="submit" 
+                    <button
+                        type="submit"
                         disabled={loading}
                         className="bg-mentha-mint text-mentha-dark px-8 py-3 font-mono text-sm uppercase tracking-widest rounded hover:bg-mentha-mint/90 transition-colors disabled:opacity-50 flex items-center gap-2"
                     >

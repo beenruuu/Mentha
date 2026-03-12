@@ -1,5 +1,6 @@
 import { createMiddleware } from 'hono/factory';
 import { HTTPException } from 'hono/http-exception';
+
 import { auth } from '../core/auth';
 
 export interface UserPayload {

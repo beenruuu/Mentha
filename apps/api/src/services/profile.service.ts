@@ -21,7 +21,7 @@ export interface UpdateProfileInput {
 
 export class ProfileService {
     async findByEmail(email: string): Promise<Profile | null> {
-        logger.debug('Finding profile by email', { email });
+        logger.debug({ email }, 'Finding profile by email');
 
         const data = await db.select().from(profiles).where(eq(profiles.email, email)).limit(1);
 
@@ -29,7 +29,7 @@ export class ProfileService {
     }
 
     async findById(id: string): Promise<Profile> {
-        logger.debug('Finding profile by ID', { id });
+        logger.debug({ id }, 'Finding profile by ID');
 
         const data = await db.select().from(profiles).where(eq(profiles.id, id)).limit(1);
 
@@ -41,7 +41,7 @@ export class ProfileService {
     }
 
     async create(input: CreateProfileInput): Promise<Profile> {
-        logger.info('Creating profile', { email: input.email });
+        logger.info({ email: input.email }, 'Creating profile');
 
         const existingProfile = await this.findByEmail(input.email);
         if (existingProfile) {
@@ -62,12 +62,12 @@ export class ProfileService {
             throw new Error('Failed to create profile');
         }
 
-        logger.info('Profile created successfully', { profileId: result[0].id });
+        logger.info({ profileId: result[0].id }, 'Profile created successfully');
         return result[0];
     }
 
     async validateCredentials(email: string, password: string): Promise<Profile | null> {
-        logger.debug('Validating credentials', { email });
+        logger.debug({ email }, 'Validating credentials');
 
         const profile = await this.findByEmail(email);
         if (!profile) {
@@ -83,7 +83,7 @@ export class ProfileService {
     }
 
     async update(id: string, input: UpdateProfileInput): Promise<Profile> {
-        logger.info('Updating profile', { id, updates: Object.keys(input) });
+        logger.info({ id, updates: Object.keys(input) }, 'Updating profile');
 
         const result = await db
             .update(profiles)
@@ -98,12 +98,12 @@ export class ProfileService {
             throw new NotFoundException('Profile not found');
         }
 
-        logger.info('Profile updated successfully', { profileId: id });
+        logger.info({ profileId: id }, 'Profile updated successfully');
         return result[0]!;
     }
 
     async delete(id: string): Promise<void> {
-        logger.info('Deleting profile', { id });
+        logger.info({ id }, 'Deleting profile');
 
         const result = await db.delete(profiles).where(eq(profiles.id, id)).returning();
 
@@ -111,7 +111,7 @@ export class ProfileService {
             throw new NotFoundException('Profile not found');
         }
 
-        logger.info('Profile deleted successfully', { profileId: id });
+        logger.info({ profileId: id }, 'Profile deleted successfully');
     }
 
     async emailExists(email: string): Promise<boolean> {

@@ -1,4 +1,5 @@
 import { hc } from 'hono/client';
+
 import type { AppType } from '../../api/src/app';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';

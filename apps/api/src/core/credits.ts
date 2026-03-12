@@ -1,6 +1,7 @@
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
+
 import { db } from '../db';
-import { profiles, creditTransactions } from '../db/schema/core';
+import { creditTransactions, profiles } from '../db/schema/core';
 import { logger } from './logger';
 
 export const CreditService = {
@@ -15,7 +16,7 @@ export const CreditService = {
             })
             .from(profiles)
             .where(eq(profiles.id, userId));
-        
+
         return profile || { daily_quota: 0, credit_balance: 0 };
     },
 
@@ -23,7 +24,12 @@ export const CreditService = {
      * Deduct credits from user. Prioritizes daily quota, then permanent balance.
      * Returns true if successful, false if insufficient funds.
      */
-    deductCredits: async (userId: string, amount: number, description: string, metadata: any = {}) => {
+    deductCredits: async (
+        userId: string,
+        amount: number,
+        description: string,
+        metadata: any = {},
+    ) => {
         return await db.transaction(async (tx) => {
             const [profile] = await tx
                 .select()
@@ -71,7 +77,7 @@ export const CreditService = {
                 metadata,
             });
 
-            logger.info('Credits deducted', { userId, amount, newDaily, newBalance });
+            logger.info({ userId, amount, newDaily, newBalance }, 'Credits deducted');
             return true;
         });
     },
@@ -92,5 +98,5 @@ export const CreditService = {
 
         // Default cost for unknown models
         return costs[modelId] || 5;
-    }
+    },
 };

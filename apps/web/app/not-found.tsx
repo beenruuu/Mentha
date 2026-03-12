@@ -4,21 +4,28 @@ export default function NotFound() {
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-mentha-beige dark:bg-mentha-dark p-6 text-center">
             <div className="relative mb-8">
-                <span className="font-serif text-[12rem] leading-none opacity-5 text-mentha-forest dark:text-mentha-beige select-none">404</span>
+                <span className="font-serif text-[12rem] leading-none opacity-5 text-mentha-forest dark:text-mentha-beige select-none">
+                    404
+                </span>
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <h1 className="font-serif text-4xl md:text-5xl text-mentha-forest dark:text-mentha-beige">Lost in the Shift.</h1>
+                    <h1 className="font-serif text-4xl md:text-5xl text-mentha-forest dark:text-mentha-beige">
+                        Lost in the Shift.
+                    </h1>
                 </div>
             </div>
-            
+
             <div className="max-w-md space-y-6">
-                <p className="font-mono text-xs uppercase tracking-[0.3em] text-mentha-mint">Neural path not found</p>
-                <p className="font-sans text-lg opacity-60 leading-relaxed">
-                    The intelligence you are looking for has either evolved, migrated, or never existed in this dimension.
+                <p className="font-mono text-xs uppercase tracking-[0.3em] text-mentha-mint">
+                    Neural path not found
                 </p>
-                
+                <p className="font-sans text-lg opacity-60 leading-relaxed">
+                    The intelligence you are looking for has either evolved, migrated, or never
+                    existed in this dimension.
+                </p>
+
                 <div className="pt-8">
-                    <Link 
-                        href="/dashboard" 
+                    <Link
+                        href="/dashboard"
                         className="inline-block bg-mentha-mint text-mentha-dark px-10 py-4 font-mono text-xs font-bold uppercase tracking-widest hover:bg-mentha-mint/90 transition-all rounded-full"
                     >
                         Back to Intelligence Center

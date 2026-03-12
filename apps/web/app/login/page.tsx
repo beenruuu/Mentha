@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { signIn } from '@/lib/auth-client';
 import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
+import { signIn } from '@/lib/auth-client';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -19,8 +20,8 @@ export default function LoginPage() {
         setError('');
 
         try {
-            await signIn.email({ 
-                email, 
+            await signIn.email({
+                email,
                 password,
                 fetchOptions: {
                     onSuccess: () => {
@@ -28,8 +29,8 @@ export default function LoginPage() {
                     },
                     onError: (ctx) => {
                         setError(ctx.error.message || 'Login failed');
-                    }
-                }
+                    },
+                },
             });
         } catch (err: any) {
             setError(err.message || 'Login failed');
@@ -47,13 +48,16 @@ export default function LoginPage() {
                     <div className="absolute top-[20%] right-[10%] w-64 h-64 border border-mentha-mint/30 rounded-full animate-pulse"></div>
                     <div className="absolute bottom-[10%] left-[10%] w-96 h-96 border border-mentha-mint/10 rounded-full"></div>
                 </div>
-                
+
                 <div className="relative z-10 text-center max-w-lg">
                     <h2 className="font-serif text-6xl text-mentha-beige mb-6">The Shift.</h2>
-                    <p className="font-mono text-sm text-mentha-mint uppercase tracking-widest mb-8">From Search to Answer Engines</p>
+                    <p className="font-mono text-sm text-mentha-mint uppercase tracking-widest mb-8">
+                        From Search to Answer Engines
+                    </p>
                     <div className="h-1 w-24 bg-mentha-mint mx-auto mb-12"></div>
                     <p className="text-mentha-beige/70 font-sans text-lg leading-relaxed italic">
-                        "In the world of GEO, your brand is what the AI remembers, not what the search engine ranks."
+                        "In the world of GEO, your brand is what the AI remembers, not what the
+                        search engine ranks."
                     </p>
                 </div>
             </div>
@@ -63,10 +67,16 @@ export default function LoginPage() {
                 <div className="w-full max-w-md animate-in fade-in slide-in-from-right-8 duration-700">
                     <div className="mb-12">
                         <Link href="/" className="inline-block mb-8">
-                            <span className="font-serif text-3xl text-mentha-forest dark:text-mentha-beige">Mentha<span className="text-mentha-mint">.</span></span>
+                            <span className="font-serif text-3xl text-mentha-forest dark:text-mentha-beige">
+                                Mentha<span className="text-mentha-mint">.</span>
+                            </span>
                         </Link>
-                        <h1 className="text-4xl font-serif text-mentha-forest dark:text-mentha-beige mb-2">Welcome Back.</h1>
-                        <p className="text-mentha-forest/60 dark:text-mentha-beige/60 font-mono text-xs uppercase tracking-widest">Access your AEO Intelligence Dashboard</p>
+                        <h1 className="text-4xl font-serif text-mentha-forest dark:text-mentha-beige mb-2">
+                            Welcome Back.
+                        </h1>
+                        <p className="text-mentha-forest/60 dark:text-mentha-beige/60 font-mono text-xs uppercase tracking-widest">
+                            Access your AEO Intelligence Dashboard
+                        </p>
                     </div>
 
                     {error && (
@@ -78,31 +88,35 @@ export default function LoginPage() {
 
                     <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/40 dark:text-mentha-beige/40 ml-1">Work Email</label>
-                            <input 
-                                type="email" 
-                                required 
+                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/40 dark:text-mentha-beige/40 ml-1">
+                                Work Email
+                            </label>
+                            <input
+                                type="email"
+                                required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full bg-transparent border-b border-mentha-forest/20 dark:border-mentha-beige/20 p-4 font-serif text-xl focus:outline-none focus:border-mentha-mint transition-colors text-mentha-forest dark:text-mentha-beige placeholder-mentha-forest/20 dark:placeholder-mentha-beige/20" 
+                                className="w-full bg-transparent border-b border-mentha-forest/20 dark:border-mentha-beige/20 p-4 font-serif text-xl focus:outline-none focus:border-mentha-mint transition-colors text-mentha-forest dark:text-mentha-beige placeholder-mentha-forest/20 dark:placeholder-mentha-beige/20"
                                 placeholder="name@company.com"
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/40 dark:text-mentha-beige/40 ml-1">Password</label>
-                            <input 
-                                type="password" 
-                                required 
+                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/40 dark:text-mentha-beige/40 ml-1">
+                                Password
+                            </label>
+                            <input
+                                type="password"
+                                required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-transparent border-b border-mentha-forest/20 dark:border-mentha-beige/20 p-4 font-serif text-xl focus:outline-none focus:border-mentha-mint transition-colors text-mentha-forest dark:text-mentha-beige placeholder-mentha-forest/20 dark:placeholder-mentha-beige/20" 
+                                className="w-full bg-transparent border-b border-mentha-forest/20 dark:border-mentha-beige/20 p-4 font-serif text-xl focus:outline-none focus:border-mentha-mint transition-colors text-mentha-forest dark:text-mentha-beige placeholder-mentha-forest/20 dark:placeholder-mentha-beige/20"
                                 placeholder="••••••••"
                             />
                         </div>
-                        
+
                         <div className="pt-6">
-                            <button 
-                                type="submit" 
+                            <button
+                                type="submit"
                                 disabled={loading}
                                 className="w-full bg-mentha-mint text-mentha-dark py-5 rounded-none font-mono text-sm font-bold uppercase tracking-[0.2em] hover:bg-mentha-mint/90 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                             >
@@ -113,7 +127,13 @@ export default function LoginPage() {
                     </form>
 
                     <p className="mt-12 text-center text-[10px] font-mono uppercase tracking-widest text-mentha-forest/40 dark:text-mentha-beige/40">
-                        Don't have an account? <Link href="/register" className="text-mentha-mint hover:text-mentha-mint/80 transition-colors border-b border-mentha-mint/30 pb-0.5 ml-2">Register here</Link>
+                        Don't have an account?{' '}
+                        <Link
+                            href="/register"
+                            className="text-mentha-mint hover:text-mentha-mint/80 transition-colors border-b border-mentha-mint/30 pb-0.5 ml-2"
+                        >
+                            Register here
+                        </Link>
                     </p>
                 </div>
             </div>

@@ -18,9 +18,12 @@ export const EdgeController = {
             const tenantData = await domainService.resolveTenantFromDomain(domain);
             return c.json({ data: tenantData });
         } catch (error) {
-            logger.error('Failed to resolve tenant', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to resolve tenant',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -37,9 +40,12 @@ export const EdgeController = {
             const payload = await domainService.getInjectionPayload(domain, path || '/');
             return c.json({ data: payload });
         } catch (error) {
-            logger.error('Failed to get injection payload', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to get injection payload',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -55,9 +61,12 @@ export const EdgeController = {
             const rules = await domainService.getFirewallRules(tenant_id);
             return c.json({ data: rules });
         } catch (error) {
-            logger.error('Failed to get firewall rules', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to get firewall rules',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -83,9 +92,12 @@ export const EdgeController = {
                 verification_token: domain.verification_token,
             });
         } catch (error) {
-            logger.error('Failed to verify domain', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to verify domain',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -110,9 +122,12 @@ export const EdgeController = {
                 message: 'Domain not yet verified',
             });
         } catch (error) {
-            logger.error('Failed to check verification', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to check verification',
+            );
             return handleHttpException(c, error);
         }
     },

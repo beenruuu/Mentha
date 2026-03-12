@@ -1,9 +1,10 @@
 import { Hono } from 'hono';
+
 import { BillingController } from '../controllers/billing.controller';
-import { requireAuth, attachUser } from '../middlewares/auth';
+import { requireAuth } from '../middlewares/auth';
 
 const router = new Hono()
-    .use('*', requireAuth, attachUser)
+    .use('*', requireAuth)
     .get('/transactions', BillingController.getTransactions)
     .post('/top-up', BillingController.topUp);
 

@@ -28,7 +28,7 @@ export interface ProjectFilters {
 
 export class ProjectService {
     async list(filters?: ProjectFilters): Promise<Project[]> {
-        logger.debug('Listing projects', { filters });
+        logger.debug({ filters }, 'Listing projects');
 
         let query = db.select().from(projects).orderBy(desc(projects.created_at));
 
@@ -45,7 +45,7 @@ export class ProjectService {
     }
 
     async getById(id: string): Promise<Project> {
-        logger.debug('Getting project by ID', { id });
+        logger.debug({ id }, 'Getting project by ID');
 
         const data = await db.select().from(projects).where(eq(projects.id, id)).limit(1);
 
@@ -57,11 +57,14 @@ export class ProjectService {
     }
 
     async create(input: CreateProjectInput): Promise<Project> {
-        logger.info('Creating project', {
-            name: input.name,
-            domain: input.domain,
-            userId: input.user_id,
-        });
+        logger.info(
+            {
+                name: input.name,
+                domain: input.domain,
+                userId: input.user_id,
+            },
+            'Creating project',
+        );
 
         const projectData: InsertProject = {
             name: input.name,
@@ -77,12 +80,12 @@ export class ProjectService {
             throw new Error('Failed to create project');
         }
 
-        logger.info('Project created successfully', { projectId: result[0].id });
+        logger.info({ projectId: result[0].id }, 'Project created successfully');
         return result[0];
     }
 
     async update(id: string, input: UpdateProjectInput): Promise<Project> {
-        logger.info('Updating project', { id, updates: Object.keys(input) });
+        logger.info({ id, updates: Object.keys(input) }, 'Updating project');
 
         const result = await db
             .update(projects)
@@ -97,12 +100,12 @@ export class ProjectService {
             throw new NotFoundException('Project not found');
         }
 
-        logger.info('Project updated successfully', { projectId: id });
+        logger.info({ projectId: id }, 'Project updated successfully');
         return result[0]!;
     }
 
     async delete(id: string): Promise<void> {
-        logger.info('Deleting project', { id });
+        logger.info({ id }, 'Deleting project');
 
         const result = await db.delete(projects).where(eq(projects.id, id)).returning();
 
@@ -110,7 +113,7 @@ export class ProjectService {
             throw new NotFoundException('Project not found');
         }
 
-        logger.info('Project deleted successfully', { projectId: id });
+        logger.info({ projectId: id }, 'Project deleted successfully');
     }
 
     async exists(id: string): Promise<boolean> {

@@ -1,15 +1,15 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import type React from 'react';
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 import { Header } from '@/components/layout/header';
 import { Sidebar } from '@/components/layout/sidebar';
 import { SidebarProvider, useSidebar } from '@/components/layout/sidebar-context';
 import { ProjectProvider } from '@/context/ProjectContext';
-import { cn } from '@/lib/utils';
 import { useSession } from '@/lib/auth-client';
+import { cn } from '@/lib/utils';
 
 function PlatformLayoutInner({ children }: { children: React.ReactNode }) {
     const { isCollapsed } = useSidebar();

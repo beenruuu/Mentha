@@ -34,9 +34,12 @@ export const DashboardController = {
                 },
             });
         } catch (error) {
-            logger.error('Failed to get dashboard data', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to get dashboard data',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -64,9 +67,12 @@ export const DashboardController = {
 
             return c.json({ data: keywordStats });
         } catch (error) {
-            logger.error('Failed to load keywords', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to load keywords',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -92,9 +98,12 @@ export const DashboardController = {
                 },
             });
         } catch (error) {
-            logger.error('Citation analysis failed', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Citation analysis failed',
+            );
             return handleHttpException(c, error);
         }
     },

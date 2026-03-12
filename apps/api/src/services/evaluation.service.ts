@@ -56,11 +56,14 @@ export class EvaluationService {
         const systemPrompt = this.buildSystemPrompt();
         const userPrompt = this.buildUserPrompt(request);
 
-        logger.debug('Starting LLM-as-a-Judge evaluation', {
-            brandName: request.brandName,
-            competitors: request.competitors.length,
-            responseLength: request.rawResponse.length,
-        });
+        logger.debug(
+            {
+                brandName: request.brandName,
+                competitors: request.competitors.length,
+                responseLength: request.rawResponse.length,
+            },
+            'Starting LLM-as-a-Judge evaluation',
+        );
 
         try {
             const response = await this.client.chat.completions.create({
@@ -80,29 +83,35 @@ export class EvaluationService {
             try {
                 parsed = JSON.parse(content);
             } catch {
-                logger.error('Failed to parse evaluation response as JSON', { content });
+                logger.error({ content }, 'Failed to parse evaluation response as JSON');
                 throw new Error('Invalid JSON response from evaluator');
             }
 
             const result = EvaluationResultSchema.safeParse(parsed);
 
             if (!result.success) {
-                logger.warn('Evaluation result validation failed, attempting auto-correction', {
-                    errors: result.error.flatten(),
-                });
+                logger.warn(
+                    {
+                        errors: result.error.flatten(),
+                    },
+                    'Evaluation result validation failed, attempting auto-correction',
+                );
 
                 return await this.autoCorrect(content, result.error);
             }
 
-            logger.info('Evaluation completed', {
-                sentiment: result.data.sentiment_score,
-                visibility: result.data.brand_visibility,
-                recommendation: result.data.recommendation_type,
-            });
+            logger.info(
+                {
+                    sentiment: result.data.sentiment_score,
+                    visibility: result.data.brand_visibility,
+                    recommendation: result.data.recommendation_type,
+                },
+                'Evaluation completed',
+            );
 
             return result.data;
         } catch (error) {
-            logger.error('Evaluation failed', { error: (error as Error).message });
+            logger.error({ error: (error as Error).message }, 'Evaluation failed');
             throw error;
         }
     }

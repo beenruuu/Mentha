@@ -1,9 +1,9 @@
 import type { Context } from 'hono';
 
 import { env } from '../config/env';
-import { logger } from '../core/logger';
-import { handleHttpException, BadRequestException } from '../exceptions/http';
 import { CreditService } from '../core/credits';
+import { logger } from '../core/logger';
+import { handleHttpException } from '../exceptions/http';
 
 export const OpenRouterController = {
     chatCompletions: async (c: Context): Promise<Response> => {
@@ -26,14 +26,17 @@ export const OpenRouterController = {
                 user.id,
                 cost,
                 `AI Chat Completion: ${model}`,
-                { model }
+                { model },
             );
 
             if (!hasCredits) {
-                return c.json({ 
-                    error: 'Insufficient credits', 
-                    message: 'You have exhausted your daily quota or credit balance.' 
-                }, 402) as any;
+                return c.json(
+                    {
+                        error: 'Insufficient credits',
+                        message: 'You have exhausted your daily quota or credit balance.',
+                    },
+                    402,
+                ) as any;
             }
 
             // Setup default model and other OpenRouter specific params
@@ -56,13 +59,16 @@ export const OpenRouterController = {
 
             if (!response.ok) {
                 const errorData = await response.text();
-                logger.error('OpenRouter API error', {
-                    status: response.status,
-                    data: errorData,
-                });
+                logger.error(
+                    {
+                        status: response.status,
+                        data: errorData,
+                    },
+                    'OpenRouter API error',
+                );
                 return c.json(
                     { error: 'Failed to communicate with OpenRouter', details: errorData },
-                    // @ts-ignore
+                    // @ts-expect-error
                     response.status,
                 );
             }
@@ -83,9 +89,12 @@ export const OpenRouterController = {
             const data = await response.json();
             return c.json(data);
         } catch (error) {
-            logger.error('OpenRouter controller error', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'OpenRouter controller error',
+            );
             return handleHttpException(c, error);
         }
     },

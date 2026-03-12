@@ -25,7 +25,7 @@ export const LlmsTxtController = {
                 'Cache-Control': 'public, max-age=3600',
             });
         } catch (error) {
-            logger.error('llms.txt error', { error: (error as Error).message });
+            logger.error({ error: (error as Error).message }, 'llms.txt error');
             return c.text('# Error generating llms.txt', 500);
         }
     },
@@ -39,7 +39,7 @@ export const LlmsTxtController = {
                 'Cache-Control': 'public, max-age=3600',
             });
         } catch (error) {
-            logger.error('llms.txt/full error', { error: (error as Error).message });
+            logger.error({ error: (error as Error).message }, 'llms.txt/full error');
             return c.text('# Error generating llms.txt', 500);
         }
     },

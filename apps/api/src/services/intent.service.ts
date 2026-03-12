@@ -130,7 +130,7 @@ RULES:
 3. If the query is just noise (boilerplate, footer text), mark as LOW confidence and UNKNOWN intent.
 `;
 
-        logger.debug('Starting Intent Extraction', { query, industry: context.industryName });
+        logger.debug({ query, industry: context.industryName }, 'Starting Intent Extraction');
 
         try {
             const completion = await this.client.beta.chat.completions.parse({
@@ -148,15 +148,18 @@ RULES:
                 throw new Error('Failed to parse intent extraction result');
             }
 
-            logger.info('Intent Extracted', {
-                query,
-                intent: result.primary_intent,
-                confidence: result.confidence_level,
-            });
+            logger.info(
+                {
+                    query,
+                    intent: result.primary_intent,
+                    confidence: result.confidence_level,
+                },
+                'Intent Extracted',
+            );
 
             return result;
         } catch (error) {
-            logger.error('Intent Extraction Failed', { error });
+            logger.error({ error }, 'Intent Extraction Failed');
             throw error;
         }
     }

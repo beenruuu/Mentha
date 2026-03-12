@@ -20,7 +20,7 @@ export async function testDatabaseConnection(): Promise<boolean> {
         logger.info('Database connection test passed');
         return true;
     } catch (err) {
-        logger.error('Database connection test error', { error: (err as Error).message });
+        logger.error({ error: (err as Error).message }, 'Database connection test error');
         return false;
     }
 }
@@ -30,6 +30,6 @@ export async function closeDatabaseConnection(): Promise<void> {
         await client.end();
         logger.info('Database connection closed');
     } catch (err) {
-        logger.error('Error closing database connection', { error: (err as Error).message });
+        logger.error({ error: (err as Error).message }, 'Error closing database connection');
     }
 }

@@ -62,15 +62,18 @@ export class AnalysisService {
                 })
                 .where(eq(scanResults.id, data.scanJobId));
 
-            log.info('Analysis completed', {
-                sentiment: evaluation.sentiment_score,
-                visibility: evaluation.brand_visibility,
-            });
+            log.info(
+                {
+                    sentiment: evaluation.sentiment_score,
+                    visibility: evaluation.brand_visibility,
+                },
+                'Analysis completed',
+            );
 
             return { success: true, evaluation };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            log.error('Analysis failed', { error: errorMessage });
+            log.error({ error: errorMessage }, 'Analysis failed');
             throw error;
         }
     }

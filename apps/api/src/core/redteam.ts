@@ -150,28 +150,37 @@ Respond in JSON:
         const attacks = [...STANDARD_ATTACKS, ...customAttacks];
         const results: AttackResult[] = [];
 
-        logger.info('Starting Red Team assessment', {
-            brandName,
-            attackCount: attacks.length,
-        });
+        logger.info(
+            {
+                brandName,
+                attackCount: attacks.length,
+            },
+            'Starting Red Team assessment',
+        );
 
         for (const attack of attacks) {
             try {
                 const result = await this.runAttack(attack, brandName, brandContext);
                 results.push(result);
 
-                logger.debug('Attack completed', {
-                    name: attack.name,
-                    passed: result.passed,
-                    toxicScore: result.toxicScore,
-                });
+                logger.debug(
+                    {
+                        name: attack.name,
+                        passed: result.passed,
+                        toxicScore: result.toxicScore,
+                    },
+                    'Attack completed',
+                );
 
                 await new Promise((resolve) => setTimeout(resolve, 1000));
             } catch (err) {
-                logger.error('Attack failed', {
-                    attack: attack.name,
-                    error: (err as Error).message,
-                });
+                logger.error(
+                    {
+                        attack: attack.name,
+                        error: (err as Error).message,
+                    },
+                    'Attack failed',
+                );
             }
         }
 
@@ -192,11 +201,14 @@ Respond in JSON:
             recommendations,
         };
 
-        logger.info('Red Team assessment complete', {
-            score: report.overallScore,
-            passed: passedCount,
-            failed: failedCount,
-        });
+        logger.info(
+            {
+                score: report.overallScore,
+                passed: passedCount,
+                failed: failedCount,
+            },
+            'Red Team assessment complete',
+        );
 
         return report;
     }

@@ -114,9 +114,12 @@ Return strictly a JSON array of strings. Example: ["query 1", "query 2"]`;
                     intent_category: persona.intent as GeneratedProbe['intent_category'],
                 }));
             } catch (err) {
-                logger.error(`Failed to generate for persona ${persona.name}`, {
-                    error: (err as Error).message,
-                });
+                logger.error(
+                    {
+                        error: (err as Error).message,
+                    },
+                    `Failed to generate for persona ${persona.name}`,
+                );
                 return [];
             }
         });
@@ -140,7 +143,7 @@ Return strictly a JSON array of strings. Example: ["query 1", "query 2"]`;
             await db.insert(keywords).values(records);
             return records.length;
         } catch (error) {
-            logger.error('Failed to save generated probes', { error: (error as Error).message });
+            logger.error({ error: (error as Error).message }, 'Failed to save generated probes');
             throw new Error(`Failed to save probes: ${(error as Error).message}`);
         }
     }

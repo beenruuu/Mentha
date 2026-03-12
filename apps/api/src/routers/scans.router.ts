@@ -1,10 +1,11 @@
 import { Hono } from 'hono';
 
 import { ScanController } from '../controllers/scans.controller';
-import { requireAuth, attachUser } from '../middlewares/auth';
+import { requireAuth } from '../middlewares/auth';
 
 const router = new Hono()
-    .use('*', requireAuth, attachUser)
-    .get('/', ScanController.list).get('/:id', ScanController.getById);
+    .use('*', requireAuth)
+    .get('/', ScanController.list)
+    .get('/:id', ScanController.getById);
 
 export default router;

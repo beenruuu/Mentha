@@ -90,10 +90,13 @@ export class ProbingService {
         const log = createLogger({ projectId: data.projectId });
         const { projectId, brandName, domain, goldenQueries } = data;
 
-        log.info('Starting probing run', {
-            brand: brandName,
-            queriesCount: goldenQueries.length,
-        });
+        log.info(
+            {
+                brand: brandName,
+                queriesCount: goldenQueries.length,
+            },
+            'Starting probing run',
+        );
 
         const engines: Array<'openai' | 'perplexity' | 'gemini'> = ['openai', 'perplexity'];
         const results: ProbeResult[] = [];
@@ -104,19 +107,25 @@ export class ProbingService {
                     const result = await this.probeQuery(query, engine, brandName, domain);
                     results.push(result);
 
-                    log.debug('Query probed', {
-                        query: query.substring(0, 50),
-                        engine,
-                        visible: result.visible,
-                    });
+                    log.debug(
+                        {
+                            query: query.substring(0, 50),
+                            engine,
+                            visible: result.visible,
+                        },
+                        'Query probed',
+                    );
 
                     await new Promise((resolve) => setTimeout(resolve, 1000));
                 } catch (err) {
-                    log.warn('Probe failed', {
-                        query,
-                        engine,
-                        error: (err as Error).message,
-                    });
+                    log.warn(
+                        {
+                            query,
+                            engine,
+                            error: (err as Error).message,
+                        },
+                        'Probe failed',
+                    );
                 }
             }
         }
@@ -144,11 +153,14 @@ export class ProbingService {
             rawResults: results,
         };
 
-        log.info('Probing completed', {
-            visibilityRate: `${metrics.visibilityRate}%`,
-            citationRate: `${metrics.citationRate}%`,
-            sentimentScore: metrics.sentimentScore,
-        });
+        log.info(
+            {
+                visibilityRate: `${metrics.visibilityRate}%`,
+                citationRate: `${metrics.citationRate}%`,
+                sentimentScore: metrics.sentimentScore,
+            },
+            'Probing completed',
+        );
 
         return metrics;
     }

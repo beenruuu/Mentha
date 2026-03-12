@@ -78,7 +78,7 @@ export async function incrementRateLimit(
     const allowed = current <= config.limit;
 
     if (!allowed) {
-        logger.warn('Rate limit exceeded', { userId, current, limit: config.limit });
+        logger.warn({ userId, current, limit: config.limit }, 'Rate limit exceeded');
     }
 
     return {
@@ -122,7 +122,7 @@ export async function resetRateLimit(
     const key = `${config.keyPrefix}:${userId}`;
 
     await redis.del(key);
-    logger.info('Rate limit reset', { userId, keyPrefix: config.keyPrefix });
+    logger.info({ userId, keyPrefix: config.keyPrefix }, 'Rate limit reset');
 }
 
 export async function setUserQuota(userId: string, quota: number): Promise<void> {
@@ -130,7 +130,7 @@ export async function setUserQuota(userId: string, quota: number): Promise<void>
     const key = `quota:${userId}`;
 
     await redis.set(key, quota.toString());
-    logger.info('User quota set', { userId, quota });
+    logger.info({ userId, quota }, 'User quota set');
 }
 
 export async function getUserQuota(userId: string): Promise<number> {
@@ -160,11 +160,14 @@ export function createAuthRateLimiter(maxAttempts: number = 5, windowMs: number 
             const ttl = await redis.ttl(key);
             const resetAt = new Date(Date.now() + ttl * 1000);
 
-            logger.warn('Auth rate limit exceeded', {
-                ip,
-                attempts: current,
-                resetAt: resetAt.toISOString(),
-            });
+            logger.warn(
+                {
+                    ip,
+                    attempts: current,
+                    resetAt: resetAt.toISOString(),
+                },
+                'Auth rate limit exceeded',
+            );
 
             throw new HTTPException(429, {
                 message: 'Too many authentication attempts. Please try again later.',

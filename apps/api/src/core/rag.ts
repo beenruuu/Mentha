@@ -175,7 +175,7 @@ export class RAGSimulator {
             try {
                 chunk.embedding = await this.embed(chunk.content);
             } catch (_err) {
-                logger.warn('Failed to embed chunk', { id: chunk.id });
+                logger.warn({ id: chunk.id }, 'Failed to embed chunk');
             }
         }
 
@@ -222,7 +222,7 @@ export class RAGSimulator {
             try {
                 chunk.embedding = await this.embed(chunk.content);
             } catch (_err) {
-                logger.warn('Failed to embed chunk', { id: chunk.id });
+                logger.warn({ id: chunk.id }, 'Failed to embed chunk');
             }
         }
 

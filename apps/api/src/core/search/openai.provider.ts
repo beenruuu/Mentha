@@ -47,10 +47,13 @@ export class OpenAIProvider implements ISearchProvider {
             systemPrompt += `\n\nCONTEXT: You are simulating a user located in ${geoStr}. Bias your answers and entity retrieval to be relevant for this location.`;
         }
 
-        logger.debug('OpenAI API request', {
-            model: this.defaultModel,
-            queryLength: query.length,
-        });
+        logger.debug(
+            {
+                model: this.defaultModel,
+                queryLength: query.length,
+            },
+            'OpenAI API request',
+        );
 
         try {
             const response = await this.client.chat.completions.create({
@@ -66,11 +69,14 @@ export class OpenAIProvider implements ISearchProvider {
             const latencyMs = Date.now() - startTime;
             const content = response.choices[0]?.message?.content ?? '';
 
-            logger.info('OpenAI search completed', {
-                model: response.model,
-                latencyMs,
-                tokenUsage: response.usage?.total_tokens,
-            });
+            logger.info(
+                {
+                    model: response.model,
+                    latencyMs,
+                    tokenUsage: response.usage?.total_tokens,
+                },
+                'OpenAI search completed',
+            );
 
             return {
                 content,
@@ -86,7 +92,7 @@ export class OpenAIProvider implements ISearchProvider {
                 latencyMs,
             };
         } catch (error) {
-            logger.error('OpenAI API error', { error: (error as Error).message });
+            logger.error({ error: (error as Error).message }, 'OpenAI API error');
             throw error;
         }
     }
@@ -103,9 +109,12 @@ export class OpenAIProvider implements ISearchProvider {
             await this.search('Hello', { maxTokens: 10 });
             return true;
         } catch (error) {
-            logger.error('OpenAI connection test failed', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'OpenAI connection test failed',
+            );
             return false;
         }
     }

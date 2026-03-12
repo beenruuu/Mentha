@@ -1,12 +1,12 @@
 'use client';
 
-import { Moon, Sun, LogOut, Coins } from 'lucide-react';
+import { Coins, LogOut, Moon, Sun } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession, signOut } from '@/lib/auth-client';
 
 import { useProject } from '@/context/ProjectContext';
+import { signOut, useSession } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 import { useSidebar } from './sidebar-context';
 
@@ -32,12 +32,21 @@ export function Header() {
             fetchOptions: {
                 onSuccess: () => {
                     router.push('/login');
-                }
-            }
+                },
+            },
         });
     };
 
-    const user = session?.user;
+    const user = session?.user as
+        | {
+              id: string;
+              email: string;
+              name: string;
+              image?: string | null;
+              credit_balance?: number;
+              daily_quota?: number;
+          }
+        | undefined;
 
     return (
         <header

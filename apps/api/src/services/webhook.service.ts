@@ -14,7 +14,7 @@ export interface WebhookPayload {
 
 export class WebhookService {
     async processUserWebhook(payload: WebhookPayload): Promise<void> {
-        logger.info('Processing user webhook', { type: payload.type, table: payload.table });
+        logger.info({ type: payload.type, table: payload.table }, 'Processing user webhook');
 
         if (payload.type === 'INSERT') {
             await this.createProfile(payload.record);
@@ -29,7 +29,7 @@ export class WebhookService {
         const userId = record.id as string;
         const email = record.email as string | undefined;
 
-        logger.info('Creating profile for new user', { userId, email });
+        logger.info({ userId, email }, 'Creating profile for new user');
 
         const profileData: InsertProfile = {
             id: userId,
@@ -45,7 +45,7 @@ export class WebhookService {
             throw new Error('Failed to create profile');
         }
 
-        logger.info('Profile created successfully', { userId });
+        logger.info({ userId }, 'Profile created successfully');
         return result[0];
     }
 
@@ -53,7 +53,7 @@ export class WebhookService {
         const userId = record.id as string;
         const email = record.email as string | undefined;
 
-        logger.info('Updating profile', { userId });
+        logger.info({ userId }, 'Updating profile');
 
         const result = await db
             .update(profiles)
@@ -65,18 +65,18 @@ export class WebhookService {
             .returning();
 
         if (result.length === 0) {
-            logger.warn('Profile not found for update, creating new one', { userId });
+            logger.warn({ userId }, 'Profile not found for update, creating new one');
             return await this.createProfile(record);
         }
 
-        logger.info('Profile updated successfully', { userId });
+        logger.info({ userId }, 'Profile updated successfully');
         return result[0]!;
     }
 
     async deleteProfile(record: Record<string, unknown>): Promise<void> {
         const userId = record.id as string;
 
-        logger.info('User deleted, profile will cascade', { userId });
+        logger.info({ userId }, 'User deleted, profile will cascade');
     }
 }
 

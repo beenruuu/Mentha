@@ -20,9 +20,12 @@ export const KeywordController = {
                 pagination: { total: data.length, page: 1, limit: 50 },
             });
         } catch (error) {
-            logger.error('Failed to list keywords', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to list keywords',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -42,9 +45,12 @@ export const KeywordController = {
 
             return c.json({ data: keyword }, 201);
         } catch (error) {
-            logger.error('Failed to create keyword', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to create keyword',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -56,9 +62,12 @@ export const KeywordController = {
             await keywordService.delete(id);
             return c.body(null, 204);
         } catch (error) {
-            logger.error('Failed to delete keyword', {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to delete keyword',
+            );
             return handleHttpException(c, error);
         }
     },

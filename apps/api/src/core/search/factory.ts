@@ -72,9 +72,12 @@ export async function testAllProviders(): Promise<Record<ProviderType, boolean>>
             const provider = createProvider(type);
             results[type] = await provider.testConnection();
         } catch (error) {
-            logger.error(`Failed to test provider ${type}`, {
-                error: (error as Error).message,
-            });
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                `Failed to test provider ${type}`,
+            );
             results[type] = false;
         }
     }

@@ -52,7 +52,7 @@ export class EntityService {
     }
 
     async listEntities(filters?: EntityFilters): Promise<Entity[]> {
-        logger.debug('Listing entities', { filters });
+        logger.debug({ filters }, 'Listing entities');
 
         let query = db
             .select({
@@ -85,7 +85,7 @@ export class EntityService {
     }
 
     async getBySlug(slug: string): Promise<Entity> {
-        logger.debug('Getting entity by slug', { slug });
+        logger.debug({ slug }, 'Getting entity by slug');
 
         const data = await db.select().from(entities).where(eq(entities.slug, slug)).limit(1);
 
@@ -97,7 +97,7 @@ export class EntityService {
     }
 
     async create(data: InsertEntity): Promise<Entity> {
-        logger.info('Creating entity', { name: data.name, type: data.entity_type });
+        logger.info({ name: data.name, type: data.entity_type }, 'Creating entity');
 
         const result = await db.insert(entities).values(data).returning();
 
@@ -105,15 +105,18 @@ export class EntityService {
             throw new Error('Failed to create entity');
         }
 
-        logger.info('Entity created successfully', {
-            entityId: result[0].id,
-            slug: result[0].slug,
-        });
+        logger.info(
+            {
+                entityId: result[0].id,
+                slug: result[0].slug,
+            },
+            'Entity created successfully',
+        );
         return result[0];
     }
 
     async update(slug: string, data: Partial<InsertEntity>): Promise<Entity> {
-        logger.info('Updating entity', { slug, updates: Object.keys(data) });
+        logger.info({ slug, updates: Object.keys(data) }, 'Updating entity');
 
         const result = await db
             .update(entities)
@@ -128,12 +131,12 @@ export class EntityService {
             throw new NotFoundException('Entity not found');
         }
 
-        logger.info('Entity updated successfully', { slug });
+        logger.info({ slug }, 'Entity updated successfully');
         return result[0]!;
     }
 
     async delete(slug: string): Promise<void> {
-        logger.info('Deleting entity', { slug });
+        logger.info({ slug }, 'Deleting entity');
 
         const result = await db.delete(entities).where(eq(entities.slug, slug)).returning();
 
@@ -141,11 +144,11 @@ export class EntityService {
             throw new NotFoundException('Entity not found');
         }
 
-        logger.info('Entity deleted successfully', { slug });
+        logger.info({ slug }, 'Entity deleted successfully');
     }
 
     async generateJsonLd(slug: string): Promise<object> {
-        logger.debug('Generating JSON-LD for entity', { slug });
+        logger.debug({ slug }, 'Generating JSON-LD for entity');
 
         const entity = await this.getBySlug(slug);
 
@@ -192,7 +195,7 @@ export class EntityService {
             is_verified: boolean | null;
         }>
     > {
-        logger.debug('Getting claims by entity', { entityId });
+        logger.debug({ entityId }, 'Getting claims by entity');
 
         const data = await db
             .select({
@@ -217,7 +220,7 @@ export class EntityService {
             category: string | null;
         }>
     > {
-        logger.debug('Getting FAQs by entity', { entityId });
+        logger.debug({ entityId }, 'Getting FAQs by entity');
 
         const data = await db
             .select({
@@ -233,7 +236,7 @@ export class EntityService {
     }
 
     async listClaims(entitySlug: string): Promise<Claim[]> {
-        logger.debug('Listing claims for entity', { entitySlug });
+        logger.debug({ entitySlug }, 'Listing claims for entity');
 
         const entity = await this.getBySlug(entitySlug);
 
@@ -247,7 +250,7 @@ export class EntityService {
     }
 
     async addClaim(entitySlug: string, claimData: Omit<InsertClaim, 'entity_id'>): Promise<Claim> {
-        logger.info('Adding claim to entity', { entitySlug, claimType: claimData.claim_type });
+        logger.info({ entitySlug, claimType: claimData.claim_type }, 'Adding claim to entity');
 
         const entity = await this.getBySlug(entitySlug);
 
@@ -263,12 +266,12 @@ export class EntityService {
             throw new Error('Failed to create claim');
         }
 
-        logger.info('Claim created successfully', { claimId: result[0].id });
+        logger.info({ claimId: result[0].id }, 'Claim created successfully');
         return result[0];
     }
 
     async listFaqs(entitySlug: string): Promise<FaqVector[]> {
-        logger.debug('Listing FAQs for entity', { entitySlug });
+        logger.debug({ entitySlug }, 'Listing FAQs for entity');
 
         const entity = await this.getBySlug(entitySlug);
 
@@ -285,7 +288,7 @@ export class EntityService {
         entitySlug: string,
         faqData: Omit<InsertFaqVector, 'entity_id'>,
     ): Promise<FaqVector> {
-        logger.info('Adding FAQ to entity', { entitySlug, question: faqData.question });
+        logger.info({ entitySlug, question: faqData.question }, 'Adding FAQ to entity');
 
         const entity = await this.getBySlug(entitySlug);
 
@@ -301,12 +304,12 @@ export class EntityService {
             throw new Error('Failed to create FAQ');
         }
 
-        logger.info('FAQ created successfully', { faqId: result[0].id });
+        logger.info({ faqId: result[0].id }, 'FAQ created successfully');
         return result[0];
     }
 
     async getPrimaryEntity(tenantId?: string): Promise<Entity | null> {
-        logger.debug('Getting primary entity', { tenantId });
+        logger.debug({ tenantId }, 'Getting primary entity');
 
         const conditions = tenantId
             ? and(eq(entities.is_primary, true), eq(entities.tenant_id, tenantId))

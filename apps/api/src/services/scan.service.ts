@@ -1,12 +1,12 @@
 import { desc, eq } from 'drizzle-orm';
 
+import { env } from '../config/env';
+import { CreditService } from '../core/credits';
 import { createLogger, logger } from '../core/logger';
 import { db } from '../db';
 import { keywords, projects, scanJobs, scanResults } from '../db/schema/core';
 import type { ScanResult } from '../db/types';
-import { NotFoundException, UnauthorizedException } from '../exceptions/http';
-import { CreditService } from '../core/credits';
-import { env } from '../config/env';
+import { NotFoundException } from '../exceptions/http';
 
 export interface ScanJobData {
     jobId: string;
@@ -31,7 +31,7 @@ export class ScanService {
         const log = createLogger({ jobId: data.jobId, keywordId: data.keywordId });
         const startTime = Date.now();
 
-        log.info('Starting real scan via OpenRouter', { engine: data.engine, query: data.query });
+        log.info({ engine: data.engine, query: data.query }, 'Starting real scan via OpenRouter');
 
         try {
             // 1. Get User ID from Keyword -> Project
@@ -54,11 +54,11 @@ export class ScanService {
                 userId,
                 cost,
                 `AEO Scan: ${data.engine} for "${data.query}"`,
-                { keywordId: data.keywordId, engine: data.engine }
+                { keywordId: data.keywordId, engine: data.engine },
             );
 
             if (!hasCredits) {
-                log.warn('Insufficient credits for scan', { userId, cost });
+                log.warn({ userId, cost }, 'Insufficient credits for scan');
                 throw new Error('Insufficient credits to perform this scan');
             }
 
@@ -75,7 +75,7 @@ export class ScanService {
             const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${env.OPENROUTER_API_KEY}`,
+                    Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
                     'Content-Type': 'application/json',
                     'HTTP-Referer': 'https://mentha.saas',
                     'X-Title': 'Mentha AEO Platform',
@@ -85,14 +85,14 @@ export class ScanService {
                     messages: [
                         {
                             role: 'system',
-                            content: `You are an AEO (Answer Engine Optimization) analyzer. Analyze the visibility of the brand "${data.brand}" compared to competitors: ${data.competitors.join(', ')}. Provide a detailed analysis including sentiment and visibility score.`
+                            content: `You are an AEO (Answer Engine Optimization) analyzer. Analyze the visibility of the brand "${data.brand}" compared to competitors: ${data.competitors.join(', ')}. Provide a detailed analysis including sentiment and visibility score.`,
                         },
                         {
                             role: 'user',
-                            content: data.query
-                        }
+                            content: data.query,
+                        },
                     ],
-                    response_format: { type: 'json_object' }
+                    response_format: { type: 'json_object' },
                 }),
             });
 
@@ -101,9 +101,9 @@ export class ScanService {
                 throw new Error(`OpenRouter API failed: ${errorText}`);
             }
 
-            const aiResponse = await response.json();
+            const aiResponse = (await response.json()) as any;
             const rawResponse = aiResponse.choices?.[0]?.message?.content || '';
-            
+
             // Try to parse JSON from AI if requested, otherwise store as raw
             let analysisJson = {};
             try {
@@ -141,12 +141,12 @@ export class ScanService {
                 })
                 .where(eq(scanJobs.id, data.jobId));
 
-            log.info('Scan completed successfully', { latencyMs, cost });
+            log.info({ latencyMs, cost }, 'Scan completed successfully');
 
             return { success: true, resultId: scanResult[0].id, latencyMs };
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-            log.error('Scan failed', { error: errorMessage });
+            log.error({ error: errorMessage }, 'Scan failed');
 
             await db
                 .update(scanJobs)
@@ -162,7 +162,7 @@ export class ScanService {
     }
 
     async listResults(filters: { projectId: string; limit?: number }): Promise<any[]> {
-        logger.debug('Listing scan results', { projectId: filters.projectId });
+        logger.debug({ projectId: filters.projectId }, 'Listing scan results');
 
         const limit = filters.limit || 20;
 

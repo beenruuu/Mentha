@@ -37,10 +37,13 @@ export const aiViewMiddleware: MiddlewareHandler<{ Variables: AIViewVariables }>
     c.set('isAIBot', isBot);
 
     if (isBot) {
-        logger.debug('AI crawler detected', {
-            userAgent: userAgent?.substring(0, 100),
-            path: c.req.path,
-        });
+        logger.debug(
+            {
+                userAgent: userAgent?.substring(0, 100),
+                path: c.req.path,
+            },
+            'AI crawler detected',
+        );
     }
 
     await next();
