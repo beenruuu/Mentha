@@ -22,7 +22,9 @@
     "next-themes": "^0.4.6",
     "react": "^18",
     "react-dom": "^18",
+    "react-markdown": "^10.1.0",
     "recharts": "^3.8.0",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.4.0",
     "text-animate": "^0.11.0"
   },
