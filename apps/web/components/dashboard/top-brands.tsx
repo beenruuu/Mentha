@@ -8,6 +8,7 @@ import { fetchFromApi } from '@/lib/api';
 
 interface TopBrand {
     name: string;
+    domain?: string;
     shareOfVoice: number;
     totalMentions: number;
 }
@@ -65,9 +66,26 @@ export function TopBrands() {
                     <div className="space-y-6">
                         {brands.map((brand, index) => (
                             <div key={brand.name} className="flex items-center">
-                                <div className="w-8 h-8 rounded bg-mentha-forest/10 dark:bg-white/10 flex items-center justify-center font-mono font-bold text-sm mr-4">
-                                    #{index + 1}
-                                </div>
+                                {brand.domain ? (
+                                    <div className="w-8 h-8 rounded-lg bg-white dark:bg-white/5 border border-mentha-forest/10 dark:border-white/10 flex items-center justify-center mr-4 overflow-hidden p-1.5 shadow-sm">
+                                        <img 
+                                            src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`}
+                                            alt={brand.name}
+                                            className="w-full h-full object-contain"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                                if (target.parentElement) {
+                                                    target.parentElement.innerHTML = `<span class="text-[10px] font-bold opacity-40">${brand.name.substring(0, 2).toUpperCase()}</span>`;
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="w-8 h-8 rounded-lg bg-mentha-forest/10 dark:bg-white/10 flex items-center justify-center font-mono font-bold text-[10px] mr-4 opacity-40">
+                                        #{index + 1}
+                                    </div>
+                                )}
                                 <div className="flex-1">
                                     <div className="flex justify-between items-center mb-1">
                                         <span className="font-semibold text-sm">{brand.name}</span>

@@ -317,7 +317,7 @@ export class DashboardService {
     async getTopBrands(
         projectId: string,
         limit: number = 10,
-    ): Promise<{ name: string; shareOfVoice: number; totalMentions: number }[]> {
+    ): Promise<{ name: string; domain?: string; shareOfVoice: number; totalMentions: number }[]> {
         logger.debug({ projectId, limit }, 'Calculating Top Brands (Aggregated SOV)');
 
         const scans = await db
@@ -329,16 +329,17 @@ export class DashboardService {
             .innerJoin(keywords, eq(scanJobs.keyword_id, keywords.id))
             .where(eq(keywords.project_id, projectId));
 
-        // Fetch project name for the main brand key
+        // Fetch project name and domain for the main brand key
         const [project] = await db
-            .select({ name: projects.name })
+            .select({ name: projects.name, domain: projects.domain })
             .from(projects)
             .where(eq(projects.id, projectId))
             .limit(1);
         const mainBrandName = project?.name || 'Your Brand';
+        const mainBrandDomain = project?.domain || '';
 
         let totalMentions = 0;
-        const brandCounts: Record<string, number> = {};
+        const brandCounts: Record<string, { count: number; domain?: string }> = {};
 
         for (const scan of scans) {
             const analysis = scan.analysis_json as any;
@@ -346,7 +347,10 @@ export class DashboardService {
 
             // 1. Count main brand
             if (analysis.brand_visibility === true) {
-                brandCounts[mainBrandName] = (brandCounts[mainBrandName] || 0) + 1;
+                if (!brandCounts[mainBrandName]) {
+                    brandCounts[mainBrandName] = { count: 0, domain: mainBrandDomain };
+                }
+                brandCounts[mainBrandName].count++;
                 totalMentions++;
             }
 
@@ -355,7 +359,12 @@ export class DashboardService {
                 for (const [comp, mentioned] of Object.entries(analysis.competitor_mentions)) {
                     if (mentioned === true) {
                         const brand = comp.trim();
-                        brandCounts[brand] = (brandCounts[brand] || 0) + 1;
+                        if (!brandCounts[brand]) {
+                            // Basic heuristic: if it contains a dot, assume it's a domain
+                            const domain = brand.includes('.') ? brand : undefined;
+                            brandCounts[brand] = { count: 0, domain };
+                        }
+                        brandCounts[brand].count++;
                         totalMentions++;
                     }
                 }
@@ -363,10 +372,11 @@ export class DashboardService {
         }
 
         const topBrands = Object.entries(brandCounts)
-            .map(([name, count]) => ({
+            .map(([name, data]) => ({
                 name,
-                totalMentions: count,
-                shareOfVoice: totalMentions > 0 ? Math.round((count / totalMentions) * 100) : 0,
+                domain: data.domain,
+                totalMentions: data.count,
+                shareOfVoice: totalMentions > 0 ? Math.round((data.count / totalMentions) * 100) : 0,
             }))
             .sort((a, b) => b.totalMentions - a.totalMentions)
             .slice(0, limit);
