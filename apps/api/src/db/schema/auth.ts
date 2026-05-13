@@ -8,10 +8,10 @@ export const user = pgTable('user', {
     image: text('image'),
     createdAt: timestamp('createdAt').notNull(),
     updatedAt: timestamp('updatedAt').notNull(),
-    role: text('role').default('user'),
-    plan: text('plan').default('free'),
-    credit_balance: integer('credit_balance').default(0),
-    daily_quota: integer('daily_quota').default(0),
+    role: text('role').default('admin'),
+    plan: text('plan').default('pro'),
+    credit_balance: integer('credit_balance').default(5000),
+    daily_quota: integer('daily_quota').default(100),
 });
 
 export const session = pgTable('session', {

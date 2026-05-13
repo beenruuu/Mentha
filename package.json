@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.15",
+    "concurrently": "^9.2.1",
     "turbo": "latest"
   },
   "packageManager": "pnpm@9.0.0",

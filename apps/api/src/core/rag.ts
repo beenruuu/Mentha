@@ -64,7 +64,7 @@ export class RAGSimulator {
             .filter((c) => c.embedding)
             .map((chunk) => ({
                 chunk,
-                score: this.cosineSimilarity(queryEmbedding, chunk.embedding!),
+                score: this.cosineSimilarity(queryEmbedding, chunk.embedding ?? []),
             }))
             .sort((a, b) => b.score - a.score);
 

@@ -41,11 +41,12 @@ export class DomainService {
 
         const result = await db.execute(sql`SELECT * FROM resolve_tenant_from_domain(${domain})`);
 
-        if (!result || result.length === 0) {
+        const rows = result as unknown as Record<string, unknown>[];
+        if (!rows || rows.length === 0) {
             throw new NotFoundException('Tenant not found for domain');
         }
 
-        return result[0] as unknown as TenantData;
+        return rows[0] as unknown as TenantData;
     }
 
     async getInjectionPayload(domain: string, path?: string): Promise<InjectionPayload> {
@@ -55,11 +56,12 @@ export class DomainService {
             sql`SELECT * FROM get_injection_payload(${domain}, ${path || '/*'})`,
         );
 
-        if (!result || result.length === 0) {
+        const rows = result as unknown as Record<string, unknown>[];
+        if (!rows || rows.length === 0) {
             throw new NotFoundException('No injection payload found');
         }
 
-        return result[0] as unknown as InjectionPayload;
+        return rows[0] as unknown as InjectionPayload;
     }
 
     async getFirewallRules(tenantId: string): Promise<AiFirewallRule[]> {

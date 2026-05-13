@@ -3,6 +3,8 @@ export interface SearchOptions {
     temperature?: number;
     timeout?: number;
     systemPrompt?: string;
+    model?: string;
+    purpose?: 'search' | 'analysis' | 'reasoning' | 'fast' | 'coding';
     geo?: {
         country?: string;
         location?: string;
@@ -35,4 +37,4 @@ export interface ISearchProvider {
     testConnection(): Promise<boolean>;
 }
 
-export type ProviderType = 'perplexity' | 'openai' | 'gemini' | 'claude';
+export type ProviderType = 'perplexity' | 'openai' | 'gemini' | 'claude' | 'openrouter';

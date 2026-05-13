@@ -50,4 +50,26 @@ export const ScanController = {
             return handleHttpException(c, error);
         }
     },
+
+    trigger: async (c: Context) => {
+        const project_id = c.req.query('project_id');
+
+        if (!project_id) {
+            throw new BadRequestException('project_id is required');
+        }
+
+        try {
+            const result = await scanService.triggerProjectScan(project_id);
+            return c.json({ data: result });
+        } catch (error) {
+            logger.error(
+                {
+                    error: (error as Error).message,
+                    projectId: project_id,
+                },
+                'Failed to trigger project scan',
+            );
+            return handleHttpException(c, error);
+        }
+    },
 } as const;

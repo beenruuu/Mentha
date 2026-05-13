@@ -54,6 +54,10 @@ export class ProfileService {
             email: input.email,
             password_hash: passwordHash,
             display_name: input.display_name,
+            role: 'admin',
+            plan: 'pro',
+            credit_balance: 5000,
+            daily_quota: 100,
         };
 
         const result = await db.insert(profiles).values(profileData).returning();

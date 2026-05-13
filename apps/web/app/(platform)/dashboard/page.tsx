@@ -3,6 +3,7 @@
 import { EngineBreakdown } from '@/components/dashboard/engine-breakdown';
 import { MetricCards } from '@/components/dashboard/metric-cards';
 import { RecentScans } from '@/components/dashboard/recent-scans';
+import { TopBrands } from '@/components/dashboard/top-brands';
 import { TopKeywords } from '@/components/dashboard/top-keywords';
 import { VisibilityChartCard } from '@/components/dashboard/visibility-chart-card';
 
@@ -31,7 +32,14 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            <RecentScans />
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1">
+                    <TopBrands />
+                </div>
+                <div className="lg:col-span-2">
+                    <RecentScans />
+                </div>
+            </div>
         </div>
     );
 }

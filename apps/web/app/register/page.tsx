@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -11,14 +11,17 @@ export default function RegisterPage() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState(false);
     const router = useRouter();
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setError('');
+        setSuccess(false);
 
         try {
             await signUp.email({
@@ -27,7 +30,10 @@ export default function RegisterPage() {
                 password,
                 fetchOptions: {
                     onSuccess: () => {
-                        router.push('/dashboard');
+                        setSuccess(true);
+                        setTimeout(() => {
+                            router.push('/onboarding');
+                        }, 2000);
                     },
                     onError: (ctx) => {
                         setError(ctx.error.message || 'Registration failed');
@@ -55,7 +61,9 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="relative z-10 text-center max-w-lg">
-                    <h2 className="font-serif text-6xl text-mentha-beige mb-6">Build Authority.</h2>
+                    <div className="font-serif text-6xl text-mentha-beige mb-6">
+                        Build Authority.
+                    </div>
                     <p className="font-mono text-sm text-mentha-mint uppercase tracking-widest mb-8">
                         Establish your neural footprint
                     </p>
@@ -91,9 +99,16 @@ export default function RegisterPage() {
                         </div>
                     )}
 
+                    {success && (
+                        <div className="bg-mentha-mint/10 border border-mentha-mint/20 text-mentha-forest dark:text-mentha-mint p-4 rounded-xl mb-8 text-sm flex items-center gap-3">
+                            <span className="w-1.5 h-1.5 rounded-full bg-mentha-mint animate-pulse"></span>
+                            Account created successfully! Redirecting...
+                        </div>
+                    )}
+
                     <form onSubmit={handleRegister} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/40 dark:text-mentha-beige/40 ml-1">
+                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1">
                                 Full Name
                             </label>
                             <input
@@ -106,7 +121,7 @@ export default function RegisterPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/40 dark:text-mentha-beige/40 ml-1">
+                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1">
                                 Work Email
                             </label>
                             <input
@@ -119,17 +134,26 @@ export default function RegisterPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/40 dark:text-mentha-beige/40 ml-1">
+                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1">
                                 Password
                             </label>
-                            <input
-                                type="password"
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-transparent border-b border-mentha-forest/20 dark:border-mentha-beige/20 p-4 font-serif text-xl focus:outline-none focus:border-mentha-mint transition-colors text-mentha-forest dark:text-mentha-beige placeholder-mentha-forest/20 dark:placeholder-mentha-beige/20"
-                                placeholder="••••••••"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full bg-transparent border-b border-mentha-forest/20 dark:border-mentha-beige/20 p-4 font-serif text-xl focus:outline-none focus:border-mentha-mint transition-colors text-mentha-forest dark:text-mentha-beige placeholder-mentha-forest/20 dark:placeholder-mentha-beige/20 pr-12"
+                                    placeholder="••••••••"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-mentha-forest/40 dark:text-mentha-beige/40 hover:text-mentha-mint transition-colors"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                         </div>
 
                         <div className="pt-6">
@@ -144,7 +168,7 @@ export default function RegisterPage() {
                         </div>
                     </form>
 
-                    <p className="mt-12 text-center text-[10px] font-mono uppercase tracking-widest text-mentha-forest/40 dark:text-mentha-beige/40">
+                    <p className="mt-12 text-center text-[10px] font-mono uppercase tracking-widest text-mentha-forest/60 dark:text-mentha-beige/60">
                         Already have an account?{' '}
                         <Link
                             href="/login"

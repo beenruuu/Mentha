@@ -17,7 +17,7 @@ export function Badge({ className, variant = 'default', children, ...props }: Ba
         brand: 'bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400',
         competitor: 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400',
         outline:
-            'bg-transparent border border-mentha-forest/20 dark:border-mentha-beige/20 text-mentha-forest/60 dark:text-mentha-beige/60',
+            'bg-transparent border border-mentha-forest/20 dark:border-mentha-beige/20 text-mentha-forest/70 dark:text-mentha-beige/70',
     };
 
     return (

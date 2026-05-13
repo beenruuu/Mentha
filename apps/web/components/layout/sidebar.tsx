@@ -1,5 +1,6 @@
 'use client';
 
+import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -87,7 +88,8 @@ const navItems = [
     },
     {
         name: 'Playground',
-        href: '/playground',
+        href: '#',
+        locked: true,
         icon: (
             <svg
                 width="18"
@@ -151,6 +153,7 @@ export function Sidebar() {
         if (href === '/dashboard') {
             return pathname === '/dashboard' || pathname === '/';
         }
+        if (href === '#') return false;
         return pathname.startsWith(href);
     };
 
@@ -168,15 +171,18 @@ export function Sidebar() {
                         isCollapsed ? 'justify-center' : 'justify-start',
                     )}
                 >
-                    <Link href="/" className="flex items-center gap-1">
-                        {!isCollapsed && (
-                            <span className="font-serif text-2xl tracking-tight text-mentha-forest dark:text-mentha-beige">
-                                Mentha<span className="text-mentha-mint text-3xl">.</span>
-                            </span>
-                        )}
-                        {isCollapsed && (
-                            <span className="font-serif text-2xl text-mentha-mint">.</span>
-                        )}
+                    <Link href="/" className="flex items-center group">
+                        <span className="font-serif text-2xl tracking-tight text-mentha-forest dark:text-mentha-beige">
+                            {isCollapsed ? (
+                                <>
+                                    M<span className="text-mentha-mint text-3xl">.</span>
+                                </>
+                            ) : (
+                                <>
+                                    Mentha<span className="text-mentha-mint text-3xl">.</span>
+                                </>
+                            )}
+                        </span>
                     </Link>
                     {/* Botón para colapsar/expandir sidebar */}
                     <button
@@ -217,23 +223,53 @@ export function Sidebar() {
                 </div>
 
                 <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={cn(
-                                'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-mono uppercase tracking-wider transition-all duration-200',
-                                isActive(item.href)
-                                    ? 'bg-mentha-mint/10 text-mentha-mint'
-                                    : 'text-mentha-forest/60 dark:text-mentha-beige/60 hover:bg-mentha-forest/5 dark:hover:bg-white/5 hover:text-mentha-forest dark:hover:text-mentha-beige',
-                                isCollapsed && 'justify-center px-0',
-                            )}
-                            title={isCollapsed ? item.name : undefined}
-                        >
-                            <span className="flex-shrink-0">{item.icon}</span>
-                            {!isCollapsed && <span>{item.name}</span>}
-                        </Link>
-                    ))}
+                    {navItems.map((item) => {
+                        const content = (
+                            <>
+                                <span className="flex-shrink-0">{item.icon}</span>
+                                {!isCollapsed && (
+                                    <div className="flex items-center justify-between flex-1">
+                                        <span>{item.name}</span>
+                                        {'locked' in item && item.locked && (
+                                            <Lock size={12} className="opacity-40" />
+                                        )}
+                                    </div>
+                                )}
+                            </>
+                        );
+
+                        const baseStyles = cn(
+                            'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-mono uppercase tracking-wider transition-all duration-200',
+                            isActive(item.href)
+                                ? 'bg-mentha-mint/10 text-mentha-mint'
+                                : 'text-mentha-forest/60 dark:text-mentha-beige/60 hover:bg-mentha-forest/5 dark:hover:bg-white/5 hover:text-mentha-forest dark:hover:text-mentha-beige',
+                            isCollapsed && 'justify-center px-0',
+                            'locked' in item && item.locked && 'opacity-50 cursor-not-allowed',
+                        );
+
+                        if ('locked' in item && item.locked) {
+                            return (
+                                <div
+                                    key={item.name}
+                                    className={baseStyles}
+                                    title={isCollapsed ? `${item.name} (Locked)` : undefined}
+                                >
+                                    {content}
+                                </div>
+                            );
+                        }
+
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={baseStyles}
+                                title={isCollapsed ? item.name : undefined}
+                            >
+                                {content}
+                            </Link>
+                        );
+                    })}
                 </nav>
 
                 <div

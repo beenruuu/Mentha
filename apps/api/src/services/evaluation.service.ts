@@ -29,6 +29,7 @@ export type EvaluationResult = z.infer<typeof EvaluationResultSchema>;
 export interface EvaluationRequest {
     rawResponse: string;
     brandName: string;
+    brandDescription?: string;
     competitors: string[];
     competitorContexts?: Record<string, string>;
     query?: string;
@@ -36,15 +37,24 @@ export interface EvaluationRequest {
 
 export class EvaluationService {
     private readonly client: OpenAI | null;
-    private readonly model = 'gpt-4o-mini';
+    private readonly model = 'openai/gpt-4o-mini';
 
     constructor() {
-        const apiKey = env.OPENAI_API_KEY;
+        const apiKey = env.OPENROUTER_API_KEY || env.OPENAI_API_KEY;
+        const isOpenRouter = apiKey?.startsWith('sk-or-');
+
         if (apiKey) {
-            this.client = new OpenAI({ apiKey });
+            this.client = new OpenAI({
+                apiKey,
+                baseURL: isOpenRouter ? 'https://openrouter.ai/api/v1' : undefined,
+                dangerouslyAllowBrowser: true,
+            });
+            logger.info(
+                `Evaluation service initialized using ${isOpenRouter ? 'OpenRouter' : 'OpenAI'}`,
+            );
         } else {
             this.client = null;
-            logger.warn('OPENAI_API_KEY not configured - evaluation service unavailable');
+            logger.warn('AI API keys not configured - evaluation service unavailable');
         }
     }
 
@@ -133,11 +143,11 @@ You MUST respond with valid JSON matching this exact schema:
 }
 
 CRITICAL - ENTITY RESOLUTION AND DISAMBIGUATION:
-- You will receive a list of "Competitors" and potentially their "Disambiguation Context".
-- You MUST distinguishing between the BRAND and common nouns (e.g. "Action" the store vs "action" the verb).
-- If a "Disambiguation Context" is provided, use it as a NEGATIVE CONSTRAINT.
-  - Example: If Context for "Action" is "Retail chain, IGNORE verbs", you must NOT count phrases like "take action" or "class action lawsuit" as a mention.
-- If the text mentions the word but NOT the specific entity described in the context, set "competitor_mentions" to FALSE for that entity.
+- You will receive a "Brand Description". Use this to determine if the text refers to the ACTUAL brand or a generic concept.
+- For example, if the brand is "Acme Corp" and the description says "Manufacturing", do NOT count "acme of perfection" as a mention.
+- You MUST distinguish between the BRAND and common nouns/adjectives.
+- If a "Disambiguation Context" is provided for competitors, use it similarly.
+- If the text mentions the name but NOT the specific entity described, set visibility to FALSE.
 
 CRITICAL - QA & HALLUCINATION CHECK:
 - HALLUCINATION: Does the content claim the brand sells products they clearly don't (based on Industry)? Or invent specific prices (e.g. "9.99€") without source? Mark "hallucination_flag": true.
@@ -164,6 +174,9 @@ Scoring Guidelines:
 
         return `Evaluate the following AI-generated response for the brand "${request.brandName}".
 
+BRAND DESCRIPTION:
+${request.brandDescription || 'Not provided'}
+
 COMPETITORS TO TRACK:
 - ${competitorList || 'None specified'}
 
@@ -174,7 +187,7 @@ RESPONSE TO ANALYZE:
 ${request.rawResponse}
 ---
 
-Provide your evaluation as JSON. Remember the Entity Resolution rules: do NOT count false positives if the context doesn't match.`;
+Provide your evaluation as JSON. Remember the Entity Resolution rules: do NOT count false positives if the context doesn't match the Brand Description.`;
     }
 
     private async autoCorrect(

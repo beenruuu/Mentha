@@ -59,10 +59,12 @@ export const DashboardController = {
             const keywordStats = metrics.map((m) => ({
                 id: m.keyword_id,
                 keyword: m.query,
+                intent: (m as any).intent,
                 lastScanned: m.last_scanned_at,
                 totalScans: m.total_scans,
                 visibilityRate: m.visibility_rate,
                 avgSentiment: m.avg_sentiment,
+                trend: (m as any).trend,
             }));
 
             return c.json({ data: keywordStats });
@@ -103,6 +105,30 @@ export const DashboardController = {
                     error: (error as Error).message,
                 },
                 'Citation analysis failed',
+            );
+            return handleHttpException(c, error);
+        }
+    },
+
+    getTopBrands: async (c: Context) => {
+        const project_id = c.req.query('project_id');
+        const limit = c.req.query('limit') || '10';
+
+        if (!project_id) {
+            throw new BadRequestException('project_id is required');
+        }
+
+        try {
+            const limitNum = parseInt(limit, 10);
+            const topBrands = await dashboardService.getTopBrands(project_id, limitNum);
+
+            return c.json({ data: topBrands });
+        } catch (error) {
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to load top brands',
             );
             return handleHttpException(c, error);
         }

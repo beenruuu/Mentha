@@ -1,3 +1,55 @@
+CREATE TABLE "account" (
+	"id" text PRIMARY KEY NOT NULL,
+	"accountId" text NOT NULL,
+	"providerId" text NOT NULL,
+	"userId" text NOT NULL,
+	"accessToken" text,
+	"refreshToken" text,
+	"idToken" text,
+	"accessTokenExpiresAt" timestamp,
+	"refreshTokenExpiresAt" timestamp,
+	"scope" text,
+	"password" text,
+	"createdAt" timestamp NOT NULL,
+	"updatedAt" timestamp NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "session" (
+	"id" text PRIMARY KEY NOT NULL,
+	"expiresAt" timestamp NOT NULL,
+	"token" text NOT NULL,
+	"createdAt" timestamp NOT NULL,
+	"updatedAt" timestamp NOT NULL,
+	"ipAddress" text,
+	"userAgent" text,
+	"userId" text NOT NULL,
+	CONSTRAINT "session_token_unique" UNIQUE("token")
+);
+--> statement-breakpoint
+CREATE TABLE "user" (
+	"id" text PRIMARY KEY NOT NULL,
+	"name" text NOT NULL,
+	"email" text NOT NULL,
+	"emailVerified" boolean NOT NULL,
+	"image" text,
+	"createdAt" timestamp NOT NULL,
+	"updatedAt" timestamp NOT NULL,
+	"role" text DEFAULT 'user',
+	"plan" text DEFAULT 'free',
+	"credit_balance" integer DEFAULT 0,
+	"daily_quota" integer DEFAULT 0,
+	CONSTRAINT "user_email_unique" UNIQUE("email")
+);
+--> statement-breakpoint
+CREATE TABLE "verification" (
+	"id" text PRIMARY KEY NOT NULL,
+	"identifier" text NOT NULL,
+	"value" text NOT NULL,
+	"expiresAt" timestamp NOT NULL,
+	"createdAt" timestamp,
+	"updatedAt" timestamp
+);
+--> statement-breakpoint
 CREATE TABLE "citations" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"result_id" uuid NOT NULL,
@@ -8,6 +60,17 @@ CREATE TABLE "citations" (
 	"is_brand_domain" boolean DEFAULT false,
 	"is_competitor_domain" boolean DEFAULT false,
 	"created_at" timestamp with time zone DEFAULT now()
+);
+--> statement-breakpoint
+CREATE TABLE "credit_transactions" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" uuid NOT NULL,
+	"amount" integer NOT NULL,
+	"type" text NOT NULL,
+	"description" text,
+	"metadata" jsonb DEFAULT '{}'::jsonb,
+	"created_at" timestamp with time zone DEFAULT now(),
+	CONSTRAINT "type_check" CHECK (type IN ('usage', 'top-up', 'refund', 'daily_reset'))
 );
 --> statement-breakpoint
 CREATE TABLE "keywords" (
@@ -27,14 +90,19 @@ CREATE TABLE "keywords" (
 );
 --> statement-breakpoint
 CREATE TABLE "profiles" (
-	"id" uuid PRIMARY KEY NOT NULL,
-	"email" text,
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"email" text NOT NULL,
+	"password_hash" text NOT NULL,
 	"display_name" text,
+	"role" text DEFAULT 'user',
 	"plan" text DEFAULT 'free',
-	"daily_quota" integer DEFAULT 100,
+	"daily_quota" integer DEFAULT 0,
+	"credit_balance" integer DEFAULT 0,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now(),
-	CONSTRAINT "plan_check" CHECK (plan IN ('free', 'pro', 'enterprise'))
+	CONSTRAINT "profiles_email_unique" UNIQUE("email"),
+	CONSTRAINT "plan_check" CHECK (plan IN ('free', 'pro', 'enterprise')),
+	CONSTRAINT "role_check" CHECK (role IN ('user', 'admin'))
 );
 --> statement-breakpoint
 CREATE TABLE "projects" (
@@ -237,10 +305,14 @@ CREATE TABLE "tenants" (
 	CONSTRAINT "plan_check" CHECK (plan IN ('free', 'starter', 'pro', 'enterprise'))
 );
 --> statement-breakpoint
+ALTER TABLE "account" ADD CONSTRAINT "account_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "session" ADD CONSTRAINT "session_userId_user_id_fk" FOREIGN KEY ("userId") REFERENCES "public"."user"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "idx_citations_result_id" ON "citations" USING btree ("result_id");--> statement-breakpoint
 CREATE INDEX "idx_citations_domain" ON "citations" USING btree ("domain");--> statement-breakpoint
+CREATE INDEX "idx_credits_user_id" ON "credit_transactions" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "idx_keywords_project_id" ON "keywords" USING btree ("project_id");--> statement-breakpoint
 CREATE INDEX "idx_keywords_active_frequency" ON "keywords" USING btree ("is_active","scan_frequency");--> statement-breakpoint
+CREATE INDEX "idx_profiles_email" ON "profiles" USING btree ("email");--> statement-breakpoint
 CREATE INDEX "idx_projects_user_id" ON "projects" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "idx_projects_tenant" ON "projects" USING btree ("tenant_id");--> statement-breakpoint
 CREATE INDEX "idx_scan_jobs_keyword_id" ON "scan_jobs" USING btree ("keyword_id");--> statement-breakpoint

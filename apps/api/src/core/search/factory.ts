@@ -1,8 +1,5 @@
 import { logger } from '../logger';
-import { AnthropicProvider } from './anthropic.provider';
-import { GeminiProvider } from './gemini.provider';
-import { OpenAIProvider } from './openai.provider';
-import { PerplexityProvider } from './perplexity.provider';
+import { OpenRouterProvider } from './openrouter.provider';
 import type { ISearchProvider, ProviderType } from './types';
 
 /**
@@ -13,6 +10,8 @@ const providerCache = new Map<ProviderType, ISearchProvider>();
 /**
  * Factory function to create or retrieve search providers
  * Uses caching to reuse provider instances
+ * 
+ * ALL models are now routed through OpenRouter
  *
  * @param type - The provider type to create
  * @returns The search provider instance
@@ -21,29 +20,14 @@ export function createProvider(type: ProviderType): ISearchProvider {
     let provider = providerCache.get(type);
 
     if (!provider) {
-        switch (type) {
-            case 'perplexity':
-                provider = new PerplexityProvider();
-                break;
-            case 'openai':
-                provider = new OpenAIProvider();
-                break;
-            case 'gemini':
-                provider = new GeminiProvider();
-                break;
-            case 'claude':
-                provider = new AnthropicProvider();
-                break;
-            default:
-                throw new Error(`Unknown provider type: ${type}`);
-        }
+        // Redirect ALL providers to OpenRouter
+        provider = new OpenRouterProvider();
+        
+        // Ensure the provider knows its original requested type to pick the right model
+        Object.defineProperty(provider, 'name', { value: type });
 
         providerCache.set(type, provider);
-        logger.debug(`Created provider: ${type}`);
-    }
-
-    if (!provider) {
-        throw new Error(`Failed to create provider: ${type}`);
+        logger.debug(`Created OpenRouter proxy for provider: ${type}`);
     }
 
     return provider;
@@ -53,7 +37,7 @@ export function createProvider(type: ProviderType): ISearchProvider {
  * Get all available providers
  */
 export function getAvailableProviders(): ProviderType[] {
-    return ['perplexity', 'openai', 'gemini', 'claude'];
+    return ['perplexity', 'openai', 'gemini', 'claude', 'openrouter'];
 }
 
 /**
@@ -65,6 +49,7 @@ export async function testAllProviders(): Promise<Record<ProviderType, boolean>>
         openai: false,
         gemini: false,
         claude: false,
+        openrouter: false,
     };
 
     for (const type of getAvailableProviders()) {

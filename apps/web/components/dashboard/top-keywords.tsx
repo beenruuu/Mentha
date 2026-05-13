@@ -19,6 +19,7 @@ import { fetchFromApi } from '@/lib/api';
 interface KeywordData {
     id: string;
     keyword: string;
+    intent: string;
     lastScanned: string;
     totalScans: number;
     visibilityRate: number;
@@ -85,6 +86,7 @@ export function TopKeywords() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Keyword</TableHead>
+                                <TableHead>Intent</TableHead>
                                 <TableHead>Visibility</TableHead>
                                 <TableHead>Scans</TableHead>
                             </TableRow>
@@ -95,12 +97,20 @@ export function TopKeywords() {
                                     <TableCell className="font-serif">{kw.keyword}</TableCell>
                                     <TableCell>
                                         <Badge
+                                            variant="outline"
+                                            className="text-[10px] uppercase font-mono py-0 opacity-70"
+                                        >
+                                            {kw.intent || 'Info'}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
                                             variant={kw.visibilityRate > 50 ? 'success' : 'default'}
                                         >
                                             {kw.visibilityRate}%
                                         </Badge>
                                     </TableCell>
-                                    <TableCell className="font-mono text-xs text-mentha-forest/50 dark:text-mentha-beige/50">
+                                    <TableCell className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70">
                                         {kw.totalScans}
                                     </TableCell>
                                 </TableRow>

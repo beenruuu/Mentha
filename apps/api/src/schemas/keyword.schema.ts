@@ -7,7 +7,7 @@ export const createKeywordSchema = z.object({
         .enum(['informational', 'transactional', 'navigational', 'commercial'])
         .default('informational'),
     scan_frequency: z.enum(['daily', 'weekly', 'manual']).default('weekly'),
-    engines: z.array(z.enum(['perplexity', 'openai', 'gemini'])).default(['perplexity']),
+    engines: z.array(z.enum(['perplexity', 'openai', 'gemini', 'claude'])).default(['perplexity']),
 });
 
 export const updateKeywordSchema = createKeywordSchema.partial();

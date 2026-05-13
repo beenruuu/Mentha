@@ -15,23 +15,24 @@ export const auth = betterAuth({
     },
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
+    trustedOrigins: ['http://localhost:3000'],
     user: {
         additionalFields: {
             role: {
                 type: 'string',
-                defaultValue: 'user',
+                defaultValue: 'admin',
             },
             plan: {
                 type: 'string',
-                defaultValue: 'free',
+                defaultValue: 'pro',
             },
             credit_balance: {
                 type: 'number',
-                defaultValue: 0,
+                defaultValue: 5000,
             },
             daily_quota: {
                 type: 'number',
-                defaultValue: 0,
+                defaultValue: 100,
             },
         },
     },

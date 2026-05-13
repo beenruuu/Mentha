@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Instrument+Serif&amp;display=swap');
+      .text { 
+        font-family: 'Instrument Serif', 'Times New Roman', serif; 
+        font-size: 28px; 
+        fill: #0A1A12; 
+      }
+      .dot { 
+        fill: #73D29B; 
+      }
+      @media (prefers-color-scheme: dark) {
+        .text { fill: #F7F5F0; }
+      }
+    </style>
+  </defs>
+  <text x="50%" y="58%" dominant-baseline="central" text-anchor="middle" class="text">M<tspan class="dot">.</tspan></text>
+</svg>

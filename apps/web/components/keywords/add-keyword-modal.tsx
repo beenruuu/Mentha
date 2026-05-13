@@ -3,8 +3,10 @@
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { EngineIcon } from '@/components/ui/engine-icon';
 import { useProject } from '@/context/ProjectContext';
 import { fetchFromApi } from '@/lib/api';
+import { getEngineDisplayName } from '@/lib/engines';
 
 interface AddKeywordModalProps {
     onClose: () => void;
@@ -16,7 +18,7 @@ export function AddKeywordModal({ onClose, onSuccess }: AddKeywordModalProps) {
     const [query, setQuery] = useState('');
     const [intent, setIntent] = useState('informational');
     const [scanFrequency, setScanFrequency] = useState('weekly');
-    const [engines, setEngines] = useState<string[]>(['perplexity']);
+    const [engines, setEngines] = useState<string[]>(['perplexity', 'openai', 'gemini', 'claude']);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -103,58 +105,60 @@ export function AddKeywordModal({ onClose, onSuccess }: AddKeywordModalProps) {
                         />
                     </div>
 
-                    <div>
-                        <label
-                            htmlFor="intent-type"
-                            className="block font-mono text-xs uppercase tracking-widest text-mentha-forest/60 dark:text-mentha-beige/60 mb-1"
-                        >
-                            Intent Type
-                        </label>
-                        <select
-                            id="intent-type"
-                            value={intent}
-                            onChange={(e) => setIntent(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-mentha-forest/10 dark:border-mentha-beige/10 bg-white dark:bg-mentha-dark/60 text-mentha-forest dark:text-mentha-beige font-sans focus:outline-none focus:ring-2 focus:ring-mentha-mint/20"
-                        >
-                            <option value="informational">Informational</option>
-                            <option value="transactional">Transactional</option>
-                            <option value="navigational">Navigational</option>
-                            <option value="commercial">Commercial</option>
-                        </select>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label
+                                htmlFor="intent-type"
+                                className="block font-mono text-[10px] uppercase tracking-widest text-mentha-forest/60 dark:text-mentha-beige/60 mb-1"
+                            >
+                                Intent
+                            </label>
+                            <select
+                                id="intent-type"
+                                value={intent}
+                                onChange={(e) => setIntent(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border border-mentha-forest/10 dark:border-mentha-beige/10 bg-white dark:bg-mentha-dark/60 text-mentha-forest dark:text-mentha-beige font-sans text-xs focus:outline-none focus:ring-2 focus:ring-mentha-mint/20"
+                            >
+                                <option value="informational">Informational</option>
+                                <option value="transactional">Transactional</option>
+                                <option value="navigational">Navigational</option>
+                                <option value="commercial">Commercial</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label
+                                htmlFor="scan-frequency"
+                                className="block font-mono text-[10px] uppercase tracking-widest text-mentha-forest/60 dark:text-mentha-beige/60 mb-1"
+                            >
+                                Frequency
+                            </label>
+                            <select
+                                id="scan-frequency"
+                                value={scanFrequency}
+                                onChange={(e) => setScanFrequency(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border border-mentha-forest/10 dark:border-mentha-beige/10 bg-white dark:bg-mentha-dark/60 text-mentha-forest dark:text-mentha-beige font-sans text-xs focus:outline-none focus:ring-2 focus:ring-mentha-mint/20"
+                            >
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="manual">Manual</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div>
-                        <label
-                            htmlFor="scan-frequency"
-                            className="block font-mono text-xs uppercase tracking-widest text-mentha-forest/60 dark:text-mentha-beige/60 mb-1"
-                        >
-                            Scan Frequency
-                        </label>
-                        <select
-                            id="scan-frequency"
-                            value={scanFrequency}
-                            onChange={(e) => setScanFrequency(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-mentha-forest/10 dark:border-mentha-beige/10 bg-white dark:bg-mentha-dark/60 text-mentha-forest dark:text-mentha-beige font-sans focus:outline-none focus:ring-2 focus:ring-mentha-mint/20"
-                        >
-                            <option value="daily">Daily</option>
-                            <option value="weekly">Weekly</option>
-                            <option value="manual">Manual Only</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <p className="font-mono text-xs uppercase tracking-widest text-mentha-forest/60 dark:text-mentha-beige/60 mb-2">
-                            Search Engines
+                    <div className="pt-2">
+                        <p className="font-mono text-[10px] uppercase tracking-widest text-mentha-forest/60 dark:text-mentha-beige/60 mb-3">
+                            Neural Engines
                         </p>
-                        <div className="flex gap-3">
-                            {['perplexity', 'openai', 'gemini'].map((engine) => (
+                        <div className="grid grid-cols-2 gap-3">
+                            {['perplexity', 'openai', 'gemini', 'claude'].map((engine) => (
                                 <label
                                     key={engine}
                                     htmlFor={`engine-${engine}`}
-                                    className={`flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer transition-colors ${
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer transition-all border ${
                                         engines.includes(engine)
-                                            ? 'bg-mentha-mint/10 text-mentha-mint border border-mentha-mint/30'
-                                            : 'bg-mentha-forest/5 dark:bg-white/5 text-mentha-forest/60 dark:text-mentha-beige/60 border border-mentha-forest/10 dark:border-mentha-beige/10'
+                                            ? 'bg-mentha-mint/10 text-mentha-mint border-mentha-mint/30 ring-1 ring-mentha-mint/20'
+                                            : 'bg-mentha-forest/5 dark:bg-white/5 text-mentha-forest/60 dark:text-mentha-beige/60 border-mentha-forest/10 dark:border-white/10 opacity-60'
                                     }`}
                                 >
                                     <input
@@ -164,7 +168,12 @@ export function AddKeywordModal({ onClose, onSuccess }: AddKeywordModalProps) {
                                         onChange={() => toggleEngine(engine)}
                                         className="sr-only"
                                     />
-                                    <span className="font-mono text-xs uppercase">{engine}</span>
+                                    <div className="flex h-5 w-5 items-center justify-center">
+                                        <EngineIcon engine={engine} size={16} />
+                                    </div>
+                                    <span className="font-mono text-[10px] uppercase tracking-wider font-bold">
+                                        {getEngineDisplayName(engine)}
+                                    </span>
                                 </label>
                             ))}
                         </div>
@@ -172,16 +181,21 @@ export function AddKeywordModal({ onClose, onSuccess }: AddKeywordModalProps) {
 
                     {error && <p className="font-sans text-sm text-red-500">{error}</p>}
 
-                    <div className="flex gap-3 pt-4">
-                        <Button type="button" variant="ghost" onClick={onClose} className="flex-1">
+                    <div className="flex gap-3 pt-6">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            onClick={onClose}
+                            className="flex-1 rounded-xl"
+                        >
                             Cancel
                         </Button>
                         <Button
                             type="submit"
                             disabled={loading || !query.trim()}
-                            className="flex-1"
+                            className="flex-1 rounded-xl"
                         >
-                            {loading ? 'Adding...' : 'Add Keyword'}
+                            {loading ? 'Processing...' : 'Add Keyword'}
                         </Button>
                     </div>
                 </form>

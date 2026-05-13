@@ -97,14 +97,14 @@ const InteractiveTeaser: React.FC = () => {
                             <h3 className="font-mono text-sm uppercase text-mentha-mint">
                                 Audit Report: {brand}
                             </h3>
-                            <span className="font-mono text-xs opacity-60">
+                            <span className="font-mono text-xs opacity-70">
                                 Generated via Gemini
                             </span>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                             <div>
-                                <p className="font-mono text-[10px] uppercase opacity-60 mb-2">
+                                <p className="font-mono text-[10px] uppercase opacity-70 mb-2">
                                     Visibility Score
                                 </p>
                                 <div className="text-4xl font-serif">
@@ -112,7 +112,7 @@ const InteractiveTeaser: React.FC = () => {
                                 </div>
                             </div>
                             <div>
-                                <p className="font-mono text-[10px] uppercase opacity-60 mb-2">
+                                <p className="font-mono text-[10px] uppercase opacity-70 mb-2">
                                     Sentiment
                                 </p>
                                 <div className="text-xl font-sans font-medium">
@@ -120,7 +120,7 @@ const InteractiveTeaser: React.FC = () => {
                                 </div>
                             </div>
                             <div>
-                                <p className="font-mono text-[10px] uppercase opacity-60 mb-2">
+                                <p className="font-mono text-[10px] uppercase opacity-70 mb-2">
                                     Top Association
                                 </p>
                                 <div className="text-xl font-serif italic text-mentha-mint">
@@ -131,7 +131,7 @@ const InteractiveTeaser: React.FC = () => {
 
                         <div className="space-y-6">
                             <div>
-                                <p className="font-mono text-[10px] uppercase opacity-60 mb-2">
+                                <p className="font-mono text-[10px] uppercase opacity-70 mb-2">
                                     Simulated LLM Response
                                 </p>
                                 <div className="font-serif text-lg leading-relaxed border-l-2 border-mentha-forest dark:border-mentha-beige pl-4 opacity-90">

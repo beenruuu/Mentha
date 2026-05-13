@@ -66,10 +66,10 @@ const TheShift: React.FC = () => {
                     <div className="space-y-12">
                         <div className="relative pl-8 border-l border-mentha-forest dark:border-mentha-beige border-opacity-30">
                             <span className="absolute -left-[5px] top-0 w-2.5 h-2.5 bg-current rounded-full opacity-30"></span>
-                            <h4 className="font-mono text-sm uppercase tracking-widest mb-2 opacity-60 line-through">
+                            <h3 className="font-mono text-sm uppercase tracking-widest mb-2 opacity-70 line-through">
                                 Search Engine (Legacy)
-                            </h4>
-                            <p className="font-sans text-xl opacity-80 leading-relaxed">
+                            </h3>
+                            <p className="font-sans text-xl opacity-90 leading-relaxed">
                                 10 blue links. Fragmentation. The user manually searches, filters,
                                 and synthesizes.
                             </p>
@@ -77,9 +77,9 @@ const TheShift: React.FC = () => {
 
                         <div className="relative pl-8 border-l-2 border-mentha-mint">
                             <span className="absolute -left-[5px] top-0 w-2.5 h-2.5 bg-mentha-mint rounded-full"></span>
-                            <h4 className="font-mono text-sm uppercase tracking-widest mb-2 text-mentha-mint">
+                            <h3 className="font-mono text-sm uppercase tracking-widest mb-2 text-mentha-mint">
                                 Answer Engine (Current)
-                            </h4>
+                            </h3>
                             <p className="font-sans text-xl font-medium leading-relaxed">
                                 A single answer. Synthesis. The AI processes authority and delivers
                                 the truth.

@@ -66,7 +66,7 @@ export function MetricCard({
         >
             <div className="flex items-start justify-between">
                 <div className="flex-1">
-                    <p className="font-mono text-xs uppercase tracking-widest text-mentha-forest/50 dark:text-mentha-beige/50 mb-2">
+                    <p className="font-mono text-xs uppercase tracking-widest text-mentha-forest/70 dark:text-mentha-beige/70 mb-2">
                         {label}
                     </p>
                     <p className="font-serif text-3xl font-light text-mentha-forest dark:text-mentha-beige">

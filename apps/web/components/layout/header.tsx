@@ -2,10 +2,10 @@
 
 import { Coins, LogOut, Moon, Sun } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 import { useProject } from '@/context/ProjectContext';
+import { useThemeSync } from '@/hooks/useThemeSync';
 import { signOut, useSession } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 import { useSidebar } from './sidebar-context';
@@ -14,17 +14,14 @@ export function Header() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { projects, selectedProject, setSelectedProjectId, isLoading } = useProject();
     const { isCollapsed } = useSidebar();
-    const { theme, setTheme } = useTheme();
-    const [mounted, setMounted] = useState(false);
+    const { theme, setTheme, mounted, isTransitioning } = useThemeSync();
     const router = useRouter();
     const { data: session } = useSession();
 
-    useEffect(() => {
-        setMounted(true);
-    }, []);
-
     const toggleTheme = () => {
-        setTheme(theme === 'light' ? 'dark' : 'light');
+        if (!isTransitioning && mounted) {
+            setTheme(theme === 'light' ? 'dark' : 'light');
+        }
     };
 
     const handleLogout = async () => {
@@ -63,6 +60,16 @@ export function Header() {
                             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
                             className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-mentha-forest/5 dark:hover:bg-white/5 transition-colors"
                         >
+                            {!isLoading && selectedProject ? (
+                                <img
+                                    src={`https://www.google.com/s2/favicons?domain=${selectedProject.domain}&sz=64`}
+                                    className="w-5 h-5 rounded-sm"
+                                    alt=""
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                    }}
+                                />
+                            ) : null}
                             <span className="font-serif text-lg text-mentha-forest dark:text-mentha-beige">
                                 {isLoading
                                     ? 'Loading...'
@@ -76,6 +83,7 @@ export function Header() {
                                 stroke="currentColor"
                                 strokeWidth="1.5"
                                 className="text-mentha-forest/60 dark:text-mentha-beige/60"
+                                aria-label="Expand project list"
                             >
                                 <path d="M3 4.5L6 7.5L9 4.5" strokeLinecap="round" />
                             </svg>
@@ -93,12 +101,20 @@ export function Header() {
                                                 setIsDropdownOpen(false);
                                             }}
                                             className={cn(
-                                                'w-full px-3 py-2 text-left rounded-xl text-sm transition-colors font-serif',
+                                                'w-full px-3 py-2 text-left rounded-xl text-sm transition-colors font-serif flex items-center gap-2',
                                                 project.id === selectedProject?.id
                                                     ? 'bg-mentha-mint/10 text-mentha-mint'
                                                     : 'hover:bg-mentha-forest/5 dark:hover:bg-white/5 text-mentha-forest dark:text-mentha-beige',
                                             )}
                                         >
+                                            <img
+                                                src={`https://www.google.com/s2/favicons?domain=${project.domain}&sz=64`}
+                                                className="w-4 h-4 rounded-sm"
+                                                alt=""
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display = 'none';
+                                                }}
+                                            />
                                             {project.name}
                                         </button>
                                     ))}

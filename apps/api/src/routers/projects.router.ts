@@ -3,12 +3,13 @@ import { Hono } from 'hono';
 
 import { ProjectController } from '../controllers/projects.controller';
 import { requireAuth } from '../middlewares/auth';
-import { createProjectSchema, updateProjectSchema } from '../schemas/project.schema';
+import { createProjectSchema, updateProjectSchema, analyzeDomainSchema } from '../schemas/project.schema';
 
 const router = new Hono()
     .use('*', requireAuth)
     .get('/', ProjectController.list)
     .post('/', zValidator('json', createProjectSchema), ProjectController.create)
+    .post('/analyze', zValidator('json', analyzeDomainSchema), ProjectController.analyzeDomain)
     .get('/:id', ProjectController.getById)
     .patch('/:id', zValidator('json', updateProjectSchema), ProjectController.update)
     .delete('/:id', ProjectController.delete);

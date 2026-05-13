@@ -67,7 +67,7 @@ export function TableHead({ className, children, ...props }: TableHeadProps) {
     return (
         <th
             className={cn(
-                'h-12 px-4 text-left align-middle font-mono text-xs uppercase tracking-widest text-mentha-forest/50 dark:text-mentha-beige/50 font-medium',
+                'h-12 px-4 text-left align-middle font-mono text-xs uppercase tracking-widest text-mentha-forest/70 dark:text-mentha-beige/70 font-medium',
                 className,
             )}
             {...props}
@@ -77,7 +77,7 @@ export function TableHead({ className, children, ...props }: TableHeadProps) {
     );
 }
 
-interface TableCellProps extends React.HTMLAttributes<HTMLTableCellElement> {}
+interface TableCellProps extends React.TdHTMLAttributes<HTMLTableCellElement> {}
 
 export function TableCell({ className, children, ...props }: TableCellProps) {
     return (

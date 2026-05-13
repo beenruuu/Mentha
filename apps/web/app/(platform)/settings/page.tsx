@@ -185,6 +185,39 @@ export default function SettingsPage() {
                         )}
                     </CardContent>
                 </Card>
+
+                <Card className="lg:col-span-2 border-red-500/20 bg-red-500/5">
+                    <CardHeader>
+                        <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                            <div>
+                                <h4 className="font-sans font-semibold text-sm">Delete Project</h4>
+                                <p className="font-sans text-xs text-mentha-forest/60 dark:text-mentha-beige/60">
+                                    Permanently remove this project and all associated scan data. This action cannot be undone.
+                                </p>
+                            </div>
+                            <button
+                                onClick={async () => {
+                                    if (!selectedProject) return;
+                                    if (confirm('Are you sure you want to delete this project? ALL scan data will be lost forever.')) {
+                                        try {
+                                            const { fetchFromApi } = await import('@/lib/api');
+                                            await fetchFromApi(`/projects/${selectedProject.id}`, { method: 'DELETE' });
+                                            window.location.href = '/dashboard';
+                                        } catch (err) {
+                                            alert('Failed to delete project');
+                                        }
+                                    }
+                                }}
+                                className="px-6 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-sans text-sm transition-colors whitespace-nowrap"
+                            >
+                                Delete Project
+                            </button>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
         </div>
     );

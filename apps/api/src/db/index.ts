@@ -1,18 +1,28 @@
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
+import { migrate } from 'drizzle-orm/postgres-js/migrator';
 import postgres from 'postgres';
 
 import { env } from '../config/env';
 import { logger } from '../core/logger';
 
-const client = postgres(env.DATABASE_URL, {
-    prepare: false,
-    max: 10,
-    idle_timeout: 20,
-    connect_timeout: 10,
-});
+const connectionString = env.DATABASE_URL || 'postgresql://postgres:password@localhost:5432/mentha';
+const queryClient = postgres(connectionString);
 
-export const db = drizzle({ client });
+export const db = drizzle(queryClient);
+
+export async function initializeDatabase(): Promise<void> {
+    try {
+        const migrationClient = postgres(connectionString, { max: 1 });
+        const migrationDb = drizzle(migrationClient);
+        await migrate(migrationDb, { migrationsFolder: './src/db/migrations' });
+        await migrationClient.end();
+        logger.info('Database initialized (PostgreSQL)');
+    } catch (err) {
+        logger.error({ error: (err as Error).message }, 'Database initialization error');
+        throw err;
+    }
+}
 
 export async function testDatabaseConnection(): Promise<boolean> {
     try {
@@ -27,9 +37,10 @@ export async function testDatabaseConnection(): Promise<boolean> {
 
 export async function closeDatabaseConnection(): Promise<void> {
     try {
-        await client.end();
+        await queryClient.end();
         logger.info('Database connection closed');
     } catch (err) {
         logger.error({ error: (err as Error).message }, 'Error closing database connection');
     }
 }
+

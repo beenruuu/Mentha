@@ -36,7 +36,7 @@ const Services: React.FC = () => {
                             <span className="font-mono text-sm border border-mentha-forest dark:border-mentha-beige px-2 py-1 rounded-none">
                                 {service.id}
                             </span>
-                            <span className="font-mono text-[10px] tracking-widest uppercase opacity-60">
+                            <span className="font-mono text-[10px] tracking-widest uppercase opacity-70">
                                 {service.metric}
                             </span>
                         </div>

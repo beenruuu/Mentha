@@ -40,7 +40,7 @@ function PlatformLayoutInner({ children }: { children: React.ReactNode }) {
             <Header />
             <main
                 className={cn(
-                    'pt-16 min-h-screen transition-all duration-300',
+                    'pt-16 min-h-screen transition-[padding-left] ease-linear duration-150',
                     isCollapsed ? 'pl-16' : 'pl-60',
                 )}
             >

@@ -11,8 +11,8 @@ const envSchema = z.object({
     PORT: z.string().default('4000').transform(Number),
     NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
-    // Database (Supabase PostgreSQL via Drizzle ORM)
-    DATABASE_URL: z.string().url(),
+    // Database (Supabase PostgreSQL via Drizzle ORM or PGlite)
+    DATABASE_URL: z.string().url().optional(),
 
     // Redis
     REDIS_URL: z.string().default('redis://localhost:6379'),

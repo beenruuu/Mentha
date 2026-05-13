@@ -44,6 +44,48 @@ export class ProjectService {
         return data;
     }
 
+    async analyzeDomain(domain: string): Promise<{name: string, description: string, keywords: string[], competitors: string[]}> {
+        logger.info({ domain }, 'Analyzing domain for onboarding');
+        
+        // Dynamic import to avoid circular dependencies if any, or just use createProvider
+        const { createProvider } = await import('../core/search/factory');
+        const provider = createProvider('openrouter');
+        
+        const prompt = `Actúa como un Auditor Técnico de Dominios y Analista SEO.
+        Analiza la marca asociada al dominio: ${domain}.
+        Devuelve un objeto JSON estrictamente con la siguiente estructura:
+        {
+          "name": "Nombre de la marca",
+          "description": "Breve descripción de lo que hacen (1-2 oraciones)",
+          "keywords": ["keyword 1", "keyword 2", "keyword 3", "keyword 4", "keyword 5"],
+          "competitors": ["Nombre de Competidor 1", "Nombre de Competidor 2"]
+        }
+        
+        IMPORTANTE PARA COMPETIDORES:
+        - Devuelve NOMBRES de marcas/empresas, NO URLs.
+        
+        IMPORTANTE PARA KEYWORDS:
+        - La primera keyword DEBE SER una pregunta directa sobre la marca (ej: "¿Qué es [Nombre de Marca]?") para asegurar un resultado positivo inicial.
+        - Las otras 4 deben ser preguntas estratégicas que sus clientes buscarían (AEO).`;
+
+        const result = await provider.search(prompt);
+        
+        try {
+            const rawContent = result.content?.replace(/```json/g, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(rawContent || '{}');
+            
+            return {
+                name: parsed.name || 'Unknown Brand',
+                description: parsed.description || 'No description available',
+                keywords: Array.isArray(parsed.keywords) ? parsed.keywords.slice(0, 5) : [],
+                competitors: Array.isArray(parsed.competitors) ? parsed.competitors.slice(0, 3) : [],
+            };
+        } catch (error) {
+            logger.error({ error: (error as Error).message, content: result.content }, 'Failed to parse LLM analysis');
+            throw new Error('Failed to analyze domain');
+        }
+    }
+
     async getById(id: string): Promise<Project> {
         logger.debug({ id }, 'Getting project by ID');
 

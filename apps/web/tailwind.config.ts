@@ -19,9 +19,9 @@ const config: Config = {
                 },
             },
             fontFamily: {
-                serif: ['"Instrument Serif"', 'serif'],
-                sans: ['"Inter"', 'sans-serif'],
-                mono: ['"Space Mono"', 'monospace'],
+                serif: ['var(--font-instrument-serif)', 'serif'],
+                sans: ['var(--font-inter)', 'sans-serif'],
+                mono: ['var(--font-space-mono)', 'monospace'],
             },
         },
     },

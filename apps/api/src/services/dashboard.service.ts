@@ -25,6 +25,10 @@ export interface TimelineEntry {
     scans: number;
     visible: number;
     sentiment: number | null;
+    perplexity: number;
+    openai: number;
+    gemini: number;
+    claude: number;
 }
 
 export interface KeywordMetrics {
@@ -34,6 +38,7 @@ export interface KeywordMetrics {
     avg_sentiment: number | null;
     visibility_rate: number;
     last_scanned_at: Date | null;
+    trend: number[];
 }
 
 export interface CitationAnalysis {
@@ -85,11 +90,14 @@ export class DashboardService {
                 byEngine[engine] = { total: 0, visible: 0, rate: 0 };
             }
             byEngine[engine]!.total++;
-            if (r.brand_visibility) byEngine[engine]!.visible++;
         }
 
         for (const engine of Object.keys(byEngine)) {
             const e = byEngine[engine]!;
+            const visible = results.filter(
+                (r) => (r.engine || 'unknown') === engine && r.brand_visibility === true,
+            ).length;
+            e.visible = visible;
             e.rate = e.total > 0 ? Math.round((e.visible / e.total) * 100) : 0;
         }
 
@@ -127,6 +135,11 @@ export class DashboardService {
                 .filter((r) => r.sentiment_score != null)
                 .map((r) => r.sentiment_score as number);
 
+            const pResults = dayResults.filter(r => r.engine === 'perplexity');
+            const oResults = dayResults.filter(r => r.engine === 'openai');
+            const gResults = dayResults.filter(r => r.engine === 'gemini');
+            const cResults = dayResults.filter(r => r.engine === 'claude');
+
             timeline.push({
                 date: dateStr,
                 scans: dayResults.length,
@@ -138,6 +151,10 @@ export class DashboardService {
                                   100,
                           ) / 100
                         : null,
+                perplexity: pResults.length > 0 ? Math.round((pResults.filter(r => r.brand_visibility).length / pResults.length) * 100) : 0,
+                openai: oResults.length > 0 ? Math.round((oResults.filter(r => r.brand_visibility).length / oResults.length) * 100) : 0,
+                gemini: gResults.length > 0 ? Math.round((gResults.filter(r => r.brand_visibility).length / gResults.length) * 100) : 0,
+                claude: cResults.length > 0 ? Math.round((cResults.filter(r => r.brand_visibility).length / cResults.length) * 100) : 0,
             });
         }
 
@@ -159,6 +176,7 @@ export class DashboardService {
             .select({
                 keyword_id: keywords.id,
                 query: keywords.query,
+                intent: keywords.intent,
                 last_scanned_at: keywords.last_scanned_at,
             })
             .from(keywords)
@@ -173,10 +191,13 @@ export class DashboardService {
                 .select({
                     sentiment_score: scanResults.sentiment_score,
                     brand_visibility: scanResults.brand_visibility,
+                    created_at: scanResults.created_at,
                 })
                 .from(scanResults)
                 .innerJoin(scanJobs, eq(scanResults.job_id, scanJobs.id))
-                .where(eq(scanJobs.keyword_id, kw.keyword_id));
+                .where(eq(scanJobs.keyword_id, kw.keyword_id))
+                .orderBy(desc(scanResults.created_at))
+                .limit(10); // Last 10 results for trend
 
             const totalScans = results.length;
             const visibleScans = results.filter((r) => r.brand_visibility === true).length;
@@ -192,15 +213,21 @@ export class DashboardService {
                           (sentiments.reduce((a, b) => a + b, 0) / sentiments.length) * 100,
                       ) / 100
                     : null;
+                    
+            const trend = results
+                .reverse() // Oldest first for chart
+                .map(r => r.brand_visibility ? 100 : 0);
 
             metrics.push({
                 keyword_id: kw.keyword_id,
                 query: kw.query,
+                intent: kw.intent,
                 total_scans: totalScans,
                 avg_sentiment: avgSentiment,
                 visibility_rate: visibilityRate,
                 last_scanned_at: kw.last_scanned_at,
-            });
+                trend,
+            } as any);
         }
 
         return metrics;
@@ -257,6 +284,59 @@ export class DashboardService {
             topDomains,
             raw: data,
         };
+    }
+
+    async getTopBrands(projectId: string, limit: number = 10): Promise<{ name: string; shareOfVoice: number; totalMentions: number }[]> {
+        logger.debug({ projectId, limit }, 'Calculating Top Brands (Aggregated SOV)');
+
+        const scans = await db
+            .select({
+                analysis_json: scanResults.analysis_json,
+            })
+            .from(scanResults)
+            .innerJoin(scanJobs, eq(scanResults.job_id, scanJobs.id))
+            .innerJoin(keywords, eq(scanJobs.keyword_id, keywords.id))
+            .where(eq(keywords.project_id, projectId));
+
+        // Fetch project name for the main brand key
+        const [project] = await db.select({ name: projects.name }).from(projects).where(eq(projects.id, projectId)).limit(1);
+        const mainBrandName = project?.name || 'Your Brand';
+
+        let totalMentions = 0;
+        const brandCounts: Record<string, number> = {};
+
+        for (const scan of scans) {
+            const analysis = scan.analysis_json as any;
+            if (!analysis) continue;
+
+            // 1. Count main brand
+            if (analysis.brand_visibility === true) {
+                brandCounts[mainBrandName] = (brandCounts[mainBrandName] || 0) + 1;
+                totalMentions++;
+            }
+
+            // 2. Count competitors from mentions map
+            if (analysis.competitor_mentions && typeof analysis.competitor_mentions === 'object') {
+                for (const [comp, mentioned] of Object.entries(analysis.competitor_mentions)) {
+                    if (mentioned === true) {
+                        const brand = comp.trim();
+                        brandCounts[brand] = (brandCounts[brand] || 0) + 1;
+                        totalMentions++;
+                    }
+                }
+            }
+        }
+
+        const topBrands = Object.entries(brandCounts)
+            .map(([name, count]) => ({
+                name,
+                totalMentions: count,
+                shareOfVoice: totalMentions > 0 ? Math.round((count / totalMentions) * 100) : 0,
+            }))
+            .sort((a, b) => b.totalMentions - a.totalMentions)
+            .slice(0, limit);
+
+        return topBrands;
     }
 }
 

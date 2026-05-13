@@ -26,6 +26,22 @@ export const ProjectController = {
         }
     },
 
+    analyzeDomain: async (c: Context) => {
+        const body = await c.req.json();
+        const { domain } = body;
+        
+        try {
+            const analysis = await projectService.analyzeDomain(domain);
+            return c.json({ data: analysis });
+        } catch (error) {
+            logger.error(
+                { error: (error as Error).message },
+                'Failed to analyze domain'
+            );
+            return handleHttpException(c, error);
+        }
+    },
+
     create: async (c: Context) => {
         const body = await c.req.json();
         const { name, domain, competitors, description } = body;

@@ -2,54 +2,82 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Tactile Noise Texture */
-.bg-noise {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 50;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+/* Force theme transition on all elements */
+html {
+    scroll-behavior: smooth;
+    color-scheme: light;
 }
 
-/* Smooth Scrolling */
-html {
-  scroll-behavior: smooth;
+html.dark {
+    color-scheme: dark;
+}
+
+/* Smooth color transitions for all elements */
+* {
+    @apply transition-colors duration-300;
+}
+
+/* But exclude elements where transitions might cause issues */
+input,
+textarea,
+select {
+    @apply transition-none;
+}
+
+/* Tactile Noise Texture */
+.bg-noise {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 50;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+    width: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: transparent;
+    background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #333;
+    background: #333;
+    border-radius: 3px;
 }
 
-/* Dark-mode scrollbar thumb (only this changes when .dark is present) */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Dark-mode scrollbar thumb */
 html.dark ::-webkit-scrollbar-thumb {
-  background: #73D29B; /* mentha.mint */
+    background: #73d29b;
 }
 
-/* Dark mode: use Mentha dark/green background and inverted text */
+html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #8ae4b5;
+}
+
+/* Dark mode color scheme */
 html.dark body,
 .dark body {
-    background: #07140B; /* mentha-dark */
-    color: #F7F5F0; /* mentha-beige */
+    background: #07140b;
+    color: #f7f5f0;
 }
 
-/* Selection colors matching the Mentha palette */
+/* Selection colors */
 ::selection {
-    background: #73D29B; /* mentha-mint */
-    color: #0A1A12; /* mentha-forest */
+    background: #73d29b;
+    color: #0a1a12;
 }
 
 html.dark ::selection {
-    background: #73D29B; /* mentha-mint */
-    color: #F7F5F0; /* mentha-beige */
+    background: #73d29b;
+    color: #f7f5f0;
 }

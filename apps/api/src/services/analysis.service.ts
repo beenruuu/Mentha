@@ -1,8 +1,11 @@
 import { eq } from 'drizzle-orm';
 
-import { scanResults } from '@/db/schema/core';
+import { scanResults, scanJobs, keywords, projects } from '@/db/schema/core';
 import { createLogger } from '../core/logger';
 import { db } from '../db';
+import { createProvider } from '@/core/search/factory';
+import { getEntityService } from './entity.service';
+import { getEvaluationService } from './evaluation.service';
 
 export interface AnalysisJobData {
     scanJobId: string;
@@ -22,6 +25,17 @@ export interface EvaluationResult {
         | 'absent';
     key_phrases: string[];
     competitor_mentions: Record<string, boolean>;
+    detected_entities?: Array<{
+        name: string;
+        type: string;
+        description: string;
+    }>;
+    extracted_claims?: Array<{
+        text: string;
+        type: string;
+        importance: number;
+    }>;
+    keyword_intent?: 'informational' | 'transactional' | 'navigational' | 'commercial';
 }
 
 export interface AnalysisServiceResult {
@@ -36,21 +50,27 @@ export class AnalysisService {
         log.info('Starting analysis');
 
         try {
-            const _evaluationPrompt = this.buildEvaluationPrompt(
-                data.rawResponse,
-                data.brand,
-                data.competitors,
-            );
+            // Fetch project description for better entity resolution
+            const [projectInfo] = await db
+                .select({ description: projects.description })
+                .from(projects)
+                .innerJoin(keywords, eq(keywords.project_id, projects.id))
+                .innerJoin(scanJobs, eq(scanJobs.keyword_id, keywords.id))
+                .innerJoin(scanResults, eq(scanResults.job_id, scanJobs.id))
+                .where(eq(scanResults.id, data.scanJobId))
+                .limit(1);
 
-            const evaluation: EvaluationResult = {
-                sentiment_score: 0.5,
-                brand_visibility: true,
-                share_of_voice_rank: 2,
-                recommendation_type: 'neutral_comparison',
-                key_phrases: ['placeholder analysis'],
-                competitor_mentions: {},
-            };
+            const evaluationSvc = getEvaluationService();
+            const evaluation = await evaluationSvc.evaluate({
+                rawResponse: data.rawResponse,
+                brandName: data.brand,
+                brandDescription: projectInfo?.description || undefined,
+                competitors: data.competitors,
+            });
 
+            // Use the structured evaluation result
+
+            // Save analysis result
             await db
                 .update(scanResults)
                 .set({
@@ -61,6 +81,52 @@ export class AnalysisService {
                     recommendation_type: evaluation.recommendation_type,
                 })
                 .where(eq(scanResults.id, data.scanJobId));
+
+            // Update keyword intent if detected
+            if (evaluation.keyword_intent) {
+                try {
+                    const [job] = await db
+                        .select({ keyword_id: scanJobs.keyword_id })
+                        .from(scanJobs)
+                        .innerJoin(scanResults, eq(scanResults.job_id, scanJobs.id))
+                        .where(eq(scanResults.id, data.scanJobId))
+                        .limit(1);
+                    
+                    if (job?.keyword_id) {
+                        await db
+                            .update(keywords)
+                            .set({ intent: evaluation.keyword_intent })
+                            .where(eq(keywords.id, job.keyword_id));
+                        log.info({ keywordId: job.keyword_id, intent: evaluation.keyword_intent }, 'Updated keyword intent');
+                    }
+                } catch (err) {
+                    log.warn({ err: (err as Error).message }, 'Failed to update keyword intent');
+                }
+            }
+
+            // Populate Knowledge Graph if entities/claims found
+            if (evaluation.detected_entities || evaluation.extracted_claims) {
+                try {
+                    const entitySvc = getEntityService();
+                    if (evaluation.detected_entities) {
+                        for (const ent of evaluation.detected_entities) {
+                            try {
+                                await entitySvc.create({
+                                    name: ent.name,
+                                    entity_type: ent.type as any,
+                                    description: ent.description,
+                                    slug: ent.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+                                    is_primary: ent.name.toLowerCase() === data.brand.toLowerCase()
+                                });
+                            } catch (err) {
+                                // Ignore duplicates or errors
+                            }
+                        }
+                    }
+                } catch (err) {
+                    log.warn({ err: (err as Error).message }, 'Failed to populate Knowledge Graph');
+                }
+            }
 
             log.info(
                 {
@@ -78,33 +144,4 @@ export class AnalysisService {
         }
     }
 
-    private buildEvaluationPrompt(
-        rawResponse: string,
-        brand: string,
-        competitors: string[],
-    ): string {
-        return `You are an expert brand reputation analyst. Evaluate the following AI-generated response for brand visibility and sentiment.
-
-TARGET BRAND: ${brand}
-COMPETITORS: ${competitors.join(', ') || 'None specified'}
-
-RESPONSE TO ANALYZE:
-${rawResponse}
-
-Provide your analysis in the following JSON format:
-{
-  "sentiment_score": <float -1.0 to 1.0>,
-  "brand_visibility": <boolean>,
-  "share_of_voice_rank": <integer or null>,
-  "recommendation_type": <"direct_recommendation" | "neutral_comparison" | "negative_mention" | "absent">,
-  "key_phrases": [<relevant quotes mentioning the brand>],
-  "competitor_mentions": {<competitor: boolean>}
-}
-
-Rules:
-- sentiment_score: -1.0 = very negative, 0 = neutral, 1.0 = very positive
-- brand_visibility: true if the brand is mentioned at all
-- share_of_voice_rank: position in any ranking/list, or null if not applicable
-- recommendation_type: how the brand is positioned in the response`;
-    }
 }

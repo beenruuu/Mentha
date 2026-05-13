@@ -1,6 +1,6 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -10,6 +10,7 @@ import { signIn } from '@/lib/auth-client';
 export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
@@ -50,7 +51,7 @@ export default function LoginPage() {
                 </div>
 
                 <div className="relative z-10 text-center max-w-lg">
-                    <h2 className="font-serif text-6xl text-mentha-beige mb-6">The Shift.</h2>
+                    <div className="font-serif text-6xl text-mentha-beige mb-6">The Shift.</div>
                     <p className="font-mono text-sm text-mentha-mint uppercase tracking-widest mb-8">
                         From Search to Answer Engines
                     </p>
@@ -88,7 +89,7 @@ export default function LoginPage() {
 
                     <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/40 dark:text-mentha-beige/40 ml-1">
+                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1">
                                 Work Email
                             </label>
                             <input
@@ -101,17 +102,26 @@ export default function LoginPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/40 dark:text-mentha-beige/40 ml-1">
+                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1">
                                 Password
                             </label>
-                            <input
-                                type="password"
-                                required
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                className="w-full bg-transparent border-b border-mentha-forest/20 dark:border-mentha-beige/20 p-4 font-serif text-xl focus:outline-none focus:border-mentha-mint transition-colors text-mentha-forest dark:text-mentha-beige placeholder-mentha-forest/20 dark:placeholder-mentha-beige/20"
-                                placeholder="••••••••"
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full bg-transparent border-b border-mentha-forest/20 dark:border-mentha-beige/20 p-4 font-serif text-xl focus:outline-none focus:border-mentha-mint transition-colors text-mentha-forest dark:text-mentha-beige placeholder-mentha-forest/20 dark:placeholder-mentha-beige/20 pr-12"
+                                    placeholder="••••••••"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-mentha-forest/40 dark:text-mentha-beige/40 hover:text-mentha-mint transition-colors"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                         </div>
 
                         <div className="pt-6">
@@ -126,7 +136,7 @@ export default function LoginPage() {
                         </div>
                     </form>
 
-                    <p className="mt-12 text-center text-[10px] font-mono uppercase tracking-widest text-mentha-forest/40 dark:text-mentha-beige/40">
+                    <p className="mt-12 text-center text-[10px] font-mono uppercase tracking-widest text-mentha-forest/60 dark:text-mentha-beige/60">
                         Don't have an account?{' '}
                         <Link
                             href="/register"

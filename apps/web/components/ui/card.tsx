@@ -41,11 +41,13 @@ export function CardHeader({ className, children, ...props }: CardHeaderProps) {
     );
 }
 
-interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {}
+interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+    as?: 'h1' | 'h2' | 'h3' | 'h4';
+}
 
-export function CardTitle({ className, children, ...props }: CardTitleProps) {
+export function CardTitle({ className, children, as: Tag = 'h3', ...props }: CardTitleProps) {
     return (
-        <h3
+        <Tag
             className={cn(
                 'font-serif text-lg font-medium text-mentha-forest dark:text-mentha-beige',
                 className,
@@ -53,7 +55,7 @@ export function CardTitle({ className, children, ...props }: CardTitleProps) {
             {...props}
         >
             {children}
-        </h3>
+        </Tag>
     );
 }
 

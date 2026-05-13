@@ -17,10 +17,10 @@ const SocialProof: React.FC = () => {
                         </p>
                     </div>
                     <div>
-                        <h2 className="font-serif text-6xl md:text-8xl leading-none opacity-20">
+                        <h2 className="font-serif text-6xl md:text-8xl leading-none opacity-40">
                             2.5M
                         </h2>
-                        <p className="font-mono text-sm mt-4 uppercase tracking-widest border-t border-mentha-forest dark:border-mentha-beige pt-4 inline-block opacity-60">
+                        <p className="font-mono text-sm mt-4 uppercase tracking-widest border-t border-mentha-forest dark:border-mentha-beige pt-4 inline-block opacity-70">
                             Generated Organic Impressions via LLMs
                         </p>
                     </div>

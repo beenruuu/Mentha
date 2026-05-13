@@ -1,21 +1,23 @@
 import { eq } from 'drizzle-orm';
 
 import { db } from '../db';
-import { creditTransactions, profiles } from '../db/schema/core';
+import { creditTransactions } from '../db/schema/core';
+import { user } from '../db/schema/auth';
 import { logger } from './logger';
 
 export const CreditService = {
     /**
      * Get user current credit status (daily quota + permanent balance)
+     * Reads from the Better Auth `user` table where credits actually live.
      */
     getUserBalance: async (userId: string) => {
         const [profile] = await db
             .select({
-                daily_quota: profiles.daily_quota,
-                credit_balance: profiles.credit_balance,
+                daily_quota: user.daily_quota,
+                credit_balance: user.credit_balance,
             })
-            .from(profiles)
-            .where(eq(profiles.id, userId));
+            .from(user)
+            .where(eq(user.id, userId));
 
         return profile || { daily_quota: 0, credit_balance: 0 };
     },
@@ -33,8 +35,8 @@ export const CreditService = {
         return await db.transaction(async (tx) => {
             const [profile] = await tx
                 .select()
-                .from(profiles)
-                .where(eq(profiles.id, userId))
+                .from(user)
+                .where(eq(user.id, userId))
                 .for('update'); // Lock row
 
             if (!profile) throw new Error('User not found');
@@ -58,15 +60,15 @@ export const CreditService = {
                 newBalance = balance - (amount - daily);
             }
 
-            // Update profile
+            // Update user
             await tx
-                .update(profiles)
+                .update(user)
                 .set({
                     daily_quota: newDaily,
                     credit_balance: newBalance,
-                    updated_at: new Date(),
+                    updatedAt: new Date(),
                 })
-                .where(eq(profiles.id, userId));
+                .where(eq(user.id, userId));
 
             // Log transaction
             await tx.insert(creditTransactions).values({

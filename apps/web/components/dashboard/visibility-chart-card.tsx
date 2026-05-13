@@ -62,7 +62,7 @@ export function VisibilityChartCard() {
                     </button>
                     <button
                         type="button"
-                        className="px-3 py-1 font-mono text-xs rounded-full text-mentha-forest/50 dark:text-mentha-beige/50 hover:bg-mentha-forest/5 dark:hover:bg-white/5 uppercase tracking-wider"
+                        className="px-3 py-1 font-mono text-xs rounded-full text-mentha-forest/70 dark:text-mentha-beige/70 hover:bg-mentha-forest/5 dark:hover:bg-white/5 uppercase tracking-wider"
                     >
                         30 Days
                     </button>

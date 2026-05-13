@@ -23,7 +23,10 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
             <div className="max-w-[1920px] mx-auto px-8 md:px-16 lg:px-24 h-20 flex items-center justify-between">
                 {/* Logo */}
                 <div className="flex-shrink-0">
-                    <a href="#" className="font-serif text-3xl tracking-tight">
+                    <a
+                        href="#"
+                        className="font-serif text-3xl tracking-tight"
+                    >
                         Mentha<span className="text-mentha-mint text-4xl">.</span>
                     </a>
                 </div>
@@ -55,7 +58,7 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
                     </button>
 
                     <a
-                        href="#audit"
+                        href="/register"
                         className={`
               px-6 py-3 font-sans text-sm font-bold tracking-wide transition-all duration-300
               ${

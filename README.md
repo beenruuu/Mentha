@@ -1,207 +1,94 @@
-# 🌿 Mentha GUI (V3.0 Enterprise)
+# 🌿 Mentha GUI (v1.0 Stable)
 
-> **The AEO/GEO Intelligence Platform** - Geo-Spatial, Agentic & Hallucination-Proof Brand Monitoring.
+> **The Professional Answer Engine Optimization (AEO) Platform.** 
+> Monitor, Analyze, and Optimize your brand visibility across the AI Search ecosystem.
 
+[![Version](https://img.shields.io/badge/Version-1.0_Stable-mentha?color=38B2AC)](https://github.com/beenruuu/mentha-gui)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-18-blue)](https://react.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38B2AC)](https://tailwindcss.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E)](https://supabase.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+[![Backend](https://img.shields.io/badge/API-Hono-FF6F00)](https://hono.dev/)
+[![Queue](https://img.shields.io/badge/Queue-BullMQ-red)](https://bullmq.io/)
+[![Database](https://img.shields.io/badge/ORM-Drizzle-C5F74F)](https://orm.drizzle.team/)
 
 ---
 
-## What is Mentha V3.0?
+## 🚀 Welcome to Mentha v1.0
+Mentha is a production-ready **Answer Engine Optimization (AEO)** platform. In a world where users ask ChatGPT and Perplexity instead of searching on Google, Mentha gives brands the tools to ensure they are being recommended accurately and positively.
 
-Mentha is an **Answer Engine Optimization (AEO)** platform designed for the AI Search era. It helps brands control their narrative in ChatGPT, Perplexity, and Google SGE by monitoring, evaluating, and optimizing their visibility deeply.
-
-**New in V3.0 (Enterprise):**
-*   🌍 **Geo-Spatial Intelligence**: Scans from specific locations (e.g., "Toys in Madrid" vs "Toys in London").
-*   🧠 **Universal Entity Resolution**: Distinguishes your brand from generic words (e.g., "Action" the store vs "action" the verb).
-*   🤖 **Agentic Fan-Out**: Uses AI Personas ("Bargain Hunter", "Skeptic", "Local Shopper") to generate natural, intent-driven searches.
-*   ⚡ **Multi-Model Support**: Native integrations for **ChatGPT (OpenAI)**, **Perplexity**, **Gemini**, and **Claude (Anthropic)**.
-*   🕵️ **Hallucination Monitor**: Automatically flags if the AI invents products, prices, or scams involving your brand.
-
----
-
-## 📚 Deep Dive: What is AEO & GEO?
-*(And why traditional SEO is dead)*
-
-### 🧠 AEO (Answer Engine Optimization)
-Is the art of optimizing your brand to appear in **ChatGPT, Claude, and Perplexity** responses. Users no longer search "best toys"; they ask "What are the safest durable toys for a 3-year-old in Madrid?". The AI synthesizes an answer. If you aren't in its training data or RAG sources, you don't exist.
-
-### 🎨 GEO (Generative Engine Optimization)
-Applies to multi-modal results (images, videos) in platforms like **Google Gemini (SGE)**. It's about convincing the AI that your content is the most authoritative source to cite.
-
-### 🛑 Does Mentha fix this 100%?
-**The Short Answer:** No tool can guarantee 100% visibility, because AI models are probabilistic non-deterministic black boxes. A model might "hallucinate" or prefer a competitor randomly.
-
-**The Mentha Answer:** We maximize your **statistical probability** of appearing by:
-1.  **Feeding the AI what it wants:** Structured Data (JSON-LD) and Knowledge Graphs.
-2.  **Monitoring Reality:** We don't guess; we scan continuously to see *exactly* what the AI is saying about you today.
-3.  **Correcting the Record:** If Claude thinks you sell "cheap plastic", Mentha guides you to inject "premium durability" facts into the sources Claude reads (E-E-A-T).
-
-### 🚀 How to Optimize (The Strategy)
-1.  **Be Explicit:** Use the **Knowledge Graph** to define your entity clearly. Ambiguity is the enemy.
-2.  **Be Local:** Use **Mentha Geo** to ensure you exist in Madrid, not just "Global".
-3.  **Be Referenced:** Getting mentioned in AI responses requires being mentioned in *trusted sources* (Reviews, News, Wikipedia). Mentha's **Share of Model** metric tells you if you are winning this battle.
+### Key Features in v1.0
+- **Universal Engine Support**: Native scanning for **Perplexity**, **ChatGPT (OpenAI)**, **Gemini**, and **Claude**.
+- **Natural Language Analysis**: Unlike basic tools, Mentha captures the exact Markdown response from AI engines for human audit.
+- **LLM-as-a-Judge**: Uses advanced models to evaluate brand visibility, sentiment, and competitor presence with high accuracy.
+- **Brand Intelligence**: Inject your brand's unique description to help the system distinguish your entity from generic terms.
+- **Enterprise Queue System**: Powered by **BullMQ** and **Redis** for reliable, parallelized scanning of thousands of keywords.
+- **Real-time Dashboard**: Instant insights into your Share of Voice (SOV) and Engine Performance.
 
 ---
 
-## Applications
+## 📁 Project Structure
+Mentha is built as a modern TypeScript monorepo using **Turborepo** and **pnpm**:
 
-Mentha consists of three applications:
-
-1. **Web Interface** (`apps/web`) - Next.js dashboard for visual analytics
-2. **API Backend** (`apps/api`) - Express.js API server with all core services
-3. **CLI Tool** (`apps/cli`) - Interactive command-line interface ⭐ NEW
-
----
-
-## Features
-
-| Category | Feature | Description |
-|----------|---------|-------------|
-| **Visual Dashboard** | **Real-Time Visibility** | Interactive charts showing Share of Model across timelines. |
-| | **Sentiment Analysis** | **[NEW]** Track AI sentiment (Positive/Negative) trend lines visually. |
-| | **Scan Logs** | Drill down into individual AI conversation logs to see exact prompts and answers. |
-| **Monitoring** | **Multi-LLM Scanning** | Query **OpenAI**, **Perplexity**, **Gemini**, and **Claude** simultaneously. |
-| | **Agentic Fan-Out** | **[NEW]** AI Personas generate 100+ variations of user queries. |
-| **Optimization** | Knowledge Graph | UI to manage entities, claims, and FAQs in structured PostgreSQL. |
-| | Authority Detail | Track which domains and sources are cited most frequently by AIs. |
+- `apps/web`: **Next.js 14** (App Router) frontend with a premium design system.
+- `apps/api`: **Hono** backend optimized for performance and type-safety.
+- `apps/cli`: **Interactive CLI** for managing projects and scans from the terminal.
+- `apps/mcp`: **Model Context Protocol** server for AI assistant integration.
+- `packages/core`: Shared types and RPC clients.
 
 ---
 
-## Quick Start
+## 🛠️ Tech Stack
+- **Frontend**: React 18, TailwindCSS, Lucide Icons, Chart.js.
+- **Backend**: Hono v4, Drizzle ORM, Zod validation.
+- **Storage**: PostgreSQL (Primary), Redis (Queues & Cache).
+- **Automation**: BullMQ for background workers.
+- **AI Integration**: OpenRouter / OpenAI SDK.
 
-### Prerequisites
-- Node.js 20+
-- Supabase account (or Docker)
-- OpenAI API Key
+---
 
-### Installation
+## 🚦 Getting Started
 
+### 1. Prerequisites
+- **Node.js** v20+
+- **pnpm** v9+
+- **PostgreSQL** & **Redis** instances.
+
+### 2. Installation
 ```bash
-# Clone the repository
+# Clone the repo
 git clone https://github.com/beenruuu/mentha-gui.git
 cd mentha-gui
 
-# Install dependencies (using Turbo or npm direct)
-cd apps/web
-npm install
+# Install dependencies
+pnpm install
 
 # Setup Environment
-cp .env.example .env.local
-# Edit .env.local with your Supabase and API keys
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env
 ```
 
-### Running
-
+### 3. Database Migration
 ```bash
-# Start the Development Server
-npm run dev
+cd apps/api
+pnpm drizzle-kit generate
+pnpm drizzle-kit migrate
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-### CLI Usage
-
-Run the interactive command-line interface:
-
+### 4. Running the Platform
 ```bash
-# From project root
-pnpm cli
-
-# Or directly
-./mentha.sh
-
-# View available commands
-pnpm cli -- --help
+# Start all services (Web, API, Workers)
+pnpm dev
 ```
-
-See [CLI Documentation](apps/cli/README.md) for detailed usage.
+Open [http://localhost:3000](http://localhost:3000) to start the onboarding flow.
 
 ---
 
-## Usage
-
-### Dashboard Mode
-
-The web interface provides a visual command center for your brand monitoring:
-
-1.  **🚀 DASHBOARD**:
-    *   **Visibility Chart**: See your brand's presence rate over the last 7/30 days.
-    *   **AI Provider Breakdown**: Compare your performance on OpenAI vs Perplexity.
-    *   **Live Scans**: Watch agents execute searches in real-time.
-
-2.  **🧠 KNOWLEDGE GRAPH**:
-    *   Manage your brand entities and structured data.
-    *   Generate and validate `schema.org` JSON-LD snippets.
-
-3.  **⭐ AUTHORITY**:
-    *   **Citation Tracker**: See exactly *where* AIs are getting their information about you.
-    *   **Competitor Analysis**: Spot which competitors are dominating specific keywords.
+## 📈 AEO Strategy with Mentha
+1. **Onboard**: Connect your domain and provide a clear brand description.
+2. **Suggest**: Let Mentha analyze your niche and suggest strategic keywords.
+3. **Scan**: Run parallel scans across multiple AI engines.
+4. **Analyze**: Identify why competitors are being cited and where you are missing.
+5. **Optimize**: Use the insights to update your site's E-E-A-T and Knowledge Graph.
 
 ---
 
-## Architecture
-
-```
-                    ┌─────────────────┐
-                    │  Next.js GUI    │
-                    │ (Browser / App) │
-                    └────────┬────────┘
-                             │
-         ┌───────────────────┼───────────────────┐
-         ▼                   ▼                   ▼
-  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-  │   API       │    │  Knowledge  │    │   Agent     │
-  │   Routes    │    │    Graph    │    │ Orchestrator│
-  └──────┬──────┘    └──────┬──────┘    └──────┬──────┘
-         │                  │                  │
-         └──────────────────┼──────────────────┘
-                            ▼
-                   ┌─────────────────┐
-                   │   PostgreSQL    │
-                   │   (Supabase)    │
-                   └─────────────────┘
-                            ▲
-                            │
-                   ┌────────┴─────────┐
-                   │   CLI Tool       │
-                   │  (Terminal UI)   │
-                   └──────────────────┘
-```
-
-## Contributing
-
-### Development Setup
-
-```bash
-# Install dependencies
-npm install
-
-# Run in development mode
-npm run dev
-
-# Run linting
-npm run lint
-```
-
-### Code Style
-
-- **Framework**: Next.js 14 (App Router)
-- **Styling**: Tailwind CSS + CSS Modules for custom animations
-- **Charts**: Chart.js for data visualization
-- **State**: React Context + Hooks
-
----
-
-## License
-
-MIT License - see [LICENSE](LICENSE) for details.
-
----
-
-<p align="center">
-  Built with 🌿 by the Mentha team
-</p>
+## 📄 License
+MIT License. Built with 🌿 for the future of search.

@@ -1,13 +1,41 @@
 import './globals.css';
 
 import type { Metadata } from 'next';
+import { Instrument_Serif, Inter, Space_Mono } from 'next/font/google';
 
 import { ThemeProvider } from '@/components/ThemeProvider';
+import { ThemeSync } from '@/components/ThemeSync';
+
+const instrumentSerif = Instrument_Serif({
+    weight: ['400'],
+    style: ['normal', 'italic'],
+    subsets: ['latin'],
+    display: 'swap',
+    variable: '--font-instrument-serif',
+});
+
+const inter = Inter({
+    weight: ['300', '400', '500', '600'],
+    subsets: ['latin'],
+    display: 'swap',
+    variable: '--font-inter',
+});
+
+const spaceMono = Space_Mono({
+    weight: ['400', '700'],
+    style: ['normal', 'italic'],
+    subsets: ['latin'],
+    display: 'swap',
+    variable: '--font-space-mono',
+});
 
 export const metadata: Metadata = {
     title: 'Mentha | AEO & GEO Agency',
     description:
         "Master Answer Engine Optimization (AEO) with Mentha. Understand your brand's visibility in AI-generated answers, LLMs, and the future of search.",
+    icons: {
+        icon: '/favicon.svg',
+    },
     keywords: [
         'AEO',
         'Answer Engine Optimization',
@@ -21,7 +49,7 @@ export const metadata: Metadata = {
         title: 'Mentha | AEO & GEO Agency',
         description:
             'The platform for tracking and optimizing your presence in the age of AI search.',
-        url: 'https://mentha.ai', // Placeholder, change to real domain if known
+        url: 'https://mentha.ai',
         siteName: 'Mentha',
         images: [
             {
@@ -54,24 +82,37 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
-                <link rel="preconnect" href="https://fonts.googleapis.com" />
-                <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-                <link
-                    href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap"
-                    rel="stylesheet"
+                <script
+                    dangerouslySetInnerHTML={{
+                        __html: `
+                            try {
+                                const theme = localStorage.getItem('mentha_theme') || 'light';
+                                const html = document.documentElement;
+                                html.classList.remove('light', 'dark');
+                                html.classList.add(theme);
+                            } catch (e) {}
+                        `,
+                    }}
                 />
             </head>
-            <body className="font-sans">
+            <body
+                className={`${instrumentSerif.variable} ${inter.variable} ${spaceMono.variable} font-sans`}
+                suppressHydrationWarning
+            >
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="light"
                     enableSystem={false}
                     storageKey="mentha_theme"
+                    disableTransitionOnChange={false}
+                    forcedTheme={undefined}
                 >
-                    <div className="min-h-screen bg-mentha-beige text-mentha-forest transition-colors duration-500 ease-in-out dark:bg-mentha-dark dark:text-mentha-beige">
-                        {children}
-                    </div>
-                    <div className="bg-noise" />
+                    <ThemeSync>
+                        <div className="min-h-screen bg-mentha-beige text-mentha-forest dark:bg-mentha-dark dark:text-mentha-beige transition-colors duration-300">
+                            {children}
+                        </div>
+                        <div className="bg-noise" />
+                    </ThemeSync>
                 </ThemeProvider>
             </body>
         </html>

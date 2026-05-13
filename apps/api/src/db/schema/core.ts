@@ -22,10 +22,10 @@ export const profiles = pgTable(
         email: text('email').notNull().unique(),
         password_hash: text('password_hash').notNull(),
         display_name: text('display_name'),
-        role: text('role').default('user'),
-        plan: text('plan').default('free'),
-        daily_quota: integer('daily_quota').default(0),
-        credit_balance: integer('credit_balance').default(0),
+        role: text('role').default('admin'),
+        plan: text('plan').default('pro'),
+        daily_quota: integer('daily_quota').default(100),
+        credit_balance: integer('credit_balance').default(5000),
         created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
         updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
     },
@@ -43,7 +43,7 @@ export const creditTransactions = pgTable(
     'credit_transactions',
     {
         id: uuid('id').defaultRandom().primaryKey(),
-        user_id: uuid('user_id').notNull(),
+        user_id: text('user_id').notNull(),
         amount: integer('amount').notNull(), // Positive for top-ups, negative for usage
         type: text('type').notNull(), // 'usage', 'top-up', 'refund', 'daily_reset'
         description: text('description'),
@@ -63,12 +63,14 @@ export const projects = pgTable(
     'projects',
     {
         id: uuid('id').defaultRandom().primaryKey(),
-        user_id: uuid('user_id').notNull(),
-        tenant_id: uuid('tenant_id'),
+        user_id: text('user_id').notNull(),
+        tenant_id: text('tenant_id'),
         name: text('name').notNull(),
         domain: text('domain').notNull(),
         description: text('description'),
         competitors: jsonb('competitors').default([]),
+        language: text('language').default('en'),
+        location: text('location').default('Global'),
         settings: jsonb('settings').default({}),
         created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
         updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
@@ -116,6 +118,29 @@ export const keywords = pgTable(
 );
 
 // =============================================================================
+// SCAN RUNS (group of scan jobs representing a full scan)
+// =============================================================================
+export const scanRuns = pgTable(
+    'scan_runs',
+    {
+        id: uuid('id').defaultRandom().primaryKey(),
+        project_id: uuid('project_id').notNull(),
+        status: text('status').default('pending'),
+        total_jobs: integer('total_jobs').default(0),
+        completed_jobs: integer('completed_jobs').default(0),
+        visible_count: integer('visible_count').default(0),
+        overall_sentiment: real('overall_sentiment'),
+        started_at: timestamp('started_at', { withTimezone: true }),
+        completed_at: timestamp('completed_at', { withTimezone: true }),
+        created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    },
+    (table) => ({
+        projectIdx: index('idx_scan_runs_project_id').on(table.project_id),
+        statusCheck: check('scan_run_status_check', sql`status IN ('pending','processing','completed','failed')`),
+    }),
+);
+
+// =============================================================================
 // SCAN JOBS (audit log of scan attempts)
 // =============================================================================
 export const scanJobs = pgTable(
@@ -123,6 +148,7 @@ export const scanJobs = pgTable(
     {
         id: uuid('id').defaultRandom().primaryKey(),
         keyword_id: uuid('keyword_id').notNull(),
+        run_id: uuid('run_id'),
         engine: text('engine').notNull(),
         status: text('status').default('pending'),
         priority: text('priority').default('normal'),
@@ -134,8 +160,9 @@ export const scanJobs = pgTable(
     },
     (table) => ({
         keywordIdIdx: index('idx_scan_jobs_keyword_id').on(table.keyword_id),
+        runIdIdx: index('idx_scan_jobs_run_id').on(table.run_id),
         statusIdx: index('idx_scan_jobs_status').on(table.status),
-        engineCheck: check('engine_check', sql`engine IN ('perplexity', 'openai', 'gemini')`),
+        engineCheck: check('engine_check', sql`engine IN ('perplexity', 'openai', 'gemini', 'claude', 'openrouter')`),
         statusCheck: check(
             'status_check',
             sql`status IN ('pending', 'processing', 'completed', 'failed', 'cancelled')`,

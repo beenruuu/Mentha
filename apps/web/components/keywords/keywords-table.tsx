@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Line, LineChart, ResponsiveContainer, YAxis } from 'recharts';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ interface KeywordData {
     lastScanned: string;
     totalScans: number;
     visibilityRate: number;
+    trend?: number[];
 }
 
 export function KeywordsTable() {
@@ -82,6 +84,32 @@ export function KeywordsTable() {
         commercial: 'bg-orange-100/50 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400',
     };
 
+    const renderTrend = (trendData: number[] | undefined) => {
+        if (!trendData || trendData.length === 0)
+            return <span className="text-xs text-mentha-forest/40">No data</span>;
+
+        const data = trendData.map((v, i) => ({ val: v, index: i }));
+        const color = trendData[trendData.length - 1] > 50 ? '#22c55e' : '#ef4444';
+
+        return (
+            <div className="h-8 w-24">
+                <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={data}>
+                        <YAxis domain={[0, 100]} hide />
+                        <Line
+                            type="monotone"
+                            dataKey="val"
+                            stroke={color}
+                            strokeWidth={2}
+                            dot={false}
+                            isAnimationActive={false}
+                        />
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
+        );
+    };
+
     return (
         <>
             <Card>
@@ -94,6 +122,8 @@ export function KeywordsTable() {
                 <CardContent>
                     <div className="mb-4">
                         <input
+                            id="search-keywords"
+                            name="search-keywords"
                             type="text"
                             placeholder="Search keywords..."
                             value={search}
@@ -130,6 +160,7 @@ export function KeywordsTable() {
                                 <TableRow>
                                     <TableHead>Keyword</TableHead>
                                     <TableHead>Intent</TableHead>
+                                    <TableHead>Trend</TableHead>
                                     <TableHead>Visibility</TableHead>
                                     <TableHead>Scans</TableHead>
                                     <TableHead>Last Scanned</TableHead>
@@ -149,6 +180,7 @@ export function KeywordsTable() {
                                                 </span>
                                             )}
                                         </TableCell>
+                                        <TableCell>{renderTrend(kw.trend)}</TableCell>
                                         <TableCell>
                                             <Badge
                                                 variant={
@@ -158,10 +190,10 @@ export function KeywordsTable() {
                                                 {kw.visibilityRate}%
                                             </Badge>
                                         </TableCell>
-                                        <TableCell className="font-mono text-xs text-mentha-forest/50 dark:text-mentha-beige/50">
+                                        <TableCell className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70">
                                             {kw.totalScans}
                                         </TableCell>
-                                        <TableCell className="font-mono text-xs text-mentha-forest/50 dark:text-mentha-beige/50">
+                                        <TableCell className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70">
                                             {kw.lastScanned
                                                 ? new Date(kw.lastScanned).toLocaleDateString()
                                                 : 'Never'}

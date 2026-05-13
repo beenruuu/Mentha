@@ -27,10 +27,11 @@ export class LlmsTxtService {
         logger.debug('Generating llms.txt');
 
         const result = await db.execute(sql`SELECT generate_llms_txt()`);
+        const rows = result as unknown as Record<string, unknown>[];
 
         const content =
-            result[0] && typeof result[0] === 'object' && 'generate_llms_txt' in result[0]
-                ? (result[0] as { generate_llms_txt: string }).generate_llms_txt
+            rows[0] && typeof rows[0] === 'object' && 'generate_llms_txt' in rows[0]
+                ? (rows[0] as { generate_llms_txt: string }).generate_llms_txt
                 : null;
 
         if (!content) {

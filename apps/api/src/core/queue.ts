@@ -89,7 +89,7 @@ const defaultQueueOptions: QueueOptions = {
 
 export interface ScanJobData {
     keywordId: string;
-    engine: 'perplexity' | 'openai' | 'gemini';
+    engine: string;
     projectId: string;
     query: string;
     brand: string;

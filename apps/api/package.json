@@ -15,7 +15,8 @@
     }
   },
   "scripts": {
-    "dev": "tsx watch src/app.ts",
+    "dev": "concurrently -n \"api,worker\" -c \"cyan,magenta\" \"tsx watch src/app.ts\" \"tsx watch src/workers/index.ts\"",
+    "start": "concurrently -n \"api,worker\" -c \"cyan,magenta\" \"tsx src/app.ts\" \"tsx src/workers/index.ts\"",
     "start:api": "tsx src/app.ts",
     "start:worker": "tsx src/workers/index.ts",
     "build": "tsc",
@@ -25,14 +26,19 @@
     "test:integration": "jest --testPathPattern=integration",
     "lint": "biome check .",
     "format": "biome format --write .",
-    "check": "biome check --write ."
+    "check": "biome check --write .",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
+    "@electric-sql/pglite": "^0.4.5",
     "@hono/node-server": "^1.13.7",
     "@hono/zod-validator": "^0.4.1",
     "bcrypt": "^6.0.0",
     "better-auth": "^1.5.5",
+    "better-sqlite3": "^12.10.0",
     "bullmq": "^5.12.0",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.45.1",

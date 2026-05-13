@@ -8,8 +8,11 @@ import { fetchFromApi } from '@/lib/api';
 
 interface DashboardSummary {
     totalScans: number;
+    totalScansDelta?: number;
     visibleCount: number;
+    visibleCountDelta?: number;
     visibilityRate: number;
+    visibilityDelta?: number;
     avgSentiment: number;
     period: string;
 }
@@ -64,7 +67,11 @@ export function MetricCards() {
             <MetricCard
                 label="Engine Visibility"
                 value={summary?.visibilityRate ? `${summary.visibilityRate}%` : '0%'}
-                delta="+5%"
+                delta={
+                    summary?.visibilityDelta
+                        ? `${summary.visibilityDelta > 0 ? '+' : ''}${summary.visibilityDelta}%`
+                        : undefined
+                }
                 trend="up"
                 icon={
                     <svg
@@ -83,7 +90,11 @@ export function MetricCards() {
             <MetricCard
                 label="Total Scans"
                 value={summary?.totalScans || 0}
-                delta="+23"
+                delta={
+                    typeof summary?.totalScansDelta === 'number'
+                        ? `${summary.totalScansDelta > 0 ? '+' : ''}${summary.totalScansDelta}`
+                        : undefined
+                }
                 trend="up"
                 icon={
                     <svg
@@ -102,7 +113,7 @@ export function MetricCards() {
             <MetricCard
                 label="Avg Sentiment"
                 value={summary?.avgSentiment ? summary.avgSentiment.toFixed(2) : '0.00'}
-                delta={sentimentDelta}
+                delta={summary ? sentimentDelta : undefined}
                 trend={summary?.avgSentiment && summary.avgSentiment > 0.5 ? 'up' : 'neutral'}
                 icon={
                     <svg
@@ -123,7 +134,11 @@ export function MetricCards() {
             <MetricCard
                 label="Brand Mentions"
                 value={summary?.visibleCount || 0}
-                delta="+8"
+                delta={
+                    typeof summary?.visibleCountDelta === 'number'
+                        ? `${summary.visibleCountDelta > 0 ? '+' : ''}${summary.visibleCountDelta}`
+                        : undefined
+                }
                 trend="up"
                 icon={
                     <svg

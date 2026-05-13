@@ -43,7 +43,7 @@ const Footer: React.FC = () => {
                             </a>
                         </li>
                         <li>
-                            <a href="#audit" className="hover:italic hover:pl-2 transition-all">
+                            <a href="/login" className="hover:italic hover:pl-2 transition-all">
                                 Audit Tool
                             </a>
                         </li>

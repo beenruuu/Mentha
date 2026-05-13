@@ -40,7 +40,14 @@ export default function AuthorityPage() {
                 const response = await fetchFromApi(
                     `/dashboard/citations?project_id=${selectedProject?.id}`,
                 );
-                setDomains(response.data || []);
+                // Map snake_case API fields to camelCase for component
+                const mappedDomains = (response.data || []).map((d: any) => ({
+                    domain: d.domain,
+                    count: d.count,
+                    isBrand: d.is_brand ?? false,
+                    isCompetitor: d.is_competitor ?? false,
+                }));
+                setDomains(mappedDomains);
                 setCitations(response.raw || []);
             } catch (error) {
                 console.error('Failed to load citations', error);
@@ -236,7 +243,7 @@ export default function AuthorityPage() {
                                                 >
                                                     {citation.title || citation.domain}
                                                 </a>
-                                                <span className="font-mono text-xs text-mentha-forest/50 dark:text-mentha-beige/50 whitespace-nowrap">
+                                                <span className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70 whitespace-nowrap">
                                                     {citation.domain}
                                                 </span>
                                             </div>

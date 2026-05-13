@@ -3,8 +3,10 @@
 import { useEffect, useState } from 'react';
 
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
+import { EngineIcon } from '@/components/ui/engine-icon';
 import { useProject } from '@/context/ProjectContext';
 import { fetchFromApi } from '@/lib/api';
+import { getEngineDisplayName } from '@/lib/engines';
 
 interface EngineData {
     total: number;
@@ -16,6 +18,7 @@ interface ByEngine {
     perplexity?: EngineData;
     openai?: EngineData;
     gemini?: EngineData;
+    claude?: EngineData;
 }
 
 export function EngineBreakdown() {
@@ -43,9 +46,10 @@ export function EngineBreakdown() {
     }, [selectedProject?.id]);
 
     const engines = [
-        { name: 'Perplexity', key: 'perplexity' as const, color: '#20B2AA' },
-        { name: 'OpenAI', key: 'openai' as const, color: '#10a37f' },
-        { name: 'Gemini', key: 'gemini' as const, color: '#4285f4' },
+        { name: getEngineDisplayName('perplexity'), key: 'perplexity' as const, color: '#20B2AA' },
+        { name: getEngineDisplayName('openai'), key: 'openai' as const, color: '#10a37f' },
+        { name: getEngineDisplayName('gemini'), key: 'gemini' as const, color: '#4285f4' },
+        { name: getEngineDisplayName('claude'), key: 'claude' as const, color: '#d97757' },
     ];
 
     if (loading) {
@@ -77,10 +81,16 @@ export function EngineBreakdown() {
                     return (
                         <div key={engine.key} className="space-y-2">
                             <div className="flex items-center justify-between text-sm">
-                                <span className="font-sans text-mentha-forest/70 dark:text-mentha-beige/70">
+                                <span className="flex items-center gap-2 font-sans text-mentha-forest/70 dark:text-mentha-beige/70">
+                                    <span
+                                        className="flex h-6 w-6 items-center justify-center rounded-lg bg-mentha-forest/5 dark:bg-mentha-mint/10"
+                                        style={{ color: engine.color }}
+                                    >
+                                        <EngineIcon engine={engine.key} size={14} invert="auto" />
+                                    </span>
                                     {engine.name}
                                 </span>
-                                <span className="font-mono text-xs text-mentha-forest/50 dark:text-mentha-beige/50">
+                                <span className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70">
                                     {rate}% ({total} scans)
                                 </span>
                             </div>
