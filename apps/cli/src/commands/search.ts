@@ -44,10 +44,7 @@ searchCommand
         const spinner = ora(`Searching with ${formatter.provider(provider)}...`).start();
 
         try {
-            const apiSearchPath = resolve(
-                __dirname,
-                '../../../api/src/core/search/factory',
-            );
+            const apiSearchPath = resolve(__dirname, '../../../api/src/core/search/factory');
             const { createProvider } = await import(apiSearchPath);
             const searchProvider = createProvider(provider);
 
@@ -118,10 +115,7 @@ searchCommand
         const spinner = ora(`Searching with ${formatter.provider(options.provider)}...`).start();
 
         try {
-            const apiSearchPath = resolve(
-                __dirname,
-                '../../../api/src/core/search/factory',
-            );
+            const apiSearchPath = resolve(__dirname, '../../../api/src/core/search/factory');
             const { createProvider } = await import(apiSearchPath);
             const searchProvider = createProvider(options.provider);
 
@@ -201,10 +195,7 @@ searchCommand
         }
 
         try {
-            const apiSearchPath = resolve(
-                __dirname,
-                '../../../api/src/core/search/factory',
-            );
+            const apiSearchPath = resolve(__dirname, '../../../api/src/core/search/factory');
             const { createProvider } = await import(apiSearchPath);
             const searchProvider = createProvider(provider);
 
@@ -274,10 +265,7 @@ searchCommand
         const spinner = ora('Testing provider connections...').start();
 
         try {
-            const apiSearchPath = resolve(
-                __dirname,
-                '../../../api/src/core/search/factory',
-            );
+            const apiSearchPath = resolve(__dirname, '../../../api/src/core/search/factory');
             const { testAllProviders } = await import(apiSearchPath);
             const results = await testAllProviders();
 

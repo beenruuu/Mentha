@@ -2,12 +2,16 @@ import chalk from 'chalk';
 import { Command } from 'commander';
 
 import { client } from './client';
+import { authorityCommand } from './commands/authority';
+import { billingCommand } from './commands/billing';
 import { dashboardCommand } from './commands/dashboard';
 import { keywordsCommand } from './commands/keywords';
 import { knowledgeGraphCommand } from './commands/knowledge-graph';
+import { optimizationCommand } from './commands/optimization';
 import { projectsCommand } from './commands/projects';
 import { scansCommand } from './commands/scans';
 import { searchCommand } from './commands/search';
+import { settingsCommand } from './commands/settings';
 import config from './config/index';
 import { handleResponse } from './utils/api';
 import { formatter } from './utils/formatter';
@@ -39,12 +43,21 @@ program
         }
     });
 
-program.addCommand(projectsCommand);
+// Core platform commands - order matches web sidebar
+program.addCommand(dashboardCommand);
 program.addCommand(keywordsCommand);
+program.addCommand(authorityCommand);
+program.addCommand(optimizationCommand);
+program.addCommand(billingCommand);
+program.addCommand(settingsCommand);
+
+// Management commands
+program.addCommand(projectsCommand);
 program.addCommand(scansCommand);
+
+// AI / Utility commands
 program.addCommand(searchCommand);
 program.addCommand(knowledgeGraphCommand);
-program.addCommand(dashboardCommand);
 
 program.on('--help', () => {
     console.log('');
@@ -52,12 +65,12 @@ program.on('--help', () => {
     console.log('');
     console.log('Examples:');
     console.log('  $ mentha health');
-    console.log('  $ mentha projects list');
-    console.log('  $ mentha projects create');
-    console.log('  $ mentha keywords list --project-id <id>');
-    console.log('  $ mentha search query "best toys for kids"');
-    console.log('  $ mentha search interactive');
     console.log('  $ mentha dashboard som --project-id <id>');
+    console.log('  $ mentha keywords list --project-id <id>');
+    console.log('  $ mentha authority citations --project-id <id>');
+    console.log('  $ mentha optimization overview');
+    console.log('  $ mentha projects analyze <url>');
+    console.log('  $ mentha search query "best toys for kids"');
     console.log('');
     console.log('Configuration:');
     console.log(`  API URL: ${chalk.green(config.apiBaseUrl)}`);
@@ -72,13 +85,17 @@ if (process.argv.length === 2) {
     );
     console.log(`API URL: ${chalk.green(config.apiBaseUrl)}\n`);
     console.log('Available commands:');
-    console.log(`  ${chalk.yellow('health')}          - Check API server health`);
-    console.log(`  ${chalk.yellow('projects')}        - Manage projects`);
-    console.log(`  ${chalk.yellow('keywords')}        - Manage keywords`);
-    console.log(`  ${chalk.yellow('scans')}           - View scan results`);
-    console.log(`  ${chalk.yellow('search')}          - AI search & chat (NEW! 🤖)`);
-    console.log(`  ${chalk.yellow('kg')}              - Manage Knowledge Graph`);
-    console.log(`  ${chalk.yellow('dashboard')}       - View metrics and analytics`);
+    console.log(`  ${chalk.yellow('dashboard')}     - Share of Model, sentiment & citations`);
+    console.log(`  ${chalk.yellow('keywords')}      - Manage tracked keywords`);
+    console.log(`  ${chalk.yellow('authority')}     - Citation authority analytics`);
+    console.log(`  ${chalk.yellow('optimization')}  - Knowledge Graph optimization`);
+    console.log(`  ${chalk.yellow('billing')}       - Credits and transactions`);
+    console.log(`  ${chalk.yellow('settings')}      - Project config and preferences`);
+    console.log(`  ${chalk.yellow('projects')}      - Analyze, create, update & delete`);
+    console.log(`  ${chalk.yellow('scans')}         - View scan results`);
+    console.log(`  ${chalk.yellow('search')}        - AI search, chat & providers`);
+    console.log(`  ${chalk.yellow('health')}        - Check API server health`);
+    console.log(`  ${chalk.yellow('kg')}            - Knowledge Graph (alias)`);
     console.log('');
     console.log(chalk.cyan('🤖 AI Features:'));
     console.log('  mentha search query "your question"  - Ask AI anything');

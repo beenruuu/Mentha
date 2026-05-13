@@ -273,7 +273,7 @@ export const prompt = {
                 default: ['perplexity'],
                 validate: (input: string[]) => {
                     if (input.length === 0) {
-                        return 'Please select at least one engine.js';
+                        return 'Please select at least one engine';
                     }
                     return true;
                 },
@@ -314,7 +314,7 @@ export const prompt = {
                 default: 0.7,
                 validate: (input: number) => {
                     if (input < 0 || input > 1) {
-                        return 'Temperature must be between 0.0 and 1.0.js';
+                        return 'Temperature must be between 0.0 and 1.0';
                     }
                     return true;
                 },
@@ -326,7 +326,7 @@ export const prompt = {
                 default: 1000,
                 validate: (input: number) => {
                     if (input < 1) {
-                        return 'Max tokens must be at least 1.js';
+                        return 'Max tokens must be at least 1';
                     }
                     return true;
                 },

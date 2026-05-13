@@ -4,6 +4,9 @@
   "description": "Interactive CLI for Mentha AEO/GEO Intelligence Platform",
   "type": "module",
   "main": "src/cli.ts",
+  "bin": {
+    "mentha": "./bin/mentha.cjs"
+  },
   "scripts": {
     "start": "tsx src/cli.ts",
     "build": "tsc",

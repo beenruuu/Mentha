@@ -226,3 +226,133 @@ projectsCommand
             process.exit(1);
         }
     });
+
+projectsCommand
+    .command('analyze [domain]')
+    .description('Analyze a domain and create a project (interactive onboarding)')
+    .option('-j, --json', 'Output as JSON')
+    .action(async (domain, options) => {
+        if (!domain) {
+            domain = await prompt.input('Enter your website URL:', 'https://');
+        }
+
+        let formattedDomain = domain;
+        if (!formattedDomain.startsWith('http')) {
+            formattedDomain = 'https://' + formattedDomain;
+        }
+
+        const spinner = ora(`Analyzing ${formattedDomain}...`).start();
+
+        try {
+            const result = await apiCall<{
+                name: string;
+                description: string;
+                keywords: string[];
+                competitors: string[];
+            }>(
+                client.api.v1.projects.analyze.$post({
+                    json: { domain: formattedDomain },
+                }),
+            );
+
+            spinner.succeed('Domain analyzed successfully');
+
+            if (options.json || config.outputFormat === 'json') {
+                console.log(formatter.json(result));
+                return;
+            }
+
+            console.log(`\n${chalk.cyan.bold('Analysis Results')}\n`);
+            console.log(`${chalk.bold('Brand:')} ${chalk.green(result.name)}`);
+
+            if (result.description) {
+                console.log(`\n${chalk.bold('Description:')} ${result.description}`);
+            }
+
+            if (result.keywords.length > 0) {
+                console.log(`\n${chalk.bold('Suggested Prompts:')}`);
+                result.keywords.forEach((kw: string) => {
+                    console.log(`  ${chalk.yellow('#')} ${kw}`);
+                });
+            }
+
+            if (result.competitors.length > 0) {
+                console.log(`\n${chalk.bold('Identified Competitors:')}`);
+                result.competitors.forEach((comp: string) => {
+                    console.log(`  ${chalk.red('◉')} ${comp}`);
+                });
+            }
+
+            console.log('');
+            const create = await prompt.confirm(
+                `Create project "${result.name}" and start tracking?`,
+                true,
+            );
+
+            if (!create) {
+                console.log(chalk.yellow('\nProject creation cancelled.\n'));
+                return;
+            }
+
+            const createSpinner = ora('Creating project...').start();
+
+            const project = await apiCall<Project>(
+                client.api.v1.projects.$post({
+                    json: {
+                        name: result.name,
+                        domain: formattedDomain,
+                        description: result.description,
+                        competitors: result.competitors,
+                    },
+                }),
+            );
+
+            createSpinner.succeed('Project created successfully');
+
+            if (result.keywords.length > 0) {
+                const kwSpinner = ora('Adding suggested keywords...').start();
+                try {
+                    await Promise.all(
+                        result.keywords.map((kw: string) =>
+                            client.api.v1.keywords.$post({
+                                json: {
+                                    project_id: project.id,
+                                    query: kw,
+                                    engines: ['perplexity', 'openai', 'gemini', 'claude'],
+                                },
+                            }),
+                        ),
+                    );
+                    kwSpinner.succeed(`${result.keywords.length} keywords added`);
+                } catch {
+                    kwSpinner.fail('Failed to add some keywords');
+                }
+            }
+
+            const scanNow = await prompt.confirm('Trigger initial scan now?', true);
+
+            if (scanNow) {
+                const scanSpinner = ora('Triggering initial scan...').start();
+                try {
+                    const scanRes = await apiCall<{ runId: string; jobCount: number }>(
+                        client.api.v1.scans.trigger.$post({
+                            query: { project_id: project.id },
+                        }),
+                    );
+                    scanSpinner.succeed(
+                        `Scan started with ${scanRes.jobCount} queries across all engines`,
+                    );
+                } catch {
+                    scanSpinner.fail('Failed to trigger scan');
+                }
+            }
+
+            console.log(`\n${formatter.success(`Project "${project.name}" is ready!`)}`);
+            console.log(`  ${chalk.cyan('ID:')} ${project.id}`);
+            console.log(`  ${chalk.cyan('Web:')} http://localhost:3000/dashboard\n`);
+        } catch (error) {
+            spinner.fail('Failed to analyze domain');
+            console.error(formatter.error((error as Error).message));
+            process.exit(1);
+        }
+    });

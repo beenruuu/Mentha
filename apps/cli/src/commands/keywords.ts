@@ -80,7 +80,7 @@ keywordsCommand
 
             if (!projectId) {
                 projectId = await prompt.input('Project ID:', undefined, (input: string) => {
-                    if (!input) return 'Project ID is required.js';
+                    if (!input) return 'Project ID is required';
                     return true;
                 });
             }
