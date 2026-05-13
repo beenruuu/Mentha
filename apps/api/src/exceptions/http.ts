@@ -1,4 +1,5 @@
 import type { Context } from 'hono';
+import { HTTPException } from 'hono/http-exception';
 
 export class HttpException extends Error {
     public readonly statusCode: number;
@@ -81,6 +82,17 @@ export class ServiceUnavailableException extends HttpException {
 export function handleHttpException(c: Context, error: unknown) {
     if (error instanceof HttpException) {
         return c.json(error.toJSON(), error.statusCode as 200);
+    }
+
+    // Hono's built-in HTTPException (used by requireAuth, zValidator, etc.)
+    if (error instanceof HTTPException) {
+        return c.json(
+            {
+                error: error.message,
+                statusCode: error.status,
+            },
+            error.status,
+        );
     }
 
     return c.json(

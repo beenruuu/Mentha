@@ -3,12 +3,22 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { EngineIcon } from '@/components/ui/engine-icon';
+import Tag from '@/components/ui/tag';
 import { useProject } from '@/context/ProjectContext';
 import { fetchFromApi } from '@/lib/api';
 
 const MAX_POLL_TIME = 120000;
 const POLL_INTERVAL = 2500;
+
+const ENGINES = [
+    { key: 'perplexity', label: 'Perplexity' },
+    { key: 'openai', label: 'ChatGPT' },
+    { key: 'gemini', label: 'Gemini' },
+    { key: 'claude', label: 'Claude' },
+] as const;
 
 export default function OnboardingPage() {
     const router = useRouter();
@@ -24,7 +34,7 @@ export default function OnboardingPage() {
         competitors: string[];
     } | null>(null);
 
-    const [scanRunId, setScanRunId] = useState<string | null>(null);
+    const [_scanRunId, setScanRunId] = useState<string | null>(null);
     const [totalJobs, setTotalJobs] = useState(0);
     const [completedJobs, setCompletedJobs] = useState(0);
     const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -119,14 +129,14 @@ export default function OnboardingPage() {
             if (analysisResult.keywords.length > 0) {
                 await Promise.all(
                     analysisResult.keywords.map((kw) =>
-                            fetchFromApi('/keywords', {
-                                method: 'POST',
-                                body: JSON.stringify({
-                                    project_id: newProject.id,
-                                    query: kw,
-                                    engines: ['perplexity', 'openai'],
-                                }),
-                            }).catch(console.error),
+                        fetchFromApi('/keywords', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                project_id: newProject.id,
+                                query: kw,
+                                engines: ['perplexity', 'openai', 'gemini', 'claude'],
+                            }),
+                        }).catch(console.error),
                     ),
                 );
             }
@@ -149,41 +159,30 @@ export default function OnboardingPage() {
 
     const progressPct =
         totalJobs > 0 ? Math.min(Math.round((completedJobs / totalJobs) * 100), 100) : 0;
-    const engineNames = ['Perplexity', 'ChatGPT', 'Gemini', 'Claude'];
+    const jobsPerEngine = Math.max(Math.floor(totalJobs / ENGINES.length), 1);
 
     return (
-        <div className="max-w-2xl w-full mx-auto p-8 rounded-3xl bg-white dark:bg-[#1a1a1a] shadow-xl border border-mentha-forest/10 dark:border-white/10">
+        <div className="max-w-3xl w-full mx-auto">
             <div className="text-center mb-10">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-mentha-forest text-mentha-beige dark:bg-mentha-beige dark:text-mentha-forest mb-6 shadow-lg rotate-3">
-                    <svg
-                        className="w-10 h-10"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M13 10V3L4 14h7v7l9-11h-7z"
-                        />
-                    </svg>
+                <div className="mb-4">
+                    <span className="font-serif text-4xl text-mentha-forest dark:text-mentha-beige">
+                        Welcome to <span className="text-mentha-mint">Mentha</span>
+                        <span className="text-mentha-mint">.</span>
+                    </span>
                 </div>
-                <h1 className="font-serif text-5xl mb-3 tracking-tight">Welcome to Mentha</h1>
-                <p className="text-lg text-mentha-forest/60 dark:text-mentha-beige/60">
-                    Let's set up your brand and start optimizing your Answer Engine visibility.
+                <p className="font-sans text-base font-normal text-mentha-forest/60 dark:text-mentha-beige/60">
+                    Let&apos;s set up your brand and start optimizing your Answer Engine visibility.
                 </p>
             </div>
-
             {step === 1 && (
                 <form
                     onSubmit={handleAnalyze}
                     className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700"
                 >
-                    <div>
+                    <div className="space-y-2">
                         <label
                             htmlFor="domain"
-                            className="block text-sm font-semibold mb-3 uppercase tracking-wider opacity-70"
+                            className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1"
                         >
                             Your Website URL
                         </label>
@@ -194,86 +193,111 @@ export default function OnboardingPage() {
                             value={domain}
                             onChange={(e) => setDomain(e.target.value)}
                             placeholder="eg: www.mentha.ai"
-                            className="w-full p-5 rounded-2xl border-2 border-mentha-forest/10 dark:border-white/10 bg-mentha-beige/5 focus:outline-none focus:ring-4 focus:ring-mentha-forest/20 dark:focus:ring-mentha-beige/20 focus:border-mentha-forest dark:focus:border-mentha-beige transition-all text-xl"
+                            className="w-full bg-transparent border-b border-mentha-forest/20 dark:border-mentha-beige/20 p-4 font-serif text-xl focus:outline-none focus:border-mentha-mint transition-colors text-mentha-forest dark:text-mentha-beige placeholder-mentha-forest/20 dark:placeholder-mentha-beige/20"
                             required
                         />
                     </div>
-                    <div className="flex justify-center">
-                        <Button
-                            type="submit"
-                            disabled={!domain}
-                            className="w-full py-6 text-xl rounded-2xl"
-                        >
-                            Analyze Brand
-                        </Button>
-                    </div>
+                    <Button
+                        type="submit"
+                        disabled={!domain || isAnalyzing}
+                        className="w-full py-5 rounded-none font-mono text-sm font-bold uppercase tracking-[0.2em]"
+                    >
+                        {isAnalyzing ? 'Analyzing...' : 'Analyze Brand'}
+                    </Button>
                 </form>
             )}
 
             {step === 2 && (
-                <div className="text-center py-12 space-y-4">
-                    <div className="animate-spin w-8 h-8 border-2 border-mentha-forest dark:border-mentha-beige border-t-transparent rounded-full mx-auto" />
-                    <p className="font-mono text-sm animate-pulse">
-                        Connecting to {domain}...
-                        <br />
-                        Researching your website so Mentha can understand your brand...
-                    </p>
+                <div className="text-center py-12 space-y-8 animate-in fade-in duration-500">
+                    <div className="relative mx-auto w-16 h-16">
+                        <div className="absolute inset-0 rounded-full border-2 border-mentha-mint/20" />
+                        <div className="absolute inset-0 rounded-full border-2 border-mentha-mint border-t-transparent animate-spin" />
+                    </div>
+
+                    <div className="space-y-2">
+                        <p className="font-serif text-xl">
+                            Connecting to <span className="text-mentha-mint">{domain}</span>
+                        </p>
+                        <p className="font-mono text-xs text-mentha-forest/60 dark:text-mentha-beige/60 animate-pulse">
+                            Researching your website so Mentha can understand your brand...
+                        </p>
+                    </div>
+
+                    <div className="flex justify-center gap-6 pt-4">
+                        {ENGINES.map((engine) => (
+                            <div
+                                key={engine.key}
+                                className="flex flex-col items-center gap-2 opacity-60 animate-pulse"
+                            >
+                                <EngineIcon engine={engine.key} size={28} invert="light" />
+                                <span className="font-mono text-[10px] uppercase tracking-wider text-mentha-forest/50 dark:text-mentha-beige/50">
+                                    {engine.label}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
 
             {step === 3 && analysisResult && (
-                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="p-6 bg-mentha-forest/5 dark:bg-white/5 rounded-xl border border-mentha-forest/10 dark:border-white/10">
-                        <h3 className="font-serif text-2xl mb-1">{analysisResult.name}</h3>
-                        <div className="mt-4 space-y-2">
-                            <label className="text-[10px] uppercase tracking-widest font-bold opacity-40">Brand Description (Editable)</label>
-                            <textarea
-                                value={analysisResult.description}
-                                onChange={(e) => setAnalysisResult({...analysisResult, description: e.target.value})}
-                                className="w-full bg-transparent border-none focus:ring-0 text-sm opacity-80 min-h-[80px] resize-none font-sans leading-relaxed p-0"
-                                placeholder="Describe what your brand does..."
-                            />
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                            <h3 className="font-serif text-2xl text-mentha-forest dark:text-mentha-beige">
+                                {analysisResult.name}
+                            </h3>
+                            <div className="space-y-2">
+                                <label
+                                    htmlFor="brand-description"
+                                    className="text-[10px] uppercase tracking-widest font-bold text-mentha-forest/40 dark:text-mentha-beige/40"
+                                >
+                                    Brand Description
+                                </label>
+                                <textarea
+                                    id="brand-description"
+                                    value={analysisResult.description}
+                                    onChange={(e) =>
+                                        setAnalysisResult({
+                                            ...analysisResult,
+                                            description: e.target.value,
+                                        })
+                                    }
+                                    className="w-full bg-mentha-forest/5 dark:bg-white/5 rounded-xl border border-mentha-forest/10 dark:border-mentha-beige/10 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-mentha-mint/20 min-h-[120px] resize-none font-sans leading-relaxed"
+                                    placeholder="Describe what your brand does..."
+                                />
+                            </div>
                         </div>
 
-                        <div className="mb-4">
-                            <h4 className="text-xs uppercase tracking-wider font-bold mb-2 opacity-60">
-                                Suggested Prompts to Track
-                            </h4>
-                            <ul className="space-y-2">
-                                {analysisResult.keywords.map((kw, i) => (
-                                    <li
-                                        key={i}
-                                        className="flex items-center gap-2 text-sm bg-white dark:bg-mentha-dark p-2 rounded border border-mentha-forest/10 dark:border-white/10"
-                                    >
-                                        <span className="text-mentha-forest dark:text-mentha-beige opacity-50">
-                                            #
-                                        </span>
-                                        {kw}
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-
-                        {analysisResult.competitors.length > 0 && (
+                        <div className="space-y-6">
                             <div>
-                                <h4 className="text-xs uppercase tracking-wider font-bold mb-2 opacity-60">
-                                    Identified Competitors
+                                <h4 className="text-[10px] uppercase tracking-widest font-bold text-mentha-forest/40 dark:text-mentha-beige/40 mb-3">
+                                    Suggested Prompts to Track
                                 </h4>
                                 <div className="flex flex-wrap gap-2">
-                                    {analysisResult.competitors.map((comp, i) => (
-                                        <span
-                                            key={i}
-                                            className="text-xs px-2 py-1 rounded bg-mentha-forest/10 dark:bg-mentha-beige/10"
-                                        >
-                                            {comp}
-                                        </span>
+                                    {analysisResult.keywords.map((kw) => (
+                                        <Tag key={kw}>{kw}</Tag>
                                     ))}
                                 </div>
                             </div>
-                        )}
+
+                            {analysisResult.competitors.length > 0 && (
+                                <div>
+                                    <h4 className="text-[10px] uppercase tracking-widest font-bold text-mentha-forest/40 dark:text-mentha-beige/40 mb-3">
+                                        Identified Competitors
+                                    </h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {analysisResult.competitors.map((comp) => (
+                                            <Badge key={comp} variant="competitor">
+                                                {comp}
+                                            </Badge>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center pt-4 border-t border-mentha-forest/10 dark:border-mentha-beige/10">
                         <Button variant="outline" onClick={() => setStep(1)}>
                             Back
                         </Button>
@@ -304,7 +328,7 @@ export default function OnboardingPage() {
                         </p>
                     </div>
 
-                    <div className="max-w-sm mx-auto space-y-3">
+                    <div className="max-w-md mx-auto space-y-3">
                         <div className="h-2 bg-mentha-forest/10 dark:bg-white/10 rounded-full overflow-hidden">
                             <div
                                 className="h-full rounded-full bg-mentha-mint transition-all duration-500 ease-out"
@@ -316,27 +340,39 @@ export default function OnboardingPage() {
                         </p>
                     </div>
 
-                    <div className="flex flex-wrap justify-center gap-3 max-w-sm mx-auto">
-                        {engineNames.map((name, i) => {
-                            const jobsPerEngine = Math.max(
-                                Math.floor(totalJobs / engineNames.length),
-                                1,
-                            );
+                    <div className="flex justify-center gap-8 pt-2">
+                        {ENGINES.map((engine, i) => {
                             const completedShare = Math.max(completedJobs - i * jobsPerEngine, 0);
                             const engineDone = completedShare >= jobsPerEngine;
                             return (
                                 <div
-                                    key={name}
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-mono transition-all duration-500 ${
-                                        engineDone
-                                            ? 'bg-mentha-mint/15 text-mentha-mint'
-                                            : 'bg-mentha-forest/5 dark:bg-white/5 text-mentha-forest/40 dark:text-mentha-beige/40'
+                                    key={engine.key}
+                                    className={`flex flex-col items-center gap-2 transition-all duration-500 ${
+                                        engineDone ? 'opacity-100' : 'opacity-40'
                                     }`}
                                 >
+                                    <div
+                                        className={`p-2 rounded-xl border transition-all duration-500 ${
+                                            engineDone
+                                                ? 'bg-mentha-mint/10 border-mentha-mint/30'
+                                                : 'bg-mentha-forest/5 dark:bg-white/5 border-mentha-forest/10 dark:border-mentha-beige/10'
+                                        }`}
+                                    >
+                                        <EngineIcon
+                                            engine={engine.key}
+                                            size={24}
+                                            invert={engineDone ? 'dark' : 'light'}
+                                        />
+                                    </div>
                                     <span
-                                        className={`w-1.5 h-1.5 rounded-full ${engineDone ? 'bg-mentha-mint' : 'bg-current'}`}
-                                    />
-                                    {name}
+                                        className={`font-mono text-[10px] uppercase tracking-wider ${
+                                            engineDone
+                                                ? 'text-mentha-mint'
+                                                : 'text-mentha-forest/40 dark:text-mentha-beige/40'
+                                        }`}
+                                    >
+                                        {engine.label}
+                                    </span>
                                 </div>
                             );
                         })}

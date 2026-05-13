@@ -30,10 +30,7 @@ export default function RegisterPage() {
                 password,
                 fetchOptions: {
                     onSuccess: () => {
-                        setSuccess(true);
-                        setTimeout(() => {
-                            router.push('/onboarding');
-                        }, 2000);
+                        router.push('/onboarding');
                     },
                     onError: (ctx) => {
                         setError(ctx.error.message || 'Registration failed');

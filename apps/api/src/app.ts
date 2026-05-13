@@ -2,12 +2,14 @@ import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
+import { HTTPException } from 'hono/http-exception';
 import { secureHeaders } from 'hono/secure-headers';
 
 import { env } from './config/env';
 import { auth } from './core/auth';
 import { logger } from './core/logger';
 import { initializeDatabase } from './db';
+import { HttpException } from './exceptions/http';
 import { aiViewMiddleware } from './middlewares/ai-view';
 import { authMiddleware } from './middlewares/auth';
 import billingRouter from './routers/billing.router';
@@ -92,6 +94,30 @@ app.notFound((c) => {
 });
 
 app.onError((err, c) => {
+    // Hono's HTTPException (thrown by middleware like requireAuth or zValidator)
+    // should preserve its original status code.
+    if (err instanceof HTTPException) {
+        logger.warn(
+            {
+                status: err.status,
+                path: c.req.path,
+                message: err.message,
+            },
+            `HTTPException ${err.status}`,
+        );
+        return c.json(
+            {
+                error: err.message,
+                statusCode: err.status,
+            },
+            err.status,
+        );
+    }
+
+    if (err instanceof HttpException) {
+        return c.json(err.toJSON(), err.statusCode as 200);
+    }
+
     logger.error(
         {
             error: err.message,

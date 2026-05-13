@@ -31,7 +31,7 @@ export async function fetchFromApi(endpoint: string, options: RequestInit = {}) 
 
     if (!res.ok) {
         const error = await res.json().catch(() => ({}));
-        throw new Error(error.message || `API error: ${res.status}`);
+        throw new Error(error.message || error.error || `API error: ${res.status}`);
     }
 
     return res.json();

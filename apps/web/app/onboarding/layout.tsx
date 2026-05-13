@@ -10,14 +10,11 @@ export const metadata: Metadata = {
 export default function OnboardingLayout({ children }: { children: React.ReactNode }) {
     return (
         <ProjectProvider>
-            <div className="min-h-screen bg-mentha-beige/30 dark:bg-mentha-dark flex flex-col">
+            <div className="min-h-screen bg-mentha-beige dark:bg-mentha-dark flex flex-col">
                 <header className="p-6">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-lg bg-mentha-forest flex items-center justify-center text-white font-serif font-bold text-xl">
-                            M
-                        </div>
-                        <span className="font-serif text-2xl font-bold text-mentha-forest dark:text-mentha-beige">
-                            Mentha
+                        <span className="font-serif text-2xl text-mentha-forest dark:text-mentha-beige">
+                            Mentha<span className="text-mentha-mint">.</span>
                         </span>
                     </div>
                 </header>

@@ -2,7 +2,7 @@ import { and, desc, eq, gte } from 'drizzle-orm';
 
 import { logger } from '../core/logger';
 import { db } from '../db';
-import { citations, keywords, scanJobs, scanResults } from '../db/schema/core';
+import { citations, keywords, projects, scanJobs, scanResults } from '../db/schema/core';
 
 export interface ShareOfModelMetrics {
     totalScans: number;
@@ -135,10 +135,10 @@ export class DashboardService {
                 .filter((r) => r.sentiment_score != null)
                 .map((r) => r.sentiment_score as number);
 
-            const pResults = dayResults.filter(r => r.engine === 'perplexity');
-            const oResults = dayResults.filter(r => r.engine === 'openai');
-            const gResults = dayResults.filter(r => r.engine === 'gemini');
-            const cResults = dayResults.filter(r => r.engine === 'claude');
+            const pResults = dayResults.filter((r) => r.engine === 'perplexity');
+            const oResults = dayResults.filter((r) => r.engine === 'openai');
+            const gResults = dayResults.filter((r) => r.engine === 'gemini');
+            const cResults = dayResults.filter((r) => r.engine === 'claude');
 
             timeline.push({
                 date: dateStr,
@@ -151,10 +151,38 @@ export class DashboardService {
                                   100,
                           ) / 100
                         : null,
-                perplexity: pResults.length > 0 ? Math.round((pResults.filter(r => r.brand_visibility).length / pResults.length) * 100) : 0,
-                openai: oResults.length > 0 ? Math.round((oResults.filter(r => r.brand_visibility).length / oResults.length) * 100) : 0,
-                gemini: gResults.length > 0 ? Math.round((gResults.filter(r => r.brand_visibility).length / gResults.length) * 100) : 0,
-                claude: cResults.length > 0 ? Math.round((cResults.filter(r => r.brand_visibility).length / cResults.length) * 100) : 0,
+                perplexity:
+                    pResults.length > 0
+                        ? Math.round(
+                              (pResults.filter((r) => r.brand_visibility).length /
+                                  pResults.length) *
+                                  100,
+                          )
+                        : 0,
+                openai:
+                    oResults.length > 0
+                        ? Math.round(
+                              (oResults.filter((r) => r.brand_visibility).length /
+                                  oResults.length) *
+                                  100,
+                          )
+                        : 0,
+                gemini:
+                    gResults.length > 0
+                        ? Math.round(
+                              (gResults.filter((r) => r.brand_visibility).length /
+                                  gResults.length) *
+                                  100,
+                          )
+                        : 0,
+                claude:
+                    cResults.length > 0
+                        ? Math.round(
+                              (cResults.filter((r) => r.brand_visibility).length /
+                                  cResults.length) *
+                                  100,
+                          )
+                        : 0,
             });
         }
 
@@ -213,10 +241,10 @@ export class DashboardService {
                           (sentiments.reduce((a, b) => a + b, 0) / sentiments.length) * 100,
                       ) / 100
                     : null;
-                    
+
             const trend = results
                 .reverse() // Oldest first for chart
-                .map(r => r.brand_visibility ? 100 : 0);
+                .map((r) => (r.brand_visibility ? 100 : 0));
 
             metrics.push({
                 keyword_id: kw.keyword_id,
@@ -286,7 +314,10 @@ export class DashboardService {
         };
     }
 
-    async getTopBrands(projectId: string, limit: number = 10): Promise<{ name: string; shareOfVoice: number; totalMentions: number }[]> {
+    async getTopBrands(
+        projectId: string,
+        limit: number = 10,
+    ): Promise<{ name: string; shareOfVoice: number; totalMentions: number }[]> {
         logger.debug({ projectId, limit }, 'Calculating Top Brands (Aggregated SOV)');
 
         const scans = await db
@@ -299,7 +330,11 @@ export class DashboardService {
             .where(eq(keywords.project_id, projectId));
 
         // Fetch project name for the main brand key
-        const [project] = await db.select({ name: projects.name }).from(projects).where(eq(projects.id, projectId)).limit(1);
+        const [project] = await db
+            .select({ name: projects.name })
+            .from(projects)
+            .where(eq(projects.id, projectId))
+            .limit(1);
         const mainBrandName = project?.name || 'Your Brand';
 
         let totalMentions = 0;

@@ -19,13 +19,13 @@ export class OpenRouterProvider implements ISearchProvider {
         perplexity: 'perplexity/sonar-pro',
         openai: 'openai/gpt-4o',
         claude: 'anthropic/claude-3-haiku',
-        gemini: 'google/gemini-2.0-flash-exp',
+        gemini: 'google/gemini-2.5-flash-lite',
         
         // Mapeo por propósito
         search: 'perplexity/sonar-pro',
         analysis: 'openai/gpt-4o',
         reasoning: 'anthropic/claude-3-haiku',
-        fast: 'google/gemini-2.0-flash-exp',
+        fast: 'google/gemini-2.5-flash-lite',
         coding: 'deepseek/deepseek-coder-v2',
     };
 
