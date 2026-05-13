@@ -179,7 +179,7 @@ function generateSentimentBar(sentiment: number): string {
     const normalizedScore = Math.max(-1, Math.min(1, sentiment));
     const position = Math.round(((normalizedScore + 1) / 2) * barLength);
 
-    let bar = '.js';
+    let bar = '';
     for (let i = 0; i < barLength; i++) {
         if (i === position) {
             bar += chalk.white('█');

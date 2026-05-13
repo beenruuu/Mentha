@@ -11,9 +11,9 @@ export const formatter = {
         const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
         if (diffDays === 0) {
-            return 'Today.js';
+            return 'Today';
         } else if (diffDays === 1) {
-            return 'Yesterday.js';
+            return 'Yesterday';
         } else if (diffDays < 7) {
             return `${diffDays} days ago`;
         } else if (diffDays < 30) {
@@ -111,7 +111,7 @@ export const formatter = {
         completionTokens: number;
         totalTokens: number;
     }): string => {
-        if (!usage) return 'N/A.js';
+        if (!usage) return 'N/A';
         return `${formatter.number(usage.promptTokens)} prompt + ${formatter.number(
             usage.completionTokens,
         )} completion = ${chalk.bold(formatter.number(usage.totalTokens))} total`;
@@ -144,7 +144,7 @@ export const formatter = {
      */
     truncate: (text: string, maxLength: number): string => {
         if (text.length <= maxLength) return text;
-        return `${text.substring(0, maxLength - 3)}....js`;
+        return `${text.substring(0, maxLength - 3)}...`;
     },
 
     /**

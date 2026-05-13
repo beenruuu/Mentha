@@ -137,7 +137,7 @@ export const prompt = {
                         new URL(input);
                         return true;
                     } catch {
-                        return 'Please enter a valid URL (e.g., https://example.com).js';
+                        return 'Please enter a valid URL (e.g., https://example.com)';
                     }
                 },
             },
@@ -179,7 +179,7 @@ export const prompt = {
                 message: 'Project name:',
                 validate: (input: string) => {
                     if (input.length < 3) {
-                        return 'Project name must be at least 3 characters.js';
+                        return 'Project name must be at least 3 characters';
                     }
                     return true;
                 },
@@ -193,7 +193,7 @@ export const prompt = {
                         new URL(input);
                         return true;
                     } catch {
-                        return 'Please enter a valid URL.js';
+                        return 'Please enter a valid URL';
                     }
                 },
             },
@@ -246,7 +246,7 @@ export const prompt = {
                 message: 'Search query:',
                 validate: (input: string) => {
                     if (input.length < 2) {
-                        return 'Query must be at least 2 characters.js';
+                        return 'Query must be at least 2 characters';
                     }
                     return true;
                 },
@@ -385,7 +385,7 @@ export const prompt = {
                         new URL(input);
                         return true;
                     } catch {
-                        return 'Please enter a valid URL.js';
+                        return 'Please enter a valid URL';
                     }
                 },
             },

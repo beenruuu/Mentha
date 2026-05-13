@@ -46,7 +46,7 @@ searchCommand
         try {
             const apiSearchPath = resolve(
                 __dirname,
-                '../../../api/src/infrastructure/search/factory',
+                '../../../api/src/core/search/factory',
             );
             const { createProvider } = await import(apiSearchPath);
             const searchProvider = createProvider(provider);
@@ -109,7 +109,7 @@ searchCommand
 
         const query = await prompt.input('Enter your search query:', undefined, (input: string) => {
             if (input.length < 2) {
-                return 'Query must be at least 2 characters.js';
+                return 'Query must be at least 2 characters';
             }
             return true;
         });
@@ -120,7 +120,7 @@ searchCommand
         try {
             const apiSearchPath = resolve(
                 __dirname,
-                '../../../api/src/infrastructure/search/factory',
+                '../../../api/src/core/search/factory',
             );
             const { createProvider } = await import(apiSearchPath);
             const searchProvider = createProvider(options.provider);
@@ -203,7 +203,7 @@ searchCommand
         try {
             const apiSearchPath = resolve(
                 __dirname,
-                '../../../api/src/infrastructure/search/factory',
+                '../../../api/src/core/search/factory',
             );
             const { createProvider } = await import(apiSearchPath);
             const searchProvider = createProvider(provider);
@@ -218,7 +218,7 @@ searchCommand
                             input.toLowerCase() !== 'exit' &&
                             input.toLowerCase() !== 'quit'
                         ) {
-                            return 'Message cannot be empty.js';
+                            return 'Message cannot be empty';
                         }
                         return true;
                     },
@@ -276,7 +276,7 @@ searchCommand
         try {
             const apiSearchPath = resolve(
                 __dirname,
-                '../../../api/src/infrastructure/search/factory',
+                '../../../api/src/core/search/factory',
             );
             const { testAllProviders } = await import(apiSearchPath);
             const results = await testAllProviders();
