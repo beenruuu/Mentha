@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
+import { Collapsible } from '@/components/ui/collapsible';
 import { EngineIcon } from '@/components/ui/engine-icon';
 import { useProject } from '@/context/ProjectContext';
 import { fetchFromApi } from '@/lib/api';
@@ -55,15 +56,15 @@ export function AddKeywordModal({ onClose, onSuccess }: AddKeywordModalProps) {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
             <div
-                className="absolute inset-0 bg-mentha-dark/50 backdrop-blur-sm"
+                className="fixed inset-0 bg-mentha-dark/50 backdrop-blur-sm pointer-events-auto"
                 onClick={onClose}
                 role="button"
                 tabIndex={0}
                 onKeyDown={(e) => e.key === 'Escape' && onClose()}
             />
-            <div className="relative w-full max-w-md bg-mentha-beige dark:bg-mentha-dark rounded-2xl border border-mentha-forest/10 dark:border-mentha-beige/10 shadow-xl p-6">
+            <div className="relative w-full max-w-md bg-mentha-beige dark:bg-mentha-dark rounded-2xl border border-mentha-forest/10 dark:border-mentha-beige/10 shadow-xl p-6 pointer-events-auto z-10">
                 <div className="flex items-center justify-between mb-6">
                     <h2 className="font-serif text-xl text-mentha-forest dark:text-mentha-beige">
                         Add New Keyword
@@ -146,10 +147,7 @@ export function AddKeywordModal({ onClose, onSuccess }: AddKeywordModalProps) {
                         </div>
                     </div>
 
-                    <div className="pt-2">
-                        <p className="font-mono text-[10px] uppercase tracking-widest text-mentha-forest/60 dark:text-mentha-beige/60 mb-3">
-                            Neural Engines
-                        </p>
+                    <Collapsible title="Neural Engines">
                         <div className="grid grid-cols-2 gap-3">
                             {['perplexity', 'openai', 'gemini', 'claude'].map((engine) => (
                                 <label
@@ -177,7 +175,7 @@ export function AddKeywordModal({ onClose, onSuccess }: AddKeywordModalProps) {
                                 </label>
                             ))}
                         </div>
-                    </div>
+                    </Collapsible>
 
                     {error && <p className="font-sans text-sm text-red-500">{error}</p>}
 

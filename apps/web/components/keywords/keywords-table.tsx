@@ -36,6 +36,7 @@ export function KeywordsTable() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [showAddModal, setShowAddModal] = useState(false);
+    const [expandedId, setExpandedId] = useState<string | null>(null);
 
     const loadKeywords = async () => {
         if (!selectedProject?.id) return;
@@ -155,62 +156,97 @@ export function KeywordsTable() {
                             )}
                         </div>
                     ) : (
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Keyword</TableHead>
-                                    <TableHead>Intent</TableHead>
-                                    <TableHead>Trend</TableHead>
-                                    <TableHead>Visibility</TableHead>
-                                    <TableHead>Scans</TableHead>
-                                    <TableHead>Last Scanned</TableHead>
-                                    <TableHead>Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredKeywords.map((kw) => (
-                                    <TableRow key={kw.id}>
-                                        <TableCell className="font-serif">{kw.keyword}</TableCell>
-                                        <TableCell>
-                                            {kw.intent && (
-                                                <span
-                                                    className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-mono uppercase ${intentColors[kw.intent] || ''}`}
-                                                >
-                                                    {kw.intent}
+                        <div className="space-y-2">
+                            {filteredKeywords.map((kw) => (
+                                <div key={kw.id}>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExpandedId(expandedId === kw.id ? null : kw.id)}
+                                        className="w-full p-3 rounded-lg hover:bg-mentha-forest/5 dark:hover:bg-white/5 transition-colors text-left border border-transparent hover:border-mentha-mint/20 cursor-pointer"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex-1 min-w-0">
+                                                <p className="font-serif text-sm text-mentha-forest dark:text-mentha-beige truncate">
+                                                    {kw.keyword}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-2 ml-2">
+                                                <Badge variant={kw.visibilityRate > 50 ? 'success' : 'default'}>
+                                                    {kw.visibilityRate}%
+                                                </Badge>
+                                                <span className="text-xs text-mentha-forest/40 dark:text-mentha-beige/40">
+                                                    {expandedId === kw.id ? '▼' : '▶'}
                                                 </span>
+                                            </div>
+                                        </div>
+                                    </button>
+
+                                    {expandedId === kw.id && (
+                                        <div className="ml-3 mt-2 p-3 rounded-lg bg-mentha-forest/5 dark:bg-white/5 border border-mentha-forest/10 dark:border-white/10 space-y-3 text-sm">
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <p className="font-mono text-xs uppercase opacity-60">Intent</p>
+                                                    {kw.intent && (
+                                                        <Badge
+                                                            variant="outline"
+                                                            className={`text-[10px] uppercase font-mono py-0 opacity-70 ${intentColors[kw.intent] || ''}`}
+                                                        >
+                                                            {kw.intent}
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-mono text-xs uppercase opacity-60">Frequency</p>
+                                                    <p className="font-mono text-sm text-mentha-forest/70 dark:text-mentha-beige/70 capitalize">
+                                                        {kw.scan_frequency || 'Not set'}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="font-mono text-xs uppercase opacity-60">Total Scans</p>
+                                                    <p className="font-mono text-sm text-mentha-forest/70 dark:text-mentha-beige/70">
+                                                        {kw.totalScans}
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <p className="font-mono text-xs uppercase opacity-60">Last Scanned</p>
+                                                    <p className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70">
+                                                        {kw.lastScanned
+                                                            ? new Date(kw.lastScanned).toLocaleDateString()
+                                                            : 'Never'}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {kw.engines && kw.engines.length > 0 && (
+                                                <div>
+                                                    <p className="font-mono text-xs uppercase opacity-60 mb-2">Neural Engines</p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {kw.engines.map((engine) => (
+                                                            <span
+                                                                key={engine}
+                                                                className="inline-flex items-center px-2 py-1 rounded-lg bg-mentha-mint/10 text-mentha-mint text-xs font-mono uppercase"
+                                                            >
+                                                                {engine}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
                                             )}
-                                        </TableCell>
-                                        <TableCell>{renderTrend(kw.trend)}</TableCell>
-                                        <TableCell>
-                                            <Badge
-                                                variant={
-                                                    kw.visibilityRate > 50 ? 'success' : 'default'
-                                                }
-                                            >
-                                                {kw.visibilityRate}%
-                                            </Badge>
-                                        </TableCell>
-                                        <TableCell className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70">
-                                            {kw.totalScans}
-                                        </TableCell>
-                                        <TableCell className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70">
-                                            {kw.lastScanned
-                                                ? new Date(kw.lastScanned).toLocaleDateString()
-                                                : 'Never'}
-                                        </TableCell>
-                                        <TableCell>
-                                            <button
-                                                type="button"
-                                                onClick={() => handleDelete(kw.id)}
-                                                className="font-sans text-sm text-red-500 hover:text-red-700"
-                                            >
-                                                Delete
-                                            </button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+
+                                            <div className="pt-2 border-t border-mentha-forest/10 dark:border-white/10">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDelete(kw.id)}
+                                                    className="font-sans text-sm text-red-500 hover:text-red-700"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
                     )}
                 </CardContent>
             </Card>
