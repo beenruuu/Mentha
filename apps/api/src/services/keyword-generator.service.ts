@@ -24,7 +24,8 @@ export class KeywordGeneratorService {
 
     constructor() {
         this.client = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
+            apiKey: process.env.OPENROUTER_API_KEY,
+            baseURL: 'https://openrouter.ai/api/v1',
         });
     }
 

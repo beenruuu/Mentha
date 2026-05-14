@@ -7,6 +7,7 @@ import { db } from '../db';
 import { keywords, projects, scanJobs, scanResults } from '../db/schema/core';
 import { NotFoundException } from '../exceptions/http';
 import { addScanJob } from '../core/queue';
+import type { SearchResult } from '../core/search/types';
 
 export interface ScanJobData {
     jobId: string;
@@ -128,19 +129,40 @@ export class ScanService {
                         continue;
                     }
 
-                    // 2. Add a BullMQ job for this specific engine
-                    await addScanJob(
-                        {
-                            keywordId: kw.id,
-                            engine: engineName,
-                            projectId: projectId,
-                            userId: project.user_id,
-                            query: kw.query,
-                            brand: brand,
-                            competitors: competitors,
-                        },
-                        { jobId: jobRecord.id },
-                    );
+                    const executionMode = env.MENTHA_SCAN_EXECUTION_MODE;
+
+                    if (executionMode === 'browser' || executionMode === 'hybrid') {
+                        // Browser mode: enqueue BullMQ job for Camoufox scraper
+                        await addScanJob(
+                            {
+                                keywordId: kw.id,
+                                engine: engineName,
+                                projectId: projectId,
+                                userId: project.user_id,
+                                query: kw.query,
+                                brand: brand,
+                                competitors: competitors,
+                            },
+                            { jobId: jobRecord.id },
+                        );
+                    }
+
+                    if (executionMode === 'api' || executionMode === 'hybrid') {
+                        // API mode: execute via OpenRouter directly
+                        this.runApiScan(
+                            scanRun!.id,
+                            jobRecord.id,
+                            engineName,
+                            kw.query,
+                            brand,
+                            competitors,
+                        ).catch((err: Error) => {
+                            logger.error(
+                                { jobId: jobRecord.id, error: err.message },
+                                'API scan failed',
+                            );
+                        });
+                    }
 
                     jobCount++;
                 }
@@ -290,6 +312,131 @@ export class ScanService {
 
             throw error;
         }
+    }
+
+    private async runApiScan(
+        runId: string,
+        jobId: string,
+        engine: string,
+        query: string,
+        brand: string,
+        competitors: string[],
+    ): Promise<void> {
+        const log = createLogger({ jobId, engine });
+        const startTime = Date.now();
+
+        try {
+            log.info({ query: query.slice(0, 80) }, 'Starting API scan via OpenRouter');
+
+            await db
+                .update(scanJobs)
+                .set({ status: 'processing', started_at: new Date() })
+                .where(eq(scanJobs.id, jobId));
+
+            const provider = (await import('../core/search/factory')).createProvider(engine as any);
+            const searchResult: SearchResult = await provider.search(query, {
+                maxTokens: 2000,
+                temperature: 0.1,
+            });
+
+            const latencyMs = Date.now() - startTime;
+
+            const brandVisible = searchResult.content
+                .toLowerCase()
+                .includes(brand.toLowerCase());
+
+            await db.insert(scanResults).values({
+                job_id: jobId,
+                raw_response: searchResult.content,
+                analysis_json: {
+                    content: searchResult.content,
+                    citations: searchResult.citations,
+                    engine,
+                    latencyMs,
+                },
+                brand_visibility: brandVisible,
+                token_count: searchResult.usage?.totalTokens || 0,
+            });
+
+            await db
+                .update(scanJobs)
+                .set({
+                    status: 'completed',
+                    latency_ms: latencyMs,
+                    completed_at: new Date(),
+                })
+                .where(eq(scanJobs.id, jobId));
+
+            await this.updateRunProgress(runId);
+
+            await db
+                .update(keywords)
+                .set({ last_scanned_at: new Date() })
+                .where(eq(keywords.id, (await db.select({ kid: keywords.id }).from(keywords).innerJoin(scanJobs, eq(scanJobs.keyword_id, keywords.id)).where(eq(scanJobs.id, jobId)).limit(1))[0]?.kid || ''));
+
+            log.info({ latencyMs }, 'API scan completed successfully');
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+            log.error({ error: errorMsg }, 'API scan failed');
+
+            await db
+                .update(scanJobs)
+                .set({
+                    status: 'failed',
+                    error_message: errorMsg,
+                    completed_at: new Date(),
+                })
+                .where(eq(scanJobs.id, jobId));
+
+            await this.updateRunProgress(runId);
+        }
+    }
+
+    private async updateRunProgress(runId: string) {
+        const { scanRuns } = await import('../db/schema/core');
+
+        const jobs = await db
+            .select({ status: scanJobs.status })
+            .from(scanJobs)
+            .where(eq(scanJobs.run_id, runId));
+
+        const finalStatuses = new Set([
+            'completed',
+            'failed',
+            'cancelled',
+            'auth_required',
+            'captcha_required',
+            'blocked',
+        ]);
+
+        const finalJobs = jobs.filter((j) => finalStatuses.has(j.status || ''));
+        const completedCount = jobs.filter((j) => j.status === 'completed').length;
+        const visibleRows = await db
+            .select({ id: scanResults.id })
+            .from(scanResults)
+            .innerJoin(scanJobs, eq(scanResults.job_id, scanJobs.id))
+            .where(
+                and(eq(scanJobs.run_id, runId), eq(scanResults.brand_visibility, true)),
+            );
+
+        const nextStatus =
+            jobs.length > 0 && finalJobs.length >= jobs.length
+                ? finalJobs.length === completedCount
+                    ? 'completed'
+                    : completedCount > 0
+                      ? 'ready_partial'
+                      : 'failed'
+                : 'processing';
+
+        await db
+            .update(scanRuns)
+            .set({
+                completed_jobs: finalJobs.length,
+                visible_count: visibleRows.length,
+                status: nextStatus,
+                completed_at: nextStatus === 'processing' ? null : new Date(),
+            })
+            .where(eq(scanRuns.id, runId));
     }
 
     async listResults(filters: { projectId: string; limit?: number }): Promise<any[]> {

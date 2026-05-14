@@ -46,10 +46,7 @@ const envSchema = z.object({
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.string().url().default('http://localhost:4000'),
 
-    // LLM Providers
-    PERPLEXITY_API_KEY: z.string().optional(),
-    OPENAI_API_KEY: z.string().optional(),
-    GOOGLE_AI_KEY: z.string().optional(),
+    // LLM Providers (only OpenRouter - no direct OpenAI)
     OPENROUTER_API_KEY: z.string().optional(),
 
     // Camoufox anti-detection browser

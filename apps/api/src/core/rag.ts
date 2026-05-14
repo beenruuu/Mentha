@@ -27,12 +27,12 @@ export class RAGSimulator {
     private readonly completionModel = 'gpt-4o-mini';
 
     constructor() {
-        const apiKey = env.OPENAI_API_KEY;
-        this.client = apiKey ? new OpenAI({ apiKey }) : null;
+        const apiKey = env.OPENROUTER_API_KEY;
+        this.client = apiKey ? new OpenAI({ apiKey, baseURL: 'https://openrouter.ai/api/v1' }) : null;
     }
 
     async embed(text: string): Promise<number[]> {
-        if (!this.client) throw new Error('OPENAI_API_KEY required');
+        if (!this.client) throw new Error('OPENROUTER_API_KEY required for RAG embeddings');
 
         const response = await this.client.embeddings.create({
             model: this.embeddingModel,
@@ -72,7 +72,7 @@ export class RAGSimulator {
     }
 
     async simulateRAG(query: string, chunks: DocChunk[]): Promise<RAGResult> {
-        if (!this.client) throw new Error('OPENAI_API_KEY required');
+        if (!this.client) throw new Error('OPENROUTER_API_KEY required for RAG simulation');
 
         const queryEmbedding = await this.embed(query);
 

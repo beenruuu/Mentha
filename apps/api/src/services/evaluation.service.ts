@@ -61,21 +61,18 @@ export class EvaluationService {
     private readonly model = 'openai/gpt-4o-mini';
 
     constructor() {
-        const apiKey = env.OPENROUTER_API_KEY || env.OPENAI_API_KEY;
-        const isOpenRouter = apiKey?.startsWith('sk-or-');
+        const apiKey = env.OPENROUTER_API_KEY;
 
         if (apiKey) {
             this.client = new OpenAI({
                 apiKey,
-                baseURL: isOpenRouter ? 'https://openrouter.ai/api/v1' : undefined,
+                baseURL: 'https://openrouter.ai/api/v1',
                 dangerouslyAllowBrowser: true,
             });
-            logger.info(
-                `Evaluation service initialized using ${isOpenRouter ? 'OpenRouter' : 'OpenAI'}`,
-            );
+            logger.info('Evaluation service initialized using OpenRouter');
         } else {
             this.client = null;
-            logger.warn('AI API keys not configured - evaluation service unavailable');
+            logger.warn('OPENROUTER_API_KEY not configured - evaluation service unavailable');
         }
     }
 
@@ -299,7 +296,7 @@ Provide your evaluation as JSON. Remember the Entity Resolution rules: do NOT co
         validationError: z.ZodError,
     ): Promise<EvaluationResult> {
         if (!this.client) {
-            throw new Error('OPENAI_API_KEY is required');
+            throw new Error('OPENROUTER_API_KEY is required for auto-correction');
         }
 
         logger.info('Attempting auto-correction of evaluation response');

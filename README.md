@@ -43,7 +43,7 @@ Every day, millions of users ask AI engines questions like "What's the best [you
 Mentha bridges this gap with a complete AEO workflow:
 
 1. **Capture** — Uses real browser automation (Camoufox + Playwright) to navigate AI engine web UIs, submit your keywords, and capture the exact Markdown response as a real user would see it
-2. **Evaluate** — An LLM-as-Judge (GPT-4o-mini) analyzes each response for brand visibility, sentiment, competitor mentions, hallucination detection, and entity extraction
+2. **Evaluate** — An LLM-as-Judge (via OpenRouter) analyzes each response for brand visibility, sentiment, competitor mentions, hallucination detection, and entity extraction
 3. **Visualize** — Real-time dashboard shows your Share of Voice, keyword performance, sentiment trends, and competitive landscape across all engines
 4. **Optimize** — AI-powered recommendations help you improve your brand's presence in AI-generated answers
 
@@ -54,7 +54,7 @@ Mentha bridges this gap with a complete AEO workflow:
 ### AI Engine Support
 | Engine | Capture Method | Status |
 |--------|---------------|--------|
-| **ChatGPT** (OpenAI) | Browser automation (chatgpt.com) | ✅ Production |
+| **ChatGPT** (OpenAI) | Browser automation (chatgpt.com) or OpenRouter API | ✅ Production |
 | **Perplexity** | Browser automation (perplexity.ai) | ✅ Production |
 | **Gemini** | Browser automation (gemini.google.com) | ✅ Production |
 | **Claude** (Anthropic) | Browser automation (claude.ai) | ✅ Production |
@@ -63,7 +63,7 @@ Mentha bridges this gap with a complete AEO workflow:
 ### Platform Capabilities
 
 - **UI Capture System**: Real Firefox browser via Camoufox + Playwright with anti-detection, human behavior simulation, and session management
-- **LLM-as-Judge Evaluation**: GPT-4o-mini analyzes brand visibility, sentiment (-1.0 to 1.0), recommendation type, competitor mentions, hallucination risks, keyword intent, and entity extraction
+- **LLM-as-Judge Evaluation**: OpenRouter (GPT-4o-mini) analyzes brand visibility, sentiment (-1.0 to 1.0), recommendation type, competitor mentions, hallucination risks, keyword intent, and entity extraction
 - **Provider Connections**: Session-based authentication management for each AI engine with login, health checks, and reconnect
 - **Knowledge Graph**: Auto-extracted entities, claims, and relationships for structured brand intelligence
 - **BullMQ Queue System**: 4 queues (scrapers, analysis, notifications, scheduled) with Redis-backed reliability
@@ -134,7 +134,7 @@ Backend Pipeline:
 | **Database** | PGlite (in-process PostgreSQL) |
 | **Queue** | Redis + BullMQ (4 queues) |
 | **Browser Automation** | Camoufox + Playwright (Firefox) |
-| **AI Evaluation** | OpenRouter / OpenAI (GPT-4o-mini) |
+| **AI Evaluation** | OpenRouter (GPT-4o-mini) |
 | **Auth** | BetterAuth |
 | **CLI** | Commander.js, Inquirer, Chalk |
 | **i18n** | React Context-based localization |
@@ -150,6 +150,22 @@ Backend Pipeline:
 - **Python 3.10+** (optional, for Camoufox browser automation)
 - **OpenRouter API key** (optional, for LLM-as-Judge evaluation)
 
+### Scan Execution Mode
+
+Mentha supports two scan execution modes controlled by `MENTHA_SCAN_EXECUTION_MODE`:
+
+| Mode | Description | Best For |
+|------|-------------|----------|
+| `browser` (default) | Uses Camoufox browser automation to navigate AI engine web UIs | Local development, accurate UI responses |
+| `api` | Uses OpenRouter API calls instead of browser automation | SaaS deployment, server environments without browsers |
+| `hybrid` | Runs both browser and API scans in parallel | Maximum coverage during development |
+
+Set in `apps/api/.env`:
+```bash
+MENTHA_SCAN_EXECUTION_MODE=browser   # browser | api | hybrid
+OPENROUTER_API_KEY=sk-or-...         # Required for 'api' or 'hybrid' mode
+```
+
 ### Quick Install
 
 ```bash
@@ -163,17 +179,7 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) to start the onboarding flow.
 
-### QA Mode (No External Services Required)
 
-```bash
-# Set in apps/api/.env:
-MENTHA_QA_MODE=true
-NEXT_PUBLIC_MENTHA_QA_MODE=true
-```
-
-This uses mock data providers and skips real browser automation — perfect for evaluation and development.
-
----
 
 ## Documentation
 
@@ -243,7 +249,7 @@ No. Mentha uses browser automation (Camoufox + Playwright) to interact with AI e
 Perplexity, ChatGPT (OpenAI), Gemini (Google), Claude (Anthropic), and Google AI Overviews.
 
 ### Is Mentha free and open source?
-Yes. Mentha is MIT-licensed open source. You can self-host it completely free. Optional features (LLM-as-Judge evaluation) require an OpenRouter or OpenAI API key.
+Yes. Mentha is MIT-licensed open source. You can self-host it completely free. Optional features (LLM-as-Judge evaluation) require an OpenRouter API key.
 
 ### What is Share of Voice in AI search?
 Share of Voice (SOV) measures how often your brand is mentioned across AI engine responses compared to competitors. A higher SOV means AI engines recommend your brand more frequently than alternatives.
@@ -253,28 +259,6 @@ GPT-4o-mini evaluates each AI response using a structured system prompt. It extr
 
 ### Can I schedule regular scans?
 Yes. Mentha supports automated daily and weekly recurring scans via scheduled BullMQ jobs with cron-based triggers.
-
----
-
-## Repository Topics
-
-When configuring your GitHub repository, add these topics:
-
-```
-aeo, answer-engine-optimization, brand-monitoring, ai-search, chatgpt-tracking, perplexity-optimization, llm-reputation, generative-engine-optimization, geo, seo-tools, brand-intelligence, open-source, nextjs, hono, typescript
-```
-
----
-
-## Repo Social Preview
-
-The current social preview image is at `./assets/try-mentha-now.png`. For the best results on GitHub, LinkedIn, and Twitter/X when your repo is shared, ensure this image is:
-- **1280×640px** (recommended aspect ratio for social cards)
-- Under 1MB
-- High contrast and readable at small sizes
-- Includes the Mentha logo and tagline
-
----
 
 ## License
 

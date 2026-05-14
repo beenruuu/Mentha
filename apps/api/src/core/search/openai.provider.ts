@@ -16,22 +16,22 @@ export class OpenAIProvider implements ISearchProvider {
     private readonly defaultModel = 'gpt-4o';
 
     constructor() {
-        const apiKey = env.OPENAI_API_KEY;
+        const apiKey = env.OPENROUTER_API_KEY;
         if (apiKey) {
-            this.client = new OpenAI({ apiKey });
+            this.client = new OpenAI({ apiKey, baseURL: 'https://openrouter.ai/api/v1' });
         } else {
             this.client = null;
-            logger.warn('OPENAI_API_KEY not configured');
+            logger.warn('OPENROUTER_API_KEY not configured');
         }
     }
 
     /**
-     * Execute a search query using OpenAI API
+     * Execute a search query via OpenRouter
      * Note: This doesn't have web access, so it's based on training data
      */
     async search(query: string, options?: SearchOptions): Promise<SearchResult> {
         if (!this.client) {
-            throw new Error('OPENAI_API_KEY is not configured');
+            throw new Error('OPENROUTER_API_KEY is not configured');
         }
 
         const startTime = Date.now();

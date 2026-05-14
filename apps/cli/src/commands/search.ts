@@ -90,7 +90,7 @@ searchCommand
             console.log(chalk.yellow('\nTip: Make sure API keys are configured in apps/api/.env'));
             console.log(
                 chalk.gray(
-                    'Required: PERPLEXITY_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, or ANTHROPIC_API_KEY',
+                    'Required: OPENROUTER_API_KEY configured in apps/api/.env',
                 ),
             );
             process.exit(1);
