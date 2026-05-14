@@ -15,7 +15,7 @@ importers:
         specifier: ^9.2.1
         version: 9.2.1
       turbo:
-        specifier: latest
+        specifier: ^2.5.0
         version: 2.7.6
 
   apps/api:
