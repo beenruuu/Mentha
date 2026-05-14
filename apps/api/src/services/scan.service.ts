@@ -324,7 +324,7 @@ export class ScanService {
         engine: string,
         query: string,
         brand: string,
-        competitors: string[],
+        _competitors: string[],
     ): Promise<void> {
         const log = createLogger({ jobId, engine });
         const startTime = Date.now();
