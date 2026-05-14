@@ -53,14 +53,20 @@ export const ScanController = {
 
     trigger: async (c: Context) => {
         const project_id = c.req.query('project_id');
+        const mode = c.req.query('mode');
 
         if (!project_id) {
             throw new BadRequestException('project_id is required');
         }
 
+        const validModes = ['browser', 'api', 'hybrid'] as const;
+        const executionMode = mode && validModes.includes(mode as any)
+            ? (mode as 'browser' | 'api' | 'hybrid')
+            : undefined;
+
         try {
-            const result = await scanService.triggerProjectScan(project_id);
-            return c.json({ data: result });
+            const result = await scanService.triggerProjectScan(project_id, executionMode);
+            return c.json({ data: { ...result, executionMode: executionMode || 'env_default' } });
         } catch (error) {
             logger.error(
                 {

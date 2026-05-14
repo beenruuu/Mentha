@@ -27,9 +27,15 @@ export interface ScanServiceResult {
 export class ScanService {
     /**
      * Enqueues scan jobs for all active keywords in a project
+     * @param mode Optional override for scan execution mode (browser | api | hybrid).
+     *             Falls back to env.MENTHA_SCAN_EXECUTION_MODE if not provided.
      */
-    async triggerProjectScan(projectId: string): Promise<{ jobCount: number; runId: string }> {
-        logger.info({ projectId }, 'Triggering full project scan');
+    async triggerProjectScan(
+        projectId: string,
+        mode?: 'browser' | 'api' | 'hybrid',
+    ): Promise<{ jobCount: number; runId: string }> {
+        const executionMode = mode || env.MENTHA_SCAN_EXECUTION_MODE;
+        logger.info({ projectId, executionMode }, 'Triggering full project scan');
 
         const [project] = await db
             .select()
@@ -128,8 +134,6 @@ export class ScanService {
                         jobCount++;
                         continue;
                     }
-
-                    const executionMode = env.MENTHA_SCAN_EXECUTION_MODE;
 
                     if (executionMode === 'browser' || executionMode === 'hybrid') {
                         // Browser mode: enqueue BullMQ job for Camoufox scraper

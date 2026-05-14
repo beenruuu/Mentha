@@ -332,15 +332,21 @@ projectsCommand
             const scanNow = await prompt.confirm('Trigger initial scan now?', true);
 
             if (scanNow) {
+                const scanMode = await prompt.select(
+                    'Scan execution mode?',
+                    ['browser (Camoufox)', 'api (OpenRouter)', 'hybrid (both)'],
+                    'browser (Camoufox)',
+                );
+                const modeValue = scanMode.split(' ')[0] as 'browser' | 'api' | 'hybrid';
                 const scanSpinner = ora('Triggering initial scan...').start();
                 try {
                     const scanRes = await apiCall<{ runId: string; jobCount: number }>(
                         client.api.v1.scans.trigger.$post({
-                            query: { project_id: project.id },
+                            query: { project_id: project.id, mode: modeValue },
                         }),
                     );
                     scanSpinner.succeed(
-                        `Scan started with ${scanRes.jobCount} queries across all engines`,
+                        `Scan started with ${scanRes.jobCount} queries across all engines (mode: ${modeValue})`,
                     );
                 } catch {
                     scanSpinner.fail('Failed to trigger scan');

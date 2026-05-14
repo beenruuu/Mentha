@@ -9,7 +9,38 @@ import { apiCall } from '../utils/api';
 import { formatter } from '../utils/formatter';
 import { table } from '../utils/table';
 
-export const scansCommand = new Command('scans').description('View scan results');
+export const scansCommand = new Command('scans').description('Manage scan runs and results');
+
+scansCommand
+    .command('trigger')
+    .description('Trigger a new scan run')
+    .requiredOption('-p, --project-id <id>', 'Project ID')
+    .option(
+        '-m, --mode <mode>',
+        'Scan execution mode: browser | api | hybrid (default: from env)',
+    )
+    .action(async (options) => {
+        const spinner = ora('Triggering scan...').start();
+
+        try {
+            const query: Record<string, string> = { project_id: options.projectId };
+            if (options.mode) query.mode = options.mode;
+
+            const result = await apiCall<{ runId: string; jobCount: number }>(
+                client.api.v1.scans.trigger.$post({ query }),
+            );
+            spinner.succeed(
+                `Scan started: ${result.jobCount} job(s), run ID: ${result.runId}`,
+            );
+            if (options.mode) {
+                console.log(chalk.gray(`  Mode: ${options.mode}`));
+            }
+        } catch (error) {
+            spinner.fail('Failed to trigger scan');
+            console.error(formatter.error((error as Error).message));
+            process.exit(1);
+        }
+    });
 
 scansCommand
     .command('list')
