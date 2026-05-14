@@ -1,175 +1,287 @@
-# 🌿 Mentha GUI (v1.0 Stable)
+# Mentha — Open Source Answer Engine Optimization (AEO) Platform
 
 ![Mentha Hero](./assets/try-mentha-now.png)
 
-> **The Professional Answer Engine Optimization (AEO) Platform.** 
-> Monitor, Analyze, and Optimize your brand visibility across the AI Search ecosystem.
+**Track, Analyze, and Optimize your brand visibility across ChatGPT, Perplexity, Gemini, and Claude.** Mentha is the first open-source Answer Engine Optimization (AEO) platform that uses real browser automation to capture how AI engines see your brand, then evaluates results with an LLM-as-Judge system.
 
+[![GitHub Stars](https://img.shields.io/github/stars/beenruuu/mentha?style=social)](https://github.com/beenruuu/mentha)
 [![Version](https://img.shields.io/badge/Version-1.0_Stable-mentha?color=38B2AC)](https://github.com/beenruuu/mentha)
+[![License](https://img.shields.io/badge/License-MIT-green)](https://github.com/beenruuu/mentha)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
 [![Backend](https://img.shields.io/badge/API-Hono-FF6F00)](https://hono.dev/)
-[![Queue](https://img.shields.io/badge/Queue-BullMQ-red)](https://bullmq.io/)
-[![Database](https://img.shields.io/badge/ORM-Drizzle-C5F74F)](https://orm.drizzle.team/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen)](https://github.com/beenruuu/mentha/pulls)
 
 ---
 
-## 🚀 Welcome to Mentha v1.0
-Mentha is a production-ready **Answer Engine Optimization (AEO)** platform. In a world where users ask ChatGPT and Perplexity instead of searching on Google, Mentha gives brands the tools to ensure they are being recommended accurately and positively.
+## What is Answer Engine Optimization (AEO)?
 
-### Key Features in v1.0
-- **Universal Engine Support**: Native scanning for **Perplexity**, **ChatGPT (OpenAI)**, **Gemini**, and **Claude**.
-- **UI Capture System**: Real browser automation (Camoufox + Playwright) that navigates AI engine web UIs, submits prompts, and captures rendered responses as Markdown with citations.
-- **LLM-as-a-Judge**: Uses GPT-4o-mini to evaluate brand visibility, sentiment, competitor presence, hallucination detection, and entity extraction with high accuracy.
-- **Provider Connections**: Manage authentication sessions for each AI engine (login, session health, reconnect).
-- **Knowledge Graph**: Auto-extracted entities, claims, and relationships from AI responses for structured brand intelligence.
-- **Brand Intelligence**: Inject your brand's unique description to help the system distinguish your entity from generic terms.
-- **Enterprise Queue System**: Powered by **BullMQ** and **Redis** for reliable, parallelized scanning of keywords via 4 queues (scrapers, analysis, notifications, scheduled).
-- **Real-time Dashboard**: Instant insights into Share of Voice (SOV), Engine Performance, keyword trends, and competitor analysis with CSV/ ZIP export.
-- **Billing & Credits**: Usage-based credit system with plan management.
-- **i18n Support**: Full English and Spanish localization.
-- **Settings Panel**: User profile management and application preferences.
-- **Optimization Reports**: AI-powered recommendations for improving brand visibility across answer engines.
-- **Scheduled Scans**: Automated recurring scans (daily/weekly) with cron-based scheduling.
-- **Landing Page**: Complete marketing site with Hero, Services, Methodology, Social Proof, Interactive Teaser, and FAQ sections.
-- **GitHub Actions CI/CD**: Automated AEO audit workflow.
+> **Answer Engine Optimization** is the practice of optimizing your brand's digital presence so AI chatbots and answer engines — like ChatGPT, Perplexity, Google AI Overviews, Gemini, and Claude — recommend your brand accurately, positively, and frequently when users ask questions about your industry.
+
+Traditional SEO optimized for Google search results. AEO optimizes for the AI-generated answers that 500M+ users now consume daily. Mentha is the first production-ready, open-source platform purpose-built for this new paradigm.
 
 ---
 
-## 📁 Project Structure
-Mentha is built as a modern TypeScript monorepo using **Turborepo** and **pnpm**:
+## Key Takeaways
 
-- `apps/web`: **Next.js 14** (App Router) frontend with a premium design system, i18n, and dashboard.
-- `apps/api`: **Hono** backend with PGlite in-process database, Drizzle ORM, BullMQ queues, and Camoufox browser automation.
-- `apps/cli`: **Interactive CLI** for managing projects, scans, config, and optimization from the terminal.
-- `apps/mcp`: **Model Context Protocol** server for AI assistant integration with tools for brand analysis and reporting.
-- `packages/core`: Shared types and RPC clients.
-- `packages/external`: Third-party provider integrations (browser automation, source extraction).
-
----
-
-## 🛠️ Tech Stack
-- **Frontend**: React 18, TailwindCSS, Lucide Icons, Chart.js, BetterAuth.
-- **Backend**: Hono v4, Drizzle ORM, Zod validation, BullMQ.
-- **Storage**: PGlite (in-process PostgreSQL), Redis (Queues & Cache).
-- **Automation**: BullMQ (4 queues), Camoufox + Playwright (browser automation).
-- **AI Integration**: OpenRouter / OpenAI SDK (GPT-4o-mini evaluator).
-- **CLI**: Commander.js, inquirer, chalk, cli-table3.
+| Area | What Mentha Does |
+|------|-----------------|
+| **AI Brand Monitoring** | Automatically tracks how ChatGPT, Perplexity, Gemini, and Claude mention your brand |
+| **Share of Voice (SOV)** | Measures your brand visibility vs competitors across all AI engines |
+| **Sentiment Analysis** | LLM-as-Judge evaluates every mention as positive, neutral, or negative |
+| **Citation Tracking** | Extracts sources and citations from AI responses to find link opportunities |
+| **Competitor Intelligence** | Identifies which competitors appear and why they're being recommended |
+| **Knowledge Graph** | Auto-extracts entities, claims, and relationships from AI responses |
 
 ---
 
-## 🏗️ Architecture Flow
+## Why Mentha?
+
+### The Problem
+Every day, millions of users ask AI engines questions like "What's the best [your product]?" or "Top [your industry] tools." If your brand isn't mentioned — or worse, is mentioned negatively — you're losing trust, traffic, and revenue. Traditional SEO tools can't help because they're built for crawlers, not for conversational AI.
+
+### The Solution
+Mentha bridges this gap with a complete AEO workflow:
+
+1. **Capture** — Uses real browser automation (Camoufox + Playwright) to navigate AI engine web UIs, submit your keywords, and capture the exact Markdown response as a real user would see it
+2. **Evaluate** — An LLM-as-Judge (GPT-4o-mini) analyzes each response for brand visibility, sentiment, competitor mentions, hallucination detection, and entity extraction
+3. **Visualize** — Real-time dashboard shows your Share of Voice, keyword performance, sentiment trends, and competitive landscape across all engines
+4. **Optimize** — AI-powered recommendations help you improve your brand's presence in AI-generated answers
+
+---
+
+## Features
+
+### AI Engine Support
+| Engine | Capture Method | Status |
+|--------|---------------|--------|
+| **ChatGPT** (OpenAI) | Browser automation (chatgpt.com) | ✅ Production |
+| **Perplexity** | Browser automation (perplexity.ai) | ✅ Production |
+| **Gemini** | Browser automation (gemini.google.com) | ✅ Production |
+| **Claude** (Anthropic) | Browser automation (claude.ai) | ✅ Production |
+| **Google AI Overviews** | Browser automation | ✅ Production |
+
+### Platform Capabilities
+
+- **UI Capture System**: Real Firefox browser via Camoufox + Playwright with anti-detection, human behavior simulation, and session management
+- **LLM-as-Judge Evaluation**: GPT-4o-mini analyzes brand visibility, sentiment (-1.0 to 1.0), recommendation type, competitor mentions, hallucination risks, keyword intent, and entity extraction
+- **Provider Connections**: Session-based authentication management for each AI engine with login, health checks, and reconnect
+- **Knowledge Graph**: Auto-extracted entities, claims, and relationships for structured brand intelligence
+- **BullMQ Queue System**: 4 queues (scrapers, analysis, notifications, scheduled) with Redis-backed reliability
+- **Scheduled Scans**: Automated daily/weekly recurring scans via cron
+- **Billing & Credits**: Usage-based credit system with plan management
+- **i18n**: Full English and Spanish localization
+- **Export**: CSV/ZIP export of all dashboard data
+- **CLI**: Full-featured command-line interface for power users
+- **MCP Server**: Model Context Protocol server for AI assistant tool integration
+
+---
+
+## Project Structure
 
 ```
-User → Landing (/)
-  → Login (/login) [BetterAuth]
-  → Onboarding (/onboarding) 
-      → POST /projects/analyze (Camoufox scrapes Perplexity for brand analysis)
-      → POST /projects + POST /keywords + POST /scans/trigger
-  → Dashboard (/dashboard) [polls every 10s]
+mentha/
+├── apps/
+│   ├── web/              # Next.js 14 frontend (dashboard, landing, onboarding)
+│   ├── api/              # Hono backend (PGlite DB, BullMQ workers, Camoufox)
+│   ├── cli/              # Interactive CLI (Commander.js, inquirer)
+│   └── mcp/              # MCP server for AI assistant tools
+├── packages/
+│   ├── core/             # Shared types and RPC clients
+│   └── external/         # Third-party provider integrations
+├── docs/                 # Documentation
+├── assets/               # Images and media
+└── .github/              # CI/CD workflows
+```
+
+---
+
+## Architecture Flow
+
+```
+User → Landing Page
+  → Sign In (BetterAuth)
+  → Onboarding Wizard
+      → Domain Analysis (Camoufox → Perplexity)
+      → Brand Profile Creation
+      → Keyword + Scan Trigger
+  → Dashboard (real-time polling)
 
 Backend Pipeline:
-  Scan Trigger → BullMQ scrapers-queue → Scraper Worker
-    → Camoufox/Playwright browser automation
-      → Navigate to AI engine web UI (chatgpt.com, perplexity.ai, etc.)
-      → Submit query → Capture Markdown response + citations
-    → Store scanResults + citations
-    → LLM-as-Judge (GPT-4o-mini via OpenRouter)
-      → sentiment_score, brand_visibility, competitor_mentions
-      → hallucination_flag, detected_entities, extracted_claims
-      → Keyword intent classification
-    → Update scan progress → Dashboard live updates
+  Scan Trigger
+    → BullMQ scrapers-queue
+    → Scraper Worker (Camoufox + Playwright)
+        → Firefox Browser
+        → Navigate to AI Engine Web UI
+        → Submit Query
+        → Capture Markdown Response + Citations
+    → LLM-as-Judge (GPT-4o-mini)
+        → Brand Visibility Check
+        → Sentiment Scoring
+        → Competitor Detection
+        → Hallucination Flagging
+        → Entity Extraction
+    → Dashboard (live updates via polling)
 ```
 
 ---
 
-## 🚦 Getting Started
+## Tech Stack
 
-### 1. Prerequisites
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 18, Next.js 14 (App Router), TailwindCSS, Chart.js |
+| **Backend** | Hono v4, Drizzle ORM, Zod, BullMQ |
+| **Database** | PGlite (in-process PostgreSQL) |
+| **Queue** | Redis + BullMQ (4 queues) |
+| **Browser Automation** | Camoufox + Playwright (Firefox) |
+| **AI Evaluation** | OpenRouter / OpenAI (GPT-4o-mini) |
+| **Auth** | BetterAuth |
+| **CLI** | Commander.js, Inquirer, Chalk |
+| **i18n** | React Context-based localization |
+
+---
+
+## Getting Started
+
+### Prerequisites
 - **Node.js** v20+
 - **pnpm** v9+
-- **Redis** instance.
-- **Python 3.10+** (optional, for Camoufox browser automation).
-- **OpenRouter API key** (optional, for LLM-as-Judge evaluation).
+- **Redis** instance
+- **Python 3.10+** (optional, for Camoufox browser automation)
+- **OpenRouter API key** (optional, for LLM-as-Judge evaluation)
 
-### 2. Installation
+### Quick Install
+
 ```bash
-# Clone the repo
 git clone https://github.com/beenruuu/mentha.git
-cd mentha-gui
-
-# Install dependencies
+cd mentha
 pnpm install
-
-# Setup Environment
 cp apps/api/.env.example apps/api/.env
 cp apps/web/.env.example apps/web/.env
-```
-
-### 3. Database Migration
-```bash
-cd apps/api
-pnpm drizzle-kit generate
-pnpm drizzle-kit migrate
-```
-
-### 4. Running the Platform
-```bash
-# Start all services (Web, API, Workers)
 pnpm dev
 ```
+
 Open [http://localhost:3000](http://localhost:3000) to start the onboarding flow.
 
-### 5. QA Mode (No Browser/API Keys Required)
+### QA Mode (No External Services Required)
+
 ```bash
-# Set these in apps/api/.env
+# Set in apps/api/.env:
 MENTHA_QA_MODE=true
 NEXT_PUBLIC_MENTHA_QA_MODE=true
 ```
-This uses mock data providers and skips real browser automation.
+
+This uses mock data providers and skips real browser automation — perfect for evaluation and development.
 
 ---
 
-## 🧩 Apps Overview
+## Documentation
 
-### `apps/web` — Next.js Frontend
-- **Landing Page**: `/` — Public marketing site with Hero, Services, Methodology, Social Proof, Interactive Teaser, FAQ
-- **Onboarding**: `/onboarding` — 4-step wizard (URL entry → AI analysis → review → project creation)
-- **Dashboard**: `/dashboard` — Real-time SOV, visibility trends, keyword performance, competitor analysis
-- **Optimization**: `/optimization` — AI-powered brand visibility recommendations
-- **Billing**: `/billing` — Credit usage and plan management
-- **Settings**: `/settings` — User profile and app preferences
-- **Playground**: `/playground` — Interactive keyword testing
-- **i18n**: Full English/Spanish localization via React context
-
-### `apps/api` — Hono Backend
-- **Controllers**: projects, keywords, scans, dashboard, llms-txt, webhooks, provider-connections, settings, ui-capture
-- **Workers**: scraper (Camoufox browser automation), analysis (LLM-as-Judge), ui-capture (scheduled UI captures)
-- **Services**: analysis, dashboard, domain, evaluation, llms-txt, project, scan
-- **Queue**: BullMQ with 4 queues (scrapers, analysis, notifications, scheduled)
-- **Database**: PGlite (in-process PostgreSQL) with Drizzle ORM
-
-### `apps/cli` — Command Line Interface
-- Commands: projects, scans, optimization, config, onboarding
-- Interactive prompts with rich formatting
-
-### `apps/mcp` — Model Context Protocol Server
-- Tools for AI assistants: brand analysis, visibility reports, competitor tracking
-- Connect via `mentha-mcp` for AI-augmented workflows
-
-### `.github/workflows` — CI/CD
-- Automated AEO audit workflow on push/PR
-- Lint, type-check, and test automation
+| Guide | Description |
+|-------|-------------|
+| [AEO Reference Implementation](./docs/AEO_REFERENCE_IMPLEMENTATION.md) | Complete AEO workflow with architecture decisions |
+| [API Reference](./docs/API.md) | Full API endpoint documentation |
+| [Architecture Guide](./docs/ARCHITECTURE.md) | System design and data flow |
+| [CLI Commands](./docs/CLI.md) | Command-line interface reference |
+| [Contributing](./docs/CONTRIBUTING.md) | How to contribute to Mentha |
 
 ---
 
-## 📈 AEO Strategy with Mentha
-1. **Onboard**: Connect your domain and provide a clear brand description.
-2. **Suggest**: Let Mentha analyze your niche via browser AI and suggest strategic keywords.
-3. **Scan**: Run parallel browser-based scans across multiple AI engines (Perplexity, ChatGPT, Gemini, Claude).
-4. **Analyze**: LLM-as-Judge evaluates brand visibility, sentiment, competitor presence, and hallucination risks.
-5. **Optimize**: Use the insights to update your site's E-E-A-T, Knowledge Graph, and content strategy.
+## CLI Commands
+
+```bash
+npx mentha projects list          # List all projects
+npx mentha projects create        # Create a new project
+npx mentha scans trigger          # Trigger a scan run
+npx mentha scans status           # Check scan status
+npx mentha optimization           # Get optimization recommendations
+npx mentha config                 # Manage CLI configuration
+npx mentha onboarding             # Run interactive onboarding
+```
 
 ---
 
-## 📄 License
-MIT License. Built with 🌿 for the future of search.
+## MCP Server Integration
+
+Mentha includes a **Model Context Protocol (MCP)** server that lets AI assistants (Claude, Cursor, etc.) directly interact with your AEO data:
+
+- `get_brand_visibility` — Check brand presence across AI engines
+- `analyze_sentiment` — Get sentiment analysis for specific keywords
+- `track_competitors` — Monitor competitor mentions
+- `get_optimization_tips` — Receive AI-powered improvement suggestions
+
+---
+
+## Use Cases
+
+### For Marketing Teams
+Track how your brand appears in ChatGPT and Perplexity responses. Identify gaps in AI-generated recommendations and optimize your content strategy accordingly.
+
+### For SEO Professionals
+Extend your toolkit beyond traditional search. Measure Share of Voice in the AI answer economy and provide clients with comprehensive AEO reports.
+
+### For Product Teams
+Monitor how your product is described by AI engines. Detect hallucinations or incorrect information and take corrective action.
+
+### For Agencies
+Offer AEO as a new service line. Use Mentha's multi-project support and export capabilities to deliver white-label reports.
+
+---
+
+## FAQ
+
+### What is Answer Engine Optimization?
+AEO is the practice of optimizing brand presence across AI-powered answer engines like ChatGPT, Perplexity, Gemini, and Claude. Unlike SEO (which targets Google's search results), AEO targets the conversational answers that AI generates for user queries.
+
+### How is Mentha different from SEO tools?
+Traditional SEO tools crawl websites and track keyword rankings in Google. Mentha uses real browser automation to submit queries to AI engines, captures the exact responses, and evaluates them with an LLM-as-Judge. This is fundamentally different — you see exactly what your users see when they ask AI about your brand.
+
+### Does Mentha require API keys for AI engines?
+No. Mentha uses browser automation (Camoufox + Playwright) to interact with AI engines through their web UIs, just like a real user would. You only need to log in to each engine once through the Provider Connections panel.
+
+### Which AI engines are supported?
+Perplexity, ChatGPT (OpenAI), Gemini (Google), Claude (Anthropic), and Google AI Overviews.
+
+### Is Mentha free and open source?
+Yes. Mentha is MIT-licensed open source. You can self-host it completely free. Optional features (LLM-as-Judge evaluation) require an OpenRouter or OpenAI API key.
+
+### What is Share of Voice in AI search?
+Share of Voice (SOV) measures how often your brand is mentioned across AI engine responses compared to competitors. A higher SOV means AI engines recommend your brand more frequently than alternatives.
+
+### How does the LLM-as-Judge work?
+GPT-4o-mini evaluates each AI response using a structured system prompt. It extracts sentiment score, brand visibility, recommendation type, competitor mentions, keyword intent, and detected entities. A heuristic fallback exists if no API key is configured.
+
+### Can I schedule regular scans?
+Yes. Mentha supports automated daily and weekly recurring scans via scheduled BullMQ jobs with cron-based triggers.
+
+---
+
+## Repository Topics
+
+When configuring your GitHub repository, add these topics:
+
+```
+aeo, answer-engine-optimization, brand-monitoring, ai-search, chatgpt-tracking, perplexity-optimization, llm-reputation, generative-engine-optimization, geo, seo-tools, brand-intelligence, open-source, nextjs, hono, typescript
+```
+
+---
+
+## Repo Social Preview
+
+The current social preview image is at `./assets/try-mentha-now.png`. For the best results on GitHub, LinkedIn, and Twitter/X when your repo is shared, ensure this image is:
+- **1280×640px** (recommended aspect ratio for social cards)
+- Under 1MB
+- High contrast and readable at small sizes
+- Includes the Mentha logo and tagline
+
+---
+
+## License
+
+MIT License. Built for the future of search.
+
+---
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=beenruuu/mentha&type=Date)](https://star-history.com/#beenruuu/mentha&Date)
