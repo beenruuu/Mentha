@@ -1,5 +1,7 @@
 # 🌿 Mentha GUI (v1.0 Stable)
 
+![Mentha Hero](./try-mentha-now.png)
+
 > **The Professional Answer Engine Optimization (AEO) Platform.** 
 > Monitor, Analyze, and Optimize your brand visibility across the AI Search ecosystem.
 
