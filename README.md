@@ -5,10 +5,11 @@
 **Track, Analyze, and Optimize your brand visibility across ChatGPT, Perplexity, Gemini, and Claude.** Mentha is the first open-source Answer Engine Optimization (AEO) platform that uses real browser automation to capture how AI engines see your brand, then evaluates results with an LLM-as-Judge system.
 
 [![GitHub Stars](https://img.shields.io/github/stars/beenruuu/mentha?style=social)](https://github.com/beenruuu/mentha)
-[![Version](https://img.shields.io/badge/Version-1.0_Stable-mentha?color=38B2AC)](https://github.com/beenruuu/mentha)
+[![Version](https://img.shields.io/badge/Version-1.0.0-mentha?color=38B2AC)](https://github.com/beenruuu/mentha/releases)
 [![License](https://img.shields.io/badge/License-MIT-green)](https://github.com/beenruuu/mentha)
+[![CI](https://github.com/beenruuu/mentha/actions/workflows/mentha-aeo-audit.yml/badge.svg)](https://github.com/beenruuu/mentha/actions/workflows/mentha-aeo-audit.yml)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
-[![Backend](https://img.shields.io/badge/API-Hono-FF6F00)](https://hono.dev/)
+[![API](https://img.shields.io/badge/API-Hono-FF6F00)](https://hono.dev/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen)](https://github.com/beenruuu/mentha/pulls)
 
 ---
