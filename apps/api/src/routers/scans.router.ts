@@ -8,7 +8,18 @@ import { applyRateLimit, RATE_LIMITS } from '../middlewares/rate-limit-middlewar
 const router = new Hono()
     .use('*', requireAuth)
     .get('/', applyRateLimit(RATE_LIMITS.API), extractProjectId('projectId'), ScanController.list)
-    .post('/trigger', applyRateLimit(RATE_LIMITS.API), extractProjectId('projectId'), ScanController.trigger)
+    .post(
+        '/trigger',
+        applyRateLimit(RATE_LIMITS.API),
+        extractProjectId('projectId'),
+        ScanController.trigger,
+    )
+    .get(
+        '/runs/:id',
+        applyRateLimit(RATE_LIMITS.API),
+        requireProjectAccess('projectId'),
+        ScanController.getById,
+    )
     .get(
         '/:id',
         applyRateLimit(RATE_LIMITS.API),

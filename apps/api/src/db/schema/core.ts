@@ -37,6 +37,27 @@ export const profiles = pgTable(
 );
 
 // =============================================================================
+// USER API KEYS (encrypted provider keys)
+// =============================================================================
+export const userApiKeys = pgTable(
+    'user_api_keys',
+    {
+        id: uuid('id').defaultRandom().primaryKey(),
+        user_id: text('user_id').notNull(),
+        provider: text('provider').notNull().default('openrouter'),
+        key_encrypted: text('key_encrypted').notNull(),
+        key_preview: text('key_preview'), // last 4 chars for display
+        is_active: boolean('is_active').default(true),
+        created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+        updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+    },
+    (table) => ({
+        userProviderIdx: index('idx_user_api_keys_user_provider').on(table.user_id, table.provider),
+        providerCheck: check('provider_check', sql`provider IN ('openrouter')`),
+    }),
+);
+
+// =============================================================================
 // CREDIT TRANSACTIONS
 // =============================================================================
 export const creditTransactions = pgTable(
@@ -136,7 +157,10 @@ export const scanRuns = pgTable(
     },
     (table) => ({
         projectIdx: index('idx_scan_runs_project_id').on(table.project_id),
-        statusCheck: check('scan_run_status_check', sql`status IN ('pending','processing','completed','failed')`),
+        statusCheck: check(
+            'scan_run_status_check',
+            sql`status IN ('pending','processing','completed','failed','ready_partial')`,
+        ),
     }),
 );
 
@@ -162,10 +186,13 @@ export const scanJobs = pgTable(
         keywordIdIdx: index('idx_scan_jobs_keyword_id').on(table.keyword_id),
         runIdIdx: index('idx_scan_jobs_run_id').on(table.run_id),
         statusIdx: index('idx_scan_jobs_status').on(table.status),
-        engineCheck: check('engine_check', sql`engine IN ('perplexity', 'openai', 'gemini', 'claude', 'openrouter')`),
+        engineCheck: check(
+            'engine_check',
+            sql`engine IN ('perplexity', 'openai', 'gemini', 'claude', 'openrouter')`,
+        ),
         statusCheck: check(
             'status_check',
-            sql`status IN ('pending', 'processing', 'completed', 'failed', 'cancelled')`,
+            sql`status IN ('pending', 'processing', 'completed', 'failed', 'cancelled', 'auth_required', 'captcha_required', 'blocked')`,
         ),
         priorityCheck: check('priority_check', sql`priority IN ('low', 'normal', 'high')`),
     }),

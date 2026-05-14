@@ -1,6 +1,10 @@
 import type React from 'react';
 
+import { useTranslations } from '@/lib/i18n';
+
 const SocialProof: React.FC = () => {
+    const { t } = useTranslations();
+
     return (
         <section
             id="cases"
@@ -13,7 +17,7 @@ const SocialProof: React.FC = () => {
                             +340%
                         </h2>
                         <p className="font-mono text-sm mt-4 uppercase tracking-widest border-t border-mentha-forest dark:border-mentha-beige pt-4 inline-block">
-                            Increase in Brand Mentions on Perplexity
+                            {t.socialProofMentions}
                         </p>
                     </div>
                     <div>
@@ -21,11 +25,11 @@ const SocialProof: React.FC = () => {
                             2.5M
                         </h2>
                         <p className="font-mono text-sm mt-4 uppercase tracking-widest border-t border-mentha-forest dark:border-mentha-beige pt-4 inline-block opacity-70">
-                            Generated Organic Impressions via LLMs
+                            {t.socialProofImpressions}
                         </p>
                     </div>
                 </div>
-
+                ...
                 <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-12 opacity-50 grayscale mix-blend-multiply dark:mix-blend-screen">
                     {/* Abstract Placeholders for Logos to maintain "Wireframe" aesthetic */}
                     {['FINTECH_CORP', 'LUXURY_EST', 'SAAS_GLOBAL', 'FUTURE_MEDIA'].map(

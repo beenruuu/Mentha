@@ -4,6 +4,7 @@ import { Command } from 'commander';
 import { client } from './client';
 import { authorityCommand } from './commands/authority';
 import { billingCommand } from './commands/billing';
+import { configCommand } from './commands/config';
 import { dashboardCommand } from './commands/dashboard';
 import { keywordsCommand } from './commands/keywords';
 import { knowledgeGraphCommand } from './commands/knowledge-graph';
@@ -49,6 +50,7 @@ program.addCommand(keywordsCommand);
 program.addCommand(authorityCommand);
 program.addCommand(optimizationCommand);
 program.addCommand(billingCommand);
+program.addCommand(configCommand);
 program.addCommand(settingsCommand);
 
 // Management commands

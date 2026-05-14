@@ -10,7 +10,7 @@ import Tag from '@/components/ui/tag';
 import { useProject } from '@/context/ProjectContext';
 import { fetchFromApi } from '@/lib/api';
 
-const MAX_POLL_TIME = 120000;
+const MAX_POLL_TIME = 10 * 60 * 1000;
 const POLL_INTERVAL = 2500;
 
 const ENGINES = [
@@ -27,6 +27,7 @@ export default function OnboardingPage() {
     const [step, setStep] = useState(1);
     const [domain, setDomain] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [isCreatingProject, setIsCreatingProject] = useState(false);
     const [analysisResult, setAnalysisResult] = useState<{
         name: string;
         description: string;
@@ -37,6 +38,8 @@ export default function OnboardingPage() {
     const [_scanRunId, setScanRunId] = useState<string | null>(null);
     const [totalJobs, setTotalJobs] = useState(0);
     const [completedJobs, setCompletedJobs] = useState(0);
+    const [failedJobs, setFailedJobs] = useState(0);
+    const [processingJobs, setProcessingJobs] = useState(0);
     const pollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
@@ -87,9 +90,13 @@ export default function OnboardingPage() {
         pollTimerRef.current = setTimeout(async () => {
             try {
                 const res = await fetchFromApi(`/scans/${runId}?project_id=${projectId}`);
-                const { run } = res.data;
+                const { run, jobs = [] } = res.data;
 
                 setCompletedJobs(run.completed_jobs || 0);
+                setFailedJobs(jobs.filter((job: { status?: string }) => job.status === 'failed').length);
+                setProcessingJobs(
+                    jobs.filter((job: { status?: string }) => job.status === 'processing').length,
+                );
 
                 if (run.status === 'completed' || run.status === 'failed') {
                     router.push('/dashboard');
@@ -110,6 +117,11 @@ export default function OnboardingPage() {
         if (!formattedDomain.startsWith('http')) {
             formattedDomain = 'https://' + formattedDomain;
         }
+
+        setIsCreatingProject(true);
+        setCompletedJobs(0);
+        setFailedJobs(0);
+        setProcessingJobs(0);
 
         try {
             const res = await fetchFromApi('/projects', {
@@ -148,12 +160,12 @@ export default function OnboardingPage() {
             const { runId, jobCount } = scanRes.data;
             setScanRunId(runId);
             setTotalJobs(jobCount || 0);
-            setStep(4);
-
-            pollScanStatus(runId, newProject.id, Date.now());
+            setIsCreatingProject(false);
+            router.push('/dashboard');
         } catch (error) {
             console.error('Failed to create project:', error);
             alert('Failed to create project');
+            setIsCreatingProject(false);
         }
     };
 
@@ -301,10 +313,22 @@ export default function OnboardingPage() {
                         <Button variant="outline" onClick={() => setStep(1)}>
                             Back
                         </Button>
-                        <Button onClick={handleCreateProject}>
-                            Create Project & Start Tracking
+                        <Button onClick={handleCreateProject} disabled={isCreatingProject}>
+                            {isCreatingProject ? 'Starting AI Scans...' : 'Create Project & Start Tracking'}
                         </Button>
                     </div>
+
+                    {isCreatingProject && (
+                        <div className="rounded-xl border border-mentha-mint/20 bg-mentha-mint/5 p-4 text-sm text-mentha-forest/70 dark:text-mentha-beige/70 animate-in fade-in duration-300">
+                            <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-mentha-mint mb-2">
+                                Launching provider scans
+                            </p>
+                            <p>
+                                Mentha is creating your project, saving the prompts, and starting
+                                the first run across Perplexity, ChatGPT, Gemini, and Claude.
+                            </p>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -323,8 +347,9 @@ export default function OnboardingPage() {
                     <div>
                         <h3 className="font-serif text-2xl mb-2">Scanning Your Brand</h3>
                         <p className="text-sm text-mentha-forest/60 dark:text-mentha-beige/60 max-w-md mx-auto">
-                            Mentha is querying AI engines to measure your brand&apos;s visibility.
-                            This takes about 30 seconds.
+                            Mentha is asking every tracked prompt across Perplexity, ChatGPT,
+                            Gemini, and Claude. This is a live browser workflow and can take a few
+                            minutes while each provider responds.
                         </p>
                     </div>
 
@@ -336,8 +361,35 @@ export default function OnboardingPage() {
                             />
                         </div>
                         <p className="font-mono text-xs text-mentha-forest/40 dark:text-mentha-beige/40">
-                            {completedJobs} of {totalJobs} queries completed
+                            {completedJobs} of {totalJobs} provider queries completed
                         </p>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3 max-w-md mx-auto text-left">
+                        <div className="rounded-lg border border-mentha-forest/10 dark:border-mentha-beige/10 p-3">
+                            <p className="font-mono text-[10px] uppercase tracking-wider text-mentha-forest/40 dark:text-mentha-beige/40">
+                                Running
+                            </p>
+                            <p className="font-serif text-xl text-mentha-forest dark:text-mentha-beige">
+                                {processingJobs}
+                            </p>
+                        </div>
+                        <div className="rounded-lg border border-mentha-forest/10 dark:border-mentha-beige/10 p-3">
+                            <p className="font-mono text-[10px] uppercase tracking-wider text-mentha-forest/40 dark:text-mentha-beige/40">
+                                Done
+                            </p>
+                            <p className="font-serif text-xl text-mentha-forest dark:text-mentha-beige">
+                                {completedJobs}
+                            </p>
+                        </div>
+                        <div className="rounded-lg border border-mentha-forest/10 dark:border-mentha-beige/10 p-3">
+                            <p className="font-mono text-[10px] uppercase tracking-wider text-mentha-forest/40 dark:text-mentha-beige/40">
+                                Needs auth
+                            </p>
+                            <p className="font-serif text-xl text-mentha-forest dark:text-mentha-beige">
+                                {failedJobs}
+                            </p>
+                        </div>
                     </div>
 
                     <div className="flex justify-center gap-8 pt-2">
@@ -379,8 +431,13 @@ export default function OnboardingPage() {
                     </div>
 
                     <p className="text-[10px] font-mono text-mentha-forest/30 dark:text-mentha-beige/30 animate-pulse">
-                        Analyzing across {totalJobs} strategic queries...
+                        You can keep this page open; results will appear in the dashboard as
+                        provider answers finish.
                     </p>
+
+                    <Button variant="outline" onClick={() => router.push('/dashboard')}>
+                        Continue to Dashboard
+                    </Button>
                 </div>
             )}
         </div>

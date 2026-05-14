@@ -3,6 +3,10 @@ export const TOOL_DESCRIPTIONS = {
 Use this when the user wants to see what AI-readable content would be served.
 Returns: formatted Markdown optimized for LLM consumption.`,
 
+    generateAiReadableFiles: `Generate or list the expanded AI-readable file set.
+Supports llms.txt, llms-full.txt, ai.txt, CLAUDE.md, schema.json,
+robots-patch.txt, faq-blocks.html, citation-anchors.html, and sitemap-ai.xml.`,
+
     listProjects: `List all Mentha projects/brands being monitored.
 Use this to discover available projects before running other operations.`,
 
@@ -22,6 +26,13 @@ Gemini, and Claude responses.`,
     analyzeCrawlers: `Analyze AI crawler access via robots.txt.
 Checks which AI crawlers (GPTBot, ClaudeBot, PerplexityBot, etc.)
 are allowed or blocked for a domain.`,
+
+    scoreAiReadiness: `Score a URL for AI answer readiness across five pillars:
+answer readiness, content structure, trust authority, technical foundation,
+and AI discovery.`,
+
+    generateAeoReport: `Generate a deterministic AEO operational report with score,
+artifact status, operating rules, and actionable events. Does not require LLM usage.`,
 } as const;
 
 export const RESOURCE_METADATA = {

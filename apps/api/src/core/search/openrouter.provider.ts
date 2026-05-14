@@ -4,6 +4,16 @@ import { env } from '../../config/env';
 import { logger } from '../logger';
 import type { Citation, ISearchProvider, SearchOptions, SearchResult } from './types';
 
+type OpenRouterCitation = string | { url?: unknown; title?: unknown };
+type OpenRouterResponseWithCitations = {
+    citations?: unknown;
+    choices?: Array<{
+        message?: {
+            citations?: unknown;
+        };
+    }>;
+};
+
 /**
  * OpenRouter Provider - Unifica todos los modelos LLM
  * Docs: https://openrouter.ai/docs
@@ -14,13 +24,13 @@ export class OpenRouterProvider implements ISearchProvider {
     private readonly client: OpenAI | null;
 
     // Modelos disponibles en OpenRouter
-    private readonly models = {
+    private readonly models: Record<string, string> = {
         // Mapeo por proveedor
         perplexity: 'perplexity/sonar-pro',
         openai: 'openai/gpt-4o',
         claude: 'anthropic/claude-3-haiku',
         gemini: 'google/gemini-2.5-flash-lite',
-        
+
         // Mapeo por propósito
         search: 'perplexity/sonar-pro',
         analysis: 'openai/gpt-4o',
@@ -48,13 +58,13 @@ export class OpenRouterProvider implements ISearchProvider {
      */
     private getModel(key?: string): string {
         // First try the instance name (set by factory)
-        if (this.name in this.models && this.name !== 'openrouter') {
-            return this.models[this.name as keyof typeof this.models];
+        const providerModel = this.models[this.name];
+        if (providerModel && this.name !== 'openrouter') {
+            return providerModel;
         }
 
         // Then try the purpose key
-        const k = key as keyof typeof this.models;
-        return this.models[k] || this.models.analysis;
+        return (key ? this.models[key] : undefined) ?? this.models.analysis ?? 'openai/gpt-4o';
     }
 
     /**
@@ -101,42 +111,55 @@ export class OpenRouterProvider implements ISearchProvider {
             const latencyMs = Date.now() - startTime;
             const content = response.choices[0]?.message?.content ?? '';
 
-            const provider =
-                (response as unknown as Record<string, unknown>).provider || 'openrouter';
-
             const extractedCitations: Citation[] = [];
-            
+
             // Check for direct citations field (OpenRouter Perplexity models)
-            const rawResponse = response as any;
-            if (rawResponse.citations && Array.isArray(rawResponse.citations)) {
-                rawResponse.citations.forEach((url: string, index: number) => {
+            const rawResponse = response as unknown as OpenRouterResponseWithCitations;
+            if (Array.isArray(rawResponse.citations)) {
+                rawResponse.citations.forEach((url: unknown, index: number) => {
+                    if (typeof url !== 'string') return;
                     try {
                         const domain = new URL(url).hostname.replace(/^www\./, '');
                         extractedCitations.push({ position: index + 1, url, domain });
                     } catch {}
                 });
-            } else if (rawResponse.choices[0]?.message?.citations) {
-                rawResponse.choices[0].message.citations.forEach((c: any, index: number) => {
-                    try {
-                        const url = typeof c === 'string' ? c : c.url;
-                        const domain = new URL(url).hostname.replace(/^www\./, '');
-                        extractedCitations.push({ position: index + 1, url, domain });
-                    } catch {}
-                });
+            } else if (Array.isArray(rawResponse.choices?.[0]?.message?.citations)) {
+                rawResponse.choices[0]?.message?.citations?.forEach(
+                    (citation: OpenRouterCitation, index: number) => {
+                        const url =
+                            typeof citation === 'string'
+                                ? citation
+                                : typeof citation.url === 'string'
+                                  ? citation.url
+                                  : null;
+                        if (!url) return;
+
+                        const title =
+                            typeof citation === 'object' && typeof citation.title === 'string'
+                                ? citation.title
+                                : undefined;
+
+                        try {
+                            const domain = new URL(url).hostname.replace(/^www\./, '');
+                            extractedCitations.push({ position: index + 1, url, domain, title });
+                        } catch {}
+                    },
+                );
             }
 
             // Fallback to Markdown URL extraction if no explicit citations found
             if (extractedCitations.length === 0) {
                 const urlRegex = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g;
-                let match;
+                let match: RegExpExecArray | null;
                 let pos = 1;
                 while ((match = urlRegex.exec(content)) !== null) {
                     try {
                         const url = match[2];
-                        if (url && !extractedCitations.find(c => c.url === url)) {
-                            const domain = new URL(url).hostname.replace(/^www\./, '');
-                            extractedCitations.push({ position: pos++, url, domain, title: match[1] });
+                        if (!url || extractedCitations.find((citation) => citation.url === url)) {
+                            continue;
                         }
+                        const domain = new URL(url).hostname.replace(/^www\./, '');
+                        extractedCitations.push({ position: pos++, url, domain, title: match[1] });
                     } catch {}
                 }
             }

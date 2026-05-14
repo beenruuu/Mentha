@@ -2,25 +2,28 @@ import { Minus, Plus } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 
+import { useTranslations } from '@/lib/i18n';
+
 const FAQ: React.FC = () => {
     const [openIndex, setOpenIndex] = useState<number | null>(null);
+    const { t } = useTranslations();
 
     const faqs = [
         {
-            q: 'Does this replace my current SEO strategy?',
-            a: 'No, it complements it. SEO captures existing demand on Google. AEO/GEO captures conversational intent on ChatGPT and Perplexity. You need both to survive the transition.',
+            q: t.faqQ1,
+            a: t.faqA1,
         },
         {
-            q: 'Which models do you optimize for?',
-            a: 'We currently cover OpenAI (GPT-4o), Google (Gemini 1.5 Pro/Flash), Anthropic (Claude 3.5 Sonnet), and Perplexity AI. We constantly monitor new players like Mistral and Llama.',
+            q: t.faqQ2,
+            a: t.faqA2,
         },
         {
-            q: 'How long does it take to see results?',
-            a: 'Unlike traditional SEO (6-12 months), changes in LLM perception can be noticed in 4-8 weeks due to the frequency of re-training and dynamic context windows.',
+            q: t.faqQ3,
+            a: t.faqA3,
         },
         {
-            q: 'Is it ethical to manipulate AI responses?',
-            a: "We don't manipulate; we clarify. We help models understand the truth about your brand by reducing hallucinations and connecting structured data.",
+            q: t.faqQ4,
+            a: t.faqA4,
         },
     ];
 
@@ -33,13 +36,9 @@ const FAQ: React.FC = () => {
                         <span className="font-mono text-xs uppercase tracking-widest text-mentha-mint mb-4 block">
                             /// FAQ_MODULE
                         </span>
-                        <h2 className="font-serif text-5xl leading-tight">
-                            Frequently <br /> Asked Questions.
-                        </h2>
+                        <h2 className="font-serif text-5xl leading-tight">{t.faqTitle}</h2>
                     </div>
-                    <p className="font-sans opacity-70 mt-8">
-                        Understanding the paradigm shift is not easy. Here we simplify it.
-                    </p>
+                    <p className="font-sans opacity-70 mt-8">{t.faqSubtitle}</p>
                 </div>
 
                 {/* Questions Column */}

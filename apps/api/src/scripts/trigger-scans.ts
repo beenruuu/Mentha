@@ -11,7 +11,12 @@ async function main() {
             console.log('No projects found to scan.');
             process.exit(0);
         }
-        const projectId = allProjects[0].id;
+        const firstProject = allProjects[0];
+        if (!firstProject) {
+            console.log('No projects found to scan.');
+            process.exit(0);
+        }
+        const projectId = firstProject.id;
         console.log(`Triggering scan for project: ${projectId}`);
         const scanService = getScanService();
         const result = await scanService.triggerProjectScan(projectId);

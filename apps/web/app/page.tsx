@@ -13,6 +13,8 @@ import SocialProof from '@/components/landing/Sections/SocialProof';
 import TheShift from '@/components/landing/Sections/TheShift';
 import { Theme } from '@/components/types';
 
+import { I18nProvider } from '@/lib/i18n';
+
 export default function Home() {
     const { theme, setTheme } = useTheme();
 
@@ -23,7 +25,7 @@ export default function Home() {
     const currentTheme = theme === 'dark' ? Theme.DARK : Theme.LIGHT;
 
     return (
-        <>
+        <I18nProvider>
             <Navbar theme={currentTheme} toggleTheme={toggleTheme} />
             <main className="flex flex-col border-l border-r border-mentha-forest dark:border-mentha-beige max-w-[1920px] mx-auto bg-opacity-100">
                 <Hero theme={currentTheme} />
@@ -37,6 +39,6 @@ export default function Home() {
             <div className="max-w-[1920px] mx-auto border-l border-r border-mentha-forest dark:border-mentha-beige">
                 <Footer />
             </div>
-        </>
+        </I18nProvider>
     );
 }

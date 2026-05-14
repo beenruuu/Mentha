@@ -7,6 +7,27 @@ import { getDashboardService } from '../services/dashboard.service';
 const dashboardService = getDashboardService();
 
 export const DashboardController = {
+    getReportStatus: async (c: Context) => {
+        const project_id = c.req.query('project_id');
+
+        if (!project_id) {
+            throw new BadRequestException('project_id is required');
+        }
+
+        try {
+            const status = await dashboardService.getReportStatus(project_id);
+            return c.json({ data: status });
+        } catch (error) {
+            logger.error(
+                {
+                    error: (error as Error).message,
+                },
+                'Failed to get report status',
+            );
+            return handleHttpException(c, error);
+        }
+    },
+
     getShareOfModel: async (c: Context) => {
         const project_id = c.req.query('project_id');
         const days = c.req.query('days') || '30';

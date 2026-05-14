@@ -67,19 +67,10 @@ export function TopBrands() {
                         {brands.map((brand, index) => (
                             <div key={brand.name} className="flex items-center">
                                 {brand.domain ? (
-                                    <div className="w-8 h-8 rounded-lg bg-white dark:bg-white/5 border border-mentha-forest/10 dark:border-white/10 flex items-center justify-center mr-4 overflow-hidden p-1.5 shadow-sm">
-                                        <img 
-                                            src={`https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`}
-                                            alt={brand.name}
-                                            className="w-full h-full object-contain"
-                                            onError={(e) => {
-                                                const target = e.target as HTMLImageElement;
-                                                target.style.display = 'none';
-                                                if (target.parentElement) {
-                                                    target.parentElement.innerHTML = `<span class="text-[10px] font-bold opacity-40">${brand.name.substring(0, 2).toUpperCase()}</span>`;
-                                                }
-                                            }}
-                                        />
+                                    <div className="w-8 h-8 rounded-lg bg-mentha-mint/10 border border-mentha-mint/20 flex items-center justify-center mr-4 shadow-sm">
+                                        <span className="font-mono font-bold text-[10px] uppercase text-mentha-mint">
+                                            {brand.name.substring(0, 2)}
+                                        </span>
                                     </div>
                                 ) : (
                                     <div className="w-8 h-8 rounded-lg bg-mentha-forest/10 dark:bg-white/10 flex items-center justify-center font-mono font-bold text-[10px] mr-4 opacity-40">

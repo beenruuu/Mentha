@@ -22,14 +22,15 @@ export default function PlaygroundPage() {
                     </div>
                     <CardTitle className="font-serif text-3xl mb-2">Coming Soon</CardTitle>
                     <p className="text-mentha-forest/60 dark:text-mentha-beige/60 max-w-sm mx-auto">
-                        We are building an interactive environment where you can test AEO strategies in real-time. Stay tuned for v1.1!
+                        We are building an interactive environment where you can test AEO strategies
+                        in real-time. Stay tuned for v1.1!
                     </p>
                 </CardHeader>
                 <CardContent className="flex justify-center pb-12">
                     <div className="flex gap-4 opacity-40">
-                         <div className="w-24 h-24 rounded-2xl bg-mentha-forest/5 border border-mentha-forest/10 animate-pulse" />
-                         <div className="w-24 h-24 rounded-2xl bg-mentha-forest/5 border border-mentha-forest/10 animate-pulse delay-75" />
-                         <div className="w-24 h-24 rounded-2xl bg-mentha-forest/5 border border-mentha-forest/10 animate-pulse delay-150" />
+                        <div className="w-24 h-24 rounded-2xl bg-mentha-forest/5 border border-mentha-forest/10 animate-pulse" />
+                        <div className="w-24 h-24 rounded-2xl bg-mentha-forest/5 border border-mentha-forest/10 animate-pulse delay-75" />
+                        <div className="w-24 h-24 rounded-2xl bg-mentha-forest/5 border border-mentha-forest/10 animate-pulse delay-150" />
                     </div>
                 </CardContent>
             </Card>

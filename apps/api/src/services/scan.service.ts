@@ -1,11 +1,10 @@
 import { desc, eq, and } from 'drizzle-orm';
 
-import { env } from '../config/env';
 import { CreditService } from '../core/credits';
+import { env } from '../config/env';
 import { createLogger, logger } from '../core/logger';
 import { db } from '../db';
 import { keywords, projects, scanJobs, scanResults } from '../db/schema/core';
-import type { ScanResult } from '../db/types';
 import { NotFoundException } from '../exceptions/http';
 import { addScanJob } from '../core/queue';
 
@@ -51,8 +50,9 @@ export class ScanService {
         const competitors = (project.competitors as string[]) || [];
 
         // Create a scan run to group these jobs
+        const { scanRuns } = await import('../db/schema/core');
         const [scanRun] = await db
-            .insert((await import('../db/schema/core')).scanRuns)
+            .insert(scanRuns)
             .values({
                 project_id: projectId,
                 status: 'pending',
@@ -61,6 +61,10 @@ export class ScanService {
                 visible_count: 0,
             })
             .returning();
+
+        if (!scanRun) {
+            throw new Error('Failed to create scan run');
+        }
 
         for (const kw of activeKeywords) {
             const engines = (kw.engines as string[]) || ['perplexity'];
@@ -79,26 +83,89 @@ export class ScanService {
                     .returning();
 
                 if (jobRecord) {
+                    if (env.MENTHA_QA_MODE) {
+                        const rawResponse = [
+                            `Mock QA scan for ${brand}.`,
+                            `Query: ${kw.query}`,
+                            `Engine: ${engineName}`,
+                            'The brand is visible in this deterministic QA response.',
+                        ].join('\n\n');
+
+                        await db.insert(scanResults).values({
+                            job_id: jobRecord.id,
+                            raw_response: rawResponse,
+                            analysis_json: {
+                                qaMode: true,
+                                content: rawResponse,
+                                citations: [
+                                    {
+                                        url: 'https://example.com/qa-source',
+                                        domain: 'example.com',
+                                        title: 'QA citation',
+                                        position: 1,
+                                    },
+                                ],
+                                engine: engineName,
+                            },
+                            brand_visibility: true,
+                            sentiment_score: 0.72,
+                            share_of_voice_rank: 1,
+                            recommendation_type: 'direct_recommendation',
+                            token_count: 0,
+                        });
+
+                        await db
+                            .update(scanJobs)
+                            .set({
+                                status: 'completed',
+                                latency_ms: 0,
+                                started_at: new Date(),
+                                completed_at: new Date(),
+                            })
+                            .where(eq(scanJobs.id, jobRecord.id));
+
+                        jobCount++;
+                        continue;
+                    }
+
                     // 2. Add a BullMQ job for this specific engine
-                    await addScanJob({
-                        keywordId: kw.id,
-                        engine: engineName,
-                        projectId: projectId,
-                        query: kw.query,
-                        brand: brand,
-                        competitors: competitors,
-                    }, { jobId: jobRecord.id });
-                    
+                    await addScanJob(
+                        {
+                            keywordId: kw.id,
+                            engine: engineName,
+                            projectId: projectId,
+                            userId: project.user_id,
+                            query: kw.query,
+                            brand: brand,
+                            competitors: competitors,
+                        },
+                        { jobId: jobRecord.id },
+                    );
+
                     jobCount++;
                 }
             }
         }
 
         // Update the scan run with total_jobs
-        await db.update((await import('../db/schema/core')).scanRuns).set({ total_jobs: jobCount, status: 'processing', started_at: new Date() }).where(eq((await import('../db/schema/core')).scanRuns.id, scanRun!.id));
+        await db
+            .update(scanRuns)
+            .set({
+                total_jobs: jobCount,
+                completed_jobs: env.MENTHA_QA_MODE ? jobCount : 0,
+                visible_count: env.MENTHA_QA_MODE ? jobCount : 0,
+                status: env.MENTHA_QA_MODE ? 'completed' : 'processing',
+                started_at: new Date(),
+                completed_at: env.MENTHA_QA_MODE ? new Date() : null,
+                overall_sentiment: env.MENTHA_QA_MODE ? 0.72 : null,
+            })
+            .where(eq(scanRuns.id, scanRun.id));
 
-        logger.info({ projectId, jobCount, runId: scanRun!.id }, 'Project scan triggered successfully');
-        return { jobCount, runId: scanRun!.id };
+        logger.info(
+            { projectId, jobCount, runId: scanRun.id },
+            'Project scan triggered successfully',
+        );
+        return { jobCount, runId: scanRun.id };
     }
 
     /**
@@ -113,10 +180,10 @@ export class ScanService {
         try {
             // 1. Get User ID and geo filters from Keyword -> Project
             const [keywordData] = await db
-                .select({ 
+                .select({
                     userId: projects.user_id,
                     location: projects.location,
-                    language: projects.language
+                    language: projects.language,
                 })
                 .from(keywords)
                 .innerJoin(projects, eq(keywords.project_id, projects.id))
@@ -127,7 +194,7 @@ export class ScanService {
                 throw new NotFoundException('Keyword or associated project not found');
             }
 
-            const { userId, location, language } = keywordData;
+            const { userId, location } = keywordData;
 
             // 2. Check and deduct credits
             const cost = CreditService.getModelCost(data.engine);
@@ -153,7 +220,9 @@ export class ScanService {
                 .where(eq(scanJobs.id, data.jobId));
 
             // 4. Call Search Provider via Factory
-            const provider = (await import('../core/search/factory')).createProvider(data.engine as any);
+            const provider = (await import('../core/search/factory')).createProvider(
+                data.engine as any,
+            );
             const searchResult = await provider.search(data.query, {
                 geo: {
                     country: 'Global', // Default if not specified in project
@@ -185,7 +254,7 @@ export class ScanService {
                     analysis_json: analysisJson,
                     brand_visibility: rawResponse.toLowerCase().includes(data.brand.toLowerCase()),
                     sentiment_score: 0.5, // Default for now, should be extracted from AI JSON
-                    token_count: aiResponse.usage?.total_tokens || 0,
+                    token_count: aiResponse.usage?.totalTokens || 0,
                 })
                 .returning();
 
@@ -251,7 +320,11 @@ export class ScanService {
         // Strip model identifiers from analysis_json to avoid leaking
         // exact model names (e.g. openai/gpt-4o) to the frontend
         return results.map((r) => {
-            if (r.analysis_json && typeof r.analysis_json === 'object' && 'model' in (r.analysis_json as any)) {
+            if (
+                r.analysis_json &&
+                typeof r.analysis_json === 'object' &&
+                'model' in (r.analysis_json as any)
+            ) {
                 const { model, ...safeJson } = r.analysis_json as any;
                 return { ...r, analysis_json: safeJson };
             }
@@ -261,7 +334,7 @@ export class ScanService {
 
     async getResultById(id: string): Promise<any> {
         // If id corresponds to a scan_run, return run details and per-engine jobs/results
-        const { scanRuns, scanJobs, scanResults: sr, keywords } = await import('../db/schema/core');
+        const { scanRuns, scanJobs, scanResults: sr } = await import('../db/schema/core');
 
         const runRow = await db.select().from(scanRuns).where(eq(scanRuns.id, id)).limit(1);
         if (runRow.length === 0) {

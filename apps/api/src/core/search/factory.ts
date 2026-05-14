@@ -1,4 +1,6 @@
 import { logger } from '../logger';
+import { env } from '../../config/env';
+import { MockSearchProvider } from './mock.provider';
 import { OpenRouterProvider } from './openrouter.provider';
 import type { ISearchProvider, ProviderType } from './types';
 
@@ -10,7 +12,7 @@ const providerCache = new Map<ProviderType, ISearchProvider>();
 /**
  * Factory function to create or retrieve search providers
  * Uses caching to reuse provider instances
- * 
+ *
  * ALL models are now routed through OpenRouter
  *
  * @param type - The provider type to create
@@ -20,9 +22,16 @@ export function createProvider(type: ProviderType): ISearchProvider {
     let provider = providerCache.get(type);
 
     if (!provider) {
+        if (env.MENTHA_QA_MODE) {
+            provider = new MockSearchProvider(type);
+            providerCache.set(type, provider);
+            logger.debug(`Created QA mock provider: ${type}`);
+            return provider;
+        }
+
         // Redirect ALL providers to OpenRouter
         provider = new OpenRouterProvider();
-        
+
         // Ensure the provider knows its original requested type to pick the right model
         Object.defineProperty(provider, 'name', { value: type });
 

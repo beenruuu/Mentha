@@ -8,8 +8,11 @@ async function main() {
     console.log('Starting cleanup...');
 
     // Get keyword IDs for this project
-    const kwIds = await db.select({ id: keywords.id }).from(keywords).where(eq(keywords.project_id, projectId));
-    const keywordIdList = kwIds.map(k => k.id);
+    const kwIds = await db
+        .select({ id: keywords.id })
+        .from(keywords)
+        .where(eq(keywords.project_id, projectId));
+    const keywordIdList = kwIds.map((k) => k.id);
 
     console.log('Keywords found:', keywordIdList.length);
 
@@ -19,8 +22,11 @@ async function main() {
     }
 
     // Get scan jobs for these keywords
-    const jobs = await db.select({ id: scanJobs.id }).from(scanJobs).where(inArray(scanJobs.keyword_id, keywordIdList));
-    const jobIds = jobs.map(j => j.id);
+    const jobs = await db
+        .select({ id: scanJobs.id })
+        .from(scanJobs)
+        .where(inArray(scanJobs.keyword_id, keywordIdList));
+    const jobIds = jobs.map((j) => j.id);
 
     console.log('Scan jobs to delete:', jobIds.length);
 
@@ -41,7 +47,11 @@ async function main() {
     console.log('All scans deleted!');
 
     // Trigger a manual scan
-    const firstKeyword = await db.select().from(keywords).where(eq(keywords.project_id, projectId)).limit(1);
+    const firstKeyword = await db
+        .select()
+        .from(keywords)
+        .where(eq(keywords.project_id, projectId))
+        .limit(1);
 
     if (firstKeyword.length > 0) {
         const { addScanJob } = await import('../src/core/queue');
@@ -51,7 +61,7 @@ async function main() {
             projectId: projectId,
             query: firstKeyword[0].query,
             brand: 'example',
-            competitors: []
+            competitors: [],
         });
         console.log('Manual scan triggered for:', firstKeyword[0].query);
     }
@@ -62,7 +72,7 @@ main()
         console.log('Done!');
         process.exit(0);
     })
-    .catch(e => {
+    .catch((e) => {
         console.error(e);
         process.exit(1);
     });

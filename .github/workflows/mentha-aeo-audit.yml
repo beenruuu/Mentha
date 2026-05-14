@@ -1,0 +1,23 @@
+name: Mentha AEO Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      api-url:
+        description: Mentha API base URL
+        required: true
+        default: http://localhost:4000
+      site-url:
+        description: Site URL to score
+        required: true
+        default: https://example.com
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/mentha-aeo-audit
+        with:
+          api-url: ${{ inputs.api-url }}
+          site-url: ${{ inputs.site-url }}

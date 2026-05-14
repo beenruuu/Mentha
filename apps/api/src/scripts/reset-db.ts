@@ -8,16 +8,56 @@ async function resetAll() {
     console.log('🗑️  Cleaning ALL data...');
 
     // Delete in dependency order
-    try { await db.delete(citations); } catch (e) { /* ok */ }
-    try { await db.delete(scanResults); } catch (e) { /* ok */ }
-    try { await db.delete(scanJobs); } catch (e) { /* ok */ }
-    try { await db.delete(keywords); } catch (e) { /* ok */ }
-    try { await db.delete(creditTransactions); } catch (e) { /* ok */ }
-    try { await db.delete(projects); } catch (e) { /* ok */ }
-    try { await db.delete(profiles); } catch (e) { /* ok */ }
-    try { await db.delete(session); } catch (e) { /* ok */ }
-    try { await db.delete(account); } catch (e) { /* ok */ }
-    try { await db.delete(user); } catch (e) { /* ok */ }
+    try {
+        await db.delete(citations);
+    } catch (e) {
+        /* ok */
+    }
+    try {
+        await db.delete(scanResults);
+    } catch (e) {
+        /* ok */
+    }
+    try {
+        await db.delete(scanJobs);
+    } catch (e) {
+        /* ok */
+    }
+    try {
+        await db.delete(keywords);
+    } catch (e) {
+        /* ok */
+    }
+    try {
+        await db.delete(creditTransactions);
+    } catch (e) {
+        /* ok */
+    }
+    try {
+        await db.delete(projects);
+    } catch (e) {
+        /* ok */
+    }
+    try {
+        await db.delete(profiles);
+    } catch (e) {
+        /* ok */
+    }
+    try {
+        await db.delete(session);
+    } catch (e) {
+        /* ok */
+    }
+    try {
+        await db.delete(account);
+    } catch (e) {
+        /* ok */
+    }
+    try {
+        await db.delete(user);
+    } catch (e) {
+        /* ok */
+    }
 
     console.log('✅ All tables cleaned.');
 

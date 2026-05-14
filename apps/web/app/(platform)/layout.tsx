@@ -15,6 +15,7 @@ function PlatformLayoutInner({ children }: { children: React.ReactNode }) {
     const { isCollapsed } = useSidebar();
     const router = useRouter();
     const { data: session, isPending } = useSession();
+    const isQaMode = process.env.NEXT_PUBLIC_MENTHA_QA_MODE === 'true';
 
     useEffect(() => {
         if (!isPending && !session) {
@@ -44,6 +45,12 @@ function PlatformLayoutInner({ children }: { children: React.ReactNode }) {
                     isCollapsed ? 'pl-16' : 'pl-60',
                 )}
             >
+                {isQaMode && (
+                    <div className="border-b border-amber-500/20 bg-amber-500/10 px-6 py-2 font-mono text-[11px] uppercase tracking-widest text-amber-700 dark:text-amber-300">
+                        QA mode active: onboarding, scans and evaluations use deterministic mock
+                        data.
+                    </div>
+                )}
                 <div className="p-6 lg:p-8">{children}</div>
             </main>
         </>

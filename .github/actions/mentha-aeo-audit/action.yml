@@ -1,0 +1,31 @@
+name: Mentha AEO Audit
+description: Generate and audit AI-readable files for Mentha-compatible repositories.
+inputs:
+  api-url:
+    description: Mentha API base URL, for example https://api.example.com
+    required: true
+  site-url:
+    description: Site URL to score for AI answer readiness.
+    required: true
+  output-dir:
+    description: Directory where generated artifacts should be written.
+    required: false
+    default: mentha-ai-artifacts
+runs:
+  using: composite
+  steps:
+    - name: Create output directory
+      shell: bash
+      run: mkdir -p "${{ inputs.output-dir }}"
+    - name: Download AI-readable artifact ZIP
+      shell: bash
+      run: |
+        curl -fsSL "${{ inputs.api-url }}/llms.txt/artifacts.zip" -o "${{ inputs.output-dir }}/mentha-ai-readable-artifacts.zip"
+    - name: Score AI readiness
+      shell: bash
+      run: |
+        curl -fsSL "${{ inputs.api-url }}/llms.txt/score?url=$(python - <<'PY'
+import urllib.parse
+print(urllib.parse.quote("${{ inputs.site-url }}", safe=""))
+PY
+)" -o "${{ inputs.output-dir }}/ai-readiness-score.json"

@@ -91,13 +91,16 @@ export class AnalysisService {
                         .innerJoin(scanResults, eq(scanResults.job_id, scanJobs.id))
                         .where(eq(scanResults.id, data.scanJobId))
                         .limit(1);
-                    
+
                     if (job?.keyword_id) {
                         await db
                             .update(keywords)
                             .set({ intent: evaluation.keyword_intent })
                             .where(eq(keywords.id, job.keyword_id));
-                        log.info({ keywordId: job.keyword_id, intent: evaluation.keyword_intent }, 'Updated keyword intent');
+                        log.info(
+                            { keywordId: job.keyword_id, intent: evaluation.keyword_intent },
+                            'Updated keyword intent',
+                        );
                     }
                 } catch (err) {
                     log.warn({ err: (err as Error).message }, 'Failed to update keyword intent');
@@ -116,7 +119,7 @@ export class AnalysisService {
                                     entity_type: ent.type as any,
                                     description: ent.description,
                                     slug: ent.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
-                                    is_primary: ent.name.toLowerCase() === data.brand.toLowerCase()
+                                    is_primary: ent.name.toLowerCase() === data.brand.toLowerCase(),
                                 });
                             } catch (err) {
                                 // Ignore duplicates or errors
@@ -143,5 +146,4 @@ export class AnalysisService {
             throw error;
         }
     }
-
 }

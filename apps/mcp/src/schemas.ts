@@ -2,6 +2,10 @@ import { z } from 'zod';
 
 export const generateLlmsTxtSchema = z.object({});
 
+export const generateAiReadableFilesSchema = z.object({
+    name: z.string().optional().describe('Optional artifact name such as schema.json'),
+});
+
 export const listProjectsSchema = z.object({});
 
 export const geoAuditSchema = z.object({
@@ -21,4 +25,12 @@ export const brandMentionsSchema = z.object({
 export const crawlerAnalysisSchema = z.object({
     robotsTxt: z.string().describe('Contenido del robots.txt'),
     domain: z.string().describe('Dominio del sitio'),
+});
+
+export const aiReadinessScoreSchema = z.object({
+    url: z.string().url().describe('URL del sitio a puntuar'),
+});
+
+export const aeoOperationalReportSchema = z.object({
+    url: z.string().url().describe('URL del sitio para el reporte operativo AEO'),
 });

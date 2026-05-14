@@ -1,12 +1,90 @@
 import { Worker } from 'bullmq';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 
+import { env } from '../config/env';
 import { logger } from '../core/logger';
 import { getRedisConnection, QUEUE_NAMES, type ScanJobData } from '../core/queue';
-import { createProvider } from '../core/search/factory';
+import { runCamoufoxUiCapture } from '../core/ui-capture/camoufox-provider';
+import type { UiCaptureProvider } from '../core/ui-capture/types';
 import { db } from '../db';
 import { keywords, scanJobs, scanResults, citations, projects } from '../db/schema/core';
 import { AnalysisService } from '../services/analysis.service';
+
+const ENGINE_TO_UI_PROVIDER: Record<string, UiCaptureProvider> = {
+    perplexity: 'perplexity',
+    openai: 'chatgpt',
+    gemini: 'gemini',
+    claude: 'claude',
+};
+
+function getUiProvider(engine: string): UiCaptureProvider {
+    const provider = ENGINE_TO_UI_PROVIDER[engine];
+    if (!provider) throw new Error(`No UI provider mapping for engine: ${engine}`);
+    return provider;
+}
+
+type FinalJobStatus =
+    | 'completed'
+    | 'failed'
+    | 'cancelled'
+    | 'auth_required'
+    | 'captcha_required'
+    | 'blocked';
+
+const FINAL_JOB_STATUSES = new Set<string>([
+    'completed',
+    'failed',
+    'cancelled',
+    'auth_required',
+    'captcha_required',
+    'blocked',
+]);
+
+function classifyErrorStatus(message: string): FinalJobStatus {
+    const lower = message.toLowerCase();
+    if (lower.includes('captcha') || lower.includes('verify you are human')) {
+        return 'captcha_required';
+    }
+    if (lower.includes('log in') || lower.includes('sign in') || lower.includes('auth')) {
+        return 'auth_required';
+    }
+    if (lower.includes('blocked') || lower.includes('access denied') || lower.includes('bot')) {
+        return 'blocked';
+    }
+    return 'failed';
+}
+
+async function updateRunProgress(runId: string) {
+    const { scanRuns } = await import('../db/schema/core');
+
+    const jobs = await db.select({ status: scanJobs.status }).from(scanJobs).where(eq(scanJobs.run_id, runId));
+    const finalJobs = jobs.filter((item) => FINAL_JOB_STATUSES.has(item.status || ''));
+    const completedCount = jobs.filter((item) => item.status === 'completed').length;
+    const visibleCount = await db
+        .select({ id: scanResults.id })
+        .from(scanResults)
+        .innerJoin(scanJobs, eq(scanResults.job_id, scanJobs.id))
+        .where(and(eq(scanJobs.run_id, runId), eq(scanResults.brand_visibility, true)));
+
+    const nextStatus =
+        jobs.length > 0 && finalJobs.length >= jobs.length
+            ? finalJobs.length === completedCount
+                ? 'completed'
+                : completedCount > 0
+                  ? 'ready_partial'
+                  : 'failed'
+            : 'processing';
+
+    await db
+        .update(scanRuns)
+        .set({
+            completed_jobs: finalJobs.length,
+            visible_count: visibleCount.length,
+            status: nextStatus,
+            completed_at: nextStatus === 'processing' ? null : new Date(),
+        })
+        .where(eq(scanRuns.id, runId));
+}
 
 export const scraperWorker = new Worker<ScanJobData>(
     QUEUE_NAMES.SCRAPERS,
@@ -17,44 +95,47 @@ export const scraperWorker = new Worker<ScanJobData>(
         );
 
         try {
-            const { engine, query, brand, projectId, competitors } = job.data;
-            
+            const { engine, query, brand, projectId, competitors, userId } = job.data;
+
             const results = [];
             const engineName = engine;
-            const provider = createProvider(engineName as any);
-            logger.debug({ engine: engineName }, 'Fetching from provider');
-            
-            const result = await provider.search(query, {
-                purpose: 'search',
-                systemPrompt: `You are a helpful AI assistant. Provide a detailed, objective, and accurate answer to the user's query. Focus on providing relevant information and citing sources where possible.`,
+            logger.debug({ engine: engineName }, 'Scraping with Camoufox');
+
+            const provider = getUiProvider(engineName);
+            logger.info({ provider, query: query.slice(0, 80) }, 'Starting Camoufox scrape for scan');
+            const captureResult = await runCamoufoxUiCapture({
+                provider,
+                prompt: query,
+                userId,
             });
+            const content = captureResult.responseMarkdown || '';
+            const brandMentioned = content.toLowerCase().includes(brand.toLowerCase()) || false;
+            const finalStatus: FinalJobStatus =
+                captureResult.status === 'success' || captureResult.status === 'partial'
+                    ? 'completed'
+                    : captureResult.status;
 
-            // Check if brand is mentioned in response
-            const brandMentioned = result.content
-                ?.toLowerCase()
-                .includes(brand.toLowerCase()) || false;
-
-            // Save result to database
             const [scanResult] = await db
                 .insert(scanResults)
                 .values({
                     job_id: job.id as string,
-                    raw_response: result.content || '',
+                    raw_response: content,
                     brand_visibility: brandMentioned,
                     sentiment_score: null,
-                    token_count: result.usage?.totalTokens || 0,
+                    token_count: 0,
                     analysis_json: {
-                        content: result.content,
-                        citations: result.citations,
-                        latencyMs: result.latencyMs,
+                        content,
+                        sources: captureResult.sources,
+                        latencyMs: captureResult.latencyMs,
                         engine: engineName,
+                        scrapeStatus: captureResult.status,
+                        failureReason: captureResult.failureReason,
                     } as Record<string, unknown>,
                 })
                 .returning();
 
             if (!scanResult) throw new Error('Failed to save scan result');
 
-            // Persist citations if present and link to scan result
             try {
                 const projectRow = await db
                     .select()
@@ -62,10 +143,14 @@ export const scraperWorker = new Worker<ScanJobData>(
                     .where(eq(projects.id, projectId))
                     .limit(1);
                 const projectDomain = projectRow[0]?.domain || '';
-                const normalizedProjectDomain = projectDomain.replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase();
+                const normalizedProjectDomain = projectDomain
+                    .replace(/^https?:\/\//, '')
+                    .replace(/^www\./, '')
+                    .toLowerCase();
 
-                if (Array.isArray(result.citations) && result.citations.length > 0) {
-                    const citationInserts = result.citations.map((c: any) => {
+                const captureSources = captureResult.sources || [];
+                if (captureSources.length > 0) {
+                    const citationInserts = captureSources.map((c) => {
                         let domain = null;
                         try {
                             const u = new URL(c.url);
@@ -74,10 +159,21 @@ export const scraperWorker = new Worker<ScanJobData>(
                             domain = null;
                         }
 
-                        const isBrand = domain && normalizedProjectDomain && domain.includes(normalizedProjectDomain);
-                        const isCompetitor = Array.isArray(competitors) && competitors.length > 0 && domain
-                            ? competitors.some((comp) => domain.includes(comp.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '')))
-                            : false;
+                        const isBrand =
+                            domain &&
+                            normalizedProjectDomain &&
+                            domain.includes(normalizedProjectDomain);
+                        const isCompetitor =
+                            Array.isArray(competitors) && competitors.length > 0 && domain
+                                ? competitors.some((comp) =>
+                                      domain.includes(
+                                          comp
+                                              .toLowerCase()
+                                              .replace(/^https?:\/\//, '')
+                                              .replace(/^www\./, ''),
+                                      ),
+                                  )
+                                : false;
 
                         return {
                             result_id: scanResult.id,
@@ -93,13 +189,12 @@ export const scraperWorker = new Worker<ScanJobData>(
                     await db.insert(citations).values(citationInserts).returning();
                 }
 
-                // Run analysis job immediately
                 try {
                     const analysisSvc = new AnalysisService();
                     await analysisSvc.analyzeResult({
                         scanJobId: scanResult.id,
-                        rawResponse: result.content || '',
-                        brand: brand,
+                        rawResponse: content,
+                        brand,
                         competitors: competitors || [],
                     });
                 } catch (err) {
@@ -110,59 +205,36 @@ export const scraperWorker = new Worker<ScanJobData>(
                     success: true,
                     engine: engineName,
                     query,
-                    contentLength: result.content?.length || 0,
+                    contentLength: content.length,
                 });
             } catch (err) {
-                logger.error({ err: (err as Error).message }, 'Failed to persist citations or trigger analysis');
+                logger.error(
+                    { err: (err as Error).message },
+                    'Failed to persist citations or trigger analysis',
+                );
             }
 
-            // 1. Mark job as completed
+            // 1. Mark job as terminal. Auth/captcha/block are expected provider outcomes.
             await db
                 .update(scanJobs)
                 .set({
-                    status: 'completed',
+                    status: finalStatus,
+                    error_message:
+                        finalStatus === 'completed' ? null : captureResult.failureReason || finalStatus,
                     completed_at: new Date(),
                 })
                 .where(eq(scanJobs.id, job.id!));
 
-            // 2. Update progress in scan_runs with atomic operation
-            const jobRecord = await db.select().from(scanJobs).where(eq(scanJobs.id, job.id!)).limit(1);
+            // 2. Update progress in scan_runs.
+            const jobRecord = await db
+                .select()
+                .from(scanJobs)
+                .where(eq(scanJobs.id, job.id!))
+                .limit(1);
             const runId = jobRecord[0]?.run_id;
 
             if (runId) {
-                const { scanRuns } = await import('../db/schema/core');
-
-                // Increment completed jobs atomically
-                await db.execute(sql`
-                    UPDATE scan_runs
-                    SET completed_jobs = completed_jobs + 1
-                    WHERE id = ${runId}
-                `);
-
-                // Check if all jobs are done (atomic check)
-                const [run] = await db
-                    .select()
-                    .from(scanRuns)
-                    .where(eq(scanRuns.id, runId))
-                    .limit(1);
-
-                if (run && run.completed_jobs >= (run.total_jobs || 0)) {
-                    const updateResult = await db
-                        .update(scanRuns)
-                        .set({ status: 'completed', completed_at: new Date() })
-                        .where(
-                            and(
-                                eq(scanRuns.id, runId),
-                                // Only update if status is still processing to prevent race condition
-                                eq(scanRuns.status, 'processing')
-                            )
-                        )
-                        .returning();
-
-                    if (updateResult.length > 0) {
-                        logger.info({ runId }, '🎊 Scan run completed!');
-                    }
-                }
+                await updateRunProgress(runId);
             }
 
             // 3. Update last_scanned_at in keywords
@@ -178,7 +250,7 @@ export const scraperWorker = new Worker<ScanJobData>(
                     jobId: job.id,
                     resultsCount: results.length,
                 },
-                '✅ Scan job completed',
+                '✅ Scan job reached terminal state',
             );
 
             return {
@@ -198,17 +270,24 @@ export const scraperWorker = new Worker<ScanJobData>(
             );
 
             try {
-                // Mark job as failed
+                const status = classifyErrorStatus(errorMsg);
                 await db
                     .update(scanJobs)
                     .set({
-                        status: 'failed',
+                        status,
                         error_message: errorMsg,
                         completed_at: new Date(),
                     })
                     .where(eq(scanJobs.id, job.id as any));
-                
-                logger.info({ jobId: job.id }, 'Successfully updated job status to failed');
+
+                const jobRecord = await db
+                    .select({ runId: scanJobs.run_id })
+                    .from(scanJobs)
+                    .where(eq(scanJobs.id, job.id as any))
+                    .limit(1);
+                if (jobRecord[0]?.runId) await updateRunProgress(jobRecord[0].runId);
+
+                logger.info({ jobId: job.id, status }, 'Successfully updated terminal job status');
             } catch (updateError) {
                 logger.error(
                     {
@@ -219,12 +298,15 @@ export const scraperWorker = new Worker<ScanJobData>(
                 );
             }
 
-            throw error; // Will trigger retry based on backoff config
+            return {
+                success: false,
+                error: errorMsg,
+            };
         }
     },
     {
         connection: getRedisConnection(),
-        concurrency: 3, // Process 3 scans in parallel
+        concurrency: Math.max(1, env.MENTHA_BROWSER_CONCURRENCY),
         autorun: false,
     },
 );

@@ -67,14 +67,19 @@ export class DomainService {
         logger.debug({ domain: validatedDomain }, 'Resolving tenant from domain');
 
         try {
-            const result = await db.execute(sql`SELECT * FROM resolve_tenant_from_domain(${validatedDomain})`);
+            const result = await db.execute(
+                sql`SELECT * FROM resolve_tenant_from_domain(${validatedDomain})`,
+            );
             const rows = result as unknown as Record<string, unknown>[];
             if (!rows || rows.length === 0) {
                 throw new NotFoundException('Tenant not found for domain');
             }
             return rows[0] as unknown as TenantData;
         } catch (error) {
-            logger.error({ domain: validatedDomain, error: (error as Error).message }, 'Failed to resolve tenant');
+            logger.error(
+                { domain: validatedDomain, error: (error as Error).message },
+                'Failed to resolve tenant',
+            );
             throw error;
         }
     }
@@ -94,7 +99,10 @@ export class DomainService {
             }
             return rows[0] as unknown as InjectionPayload;
         } catch (error) {
-            logger.error({ domain: validatedDomain, path: validatedPath, error: (error as Error).message }, 'Failed to get injection payload');
+            logger.error(
+                { domain: validatedDomain, path: validatedPath, error: (error as Error).message },
+                'Failed to get injection payload',
+            );
             throw error;
         }
     }
@@ -212,13 +220,8 @@ export class DomainService {
             const txtRecord = `mentha-verification=${token}`;
             logger.debug({ domain, expectedRecord: txtRecord }, 'Checking DNS TXT record');
 
-            const { Resolver } = await import('dns').catch(() => null);
-            if (!Resolver) {
-                logger.warn('DNS resolver not available, skipping DNS verification');
-                return false;
-            }
-
-            const resolver = new (await import('dns')).Resolver();
+            const dns = await import('node:dns');
+            const resolver = new dns.Resolver();
 
             return new Promise((resolve) => {
                 resolver.resolveTxt(domain, (err, records) => {
@@ -234,7 +237,10 @@ export class DomainService {
                     if (verified) {
                         logger.info({ domain }, 'DNS TXT verification successful');
                     } else {
-                        logger.debug({ domain, expectedRecord: txtRecord }, 'DNS TXT record not found');
+                        logger.debug(
+                            { domain, expectedRecord: txtRecord },
+                            'DNS TXT record not found',
+                        );
                     }
 
                     resolve(verified);
@@ -254,7 +260,7 @@ export class DomainService {
             try {
                 const response = await fetch(`https://${domain}`, {
                     signal: controller.signal,
-                    headers: { 'User-Agent': 'Mentha-Verifier/1.0' }
+                    headers: { 'User-Agent': 'Mentha-Verifier/1.0' },
                 });
 
                 if (!response.ok) {
@@ -278,7 +284,10 @@ export class DomainService {
             if ((error as Error).name === 'AbortError') {
                 logger.warn({ domain }, 'Meta tag verification timeout');
             } else {
-                logger.error({ domain, error: (error as Error).message }, 'Meta tag verification failed');
+                logger.error(
+                    { domain, error: (error as Error).message },
+                    'Meta tag verification failed',
+                );
             }
             return false;
         }
@@ -292,7 +301,7 @@ export class DomainService {
             try {
                 const response = await fetch(`https://${domain}/mentha-verification.txt`, {
                     signal: controller.signal,
-                    headers: { 'User-Agent': 'Mentha-Verifier/1.0' }
+                    headers: { 'User-Agent': 'Mentha-Verifier/1.0' },
                 });
 
                 if (!response.ok) {
@@ -315,7 +324,10 @@ export class DomainService {
             if ((error as Error).name === 'AbortError') {
                 logger.warn({ domain }, 'File verification timeout');
             } else {
-                logger.error({ domain, error: (error as Error).message }, 'File verification failed');
+                logger.error(
+                    { domain, error: (error as Error).message },
+                    'File verification failed',
+                );
             }
             return false;
         }

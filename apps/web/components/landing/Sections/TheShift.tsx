@@ -1,20 +1,15 @@
 'use client';
 
-import { ArrowUp, Copy, Square, ThumbsDown, ThumbsUp } from 'lucide-react';
-import { useState } from 'react';
+import { ArrowUp, Copy, ThumbsDown, ThumbsUp } from 'lucide-react';
+import React, { useState } from 'react';
 
-import {
-    PromptInput,
-    PromptInputAction,
-    PromptInputActions,
-    PromptInputTextarea,
-} from '@/components/prompt-kit/prompt-input';
-import { Button } from '@/components/ui/button';
+import { useTranslations } from '@/lib/i18n';
 
 const TheShift: React.FC = () => {
     const [prompt, setPrompt] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [response, setResponse] = useState('');
+    const { t } = useTranslations();
 
     const handlePrompt = (e: React.FormEvent) => {
         e.preventDefault();
@@ -45,7 +40,7 @@ const TheShift: React.FC = () => {
                                 className="mx-8 font-mono text-xs font-bold uppercase tracking-widest flex items-center"
                             >
                                 <span className="w-2 h-2 bg-mentha-forest rounded-full mr-2"></span>
-                                FROM SEARCH TO ANSWER /// OPTIMIZE FOR INTENT
+                                {t.shiftMarquee}
                             </span>
                         ))}
                 </div>
@@ -55,34 +50,32 @@ const TheShift: React.FC = () => {
                 {/* TEXT COLUMN */}
                 <div className="p-12 lg:p-24 flex flex-col justify-center border-b lg:border-b-0 lg:border-r border-mentha-forest dark:border-mentha-beige bg-inherit">
                     <div className="font-mono text-xs uppercase tracking-widest mb-8 text-mentha-mint">
-                        [ 02 — Paradigm Shift ]
+                        {t.shiftTag}
                     </div>
 
                     <h2 className="font-serif text-6xl lg:text-7xl leading-[0.95] mb-12">
-                        The Age of the <br />
-                        <span className="italic text-mentha-mint">Answer.</span>
+                        {t.shiftTitle} <br />
+                        <span className="italic text-mentha-mint">{t.shiftTitleHighlight}</span>
                     </h2>
 
                     <div className="space-y-12">
                         <div className="relative pl-8 border-l border-mentha-forest dark:border-mentha-beige border-opacity-30">
                             <span className="absolute -left-[5px] top-0 w-2.5 h-2.5 bg-current rounded-full opacity-30"></span>
                             <h3 className="font-mono text-sm uppercase tracking-widest mb-2 opacity-70 line-through">
-                                Search Engine (Legacy)
+                                {t.shiftLegacyHeader}
                             </h3>
                             <p className="font-sans text-xl opacity-90 leading-relaxed">
-                                10 blue links. Fragmentation. The user manually searches, filters,
-                                and synthesizes.
+                                {t.shiftLegacyDesc}
                             </p>
                         </div>
 
                         <div className="relative pl-8 border-l-2 border-mentha-mint">
                             <span className="absolute -left-[5px] top-0 w-2.5 h-2.5 bg-mentha-mint rounded-full"></span>
                             <h3 className="font-mono text-sm uppercase tracking-widest mb-2 text-mentha-mint">
-                                Answer Engine (Current)
+                                {t.shiftCurrentHeader}
                             </h3>
                             <p className="font-sans text-xl font-medium leading-relaxed">
-                                A single answer. Synthesis. The AI processes authority and delivers
-                                the truth.
+                                {t.shiftCurrentDesc}
                             </p>
                         </div>
                     </div>
@@ -90,7 +83,7 @@ const TheShift: React.FC = () => {
 
                 {/* VISUAL COLUMN - Mock Prompt */}
                 <div className="md:col-span-1 flex items-center justify-center p-12 lg:p-24">
-                    <PromptInputBasic />
+                    <PromptInputBasic t={t} />
                 </div>
             </div>
 
@@ -124,25 +117,19 @@ const TheShift: React.FC = () => {
 export default TheShift;
 
 // Adapted PromptInputBasic for AI-like experience
-function PromptInputBasic() {
+function PromptInputBasic({ t }: { t: any }) {
     // Conversación simulada fija
     return (
         <div className="w-full max-w-xl">
             <div className="mb-2">
                 <div className="flex justify-end mb-3">
                     <div className="max-w-[600px] rounded-xl bg-slate-100 dark:bg-mentha-dark/60 border border-slate-200 dark:border-mentha-beige/30 px-4 py-2 font-serif text-base text-slate-800 dark:text-mentha-beige">
-                        How is search different now?
+                        {t.shiftMockQuestion}
                     </div>
                 </div>
                 <div className="max-w-[600px]">
                     <div className="rounded-xl bg-white dark:bg-mentha-dark/80 px-4 py-2 font-serif text-base text-mentha-forest dark:text-mentha-beige">
-                        The Answer Engine marks a paradigm shift in search. Instead of presenting
-                        users with 10 blue links and fragmented information, it synthesizes
-                        authority and delivers a single, trusted answer. The AI processes vast
-                        sources, evaluates credibility, and provides direct responses—so users no
-                        longer need to manually search, filter, or synthesize. This transition
-                        empowers brands to optimize for intent and become the source of truth in the
-                        age of the Answer.
+                        {t.shiftMockAnswer}
                     </div>
                     <div
                         className="flex gap-3 mt-3 text-slate-400 dark:text-mentha-beige/60 ml-4"
@@ -175,7 +162,7 @@ function PromptInputBasic() {
             {/* Input siempre visible, placeholder visible aunque esté deshabilitado */}
             <div className="relative mt-6">
                 <textarea
-                    placeholder="Ask me anything..."
+                    placeholder={t.shiftMockPlaceholder}
                     className="w-full min-h-[48px] max-h-[48px] text-base resize-none bg-white dark:bg-mentha-dark/60 border border-slate-300 dark:border-mentha-beige/50 rounded-2xl px-3 py-3 font-mono placeholder-slate-500 dark:placeholder-mentha-beige/80 focus:outline-none overflow-hidden placeholder:text-base select-none pr-12"
                     disabled
                     style={{ WebkitTextFillColor: 'inherit', opacity: 1 }}

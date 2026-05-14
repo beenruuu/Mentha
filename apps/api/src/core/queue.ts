@@ -91,6 +91,7 @@ export interface ScanJobData {
     keywordId: string;
     engine: string;
     projectId: string;
+    userId: string;
     query: string;
     brand: string;
     competitors: string[];
@@ -133,6 +134,7 @@ export async function addScanJob(data: ScanJobData, options?: JobsOptions) {
     const queue = getQueue<ScanJobData>(QUEUE_NAMES.SCRAPERS);
     const job = await queue.add('scan', data, {
         priority: 2,
+        attempts: 1,
         ...options,
     });
     logger.info(

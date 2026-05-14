@@ -16,6 +16,18 @@ export const generateLlmsTxt = async () => {
     return { content: [{ type: 'text' as const, text: await response.text() }] };
 };
 
+export const generateAiReadableFiles = async (args: { name?: string }) => {
+    const baseUrl = process.env.MENTHA_API_URL;
+    if (!baseUrl) throw new Error('MENTHA_API_URL environment variable is required');
+
+    const url = args.name
+        ? `${baseUrl}/llms.txt/artifacts/${encodeURIComponent(args.name)}`
+        : `${baseUrl}/llms.txt/artifacts`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to generate AI-readable files');
+    return { content: [{ type: 'text' as const, text: await response.text() }] };
+};
+
 export const listProjects = async () => {
     const response = await menthaClient.api.v1.projects.$get();
     if (!response.ok) throw new Error('Failed to list projects');
@@ -30,6 +42,31 @@ export const listProjects = async () => {
  * Auditoría GEO completa: analiza optimización para motores AI
  */
 export const geoAudit = async (args: { url: string; brandName: string }) => {
+    if (process.env.MENTHA_QA_MODE === 'true') {
+        return {
+            content: [
+                {
+                    type: 'text' as const,
+                    text: JSON.stringify(
+                        {
+                            brandName: args.brandName,
+                            url: args.url,
+                            overallScore: 76,
+                            mode: 'qa',
+                            strengths: ['Deterministic QA response', 'No OpenRouter call'],
+                            weaknesses: ['Live model perception not measured in QA mode'],
+                            recommendations: [
+                                { priority: 'high', action: 'Publish AI-readable artifacts' },
+                            ],
+                        },
+                        null,
+                        2,
+                    ),
+                },
+            ],
+        };
+    }
+
     const response = await openrouter.chat.completions.create({
         model: 'openai/gpt-4o',
         messages: [
@@ -74,6 +111,31 @@ Devuelve SOLO JSON:
  * Analizar citabilidad de contenido para AI
  */
 export const analyzeCitability = async (args: { content: string; brandName: string }) => {
+    if (process.env.MENTHA_QA_MODE === 'true') {
+        return {
+            content: [
+                {
+                    type: 'text' as const,
+                    text: JSON.stringify(
+                        {
+                            overall: 72,
+                            mode: 'qa',
+                            breakdown: {
+                                contentClarity: 75,
+                                factualDensity: 70,
+                                structuredData: 65,
+                                brandEntity: 78,
+                            },
+                            recommendations: ['Add citations and schema for stronger QA-readiness.'],
+                        },
+                        null,
+                        2,
+                    ),
+                },
+            ],
+        };
+    }
+
     const response = await openrouter.chat.completions.create({
         model: 'openai/gpt-4o',
         messages: [
@@ -173,6 +235,27 @@ export const analyzeCrawlers = async (args: { robotsTxt: string; domain: string 
  * Escanear menciones de marca en plataformas AI
  */
 export const scanBrandMentions = async (args: { brandName: string }) => {
+    if (process.env.MENTHA_QA_MODE === 'true') {
+        return {
+            content: [
+                {
+                    type: 'text' as const,
+                    text: JSON.stringify(
+                        {
+                            brand: args.brandName,
+                            mentionCount: 2,
+                            sentiment: 'positive',
+                            platform: 'qa-mock',
+                            response: `${args.brandName} appears in deterministic QA-mode answers without external model calls.`,
+                        },
+                        null,
+                        2,
+                    ),
+                },
+            ],
+        };
+    }
+
     const response = await openrouter.chat.completions.create({
         model: 'perplexity/sonar-pro',
         messages: [
@@ -210,4 +293,22 @@ export const scanBrandMentions = async (args: { brandName: string }) => {
             },
         ],
     };
+};
+
+export const scoreAiReadiness = async (args: { url: string }) => {
+    const baseUrl = process.env.MENTHA_API_URL;
+    if (!baseUrl) throw new Error('MENTHA_API_URL environment variable is required');
+
+    const response = await fetch(`${baseUrl}/llms.txt/score?url=${encodeURIComponent(args.url)}`);
+    if (!response.ok) throw new Error('Failed to score AI readiness');
+    return { content: [{ type: 'text' as const, text: await response.text() }] };
+};
+
+export const generateAeoReport = async (args: { url: string }) => {
+    const baseUrl = process.env.MENTHA_API_URL;
+    if (!baseUrl) throw new Error('MENTHA_API_URL environment variable is required');
+
+    const response = await fetch(`${baseUrl}/llms.txt/report?url=${encodeURIComponent(args.url)}`);
+    if (!response.ok) throw new Error('Failed to generate AEO operational report');
+    return { content: [{ type: 'text' as const, text: await response.text() }] };
 };

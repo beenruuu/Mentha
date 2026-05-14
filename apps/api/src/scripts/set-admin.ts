@@ -6,7 +6,7 @@ async function setAdmin() {
         await db.update(profiles).set({
             role: 'admin',
             credit_balance: 5000,
-            plan: 'pro'
+            plan: 'pro',
         });
         console.log('Successfully updated profiles to admin with 5000 credits.');
         process.exit(0);

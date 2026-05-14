@@ -1,26 +1,30 @@
-import type React from 'react';
+import React from 'react';
+
+import { useTranslations } from '@/lib/i18n';
 
 const Methodology: React.FC = () => {
+    const { t } = useTranslations();
+
     const steps = [
         {
             id: '01',
-            name: 'Semantic Dissection',
-            desc: 'We break down your brand into entities and attributes understandable by vector models.',
+            name: t.step1Title,
+            desc: t.step1Desc,
         },
         {
             id: '02',
-            name: 'Context Injection',
-            desc: 'We create layers of context in authoritative sources that LLMs already trust (Wikis, Papers).',
+            name: t.step2Title,
+            desc: t.step2Desc,
         },
         {
             id: '03',
-            name: 'Prompt Engineering',
-            desc: 'We simulate thousands of queries to adjust how the AI associates your product with user intent.',
+            name: t.step3Title,
+            desc: t.step3Desc,
         },
         {
             id: '04',
-            name: 'Feedback Loop',
-            desc: 'Constant monitoring of hallucinations and readjustment of content strategy.',
+            name: t.step4Title,
+            desc: t.step4Desc,
         },
     ];
 
@@ -28,13 +32,20 @@ const Methodology: React.FC = () => {
         <section className="border-b border-mentha-forest dark:border-mentha-beige py-24 px-6 md:px-12">
             <div className="mb-16 flex flex-col md:flex-row justify-between items-end">
                 <h2 className="font-serif text-5xl md:text-6xl max-w-2xl">
-                    The <span className="italic text-mentha-mint">Mentha</span> Protocol.
+                    {t.methodologyTitle.split('Mentha').map((part, i, arr) => (
+                        <React.Fragment key={part}>
+                            {part}
+                            {i < arr.length - 1 && (
+                                <span className="italic text-mentha-mint">Mentha</span>
+                            )}
+                        </React.Fragment>
+                    ))}
                 </h2>
                 <p className="font-mono text-xs uppercase tracking-widest mt-6 md:mt-0">
-                    [ SYSTEM ARCHITECTURE ]
+                    {t.methodologyTag}
                 </p>
             </div>
-
+            ...
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-t border-l border-mentha-forest dark:border-mentha-beige">
                 {steps.map((step) => (
                     <div

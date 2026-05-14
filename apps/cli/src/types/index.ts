@@ -75,7 +75,9 @@ export type ProviderType = 'perplexity' | 'openai' | 'gemini' | 'claude';
 export interface Entity {
     id: string;
     name: string;
+    slug?: string;
     type: string;
+    entity_type?: string;
     description?: string;
     created_at: string;
 }

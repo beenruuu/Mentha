@@ -1,70 +1,193 @@
+import { Github } from 'lucide-react';
 import type React from 'react';
 
+import { useTranslations } from '@/lib/i18n';
+
 const Footer: React.FC = () => {
+    const { t, locale, toggleLocale } = useTranslations();
+
     return (
         <footer
             id="footer"
-            className="min-h-screen flex flex-col justify-between pt-24 pb-8 border-t border-mentha-mint dark:border-mentha-beige overflow-hidden"
+            className="pt-24 pb-8 border-t border-mentha-forest/10 dark:border-mentha-beige/10 bg-white dark:bg-mentha-dark transition-colors duration-300 overflow-hidden"
         >
-            <div className="px-8 md:px-16 grid grid-cols-1 md:grid-cols-3 gap-12">
-                <div className="md:col-span-1 space-y-8">
-                    <h4 className="font-mono text-xs uppercase tracking-widest mb-6">Newsletter</h4>
-                    <p className="font-serif text-2xl italic mb-4">
-                        Insights for the Generative Age.
-                    </p>
-                    <div className="flex border-b border-mentha-forest dark:border-mentha-beige pb-2">
-                        <input
-                            type="email"
-                            placeholder="Email Address"
-                            className="bg-transparent w-full focus:outline-none font-mono text-sm placeholder-current placeholder-opacity-40"
-                        />
-                        <button className="font-mono text-xs uppercase hover:text-mentha-mint">
-                            SUBMIT
-                        </button>
+            <div className="max-w-7xl mx-auto px-8 md:px-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
+                {/* Column 1: Brand & Newsletter */}
+                <div className="md:col-span-2 lg:col-span-1 space-y-8">
+                    <div className="space-y-4">
+                        <h4 className="font-mono text-xs uppercase tracking-widest text-mentha-forest dark:text-mentha-beige">
+                            {t.footerNewsletter}
+                        </h4>
+                        <p className="font-serif text-xl italic text-mentha-forest dark:text-mentha-beige">
+                            {t.footerNewsletterTitle}
+                        </p>
+                        <div className="flex border-b border-mentha-forest/30 dark:border-mentha-beige/30 pb-2">
+                            <input
+                                type="email"
+                                placeholder={t.footerEmailPlaceholder}
+                                className="bg-transparent w-full focus:outline-none font-mono text-sm placeholder-current placeholder-opacity-40 text-mentha-forest dark:text-mentha-beige"
+                            />
+                            <button className="font-mono text-xs uppercase text-mentha-forest dark:text-mentha-beige hover:text-mentha-mint transition-colors">
+                                {t.footerSubmit}
+                            </button>
+                        </div>
+                    </div>
+                    <div className="pt-4 space-y-2">
+                        <p className="font-mono text-[10px] text-mentha-forest/60 dark:text-mentha-beige/60">
+                            Mentha, Inc. © 2026
+                        </p>
+                        <div className="flex items-center gap-4 pt-2">
+                            <button
+                                onClick={() => toggleLocale('es')}
+                                className={`flex items-center gap-1 font-mono text-[10px] transition-all ${locale === 'es' ? 'text-mentha-mint underline decoration-mentha-mint' : 'text-mentha-forest/60 dark:text-mentha-beige/60 hover:text-mentha-mint'}`}
+                            >
+                                <span>🇪🇸</span> ESPAÑOL
+                            </button>
+                            <button
+                                onClick={() => toggleLocale('en')}
+                                className={`flex items-center gap-1 font-mono text-[10px] transition-all ${locale === 'en' ? 'text-mentha-mint underline decoration-mentha-mint' : 'text-mentha-forest/60 dark:text-mentha-beige/60 hover:text-mentha-mint'}`}
+                            >
+                                <span>🇺🇸</span> ENGLISH
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div className="md:col-span-1 space-y-4">
-                    <h4 className="font-mono text-xs uppercase tracking-widest mb-6">Sitemap</h4>
-                    <ul className="space-y-2 font-serif text-xl">
-                        <li>
-                            <a href="#" className="hover:italic hover:pl-2 transition-all">
-                                Home
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#services" className="hover:italic hover:pl-2 transition-all">
-                                Services
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#shift" className="hover:italic hover:pl-2 transition-all">
-                                The Shift
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/login" className="hover:italic hover:pl-2 transition-all">
-                                Audit Tool
-                            </a>
-                        </li>
+                {/* Column 2: Product */}
+                <div className="space-y-6">
+                    <h4 className="font-mono text-xs uppercase tracking-widest text-mentha-forest dark:text-mentha-beige">
+                        {t.footerProduct}
+                    </h4>
+                    <ul className="space-y-3">
+                        {[
+                            { name: t.footerVisibilityTracking, href: '/login' },
+                            { name: t.footerPromptDiscovery, href: '/login' },
+                            { name: t.footerInsights, href: '/login' },
+                            { name: t.footerSentimentAnalysis, href: '/login' },
+                            { name: t.footerMenthaMCP, href: '#', soon: true },
+                        ].map((item) => (
+                            <li key={item.name} className="flex items-center gap-2">
+                                <a
+                                    href={item.href}
+                                    className="font-sans text-sm text-mentha-forest/70 dark:text-mentha-beige/70 hover:text-mentha-mint hover:translate-x-1 inline-block transition-all"
+                                >
+                                    {item.name}
+                                </a>
+                                {item.soon && (
+                                    <span className="font-mono text-[8px] px-1 py-0.5 rounded border border-mentha-mint/30 text-mentha-mint opacity-60">
+                                        SOON
+                                    </span>
+                                )}
+                            </li>
+                        ))}
                     </ul>
                 </div>
 
-                <div className="md:col-span-1 space-y-4 md:text-right">
-                    <h4 className="font-mono text-xs uppercase tracking-widest mb-6">Legal</h4>
-                    <ul className="space-y-2 font-mono text-xs opacity-60">
-                        <li>Privacy Policy</li>
-                        <li>Terms of Service</li>
-                        <li>© 2026 Mentha AEO Agency</li>
+                {/* Column 3: Solutions */}
+                <div className="space-y-6">
+                    <h4 className="font-mono text-xs uppercase tracking-widest text-mentha-forest dark:text-mentha-beige">
+                        {t.footerSolutions}
+                    </h4>
+                    <ul className="space-y-3">
+                        {[
+                            { name: t.footerSEOManagers },
+                            { name: t.footerInHouseMarketers },
+                            { name: t.footerAgencies },
+                        ].map((item) => (
+                            <li key={item.name} className="flex items-center gap-2">
+                                <a
+                                    href="#"
+                                    className="font-sans text-sm text-mentha-forest/70 dark:text-mentha-beige/70 hover:text-mentha-mint hover:translate-x-1 inline-block transition-all"
+                                >
+                                    {item.name}
+                                </a>
+                                <span className="font-mono text-[8px] px-1 py-0.5 rounded border border-mentha-forest/20 dark:border-mentha-beige/20 text-mentha-forest/40 dark:text-mentha-beige/40">
+                                    BETA
+                                </span>
+                            </li>
+                        ))}
                     </ul>
-                    <p className="font-mono text-[10px] mt-8">Designed by beenruuu</p>
+                </div>
+
+                {/* Column 4: Resources */}
+                <div className="space-y-6">
+                    <h4 className="font-mono text-xs uppercase tracking-widest text-mentha-forest dark:text-mentha-beige">
+                        {t.footerResources}
+                    </h4>
+                    <ul className="space-y-3">
+                        {[
+                            { name: t.footerBlog, href: '#', soon: true },
+                            { name: t.footerCustomers, href: '#', soon: true },
+                            {
+                                name: t.footerFreeTool,
+                                href: 'https://github.com/beenruuu/mentha',
+                                isExternal: true,
+                            },
+                            { name: t.footerKnowledgeBase, href: '#', soon: true },
+                            { name: t.footerAPIDocs, href: '#', soon: true },
+                            { name: t.footerMCPDocs, href: '#', soon: true },
+                        ].map((item) => (
+                            <li key={item.name} className="flex items-center gap-2">
+                                <a
+                                    href={item.href}
+                                    target={item.isExternal ? '_blank' : undefined}
+                                    rel={item.isExternal ? 'noopener noreferrer' : undefined}
+                                    className="font-sans text-sm text-mentha-forest/70 dark:text-mentha-beige/70 hover:text-mentha-mint hover:translate-x-1 inline-flex items-center gap-1.5 transition-all"
+                                >
+                                    {item.isExternal && (
+                                        <Github size={12} className="text-mentha-mint" />
+                                    )}
+                                    {item.name}
+                                </a>
+                                {item.soon && (
+                                    <span className="font-mono text-[8px] px-1 py-0.5 rounded border border-mentha-forest/20 dark:border-mentha-beige/20 text-mentha-forest/40 dark:text-mentha-beige/40">
+                                        SOON
+                                    </span>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                {/* Column 5: Company */}
+                <div className="space-y-6">
+                    <h4 className="font-mono text-xs uppercase tracking-widest text-mentha-forest dark:text-mentha-beige">
+                        {t.footerCompany}
+                    </h4>
+                    <ul className="space-y-3">
+                        {[
+                            { name: t.footerAboutUs, soon: true },
+                            { name: t.footerPrivacyPolicy, soon: true },
+                            { name: t.footerTermsOfService, soon: true },
+                            { name: t.footerDataProtection, soon: true },
+                        ].map((item) => (
+                            <li key={item.name} className="flex items-center gap-2">
+                                <a
+                                    href="#"
+                                    className="font-sans text-sm text-mentha-forest/70 dark:text-mentha-beige/70 hover:text-mentha-mint hover:translate-x-1 inline-block transition-all"
+                                >
+                                    {item.name}
+                                </a>
+                                {item.soon && (
+                                    <span className="font-mono text-[8px] px-1 py-0.5 rounded border border-mentha-forest/20 dark:border-mentha-beige/20 text-mentha-forest/40 dark:text-mentha-beige/40">
+                                        DRAFT
+                                    </span>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             </div>
 
-            <div className="mt-auto pt-12 pb-20 relative">
-                <h1 className="text-[18vw] leading-[0.8] font-serif tracking-tighter text-center w-full select-none pointer-events-none text-current opacity-10">
+            <div className="mt-24 pb-12 relative overflow-hidden">
+                <h1 className="text-[20vw] leading-[0.8] font-serif tracking-tighter text-center w-full select-none pointer-events-none text-mentha-forest dark:text-mentha-beige opacity-[0.03] dark:opacity-[0.05]">
                     MENTHA
                 </h1>
+                <div className="absolute bottom-0 left-0 w-full text-center pb-4">
+                    <p className="font-mono text-[9px] tracking-widest text-mentha-forest/40 dark:text-mentha-beige/40">
+                        DESIGNED BY BEENRUUU • DEVELOPED FOR THE FUTURE OF SEARCH
+                    </p>
+                </div>
             </div>
         </footer>
     );

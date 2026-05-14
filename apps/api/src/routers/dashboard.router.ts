@@ -7,6 +7,7 @@ import { extractProjectId } from '../middlewares/project-auth';
 const router = new Hono()
     .use('*', requireAuth)
     .use('*', extractProjectId('projectId'))
+    .get('/report-status', DashboardController.getReportStatus)
     .get('/share-of-model', DashboardController.getShareOfModel)
     .get('/keywords', DashboardController.getKeywordPerformance)
     .get('/citations', DashboardController.getCitationAnalysis)

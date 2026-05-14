@@ -3,6 +3,7 @@
 import { EngineBreakdown } from '@/components/dashboard/engine-breakdown';
 import { MetricCards } from '@/components/dashboard/metric-cards';
 import { RecentScans } from '@/components/dashboard/recent-scans';
+import { ReportStatusBanner } from '@/components/dashboard/report-status-banner';
 import { TopBrands } from '@/components/dashboard/top-brands';
 import { TopKeywords } from '@/components/dashboard/top-keywords';
 import { VisibilityChartCard } from '@/components/dashboard/visibility-chart-card';
@@ -19,9 +20,9 @@ export default function DashboardPage() {
         if (!selectedProject?.id) return;
         setIsExporting(true);
         const baseName = `mentha-export-${selectedProject.name.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}`;
-        
+
         try {
-            const datasets: { data: any[], name: string }[] = [];
+            const datasets: { data: any[]; name: string }[] = [];
 
             // 1. Visibility Timeline
             const shareResponse = await fetchFromApi(
@@ -60,7 +61,6 @@ export default function DashboardPage() {
             } else {
                 alert('No data available to export');
             }
-
         } catch (error) {
             console.error('Failed to export data', error);
             alert('Failed to generate export');
@@ -80,7 +80,7 @@ export default function DashboardPage() {
                         Overview of your brand&apos;s AI visibility performance
                     </p>
                 </div>
-                
+
                 <button
                     type="button"
                     onClick={handleExport}
@@ -104,6 +104,8 @@ export default function DashboardPage() {
                     {isExporting ? 'Exporting...' : 'Export Data'}
                 </button>
             </div>
+
+            <ReportStatusBanner />
 
             <MetricCards />
 

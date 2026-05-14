@@ -2,6 +2,8 @@ import { Menu, Moon, Sun, X } from 'lucide-react';
 import React from 'react';
 
 import { Theme } from '@/components/types';
+import { GithubStars } from '@/components/ui/github-stars';
+import { useTranslations } from '@/lib/i18n';
 
 interface NavbarProps {
     theme: Theme;
@@ -10,23 +12,21 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
     const [isOpen, setIsOpen] = React.useState(false);
+    const { t } = useTranslations();
 
     const navLinks = [
         { label: 'Services', href: '#services' },
         { label: 'Methodology', href: '#shift' },
         { label: 'Cases', href: '#cases' },
-        { label: 'Insights', href: '#footer' },
+        { label: t.footerResources, href: '#footer' },
     ];
 
     return (
-        <nav className="fixed top-0 left-0 w-full z-40 border-b border-mentha-forest dark:border-mentha-beige transition-colors duration-500 bg-opacity-90 backdrop-blur-sm mix-blend-hard-light">
+        <nav className="fixed top-0 left-0 w-full z-40 border-b border-mentha-forest/20 dark:border-mentha-beige/20 transition-colors duration-500 bg-mentha-beige/90 dark:bg-mentha-dark/90 backdrop-blur-sm">
             <div className="max-w-[1920px] mx-auto px-8 md:px-16 lg:px-24 h-20 flex items-center justify-between">
                 {/* Logo */}
                 <div className="flex-shrink-0">
-                    <a
-                        href="#"
-                        className="font-serif text-3xl tracking-tight"
-                    >
+                    <a href="#" className="font-serif text-3xl tracking-tight">
                         Mentha<span className="text-mentha-mint text-4xl">.</span>
                     </a>
                 </div>
@@ -46,6 +46,8 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
 
                 {/* Actions */}
                 <div className="hidden md:flex items-center space-x-6">
+                    <GithubStars />
+
                     <button
                         onClick={toggleTheme}
                         className={`
@@ -68,14 +70,17 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
               }
             `}
                     >
-                        AUDIT YOUR BRAND
+                        {t.ctaPrimary.toUpperCase()}
                     </a>
                 </div>
 
                 {/* Mobile Menu Button */}
-                <button className="md:hidden" onClick={() => setIsOpen(!isOpen)}>
-                    {isOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
+                <div className="flex items-center gap-4 md:hidden">
+                    <GithubStars />
+                    <button onClick={() => setIsOpen(!isOpen)}>
+                        {isOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
             </div>
 
             {/* Mobile Menu */}

@@ -10,6 +10,14 @@ import { signOut, useSession } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 import { useSidebar } from './sidebar-context';
 
+function ProjectMark({ name }: { name: string }) {
+    return (
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm bg-mentha-mint/15 font-mono text-[10px] font-bold uppercase text-mentha-mint">
+            {name.slice(0, 2)}
+        </span>
+    );
+}
+
 export function Header() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const { projects, selectedProject, setSelectedProjectId, isLoading } = useProject();
@@ -61,14 +69,7 @@ export function Header() {
                             className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-mentha-forest/5 dark:hover:bg-white/5 transition-colors"
                         >
                             {!isLoading && selectedProject ? (
-                                <img
-                                    src={`https://www.google.com/s2/favicons?domain=${selectedProject.domain}&sz=64`}
-                                    className="w-5 h-5 rounded-sm"
-                                    alt=""
-                                    onError={(e) => {
-                                        e.currentTarget.style.display = 'none';
-                                    }}
-                                />
+                                <ProjectMark name={selectedProject.name} />
                             ) : null}
                             <span className="font-serif text-lg text-mentha-forest dark:text-mentha-beige">
                                 {isLoading
@@ -107,14 +108,7 @@ export function Header() {
                                                     : 'hover:bg-mentha-forest/5 dark:hover:bg-white/5 text-mentha-forest dark:text-mentha-beige',
                                             )}
                                         >
-                                            <img
-                                                src={`https://www.google.com/s2/favicons?domain=${project.domain}&sz=64`}
-                                                className="w-4 h-4 rounded-sm"
-                                                alt=""
-                                                onError={(e) => {
-                                                    e.currentTarget.style.display = 'none';
-                                                }}
-                                            />
+                                            <ProjectMark name={project.name} />
                                             {project.name}
                                         </button>
                                     ))}

@@ -3,7 +3,11 @@ import { Hono } from 'hono';
 
 import { ProjectController } from '../controllers/projects.controller';
 import { requireAuth } from '../middlewares/auth';
-import { createProjectSchema, updateProjectSchema, analyzeDomainSchema } from '../schemas/project.schema';
+import {
+    createProjectSchema,
+    updateProjectSchema,
+    analyzeDomainSchema,
+} from '../schemas/project.schema';
 
 const router = new Hono()
     .use('*', requireAuth)

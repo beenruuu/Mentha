@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Download, FileText, ShieldCheck } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +15,7 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useProject } from '@/context/ProjectContext';
-import { fetchFromApi } from '@/lib/api';
+import { API_BASE_URL, fetchFromApi } from '@/lib/api';
 
 interface EntityData {
     id: string;
@@ -26,12 +27,46 @@ interface EntityData {
     is_primary: boolean;
 }
 
+interface ArtifactData {
+    name: string;
+    mimeType: string;
+    bytes: number;
+}
+
+interface ReadinessReport {
+    score: {
+        url: string;
+        overallScore: number;
+        pillars: Record<string, number>;
+        recommendations: string[];
+    };
+    events: Array<{
+        type: string;
+        severity: string;
+        title: string;
+        evidence: string;
+        action: string;
+    }>;
+    artifacts: Array<{ name: string; bytes: number; status: string }>;
+}
+
+interface FrameworkAdapter {
+    name: string;
+    files: string[];
+    instructions: string[];
+}
+
+const AEO_BASE_URL = API_BASE_URL.replace(/\/api\/v1$/, '');
+
 export default function OptimizationPage() {
     const { selectedProject } = useProject();
     const [entities, setEntities] = useState<EntityData[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedEntity, setSelectedEntity] = useState<EntityData | null>(null);
     const [jsonLd, setJsonLd] = useState<unknown>(null);
+    const [artifacts, setArtifacts] = useState<ArtifactData[]>([]);
+    const [report, setReport] = useState<ReadinessReport | null>(null);
+    const [adapters, setAdapters] = useState<FrameworkAdapter[]>([]);
 
     useEffect(() => {
         async function loadEntities() {
@@ -47,6 +82,39 @@ export default function OptimizationPage() {
         }
         loadEntities();
     }, []);
+
+    useEffect(() => {
+        async function loadAeoData() {
+            try {
+                const [artifactRes, adapterRes] = await Promise.all([
+                    fetch(`${AEO_BASE_URL}/llms.txt/artifacts`),
+                    fetch(`${AEO_BASE_URL}/llms.txt/adapters`),
+                ]);
+                if (artifactRes.ok) {
+                    const data = await artifactRes.json();
+                    setArtifacts(data.data || []);
+                }
+                if (adapterRes.ok) {
+                    const data = await adapterRes.json();
+                    setAdapters(data.data || []);
+                }
+
+                if (selectedProject?.domain) {
+                    const reportRes = await fetch(
+                        `${AEO_BASE_URL}/llms.txt/report?url=${encodeURIComponent(selectedProject.domain)}`,
+                    );
+                    if (reportRes.ok) {
+                        const data = await reportRes.json();
+                        setReport(data.data || null);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load AEO optimization data', error);
+            }
+        }
+
+        loadAeoData();
+    }, [selectedProject?.domain]);
 
     const handleViewSchema = async (entity: EntityData) => {
         setSelectedEntity(entity);
@@ -128,6 +196,130 @@ export default function OptimizationPage() {
                     }
                 />
             </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>AI Readiness</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex items-end gap-3">
+                            <span className="font-serif text-5xl text-mentha-forest dark:text-mentha-beige">
+                                {report?.score.overallScore ?? '--'}
+                            </span>
+                            <span className="pb-2 font-mono text-xs uppercase tracking-widest text-mentha-forest/50 dark:text-mentha-beige/50">
+                                / 100
+                            </span>
+                        </div>
+                        <div className="mt-4 space-y-2">
+                            {Object.entries(report?.score.pillars || {}).map(([pillar, score]) => (
+                                <div key={pillar}>
+                                    <div className="flex justify-between font-mono text-[10px] uppercase tracking-widest text-mentha-forest/50 dark:text-mentha-beige/50">
+                                        <span>{pillar}</span>
+                                        <span>{score}/100</span>
+                                    </div>
+                                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-mentha-forest/10 dark:bg-white/10">
+                                        <div
+                                            className="h-full rounded-full bg-mentha-mint"
+                                            style={{ width: `${score}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>AI-readable Files</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <a
+                            href={`${AEO_BASE_URL}/llms.txt/artifacts.zip`}
+                            className="mb-4 inline-flex items-center gap-2 rounded-full border border-mentha-mint/30 px-3 py-2 font-mono text-xs uppercase tracking-widest text-mentha-mint hover:bg-mentha-mint/10"
+                        >
+                            <Download size={14} />
+                            Download ZIP
+                        </a>
+                        <div className="space-y-2">
+                            {artifacts.map((artifact) => (
+                                <a
+                                    key={artifact.name}
+                                    href={`${AEO_BASE_URL}/llms.txt/artifacts/${artifact.name}`}
+                                    className="flex items-center justify-between rounded-xl border border-mentha-forest/10 p-2 text-sm hover:border-mentha-mint/40 dark:border-mentha-beige/10"
+                                >
+                                    <span className="flex items-center gap-2 font-mono text-xs">
+                                        <FileText size={14} />
+                                        {artifact.name}
+                                    </span>
+                                    <span className="text-xs text-mentha-forest/50 dark:text-mentha-beige/50">
+                                        {artifact.bytes}b
+                                    </span>
+                                </a>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Operational Events</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-3">
+                            {(report?.events || []).length === 0 ? (
+                                <div className="flex items-center gap-2 text-sm text-mentha-forest/60 dark:text-mentha-beige/60">
+                                    <ShieldCheck size={16} className="text-mentha-mint" />
+                                    No active AEO events.
+                                </div>
+                            ) : (
+                                report?.events.map((event) => (
+                                    <div
+                                        key={`${event.type}-${event.title}`}
+                                        className="rounded-xl border border-mentha-forest/10 p-3 dark:border-mentha-beige/10"
+                                    >
+                                        <Badge
+                                            variant={
+                                                event.severity === 'high' ? 'competitor' : 'warning'
+                                            }
+                                        >
+                                            {event.severity}
+                                        </Badge>
+                                        <h3 className="mt-2 font-serif text-base">{event.title}</h3>
+                                        <p className="mt-1 text-xs text-mentha-forest/60 dark:text-mentha-beige/60">
+                                            {event.action}
+                                        </p>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Framework Adapters</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                        {adapters.map((adapter) => (
+                            <div
+                                key={adapter.name}
+                                className="rounded-xl border border-mentha-forest/10 p-4 dark:border-mentha-beige/10"
+                            >
+                                <h3 className="font-mono text-xs uppercase tracking-widest text-mentha-mint">
+                                    {adapter.name}
+                                </h3>
+                                <p className="mt-2 text-xs text-mentha-forest/60 dark:text-mentha-beige/60">
+                                    {adapter.instructions[0]}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">

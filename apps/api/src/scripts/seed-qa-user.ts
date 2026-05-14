@@ -12,15 +12,18 @@ async function seedQaUser() {
 
     const passwordHash = await hashPassword(password);
 
-    const [user] = await db.insert(profiles).values({
-        email,
-        password_hash: passwordHash,
-        display_name: 'QA Tester',
-        role: 'admin',
-        plan: 'pro',
-        credit_balance: 5000,
-        daily_quota: 100,
-    }).returning();
+    const [user] = await db
+        .insert(profiles)
+        .values({
+            email,
+            password_hash: passwordHash,
+            display_name: 'QA Tester',
+            role: 'admin',
+            plan: 'pro',
+            credit_balance: 5000,
+            daily_quota: 100,
+        })
+        .returning();
 
     console.log('✅ QA user created:');
     console.log(`   Email:    ${email}`);

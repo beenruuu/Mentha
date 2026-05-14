@@ -22,6 +22,27 @@ export const EvaluationResultSchema = z.object({
         .describe('True if the text invents facts/products'),
     compliance_warning: z.string().nullable().describe('Warning for scams/legal issues'),
     reasoning: z.string().optional(),
+    keyword_intent: z
+        .enum(['informational', 'transactional', 'navigational', 'commercial'])
+        .optional(),
+    detected_entities: z
+        .array(
+            z.object({
+                name: z.string(),
+                type: z.string(),
+                description: z.string(),
+            }),
+        )
+        .optional(),
+    extracted_claims: z
+        .array(
+            z.object({
+                text: z.string(),
+                type: z.string(),
+                importance: z.number(),
+            }),
+        )
+        .optional(),
 });
 
 export type EvaluationResult = z.infer<typeof EvaluationResultSchema>;
@@ -60,7 +81,7 @@ export class EvaluationService {
 
     async evaluate(request: EvaluationRequest): Promise<EvaluationResult> {
         if (!this.client) {
-            throw new Error('OPENAI_API_KEY is required for evaluation');
+            return this.heuristicEvaluate(request);
         }
 
         const systemPrompt = this.buildSystemPrompt();
@@ -124,6 +145,89 @@ export class EvaluationService {
             logger.error({ error: (error as Error).message }, 'Evaluation failed');
             throw error;
         }
+    }
+
+    private heuristicEvaluate(request: EvaluationRequest): EvaluationResult {
+        const lowerResponse = request.rawResponse.toLowerCase();
+        const lowerBrand = request.brandName.toLowerCase();
+        const brandVisible = lowerResponse.includes(lowerBrand);
+
+        // Sentiment: count positive vs negative keywords
+        const positiveWords = ['great', 'excellent', 'amazing', 'good', 'best', 'recommend', 'love', 'perfect', 'innovative', 'powerful', 'reliable', 'easy'];
+        const negativeWords = ['bad', 'terrible', 'awful', 'worst', 'hate', 'poor', 'expensive', 'difficult', 'slow', 'buggy', 'scam', 'problem'];
+        let sentiment = 0;
+        if (brandVisible) {
+            const posCount = positiveWords.filter((w) => lowerResponse.includes(w)).length;
+            const negCount = negativeWords.filter((w) => lowerResponse.includes(w)).length;
+            const total = posCount + negCount || 1;
+            sentiment = Math.max(-1, Math.min(1, (posCount - negCount) / total));
+        }
+
+        // Recommendation type
+        let recommendation: EvaluationResult['recommendation_type'] = 'absent';
+        if (brandVisible) {
+            const recommendPhrases = ['recommend', 'best choice', 'top pick', 'leading', 'suggestion'];
+            const neutralPhrases = ['alternative', 'compare', 'versus', 'options', 'also consider'];
+            const negativePhrases = ['not recommended', 'avoid', 'issues', 'problems', 'concern'];
+
+            if (recommendPhrases.some((p) => lowerResponse.includes(p)) && sentiment >= 0) {
+                recommendation = 'direct_recommendation';
+            } else if (negativePhrases.some((p) => lowerResponse.includes(p)) || sentiment < -0.3) {
+                recommendation = 'negative_mention';
+            } else if (neutralPhrases.some((p) => lowerResponse.includes(p))) {
+                recommendation = 'neutral_comparison';
+            } else {
+                recommendation = 'direct_recommendation';
+            }
+        }
+
+        const keyPhrases: string[] = [];
+        if (brandVisible) {
+            const sentences = request.rawResponse.split(/[.!?]+/);
+            for (const sentence of sentences) {
+                if (sentence.toLowerCase().includes(lowerBrand) && sentence.length > 10) {
+                    keyPhrases.push(sentence.trim());
+                    if (keyPhrases.length >= 3) break;
+                }
+            }
+        }
+
+        const competitorMentions: Record<string, boolean> = {};
+        for (const comp of request.competitors) {
+            competitorMentions[comp] = lowerResponse.includes(comp.toLowerCase());
+        }
+
+        const detectedEntities = [
+            {
+                name: request.brandName,
+                type: 'Organization',
+                description: request.brandDescription || 'Brand mentioned in scraped AI response',
+            },
+        ];
+
+        const extractedClaims = brandVisible
+            ? [{ text: `${request.brandName} is mentioned in AI response.`, type: 'fact' as const, importance: 5 }]
+            : [];
+
+        logger.info(
+            { brand: request.brandName, visible: brandVisible, sentiment, recommendation },
+            'Heuristic evaluation completed (no API key)',
+        );
+
+        return {
+            sentiment_score: sentiment,
+            brand_visibility: brandVisible,
+            share_of_voice_rank: brandVisible ? 1 : null,
+            recommendation_type: recommendation,
+            key_phrases: keyPhrases,
+            competitor_mentions: competitorMentions,
+            hallucination_flag: false,
+            compliance_warning: null,
+            reasoning: `Heuristic evaluation: brand ${brandVisible ? 'visible' : 'not visible'}, sentiment ${sentiment.toFixed(2)}, type ${recommendation}`,
+            keyword_intent: 'informational',
+            detected_entities: detectedEntities,
+            extracted_claims: extractedClaims,
+        };
     }
 
     private buildSystemPrompt(): string {
@@ -235,7 +339,7 @@ Return ONLY the corrected JSON, nothing else.`;
         } catch (parseError) {
             logger.error(
                 { error: (parseError as Error).message, content },
-                'Auto-correction parsing failed'
+                'Auto-correction parsing failed',
             );
             throw new Error('Failed to parse auto-corrected evaluation response');
         }

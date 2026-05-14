@@ -2,7 +2,7 @@ import { and, desc, eq, gte } from 'drizzle-orm';
 
 import { logger } from '../core/logger';
 import { db } from '../db';
-import { citations, keywords, projects, scanJobs, scanResults } from '../db/schema/core';
+import { citations, keywords, projects, scanJobs, scanResults, scanRuns } from '../db/schema/core';
 
 export interface ShareOfModelMetrics {
     totalScans: number;
@@ -57,7 +57,92 @@ export interface CitationAnalysis {
     }>;
 }
 
+export interface ReportStatus {
+    status: 'empty' | 'collecting' | 'needs_connection' | 'ready_partial' | 'ready' | 'failed';
+    runId: string | null;
+    totalJobs: number;
+    finishedJobs: number;
+    completedJobs: number;
+    blockedJobs: number;
+    authRequiredJobs: number;
+    captchaRequiredJobs: number;
+    failedJobs: number;
+    visibleCount: number;
+    createdAt: Date | null;
+    completedAt: Date | null;
+    etaHours: number;
+}
+
 export class DashboardService {
+    async getReportStatus(projectId: string): Promise<ReportStatus> {
+        const latestRun = await db
+            .select()
+            .from(scanRuns)
+            .where(eq(scanRuns.project_id, projectId))
+            .orderBy(desc(scanRuns.created_at))
+            .limit(1);
+
+        const run = latestRun[0];
+        if (!run) {
+            return {
+                status: 'empty',
+                runId: null,
+                totalJobs: 0,
+                finishedJobs: 0,
+                completedJobs: 0,
+                blockedJobs: 0,
+                authRequiredJobs: 0,
+                captchaRequiredJobs: 0,
+                failedJobs: 0,
+                visibleCount: 0,
+                createdAt: null,
+                completedAt: null,
+                etaHours: 24,
+            };
+        }
+
+        const jobs = await db
+            .select({ status: scanJobs.status })
+            .from(scanJobs)
+            .where(eq(scanJobs.run_id, run.id));
+
+        const count = (status: string) => jobs.filter((job) => job.status === status).length;
+        const completedJobs = count('completed');
+        const authRequiredJobs = count('auth_required');
+        const captchaRequiredJobs = count('captcha_required');
+        const blockedJobs = count('blocked');
+        const failedJobs = count('failed');
+        const finishedJobs =
+            completedJobs + authRequiredJobs + captchaRequiredJobs + blockedJobs + failedJobs + count('cancelled');
+
+        const status =
+            run.status === 'processing' || run.status === 'pending'
+                ? 'collecting'
+                : completedJobs > 0 && (authRequiredJobs > 0 || captchaRequiredJobs > 0 || blockedJobs > 0 || failedJobs > 0)
+                  ? 'ready_partial'
+                  : completedJobs > 0
+                    ? 'ready'
+                    : authRequiredJobs > 0 || captchaRequiredJobs > 0
+                      ? 'needs_connection'
+                      : 'failed';
+
+        return {
+            status,
+            runId: run.id,
+            totalJobs: run.total_jobs ?? jobs.length,
+            finishedJobs,
+            completedJobs,
+            blockedJobs,
+            authRequiredJobs,
+            captchaRequiredJobs,
+            failedJobs,
+            visibleCount: run.visible_count ?? 0,
+            createdAt: run.created_at,
+            completedAt: run.completed_at,
+            etaHours: 24,
+        };
+    }
+
     async getShareOfModel(projectId: string, days: number = 30): Promise<ShareOfModelMetrics> {
         logger.debug({ projectId, days }, 'Calculating Share of Model metrics');
 
@@ -377,7 +462,8 @@ export class DashboardService {
                 name,
                 domain: data.domain,
                 totalMentions: data.count,
-                shareOfVoice: totalMentions > 0 ? Math.round((data.count / totalMentions) * 100) : 0,
+                shareOfVoice:
+                    totalMentions > 0 ? Math.round((data.count / totalMentions) * 100) : 0,
             }))
             .sort((a, b) => b.totalMentions - a.totalMentions)
             .slice(0, limit);

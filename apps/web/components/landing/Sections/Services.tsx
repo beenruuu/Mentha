@@ -1,23 +1,27 @@
 import type React from 'react';
 
+import { useTranslations } from '@/lib/i18n';
+
 const Services: React.FC = () => {
+    const { t } = useTranslations();
+
     const services = [
         {
-            title: 'LLM Brand Mapping',
-            desc: 'We audit how you are perceived by GPT-4, Claude 3.5, and Gemini. We identify hallucinations and negative biases in real-time.',
-            metric: 'SENTIMENT ANALYSIS',
+            title: t.service1Title,
+            desc: t.service1Desc,
+            metric: t.service1Metric,
             id: '01',
         },
         {
-            title: 'RAG Readiness',
-            desc: 'We restructure your data (JSON-LD, Knowledge Graphs) to be easily ingested by Retrieval-Augmented Generation systems.',
-            metric: 'DATA STRUCTURE',
+            title: t.service2Title,
+            desc: t.service2Desc,
+            metric: t.service2Metric,
             id: '02',
         },
         {
-            title: 'Citation Optimization',
-            desc: 'We insert your brand into authority sources (Whitepapers, News, Wikis) that models use to substantiate their answers.',
-            metric: 'AUTHORITY SCORE',
+            title: t.service3Title,
+            desc: t.service3Desc,
+            metric: t.service3Metric,
             id: '03',
         },
     ];

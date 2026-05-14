@@ -33,11 +33,7 @@ export const CreditService = {
         metadata: any = {},
     ) => {
         return await db.transaction(async (tx) => {
-            const [profile] = await tx
-                .select()
-                .from(user)
-                .where(eq(user.id, userId))
-                .for('update'); // Lock row
+            const [profile] = await tx.select().from(user).where(eq(user.id, userId)).for('update'); // Lock row
 
             if (!profile) throw new Error('User not found');
 

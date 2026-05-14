@@ -7,9 +7,12 @@ dotenv.config();
 import { RESOURCE_METADATA, TOOL_DESCRIPTIONS } from './constants';
 import * as Resources from './resources';
 import {
+    aiReadinessScoreSchema,
+    aeoOperationalReportSchema,
     brandMentionsSchema,
     citabilitySchema,
     crawlerAnalysisSchema,
+    generateAiReadableFilesSchema,
     generateLlmsTxtSchema,
     geoAuditSchema,
     listProjectsSchema,
@@ -17,10 +20,13 @@ import {
 import {
     analyzeCitability,
     analyzeCrawlers,
+    generateAiReadableFiles,
+    generateAeoReport,
     generateLlmsTxt,
     geoAudit,
     listProjects,
     scanBrandMentions,
+    scoreAiReadiness,
 } from './tools';
 
 const server = new McpServer({
@@ -36,6 +42,15 @@ server.registerTool(
         inputSchema: generateLlmsTxtSchema,
     },
     generateLlmsTxt,
+);
+
+server.registerTool(
+    'generate_ai_readable_files',
+    {
+        description: TOOL_DESCRIPTIONS.generateAiReadableFiles,
+        inputSchema: generateAiReadableFilesSchema,
+    },
+    generateAiReadableFiles,
 );
 
 server.registerTool(
@@ -82,6 +97,24 @@ server.registerTool(
         inputSchema: crawlerAnalysisSchema,
     },
     analyzeCrawlers,
+);
+
+server.registerTool(
+    'score_ai_readiness',
+    {
+        description: TOOL_DESCRIPTIONS.scoreAiReadiness,
+        inputSchema: aiReadinessScoreSchema,
+    },
+    scoreAiReadiness,
+);
+
+server.registerTool(
+    'generate_aeo_operational_report',
+    {
+        description: TOOL_DESCRIPTIONS.generateAeoReport,
+        inputSchema: aeoOperationalReportSchema,
+    },
+    generateAeoReport,
 );
 
 // ─── Resources ──────────────────────────────────────────────────────

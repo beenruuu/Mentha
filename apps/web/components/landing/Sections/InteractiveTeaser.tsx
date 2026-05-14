@@ -1,12 +1,17 @@
-import { ArrowRight, Cpu, Loader2 } from 'lucide-react';
+'use client';
+
+import { Cpu, Loader2 } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
+
+import { useTranslations } from '@/lib/i18n';
 
 const InteractiveTeaser: React.FC = () => {
     const [brand, setBrand] = useState('');
     const [category, setCategory] = useState('');
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
+    const { t } = useTranslations();
 
     const handleAnalyze = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -15,17 +20,21 @@ const InteractiveTeaser: React.FC = () => {
         setLoading(true);
         setResult(null);
 
-        // Aquí iría la lógica si se requiere analizar la marca, actualmente deshabilitado
+        // Simulated audit logic
         const data = {
             visibilityScore: 42,
-            sentiment: 'Neutral',
-            topAssociation: 'Legacy Provider',
-            simulationOutput: `While ${brand} is known in the ${category} space, it is rarely mentioned as a top-tier modern solution compared to its competitors.`,
-            recommendation:
-                'Focus on feature parity content and modernize the developer documentation to improve AI retrieval.',
+            sentiment: t.teaserMockSentiment,
+            topAssociation: t.teaserMockAssociation,
+            simulationOutput: t.teaserMockOutput
+                .replace('{brand}', brand)
+                .replace('{category}', category),
+            recommendation: t.teaserMockRec,
         };
-        setResult(data);
-        setLoading(false);
+
+        setTimeout(() => {
+            setResult(data);
+            setLoading(false);
+        }, 2000);
     };
 
     return (
@@ -38,12 +47,8 @@ const InteractiveTeaser: React.FC = () => {
                     <span className="font-mono text-xs text-mentha-mint border border-mentha-forest dark:border-mentha-beige px-2 py-1 rounded-full">
                         LIVE DEMO
                     </span>
-                    <h2 className="font-serif text-5xl mt-6 mb-4">
-                        How does AI see you right now?
-                    </h2>
-                    <p className="font-sans opacity-70">
-                        Simulate a real-time GEO query using Gemini 1.5.
-                    </p>
+                    <h2 className="font-serif text-5xl mt-6 mb-4">{t.teaserTitle}</h2>
+                    <p className="font-sans opacity-70">{t.teaserDesc}</p>
                 </div>
 
                 <div className="bg-mentha-mint/6 dark:bg-mentha-beige/6 p-8 border border-mentha-forest/40 dark:border-mentha-beige backdrop-blur-md">
@@ -51,7 +56,7 @@ const InteractiveTeaser: React.FC = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
                                 <label className="font-mono text-xs uppercase tracking-widest ml-1">
-                                    Your Brand
+                                    {t.teaserBrandLabel}
                                 </label>
                                 <input
                                     type="text"
@@ -63,7 +68,7 @@ const InteractiveTeaser: React.FC = () => {
                             </div>
                             <div className="space-y-2">
                                 <label className="font-mono text-xs uppercase tracking-widest ml-1">
-                                    Product / Category
+                                    {t.teaserCategoryLabel}
                                 </label>
                                 <input
                                     type="text"
@@ -82,9 +87,7 @@ const InteractiveTeaser: React.FC = () => {
                                 className="bg-mentha-mint text-mentha-dark px-8 py-4 font-mono text-sm font-bold uppercase tracking-widest hover:bg-mentha-mint/90 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? <Loader2 className="animate-spin" /> : <Cpu size={16} />}
-                                <span>
-                                    {loading ? 'ANALYZING NEURAL PATHS...' : 'RUN DIAGNOSTIC'}
-                                </span>
+                                <span>{loading ? t.teaserBtnLoading : t.teaserBtnRun}</span>
                             </button>
                         </div>
                     </form>
@@ -95,17 +98,17 @@ const InteractiveTeaser: React.FC = () => {
                     <div className="mt-8 border border-mentha-forest dark:border-mentha-beige p-6 md:p-8 bg-mentha-mint bg-opacity-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
                         <div className="flex justify-between items-start border-b border-mentha-forest dark:border-mentha-beige border-opacity-20 pb-4 mb-6">
                             <h3 className="font-mono text-sm uppercase text-mentha-mint">
-                                Audit Report: {brand}
+                                {t.teaserReportHeader} {brand}
                             </h3>
                             <span className="font-mono text-xs opacity-70">
-                                Generated via Gemini
+                                {t.teaserGeneratedVia}
                             </span>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                             <div>
                                 <p className="font-mono text-[10px] uppercase opacity-70 mb-2">
-                                    Visibility Score
+                                    {t.teaserVisibilityScore}
                                 </p>
                                 <div className="text-4xl font-serif">
                                     {result.visibilityScore}/100
@@ -113,7 +116,7 @@ const InteractiveTeaser: React.FC = () => {
                             </div>
                             <div>
                                 <p className="font-mono text-[10px] uppercase opacity-70 mb-2">
-                                    Sentiment
+                                    {t.teaserSentiment}
                                 </p>
                                 <div className="text-xl font-sans font-medium">
                                     {result.sentiment}
@@ -121,7 +124,7 @@ const InteractiveTeaser: React.FC = () => {
                             </div>
                             <div>
                                 <p className="font-mono text-[10px] uppercase opacity-70 mb-2">
-                                    Top Association
+                                    {t.teaserTopAssociation}
                                 </p>
                                 <div className="text-xl font-serif italic text-mentha-mint">
                                     "{result.topAssociation}"
@@ -132,7 +135,7 @@ const InteractiveTeaser: React.FC = () => {
                         <div className="space-y-6">
                             <div>
                                 <p className="font-mono text-[10px] uppercase opacity-70 mb-2">
-                                    Simulated LLM Response
+                                    {t.teaserSimulatedResponse}
                                 </p>
                                 <div className="font-serif text-lg leading-relaxed border-l-2 border-mentha-forest dark:border-mentha-beige pl-4 opacity-90">
                                     "{result.simulationOutput}"
@@ -140,7 +143,7 @@ const InteractiveTeaser: React.FC = () => {
                             </div>
                             <div className="pt-4 border-t border-mentha-forest dark:border-mentha-beige border-opacity-20">
                                 <p className="font-mono text-[10px] uppercase text-mentha-mint mb-2">
-                                    Strategic Recommendation
+                                    {t.teaserStrategicRec}
                                 </p>
                                 <p className="font-sans font-semibold">{result.recommendation}</p>
                             </div>

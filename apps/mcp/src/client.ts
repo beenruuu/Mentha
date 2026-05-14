@@ -11,7 +11,7 @@ if (!apiUrl) {
     throw new Error('MENTHA_API_URL environment variable is required');
 }
 
-export const menthaClient = createMenthaClient<AppType>({
+export const menthaClient: ReturnType<typeof createMenthaClient<AppType>> = createMenthaClient<AppType>({
     baseUrl: apiUrl,
     auth: apiToken ? { token: apiToken } : undefined,
 });

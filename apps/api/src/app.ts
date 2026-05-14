@@ -20,8 +20,11 @@ import keywordsRouter from './routers/keywords.router';
 import knowledgeGraphRouter from './routers/knowledge-graph.router';
 import llmsTxtRouter from './routers/llms-txt.router';
 import openrouterRouter from './routers/openrouter.router';
+import providerConnectionsRouter from './routers/provider-connections.router';
 import projectsRouter from './routers/projects.router';
 import scansRouter from './routers/scans.router';
+import settingsRouter from './routers/settings.router';
+import uiCaptureRouter from './routers/ui-capture.router';
 import webhooksRouter from './routers/webhooks.router';
 
 const app = new Hono();
@@ -41,9 +44,10 @@ app.use(
     cors({
         origin: (origin) => {
             if (env.NODE_ENV === 'development') return origin;
-            const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',')
-                .map(o => o.trim())
-                .filter(o => o.length > 0) || [];
+            const allowedOrigins =
+                process.env.ALLOWED_ORIGINS?.split(',')
+                    .map((o) => o.trim())
+                    .filter((o) => o.length > 0) || [];
 
             if (allowedOrigins.length === 0) {
                 logger.warn('No CORS origins configured');
@@ -81,8 +85,11 @@ app.on(['POST', 'GET'], '/api/v1/auth/*', (c) => auth.handler(c.req.raw));
 const routes = app
     .route('/health', healthRouter)
     .route('/api/v1/projects', projectsRouter)
+    .route('/api/v1/provider-connections', providerConnectionsRouter)
     .route('/api/v1/keywords', keywordsRouter)
     .route('/api/v1/scans', scansRouter)
+    .route('/api/v1/settings', settingsRouter)
+    .route('/api/v1/ui-capture', uiCaptureRouter)
     .route('/api/v1/kg', knowledgeGraphRouter)
     .route('/api/v1/dashboard', dashboardRouter)
     .route('/api/v1/edge', edgeRouter)

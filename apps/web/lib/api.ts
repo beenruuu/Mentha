@@ -35,7 +35,8 @@ export async function fetchFromApi(endpoint: string, options: RequestInit = {}) 
 
             try {
                 const errorData = await res.json();
-                errorMessage = errorData.message || errorData.error || errorData.detail || errorMessage;
+                errorMessage =
+                    errorData.message || errorData.error || errorData.detail || errorMessage;
             } catch {
                 // If JSON parsing fails, try to get text response
                 try {
@@ -55,7 +56,10 @@ export async function fetchFromApi(endpoint: string, options: RequestInit = {}) 
         try {
             return await res.json();
         } catch (parseError) {
-            console.error(`[API Parse Error] ${endpoint}: Failed to parse JSON response`, parseError);
+            console.error(
+                `[API Parse Error] ${endpoint}: Failed to parse JSON response`,
+                parseError,
+            );
             throw new Error('Invalid response format from API');
         }
     } catch (fetchError) {

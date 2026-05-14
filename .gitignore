@@ -17,5 +17,18 @@ pnpm-debug.log*
 .idea
 .vscode
 *.log
+logs/
 .vercel
 .env*.local
+
+# PostgreSQL database (runtime)
+apps/api/mentha_db/
+apps/api/mentha_db.backup-*/
+apps/api/mentha_db.failed-migration-*/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Windows artifacts
+nul

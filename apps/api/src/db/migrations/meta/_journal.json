@@ -36,6 +36,20 @@
       "when": 1778621013078,
       "tag": "0004_luxuriant_zemo",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1778769170231,
+      "tag": "0005_new_taskmaster",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1778787600000,
+      "tag": "0006_async_provider_runs",
+      "breakpoints": true
     }
   ]
 }

@@ -28,10 +28,19 @@ export function Collapsible({ title, children, defaultOpen = false }: Collapsibl
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                 >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                    <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 14l-7 7m0 0l-7-7m7 7V3"
+                    />
                 </svg>
             </button>
-            {isOpen && <div className="p-4 border-t border-mentha-forest/10 dark:border-mentha-beige/10">{children}</div>}
+            {isOpen && (
+                <div className="p-4 border-t border-mentha-forest/10 dark:border-mentha-beige/10">
+                    {children}
+                </div>
+            )}
         </div>
     );
 }

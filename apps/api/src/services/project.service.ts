@@ -44,46 +44,59 @@ export class ProjectService {
         return data;
     }
 
-    async analyzeDomain(domain: string): Promise<{name: string, description: string, keywords: string[], competitors: string[]}> {
+    async analyzeDomain(
+        domain: string,
+    ): Promise<{ name: string; description: string; keywords: string[]; competitors: string[] }> {
         logger.info({ domain }, 'Analyzing domain for onboarding');
-        
-        // Dynamic import to avoid circular dependencies if any, or just use createProvider
-        const { createProvider } = await import('../core/search/factory');
-        const provider = createProvider('openrouter');
-        
-        const prompt = `Actúa como un Auditor Técnico de Dominios y Analista SEO.
-        Analiza la marca asociada al dominio: ${domain}.
-        Devuelve un objeto JSON estrictamente con la siguiente estructura:
-        {
-          "name": "Nombre de la marca",
-          "description": "Breve descripción de lo que hacen (1-2 oraciones)",
-          "keywords": ["keyword 1", "keyword 2", "keyword 3", "keyword 4", "keyword 5"],
-          "competitors": ["Nombre de Competidor 1", "Nombre de Competidor 2"]
-        }
-        
-        IMPORTANTE PARA COMPETIDORES:
-        - Devuelve NOMBRES de marcas/empresas, NO URLs.
-        
-        IMPORTANTE PARA KEYWORDS:
-        - La primera keyword DEBE SER una pregunta directa sobre la marca (ej: "¿Qué es [Nombre de Marca]?") para asegurar un resultado positivo inicial.
-        - Las otras 4 deben ser preguntas estratégicas que sus clientes buscarían (AEO).`;
 
-        const result = await provider.search(prompt);
-        
+        const hostname = new URL(domain).hostname.replace(/^www\./, '');
+        const hostBrandName = hostname.split('.')[0] || hostname;
+
+        // Try Camoufox scrape first — ask Perplexity about the brand
         try {
-            const rawContent = result.content?.replace(/```json/g, '').replace(/```/g, '').trim();
-            const parsed = JSON.parse(rawContent || '{}');
-            
-            return {
-                name: parsed.name || 'Unknown Brand',
-                description: parsed.description || 'No description available',
-                keywords: Array.isArray(parsed.keywords) ? parsed.keywords.slice(0, 5) : [],
-                competitors: Array.isArray(parsed.competitors) ? parsed.competitors.slice(0, 3) : [],
-            };
+            const { runCamoufoxUiCapture } = await import(
+                '../core/ui-capture/camoufox-provider'
+            );
+            const capture = await runCamoufoxUiCapture({
+                provider: 'perplexity',
+                prompt: `What is ${hostname}? Tell me about this company, what they do, their main competitors, and what people search for related to them.`,
+            });
+
+            if (capture.status === 'success' && capture.responseMarkdown) {
+                const text = capture.responseMarkdown;
+                const sourceDomains = capture.sources
+                    .map((s) => s.domain)
+                    .filter((d): d is string => Boolean(d));
+
+                const name = extractBrandName(text, hostname);
+                const description = extractDescription(text);
+                const keywords = extractKeywords(text, name, hostname);
+                const competitors = extractCompetitors(text, sourceDomains, name);
+
+                return { name, description, keywords, competitors };
+            }
         } catch (error) {
-            logger.error({ error: (error as Error).message, content: result.content }, 'Failed to parse LLM analysis');
-            throw new Error('Failed to analyze domain');
+            logger.warn({ error: (error as Error).message }, 'Camoufox domain analysis failed, using heuristics');
         }
+
+        // Fallback: heuristic from domain name
+        const formattedName = hostBrandName
+            .split(/[-_]/)
+            .map((part: string) => part.charAt(0).toUpperCase() + part.slice(1))
+            .join(' ');
+
+        return {
+            name: formattedName,
+            description: `Brand analysis for ${formattedName}. Configure additional details in project settings.`,
+            keywords: [
+                `What is ${formattedName}?`,
+                `${formattedName} pricing and features`,
+                `${formattedName} reviews and alternatives`,
+                `Best alternatives to ${formattedName}`,
+                `${formattedName} customer experience`,
+            ],
+            competitors: [],
+        };
     }
 
     async getById(id: string): Promise<Project> {
@@ -176,4 +189,111 @@ export function getProjectService(): ProjectService {
         projectService = new ProjectService();
     }
     return projectService;
+}
+
+// ---------------------------------------------------------------------------
+// Heuristic extraction helpers for Camoufox-scraped content
+// ---------------------------------------------------------------------------
+
+function extractBrandName(text: string, domain: string): string {
+    const lines = text.split('\n').filter(Boolean);
+    for (const line of lines) {
+        const clean = line.replace(/^#+\s*/, '').replace(/[*_]/g, '').trim();
+        if (clean.length > 1 && clean.length < 100 && !clean.startsWith('http')) {
+            const words = clean.split(/\s+/);
+            if (words.length >= 2 && words.length <= 8) return clean;
+        }
+    }
+    return domain.split('.')[0] || domain;
+}
+
+function extractDescription(text: string): string {
+    const paragraphs = text.split('\n\n').filter(Boolean);
+    for (const p of paragraphs) {
+        const clean = p.replace(/^#+\s*/, '').replace(/[*_]/g, '').trim();
+        if (clean.length > 40 && clean.length < 500) return clean;
+    }
+    return `${text.slice(0, 200)}...`;
+}
+
+function extractKeywords(text: string, name: string, domain: string): string[] {
+    const keywords: string[] = [];
+    const brand = name || domain.split('.')[0] || '';
+
+    keywords.push(`What is ${brand}?`);
+
+    const sourcePatterns = [
+        /alternatives?\s+to\s+([\w\s]+)/gi,
+        /([\w\s]+)\s+vs\.?\s+/gi,
+        /competitors?\s+(?:include|are|:)?\s+([\w\s,]+)/gi,
+        /(?:pricing|price|cost|features|review)/gi,
+    ];
+
+    const seen = new Set<string>();
+    for (const pattern of sourcePatterns) {
+        const matches = text.matchAll(pattern);
+        for (const match of matches) {
+            const phrase = match[0]?.trim().toLowerCase();
+            if (phrase && phrase.length > 3 && !seen.has(phrase)) {
+                seen.add(phrase);
+                const kw = `${phrase} ${brand}`;
+                if (keywords.length < 5) keywords.push(kw);
+            }
+        }
+    }
+
+    const defaults = [
+        `${brand} pricing and features`,
+        `Best alternatives to ${brand}`,
+        `${brand} reviews and customer experience`,
+    ];
+
+    while (keywords.length < 5) {
+        keywords.push(defaults[keywords.length - 1] || `${brand} related searches`);
+    }
+
+    return keywords.slice(0, 5);
+}
+
+function extractCompetitors(text: string, sourceDomains: string[], brandName: string): string[] {
+    const competitors: string[] = [];
+    const seen = new Set<string>();
+
+    const brandLower = brandName.toLowerCase();
+
+    for (const domain of sourceDomains) {
+        if (domain.includes(brandLower.replace(/\s+/g, ''))) continue;
+        const name = domain
+            .replace(/^www\./, '')
+            .split('.')[0];
+        if (name && name.length > 2 && !seen.has(name)) {
+            seen.add(name);
+            const formatted = name.charAt(0).toUpperCase() + name.slice(1);
+            competitors.push(formatted);
+        }
+    }
+
+    const competitorPatterns = [
+        /competitors?\s+(?:include|are|:)?\s+([A-Z][\w\s,]+)/gi,
+        /(?:unlike|compared to|vs\.?)\s+([A-Z][\w\s]+)/gi,
+        /alternatives?\s+(?:to|include|:)?\s+([A-Z][\w\s,]+)/gi,
+    ];
+
+    for (const pattern of competitorPatterns) {
+        const matches = text.matchAll(pattern);
+        for (const match of matches) {
+            const names = (match[1] || match[0])
+                .split(/[,;]/)
+                .map((n) => n.trim().replace(/\.$/, ''))
+                .filter((n) => n.length > 1 && n.length < 30 && !n.includes(brandLower));
+            for (const n of names) {
+                if (!seen.has(n.toLowerCase())) {
+                    seen.add(n.toLowerCase());
+                    competitors.push(n);
+                }
+            }
+        }
+    }
+
+    return [...new Set(competitors)].slice(0, 3);
 }

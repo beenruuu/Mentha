@@ -161,7 +161,9 @@ export function KeywordsTable() {
                                 <div key={kw.id}>
                                     <button
                                         type="button"
-                                        onClick={() => setExpandedId(expandedId === kw.id ? null : kw.id)}
+                                        onClick={() =>
+                                            setExpandedId(expandedId === kw.id ? null : kw.id)
+                                        }
                                         className="w-full p-3 rounded-lg hover:bg-mentha-forest/5 dark:hover:bg-white/5 transition-colors text-left border border-transparent hover:border-mentha-mint/20 cursor-pointer"
                                     >
                                         <div className="flex items-center justify-between">
@@ -171,7 +173,13 @@ export function KeywordsTable() {
                                                 </p>
                                             </div>
                                             <div className="flex items-center gap-2 ml-2">
-                                                <Badge variant={kw.visibilityRate > 50 ? 'success' : 'default'}>
+                                                <Badge
+                                                    variant={
+                                                        kw.visibilityRate > 50
+                                                            ? 'success'
+                                                            : 'default'
+                                                    }
+                                                >
                                                     {kw.visibilityRate}%
                                                 </Badge>
                                                 <span className="text-xs text-mentha-forest/40 dark:text-mentha-beige/40">
@@ -185,7 +193,9 @@ export function KeywordsTable() {
                                         <div className="ml-3 mt-2 p-3 rounded-lg bg-mentha-forest/5 dark:bg-white/5 border border-mentha-forest/10 dark:border-white/10 space-y-3 text-sm">
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
-                                                    <p className="font-mono text-xs uppercase opacity-60">Intent</p>
+                                                    <p className="font-mono text-xs uppercase opacity-60">
+                                                        Intent
+                                                    </p>
                                                     {kw.intent && (
                                                         <Badge
                                                             variant="outline"
@@ -196,22 +206,30 @@ export function KeywordsTable() {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <p className="font-mono text-xs uppercase opacity-60">Frequency</p>
+                                                    <p className="font-mono text-xs uppercase opacity-60">
+                                                        Frequency
+                                                    </p>
                                                     <p className="font-mono text-sm text-mentha-forest/70 dark:text-mentha-beige/70 capitalize">
                                                         {kw.scan_frequency || 'Not set'}
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <p className="font-mono text-xs uppercase opacity-60">Total Scans</p>
+                                                    <p className="font-mono text-xs uppercase opacity-60">
+                                                        Total Scans
+                                                    </p>
                                                     <p className="font-mono text-sm text-mentha-forest/70 dark:text-mentha-beige/70">
                                                         {kw.totalScans}
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <p className="font-mono text-xs uppercase opacity-60">Last Scanned</p>
+                                                    <p className="font-mono text-xs uppercase opacity-60">
+                                                        Last Scanned
+                                                    </p>
                                                     <p className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70">
                                                         {kw.lastScanned
-                                                            ? new Date(kw.lastScanned).toLocaleDateString()
+                                                            ? new Date(
+                                                                  kw.lastScanned,
+                                                              ).toLocaleDateString()
                                                             : 'Never'}
                                                     </p>
                                                 </div>
@@ -219,7 +237,9 @@ export function KeywordsTable() {
 
                                             {kw.engines && kw.engines.length > 0 && (
                                                 <div>
-                                                    <p className="font-mono text-xs uppercase opacity-60 mb-2">Neural Engines</p>
+                                                    <p className="font-mono text-xs uppercase opacity-60 mb-2">
+                                                        Neural Engines
+                                                    </p>
                                                     <div className="flex flex-wrap gap-2">
                                                         {kw.engines.map((engine) => (
                                                             <span

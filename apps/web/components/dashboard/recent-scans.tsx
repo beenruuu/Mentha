@@ -171,17 +171,49 @@ export function RecentScans() {
                                                         </div>
                                                         <div className="p-5 bg-white dark:bg-mentha-dark rounded-xl border border-mentha-forest/10 dark:border-white/10 text-[13px] max-h-80 overflow-y-auto font-sans leading-relaxed shadow-inner">
                                                             {scan.raw_response ? (
-                                                                <ReactMarkdown 
+                                                                <ReactMarkdown
                                                                     remarkPlugins={[remarkGfm]}
                                                                     components={{
-                                                                        p: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>,
-                                                                        ul: ({ children }) => <ul className="list-disc pl-4 mb-4">{children}</ul>,
-                                                                        ol: ({ children }) => <ol className="list-decimal pl-4 mb-4">{children}</ol>,
-                                                                        li: ({ children }) => <li className="mb-1">{children}</li>,
-                                                                        strong: ({ children }) => <strong className="font-bold text-mentha-forest dark:text-mentha-beige">{children}</strong>,
-                                                                        h1: ({ children }) => <h1 className="text-lg font-serif mb-2">{children}</h1>,
-                                                                        h2: ({ children }) => <h2 className="text-md font-serif mb-2">{children}</h2>,
-                                                                        h3: ({ children }) => <h3 className="text-sm font-serif mb-1">{children}</h3>,
+                                                                        p: ({ children }) => (
+                                                                            <p className="mb-4 last:mb-0">
+                                                                                {children}
+                                                                            </p>
+                                                                        ),
+                                                                        ul: ({ children }) => (
+                                                                            <ul className="list-disc pl-4 mb-4">
+                                                                                {children}
+                                                                            </ul>
+                                                                        ),
+                                                                        ol: ({ children }) => (
+                                                                            <ol className="list-decimal pl-4 mb-4">
+                                                                                {children}
+                                                                            </ol>
+                                                                        ),
+                                                                        li: ({ children }) => (
+                                                                            <li className="mb-1">
+                                                                                {children}
+                                                                            </li>
+                                                                        ),
+                                                                        strong: ({ children }) => (
+                                                                            <strong className="font-bold text-mentha-forest dark:text-mentha-beige">
+                                                                                {children}
+                                                                            </strong>
+                                                                        ),
+                                                                        h1: ({ children }) => (
+                                                                            <h1 className="text-lg font-serif mb-2">
+                                                                                {children}
+                                                                            </h1>
+                                                                        ),
+                                                                        h2: ({ children }) => (
+                                                                            <h2 className="text-md font-serif mb-2">
+                                                                                {children}
+                                                                            </h2>
+                                                                        ),
+                                                                        h3: ({ children }) => (
+                                                                            <h3 className="text-sm font-serif mb-1">
+                                                                                {children}
+                                                                            </h3>
+                                                                        ),
                                                                         table: ({ children }) => (
                                                                             <div className="overflow-x-auto mb-4">
                                                                                 <table className="min-w-full divide-y divide-mentha-forest/10 border border-mentha-forest/10">
@@ -189,8 +221,16 @@ export function RecentScans() {
                                                                                 </table>
                                                                             </div>
                                                                         ),
-                                                                        th: ({ children }) => <th className="px-3 py-2 bg-mentha-forest/5 text-left text-[10px] font-mono uppercase tracking-wider">{children}</th>,
-                                                                        td: ({ children }) => <td className="px-3 py-2 border-t border-mentha-forest/10 text-[11px]">{children}</td>,
+                                                                        th: ({ children }) => (
+                                                                            <th className="px-3 py-2 bg-mentha-forest/5 text-left text-[10px] font-mono uppercase tracking-wider">
+                                                                                {children}
+                                                                            </th>
+                                                                        ),
+                                                                        td: ({ children }) => (
+                                                                            <td className="px-3 py-2 border-t border-mentha-forest/10 text-[11px]">
+                                                                                {children}
+                                                                            </td>
+                                                                        ),
                                                                     }}
                                                                 >
                                                                     {scan.raw_response}
