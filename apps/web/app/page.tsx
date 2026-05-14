@@ -2,6 +2,7 @@
 
 import { useTheme } from 'next-themes';
 
+import { DemoBanner } from '@/components/landing/Layout/DemoBanner';
 import Footer from '@/components/landing/Layout/Footer';
 import Navbar from '@/components/landing/Layout/Navbar';
 import FAQ from '@/components/landing/Sections/FAQ';
@@ -15,6 +16,8 @@ import { Theme } from '@/components/types';
 
 import { I18nProvider } from '@/lib/i18n';
 
+const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+
 export default function Home() {
     const { theme, setTheme } = useTheme();
 
@@ -26,7 +29,8 @@ export default function Home() {
 
     return (
         <I18nProvider>
-            <Navbar theme={currentTheme} toggleTheme={toggleTheme} />
+            {isDemo && <DemoBanner />}
+            <Navbar theme={currentTheme} toggleTheme={toggleTheme} isDemo={isDemo} />
             <main className="flex flex-col border-l border-r border-mentha-forest dark:border-mentha-beige max-w-[1920px] mx-auto bg-opacity-100">
                 <Hero theme={currentTheme} />
                 <TheShift />

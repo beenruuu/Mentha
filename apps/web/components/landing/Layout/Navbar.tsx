@@ -8,9 +8,10 @@ import { useTranslations } from '@/lib/i18n';
 interface NavbarProps {
     theme: Theme;
     toggleTheme: () => void;
+    isDemo?: boolean;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
+const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, isDemo }) => {
     const [isOpen, setIsOpen] = React.useState(false);
     const { t } = useTranslations();
 
@@ -60,7 +61,9 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
                     </button>
 
                     <a
-                        href="/register"
+                        href={isDemo ? 'https://github.com/beenruuu/mentha' : '/register'}
+                        target={isDemo ? '_blank' : undefined}
+                        rel={isDemo ? 'noopener noreferrer' : undefined}
                         className={`
               px-6 py-3 font-sans text-sm font-bold tracking-wide transition-all duration-300
               ${
@@ -70,7 +73,7 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme }) => {
               }
             `}
                     >
-                        {t.ctaPrimary.toUpperCase()}
+                        {isDemo ? 'SELF-HOST ON GITHUB' : t.ctaPrimary.toUpperCase()}
                     </a>
                 </div>
 
