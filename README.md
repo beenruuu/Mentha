@@ -1,6 +1,6 @@
 # Mentha — Open Source Answer Engine Optimization (AEO) Platform
 
-![Mentha Hero](./assets/try-mentha-now.png)
+![Mentha Hero](./assets/try-mentha-now.webp)
 
 **Track, Analyze, and Optimize your brand visibility across ChatGPT, Perplexity, Gemini, and Claude.** Mentha is the first open-source Answer Engine Optimization (AEO) platform that uses real browser automation to capture how AI engines see your brand, then evaluates results with an LLM-as-Judge system.
 
