@@ -37,6 +37,7 @@ export default function OnboardingPage() {
 
     const [_scanRunId, setScanRunId] = useState<string | null>(null);
     const [totalJobs, setTotalJobs] = useState(0);
+    const [scanMode, setScanMode] = useState<'browser' | 'api' | 'hybrid'>('browser');
     const [completedJobs, setCompletedJobs] = useState(0);
     const [failedJobs, setFailedJobs] = useState(0);
     const [processingJobs, setProcessingJobs] = useState(0);
@@ -153,7 +154,7 @@ export default function OnboardingPage() {
                 );
             }
 
-            const scanRes = await fetchFromApi(`/scans/trigger?project_id=${newProject.id}`, {
+            const scanRes = await fetchFromApi(`/scans/trigger?project_id=${newProject.id}&mode=${scanMode}`, {
                 method: 'POST',
             });
 
@@ -306,6 +307,37 @@ export default function OnboardingPage() {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </div>
+
+                    <div className="border-t border-mentha-forest/10 dark:border-mentha-beige/10 pt-4">
+                        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-mentha-mint mb-3">
+                            Scan Execution Mode
+                        </p>
+                        <div className="flex gap-3">
+                            {[
+                                { value: 'browser' as const, label: 'Browser', desc: 'Camoufox' },
+                                { value: 'api' as const, label: 'API', desc: 'OpenRouter' },
+                                { value: 'hybrid' as const, label: 'Hybrid', desc: 'Both' },
+                            ].map((opt) => (
+                                <button
+                                    key={opt.value}
+                                    type="button"
+                                    onClick={() => setScanMode(opt.value)}
+                                    className={`flex-1 p-3 rounded-xl text-left transition-all ${
+                                        scanMode === opt.value
+                                            ? 'bg-mentha-mint/10 border border-mentha-mint/30'
+                                            : 'border border-mentha-forest/10 dark:border-mentha-beige/10 hover:bg-mentha-forest/5 dark:hover:bg-white/5'
+                                    }`}
+                                >
+                                    <p className="font-sans text-sm font-medium text-mentha-forest dark:text-mentha-beige">
+                                        {opt.label}
+                                    </p>
+                                    <p className="font-sans text-xs text-mentha-forest/50 dark:text-mentha-beige/50 mt-0.5">
+                                        {opt.desc}
+                                    </p>
+                                </button>
+                            ))}
                         </div>
                     </div>
 
