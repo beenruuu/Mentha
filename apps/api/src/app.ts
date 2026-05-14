@@ -41,8 +41,16 @@ app.use(
     cors({
         origin: (origin) => {
             if (env.NODE_ENV === 'development') return origin;
-            const allowed = process.env.ALLOWED_ORIGINS?.split(',') || [];
-            if (allowed.includes(origin)) return origin;
+            const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',')
+                .map(o => o.trim())
+                .filter(o => o.length > 0) || [];
+
+            if (allowedOrigins.length === 0) {
+                logger.warn('No CORS origins configured');
+                return null;
+            }
+
+            if (allowedOrigins.includes(origin)) return origin;
             return null;
         },
         credentials: true,

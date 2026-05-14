@@ -16,7 +16,11 @@ export const DashboardController = {
         }
 
         try {
-            const daysNum = parseInt(days, 10);
+            const daysNum = Math.max(1, Math.min(365, parseInt(days, 10) || 30));
+            if (isNaN(daysNum)) {
+                throw new BadRequestException('Invalid days parameter: must be a number');
+            }
+
             const metrics = await dashboardService.getShareOfModel(project_id, daysNum);
 
             return c.json({
@@ -53,18 +57,22 @@ export const DashboardController = {
         }
 
         try {
-            const limitNum = parseInt(limit, 10);
+            const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 20));
+            if (isNaN(limitNum)) {
+                throw new BadRequestException('Invalid limit parameter: must be a number');
+            }
+
             const metrics = await dashboardService.getKeywordPerformance(project_id, limitNum);
 
             const keywordStats = metrics.map((m) => ({
                 id: m.keyword_id,
                 keyword: m.query,
-                intent: (m as any).intent,
+                intent: m.intent || 'unknown',
                 lastScanned: m.last_scanned_at,
                 totalScans: m.total_scans,
                 visibilityRate: m.visibility_rate,
                 avgSentiment: m.avg_sentiment,
-                trend: (m as any).trend,
+                trend: m.trend || [],
             }));
 
             return c.json({ data: keywordStats });
@@ -88,7 +96,11 @@ export const DashboardController = {
         }
 
         try {
-            const limitNum = parseInt(limit, 10);
+            const limitNum = Math.max(1, Math.min(500, parseInt(limit, 10) || 100));
+            if (isNaN(limitNum)) {
+                throw new BadRequestException('Invalid limit parameter: must be a number');
+            }
+
             const analysis = await dashboardService.getCitationAnalysis(project_id, limitNum);
 
             return c.json({
@@ -119,7 +131,11 @@ export const DashboardController = {
         }
 
         try {
-            const limitNum = parseInt(limit, 10);
+            const limitNum = Math.max(1, Math.min(50, parseInt(limit, 10) || 10));
+            if (isNaN(limitNum)) {
+                throw new BadRequestException('Invalid limit parameter: must be a number');
+            }
+
             const topBrands = await dashboardService.getTopBrands(project_id, limitNum);
 
             return c.json({ data: topBrands });

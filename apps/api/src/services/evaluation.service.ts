@@ -226,11 +226,19 @@ Return ONLY the corrected JSON, nothing else.`;
         });
 
         const content = response.choices[0]?.message?.content ?? '{}';
-        const parsed = JSON.parse(content);
-        const result = EvaluationResultSchema.parse(parsed);
 
-        logger.info('Auto-correction successful');
-        return result;
+        try {
+            const parsed = JSON.parse(content);
+            const result = EvaluationResultSchema.parse(parsed);
+            logger.info('Auto-correction successful');
+            return result;
+        } catch (parseError) {
+            logger.error(
+                { error: (parseError as Error).message, content },
+                'Auto-correction parsing failed'
+            );
+            throw new Error('Failed to parse auto-corrected evaluation response');
+        }
     }
 }
 

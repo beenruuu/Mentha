@@ -38,7 +38,7 @@ export const scraperWorker = new Worker<ScanJobData>(
             const [scanResult] = await db
                 .insert(scanResults)
                 .values({
-                    job_id: job.id as any,
+                    job_id: job.id as string,
                     raw_response: result.content || '',
                     brand_visibility: brandMentioned,
                     sentiment_score: null,
@@ -48,7 +48,7 @@ export const scraperWorker = new Worker<ScanJobData>(
                         citations: result.citations,
                         latencyMs: result.latencyMs,
                         engine: engineName,
-                    } as any,
+                    } as Record<string, unknown>,
                 })
                 .returning();
 
@@ -59,23 +59,24 @@ export const scraperWorker = new Worker<ScanJobData>(
                 const projectRow = await db
                     .select()
                     .from(projects)
-                    .where(eq(projects.id, job.data.projectId))
+                    .where(eq(projects.id, projectId))
                     .limit(1);
                 const projectDomain = projectRow[0]?.domain || '';
+                const normalizedProjectDomain = projectDomain.replace(/^https?:\/\//, '').replace(/^www\./, '').toLowerCase();
 
                 if (Array.isArray(result.citations) && result.citations.length > 0) {
                     const citationInserts = result.citations.map((c: any) => {
                         let domain = null;
                         try {
                             const u = new URL(c.url);
-                            domain = u.hostname.replace(/^www\./, '');
+                            domain = u.hostname.replace(/^www\./, '').toLowerCase();
                         } catch {
                             domain = null;
                         }
 
-                        const isBrand = domain && projectDomain && domain.includes(projectDomain.replace(/^https?:\/\//, '').replace(/^www\./, ''));
-                        const isCompetitor = Array.isArray(job.data.competitors) && domain
-                            ? job.data.competitors.some((comp) => domain.includes(comp))
+                        const isBrand = domain && normalizedProjectDomain && domain.includes(normalizedProjectDomain);
+                        const isCompetitor = Array.isArray(competitors) && competitors.length > 0 && domain
+                            ? competitors.some((comp) => domain.includes(comp.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '')))
                             : false;
 
                         return {
@@ -124,27 +125,43 @@ export const scraperWorker = new Worker<ScanJobData>(
                 })
                 .where(eq(scanJobs.id, job.id!));
 
-            // 2. Update progress in scan_runs
+            // 2. Update progress in scan_runs with atomic operation
             const jobRecord = await db.select().from(scanJobs).where(eq(scanJobs.id, job.id!)).limit(1);
             const runId = jobRecord[0]?.run_id;
 
             if (runId) {
                 const { scanRuns } = await import('../db/schema/core');
-                
-                // Increment completed jobs
+
+                // Increment completed jobs atomically
                 await db.execute(sql`
-                    UPDATE scan_runs 
-                    SET completed_jobs = completed_jobs + 1 
+                    UPDATE scan_runs
+                    SET completed_jobs = completed_jobs + 1
                     WHERE id = ${runId}
                 `);
 
-                // Check if all jobs are done
-                const [run] = await db.select().from(scanRuns).where(eq(scanRuns.id, runId)).limit(1);
+                // Check if all jobs are done (atomic check)
+                const [run] = await db
+                    .select()
+                    .from(scanRuns)
+                    .where(eq(scanRuns.id, runId))
+                    .limit(1);
+
                 if (run && run.completed_jobs >= (run.total_jobs || 0)) {
-                    await db.update(scanRuns)
+                    const updateResult = await db
+                        .update(scanRuns)
                         .set({ status: 'completed', completed_at: new Date() })
-                        .where(eq(scanRuns.id, runId));
-                    logger.info({ runId }, '🎊 Scan run completed!');
+                        .where(
+                            and(
+                                eq(scanRuns.id, runId),
+                                // Only update if status is still processing to prevent race condition
+                                eq(scanRuns.status, 'processing')
+                            )
+                        )
+                        .returning();
+
+                    if (updateResult.length > 0) {
+                        logger.info({ runId }, '🎊 Scan run completed!');
+                    }
                 }
             }
 

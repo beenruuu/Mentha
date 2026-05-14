@@ -34,6 +34,7 @@ export interface TimelineEntry {
 export interface KeywordMetrics {
     keyword_id: string;
     query: string;
+    intent: string | null;
     total_scans: number;
     avg_sentiment: number | null;
     visibility_rate: number;
@@ -255,7 +256,7 @@ export class DashboardService {
                 visibility_rate: visibilityRate,
                 last_scanned_at: kw.last_scanned_at,
                 trend,
-            } as any);
+            });
         }
 
         return metrics;

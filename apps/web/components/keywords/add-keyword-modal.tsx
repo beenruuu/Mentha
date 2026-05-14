@@ -18,7 +18,7 @@ export function AddKeywordModal({ onClose, onSuccess }: AddKeywordModalProps) {
     const [query, setQuery] = useState('');
     const [intent, setIntent] = useState('informational');
     const [scanFrequency, setScanFrequency] = useState('weekly');
-    const [engines, setEngines] = useState<string[]>(['perplexity', 'openai', 'gemini', 'claude']);
+    const [engines, setEngines] = useState<string[]>(['perplexity', 'openai', 'gemini']);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 

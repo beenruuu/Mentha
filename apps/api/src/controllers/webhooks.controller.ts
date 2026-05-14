@@ -1,4 +1,5 @@
 import type { Context } from 'hono';
+import { timingSafeEqual } from 'crypto';
 
 import { logger } from '../core/logger';
 import { handleHttpException, UnauthorizedException } from '../exceptions/http';
@@ -9,9 +10,25 @@ const webhookService = getWebhookService();
 export const WebhookController = {
     processUser: async (c: Context) => {
         const webhookSecret = c.req.header('x-webhook-secret');
+        const expectedSecret = process.env.SUPABASE_WEBHOOK_SECRET;
 
-        if (webhookSecret !== process.env.SUPABASE_WEBHOOK_SECRET) {
-            logger.warn('Invalid webhook secret');
+        if (!webhookSecret || !expectedSecret) {
+            logger.warn('Missing webhook secret in request or configuration');
+            throw new UnauthorizedException('Invalid webhook secret');
+        }
+
+        try {
+            if (!timingSafeEqual(
+                Buffer.from(webhookSecret),
+                Buffer.from(expectedSecret)
+            )) {
+                logger.warn('Invalid webhook secret provided');
+                throw new UnauthorizedException('Invalid webhook secret');
+            }
+        } catch (error) {
+            if ((error as Error).message.includes('timingSafeEqual')) {
+                logger.warn('Webhook secret comparison failed - length mismatch');
+            }
             throw new UnauthorizedException('Invalid webhook secret');
         }
 

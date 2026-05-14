@@ -36,32 +36,67 @@ export interface VerificationStatus {
 }
 
 export class DomainService {
-    async resolveTenantFromDomain(domain: string): Promise<TenantData> {
-        logger.debug({ domain }, 'Resolving tenant from domain');
-
-        const result = await db.execute(sql`SELECT * FROM resolve_tenant_from_domain(${domain})`);
-
-        const rows = result as unknown as Record<string, unknown>[];
-        if (!rows || rows.length === 0) {
-            throw new NotFoundException('Tenant not found for domain');
+    private validateDomain(domain: string): string {
+        if (!domain || typeof domain !== 'string' || domain.length === 0) {
+            throw new Error('Invalid domain: empty or non-string');
         }
+        if (domain.length > 255) {
+            throw new Error('Invalid domain: exceeds max length');
+        }
+        if (!/^[a-zA-Z0-9.-]+$/.test(domain)) {
+            throw new Error('Invalid domain: contains invalid characters');
+        }
+        return domain;
+    }
 
-        return rows[0] as unknown as TenantData;
+    private validatePath(path: string): string {
+        if (!path || typeof path !== 'string') {
+            return '/*';
+        }
+        if (path.length > 1000) {
+            throw new Error('Invalid path: exceeds max length');
+        }
+        if (!/^[a-zA-Z0-9._\-/*]+$/.test(path)) {
+            throw new Error('Invalid path: contains invalid characters');
+        }
+        return path;
+    }
+
+    async resolveTenantFromDomain(domain: string): Promise<TenantData> {
+        const validatedDomain = this.validateDomain(domain);
+        logger.debug({ domain: validatedDomain }, 'Resolving tenant from domain');
+
+        try {
+            const result = await db.execute(sql`SELECT * FROM resolve_tenant_from_domain(${validatedDomain})`);
+            const rows = result as unknown as Record<string, unknown>[];
+            if (!rows || rows.length === 0) {
+                throw new NotFoundException('Tenant not found for domain');
+            }
+            return rows[0] as unknown as TenantData;
+        } catch (error) {
+            logger.error({ domain: validatedDomain, error: (error as Error).message }, 'Failed to resolve tenant');
+            throw error;
+        }
     }
 
     async getInjectionPayload(domain: string, path?: string): Promise<InjectionPayload> {
-        logger.debug({ domain, path }, 'Getting injection payload');
+        const validatedDomain = this.validateDomain(domain);
+        const validatedPath = this.validatePath(path || '/*');
+        logger.debug({ domain: validatedDomain, path: validatedPath }, 'Getting injection payload');
 
-        const result = await db.execute(
-            sql`SELECT * FROM get_injection_payload(${domain}, ${path || '/*'})`,
-        );
-
-        const rows = result as unknown as Record<string, unknown>[];
-        if (!rows || rows.length === 0) {
-            throw new NotFoundException('No injection payload found');
+        try {
+            const result = await db.execute(
+                sql`SELECT * FROM get_injection_payload(${validatedDomain}, ${validatedPath})`,
+            );
+            const rows = result as unknown as Record<string, unknown>[];
+            if (!rows || rows.length === 0) {
+                throw new NotFoundException('No injection payload found');
+            }
+            return rows[0] as unknown as InjectionPayload;
+        } catch (error) {
+            logger.error({ domain: validatedDomain, path: validatedPath, error: (error as Error).message }, 'Failed to get injection payload');
+            throw error;
         }
-
-        return rows[0] as unknown as InjectionPayload;
     }
 
     async getFirewallRules(tenantId: string): Promise<AiFirewallRule[]> {
@@ -176,32 +211,112 @@ export class DomainService {
         try {
             const txtRecord = `mentha-verification=${token}`;
             logger.debug({ domain, expectedRecord: txtRecord }, 'Checking DNS TXT record');
-            return false;
+
+            const { Resolver } = await import('dns').catch(() => null);
+            if (!Resolver) {
+                logger.warn('DNS resolver not available, skipping DNS verification');
+                return false;
+            }
+
+            const resolver = new (await import('dns')).Resolver();
+
+            return new Promise((resolve) => {
+                resolver.resolveTxt(domain, (err, records) => {
+                    if (err) {
+                        logger.warn({ domain, error: err.message }, 'DNS lookup failed');
+                        resolve(false);
+                        return;
+                    }
+
+                    const txtRecords = records.flat().join('');
+                    const verified = txtRecords.includes(`mentha-verification=${token}`);
+
+                    if (verified) {
+                        logger.info({ domain }, 'DNS TXT verification successful');
+                    } else {
+                        logger.debug({ domain, expectedRecord: txtRecord }, 'DNS TXT record not found');
+                    }
+
+                    resolve(verified);
+                });
+            });
         } catch (error) {
-            logger.error({ error: (error as Error).message }, 'DNS verification failed');
+            logger.error({ domain, error: (error as Error).message }, 'DNS verification failed');
             return false;
         }
     }
 
     private async verifyMetaTag(domain: string, token: string): Promise<boolean> {
         try {
-            const response = await fetch(`https://${domain}`);
-            const html = await response.text();
-            const metaTag = `<meta name="mentha-verification" content="${token}">`;
-            return html.includes(metaTag);
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+            try {
+                const response = await fetch(`https://${domain}`, {
+                    signal: controller.signal,
+                    headers: { 'User-Agent': 'Mentha-Verifier/1.0' }
+                });
+
+                if (!response.ok) {
+                    logger.warn({ domain, status: response.status }, 'HTTP request failed');
+                    return false;
+                }
+
+                const html = await response.text();
+                const metaTag = `<meta name="mentha-verification" content="${token}">`;
+                const verified = html.includes(metaTag);
+
+                if (verified) {
+                    logger.info({ domain }, 'Meta tag verification successful');
+                }
+
+                return verified;
+            } finally {
+                clearTimeout(timeout);
+            }
         } catch (error) {
-            logger.error({ error: (error as Error).message }, 'Meta tag verification failed');
+            if ((error as Error).name === 'AbortError') {
+                logger.warn({ domain }, 'Meta tag verification timeout');
+            } else {
+                logger.error({ domain, error: (error as Error).message }, 'Meta tag verification failed');
+            }
             return false;
         }
     }
 
     private async verifyFile(domain: string, token: string): Promise<boolean> {
         try {
-            const response = await fetch(`https://${domain}/mentha-verification.txt`);
-            const content = await response.text();
-            return content.trim() === token;
+            const controller = new AbortController();
+            const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+            try {
+                const response = await fetch(`https://${domain}/mentha-verification.txt`, {
+                    signal: controller.signal,
+                    headers: { 'User-Agent': 'Mentha-Verifier/1.0' }
+                });
+
+                if (!response.ok) {
+                    logger.warn({ domain, status: response.status }, 'HTTP request failed');
+                    return false;
+                }
+
+                const content = await response.text();
+                const verified = content.trim() === token;
+
+                if (verified) {
+                    logger.info({ domain }, 'File verification successful');
+                }
+
+                return verified;
+            } finally {
+                clearTimeout(timeout);
+            }
         } catch (error) {
-            logger.error({ error: (error as Error).message }, 'File verification failed');
+            if ((error as Error).name === 'AbortError') {
+                logger.warn({ domain }, 'File verification timeout');
+            } else {
+                logger.error({ domain, error: (error as Error).message }, 'File verification failed');
+            }
             return false;
         }
     }
