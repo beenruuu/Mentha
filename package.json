@@ -1,6 +1,6 @@
 {
   "name": "mentha-saas",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -15,10 +15,10 @@
   "devDependencies": {
     "@biomejs/biome": "^2.3.15",
     "concurrently": "^9.2.1",
-    "turbo": "latest"
+    "turbo": "^2.5.0"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }

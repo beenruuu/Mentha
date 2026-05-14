@@ -1,3 +1,5 @@
+# ⚠️ DEVELOPMENT ONLY — NOT for production use.
+# For production deployments see docs/PRODUCTION.md or the hosted version.
 version: '3.8'
 
 services:
@@ -8,7 +10,7 @@ services:
       - "5432:5432"
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: password   # Change in production!
       POSTGRES_DB: mentha
     volumes:
       - postgres_data:/var/lib/postgresql/data

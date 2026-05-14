@@ -54,11 +54,11 @@ Mentha bridges this gap with a complete AEO workflow:
 ### AI Engine Support
 | Engine | Capture Method | Status |
 |--------|---------------|--------|
-| **ChatGPT** (OpenAI) | Browser automation (chatgpt.com) or OpenRouter API | ✅ Production |
-| **Perplexity** | Browser automation (perplexity.ai) | ✅ Production |
-| **Gemini** | Browser automation (gemini.google.com) | ✅ Production |
-| **Claude** (Anthropic) | Browser automation (claude.ai) | ✅ Production |
-| **Google AI Overviews** | Browser automation | ✅ Production |
+| **ChatGPT** (OpenAI) | Browser automation (chatgpt.com) or OpenRouter API | ✅ Stable (may require session login) |
+| **Perplexity** | Browser automation (perplexity.ai) | ✅ Stable (may require session login) |
+| **Gemini** | Browser automation (gemini.google.com) | ✅ Stable (may require session login) |
+| **Claude** (Anthropic) | Browser automation (claude.ai) | ✅ Stable (may require session login) |
+| **Google AI Overviews** | Browser automation | ✅ Stable |
 
 ### Platform Capabilities
 
@@ -259,6 +259,32 @@ GPT-4o-mini evaluates each AI response using a structured system prompt. It extr
 
 ### Can I schedule regular scans?
 Yes. Mentha supports automated daily and weekly recurring scans via scheduled BullMQ jobs with cron-based triggers.
+
+## Project Status
+
+Mentha is under active development. The browser automation system (Camoufox) relies on AI engine web UIs which may change or require login sessions. For production reliability, use `api` scan mode with an OpenRouter API key.
+
+**Version:** 1.0.0 (see [releases](https://github.com/beenruuu/mentha/releases))
+
+---
+
+## Testing & Coverage
+
+Tests are configured with Jest but not yet written. Contributions welcome!
+
+```bash
+pnpm --filter mentha-api test
+```
+
+---
+
+## Security
+
+- Report vulnerabilities via [GitHub Issues](https://github.com/beenruuu/mentha/issues)
+- The `docker-compose.yml` is for **development only** — do not use in production
+- Never commit `.env` files or API keys
+
+---
 
 ## License
 
