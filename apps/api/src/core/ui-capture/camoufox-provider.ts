@@ -25,6 +25,7 @@ const PYTHON_CANDIDATES = [
 
 const PYTHON_PROBE_TIMEOUT_MS = 5_000;
 const CAMOUFOX_OPTIONS_TIMEOUT_MS = 30_000;
+const NAVIGATION_ATTEMPTS = 3;
 
 const PYTHON_PROBE_SCRIPT = `
 import json, sys
@@ -286,12 +287,34 @@ async function waitForEditor(page: Page, selectors: string[]) {
     const deadline = Date.now() + 15_000;
 
     while (Date.now() < deadline) {
+        const pageStatus = await classifyCapture(page);
+        if (
+            pageStatus.status === 'auth_required' ||
+            pageStatus.status === 'captcha_required' ||
+            pageStatus.status === 'blocked'
+        ) {
+            throw new UiCaptureStatusError(
+                pageStatus.status as 'auth_required' | 'captcha_required' | 'blocked',
+                pageStatus.failureReason,
+            );
+        }
+
         const editor = await findVisible(page, selectors);
         if (editor && (await editor.isEnabled().catch(() => true))) return editor;
         await page.waitForTimeout(300);
     }
 
     throw new Error(`Editor not found with selectors: ${selectors.join(', ')}`);
+}
+
+class UiCaptureStatusError extends Error {
+    constructor(
+        readonly status: Exclude<UiCaptureResult['status'], 'success' | 'partial'>,
+        message?: string,
+    ) {
+        super(message || status);
+        this.name = 'UiCaptureStatusError';
+    }
 }
 
 async function typePrompt(page: Page, selectors: string[], prompt: string) {
@@ -324,6 +347,68 @@ async function extractFallbackSources(page: Page) {
             .filter((source): source is NonNullable<typeof source> => source !== null)
             .slice(0, 20),
     );
+}
+
+async function gotoWithRetries(page: Page, url: string): Promise<void> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 1; attempt <= NAVIGATION_ATTEMPTS; attempt++) {
+        try {
+            await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+            return;
+        } catch (error) {
+            lastError = error as Error;
+            logger.warn(
+                { url, attempt, error: lastError.message },
+                'Provider navigation attempt failed',
+            );
+            await page.waitForTimeout(1000 * attempt);
+        }
+    }
+
+    throw lastError || new Error(`Failed to navigate to ${url}`);
+}
+
+async function tryReadClipboardText(page: Page): Promise<string> {
+    try {
+        return await Promise.race([
+            page.evaluate(async () => navigator.clipboard.readText()),
+            new Promise<string>((resolve) => setTimeout(() => resolve(''), 1000)),
+        ]);
+    } catch {
+        return '';
+    }
+}
+
+async function extractResponseViaCopyButton(page: Page): Promise<string> {
+    const copySelectors = [
+        'button[aria-label*="Copy" i]',
+        'button[data-testid*="copy" i]',
+        'button:has-text("Copy")',
+        '[role="button"][aria-label*="Copy" i]',
+    ];
+
+    for (const selector of copySelectors) {
+        const buttons = page.locator(selector);
+        const count = await buttons.count().catch(() => 0);
+        if (count === 0) continue;
+
+        for (let index = count - 1; index >= 0; index--) {
+            const button = buttons.nth(index);
+            if (!(await button.isVisible().catch(() => false))) continue;
+
+            const before = await tryReadClipboardText(page);
+            await button.click({ timeout: 3000, delay: 80 }).catch(() => null);
+            await page.waitForTimeout(300);
+            const after = await tryReadClipboardText(page);
+
+            if (after && after !== before && after.trim().length > 20) {
+                return after.trim();
+            }
+        }
+    }
+
+    return '';
 }
 
 async function classifyCapture(
@@ -386,6 +471,7 @@ export async function runCamoufoxUiCapture(request: UiCaptureRequest): Promise<U
 
     const browser = (await firefox.launch(launchOptions)) as Browser;
     let context: BrowserContext | null = null;
+    let page: Page | null = null;
 
     try {
         const storageState = await readProviderStorageState(request.userId, request.provider);
@@ -395,7 +481,10 @@ export async function runCamoufoxUiCapture(request: UiCaptureRequest): Promise<U
             timezoneId: request.location || 'UTC',
             ...(storageState ? { storageState } : {}),
         });
-        const page = await context.newPage();
+        await context
+            .grantPermissions(['clipboard-read', 'clipboard-write'])
+            .catch(() => null);
+        page = await context.newPage();
         page.setDefaultTimeout(30_000);
         page.setDefaultNavigationTimeout(60_000);
 
@@ -403,9 +492,29 @@ export async function runCamoufoxUiCapture(request: UiCaptureRequest): Promise<U
             await config.navigateToPrompt(page, request.prompt);
         } else {
             await config.preNavigationHook?.(page);
-            await page.goto(config.url, { waitUntil: 'domcontentloaded', timeout: 45_000 });
+            await gotoWithRetries(page, config.url);
             await page.waitForLoadState('networkidle', { timeout: 10_000 }).catch(() => null);
             await config.postNavigationHook?.(page);
+            const prePromptStatus = await classifyCapture(page);
+            const shouldStopBeforePrompt =
+                prePromptStatus.status === 'captcha_required' ||
+                prePromptStatus.status === 'blocked' ||
+                (prePromptStatus.status === 'auth_required' && config.requiresAuth);
+
+            if (shouldStopBeforePrompt) {
+                return {
+                    provider: request.provider,
+                    prompt: request.prompt,
+                    url: page.url() || config.url,
+                    title: await page.title().catch(() => config.displayName),
+                    ...prePromptStatus,
+                    responseMarkdown: '',
+                    sources: [],
+                    screenshotPath: request.screenshotPath,
+                    capturedAt: new Date().toISOString(),
+                    latencyMs: Date.now() - start,
+                };
+            }
             await config.beforePromptHook?.(page);
 
             const editor = await typePrompt(page, config.editorSelectors, request.prompt);
@@ -420,6 +529,7 @@ export async function runCamoufoxUiCapture(request: UiCaptureRequest): Promise<U
                 sendButton,
                 config.submitOrder ?? ['native', 'enter', 'force', 'dispatch'],
                 preSubmitUrl,
+                config.checkSubmitSuccess,
             );
             await config.afterSubmitHook?.(page);
         }
@@ -427,9 +537,20 @@ export async function runCamoufoxUiCapture(request: UiCaptureRequest): Promise<U
         await config.waitForResponse(page);
 
         const title = await page.title();
-        const responseMarkdown = await config.extractResponse(page).catch(() => '');
-        const sources = await config.extractSources(page).catch(() => extractFallbackSources(page));
-        const captureStatus = await classifyCapture(page);
+        const extractedMarkdown = await config.extractResponse(page).catch(() => '');
+        const copiedMarkdown = await extractResponseViaCopyButton(page).catch(() => '');
+        const responseMarkdown =
+            copiedMarkdown.length > extractedMarkdown.length ? copiedMarkdown : extractedMarkdown;
+        const sources = await config
+            .extractSources(page)
+            .catch(() => extractFallbackSources(page as Page));
+        const classifiedStatus = await classifyCapture(page);
+        const captureStatus =
+            classifiedStatus.status === 'auth_required' &&
+            !config.requiresAuth &&
+            responseMarkdown.trim().length > 0
+                ? ({ status: 'success' } as const)
+                : classifiedStatus;
 
         if (request.screenshotPath) {
             await page
@@ -457,6 +578,28 @@ export async function runCamoufoxUiCapture(request: UiCaptureRequest): Promise<U
             capturedAt: new Date().toISOString(),
             latencyMs,
         };
+    } catch (error) {
+        if (error instanceof UiCaptureStatusError) {
+            logger.info(
+                { provider: request.provider, status: error.status },
+                'Camoufox capture stopped by provider page status',
+            );
+            return {
+                provider: request.provider,
+                prompt: request.prompt,
+                url: page?.url() || config.url,
+                title: (await page?.title().catch(() => null)) || config.displayName,
+                status: error.status,
+                failureReason: error.message,
+                responseMarkdown: '',
+                sources: [],
+                screenshotPath: request.screenshotPath,
+                capturedAt: new Date().toISOString(),
+                latencyMs: Date.now() - start,
+            };
+        }
+
+        throw error;
     } finally {
         await context?.close().catch(() => null);
         await browser.close().catch(() => null);

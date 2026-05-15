@@ -463,21 +463,25 @@ export class ScanService {
         // Return individual scan results joined with jobs and keywords
         const results = await db
             .select({
-                id: scanResults.id,
+                id: scanJobs.id,
+                result_id: scanResults.id,
                 engine: scanJobs.engine,
+                status: scanJobs.status,
+                error_message: scanJobs.error_message,
                 query: keywords.query,
                 raw_response: scanResults.raw_response,
                 analysis_json: scanResults.analysis_json,
                 brand_visibility: scanResults.brand_visibility,
                 sentiment_score: scanResults.sentiment_score,
                 recommendation_type: scanResults.recommendation_type,
-                created_at: scanResults.created_at,
+                created_at: scanJobs.created_at,
+                result_created_at: scanResults.created_at,
             })
-            .from(scanResults)
-            .innerJoin(scanJobs, eq(scanResults.job_id, scanJobs.id))
+            .from(scanJobs)
             .innerJoin(keywords, eq(scanJobs.keyword_id, keywords.id))
+            .leftJoin(scanResults, eq(scanResults.job_id, scanJobs.id))
             .where(eq(keywords.project_id, filters.projectId))
-            .orderBy(desc(scanResults.created_at))
+            .orderBy(desc(scanJobs.created_at))
             .limit(limit);
 
         // Strip model identifiers from analysis_json to avoid leaking

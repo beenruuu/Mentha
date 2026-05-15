@@ -21,6 +21,7 @@ export default function DashboardPage() {
     const [showScanModal, setShowScanModal] = useState(false);
     const [scanMode, setScanMode] = useState<string>('browser');
     const [isScanning, setIsScanning] = useState(false);
+    const [scanRefreshSignal, setScanRefreshSignal] = useState(0);
     const modalRef = useRef<HTMLDivElement>(null);
 
     const handleScan = async () => {
@@ -31,6 +32,7 @@ export default function DashboardPage() {
                 method: 'POST',
             });
             setShowScanModal(false);
+            setScanRefreshSignal((value) => value + 1);
         } catch (error) {
             console.error('Failed to trigger scan', error);
             alert('Failed to trigger scan');
@@ -254,7 +256,7 @@ export default function DashboardPage() {
                     <TopBrands />
                 </div>
                 <div className="lg:col-span-2">
-                    <RecentScans />
+                    <RecentScans refreshSignal={scanRefreshSignal} />
                 </div>
             </div>
         </div>

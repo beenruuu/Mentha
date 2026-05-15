@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Check, Copy } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -19,7 +20,10 @@ import { getEngineDisplayName } from '@/lib/engines';
 
 interface ScanData {
     id: string;
+    result_id?: string;
     engine: string;
+    status?: string;
+    error_message?: string;
     query: string;
     raw_response?: string;
     analysis_json?: {
@@ -31,36 +35,73 @@ interface ScanData {
     created_at: string;
 }
 
-export function RecentScans() {
+export function RecentScans({ refreshSignal = 0 }: { refreshSignal?: number }) {
     const { selectedProject } = useProject();
     const [scans, setScans] = useState<ScanData[]>([]);
     const [loading, setLoading] = useState(true);
     const [expandedScan, setExpandedScan] = useState<string | null>(null);
+    const [copiedScanId, setCopiedScanId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!selectedProject?.id) return;
+        let cancelled = false;
+        let pollCount = 0;
+        let timer: ReturnType<typeof setTimeout> | undefined;
 
         async function fetchData() {
             try {
                 const response = await fetchFromApi(
                     `/scans?project_id=${selectedProject?.id}&limit=10`,
                 );
-                setScans(response.data || []);
+                if (!cancelled) setScans(response.data || []);
             } catch (error) {
                 console.error('Failed to fetch scans', error);
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         }
 
-        fetchData();
-    }, [selectedProject?.id]);
+        async function fetchAndSchedule() {
+            await fetchData();
+            pollCount += 1;
+            if (!cancelled && refreshSignal > 0 && pollCount < 40) {
+                timer = setTimeout(fetchAndSchedule, 3000);
+            }
+        }
+
+        setLoading(scans.length === 0);
+        fetchAndSchedule();
+
+        return () => {
+            cancelled = true;
+            if (timer) clearTimeout(timer);
+        };
+    }, [selectedProject?.id, refreshSignal]);
 
     const engineColors: Record<string, string> = {
         perplexity: 'bg-teal-100/50 text-teal-700 dark:bg-teal-500/20 dark:text-teal-400',
         openai: 'bg-green-100/50 text-green-700 dark:bg-green-500/20 dark:text-green-400',
         gemini: 'bg-blue-100/50 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400',
         claude: 'bg-orange-100/50 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400',
+    };
+
+    const terminalIssueStatuses = new Set([
+        'failed',
+        'auth_required',
+        'captcha_required',
+        'blocked',
+        'cancelled',
+    ]);
+
+    const statusLabels: Record<string, string> = {
+        pending: 'Pending',
+        processing: 'Running',
+        completed: 'Done',
+        failed: 'Failed',
+        auth_required: 'Needs auth',
+        captcha_required: 'Captcha',
+        blocked: 'Blocked',
+        cancelled: 'Cancelled',
     };
 
     const formatTime = (dateStr: string) => {
@@ -76,6 +117,13 @@ export function RecentScans() {
 
     const toggleExpand = (id: string) => {
         setExpandedScan(expandedScan === id ? null : id);
+    };
+
+    const copyRawResponse = async (scan: ScanData) => {
+        if (!scan.raw_response) return;
+        await navigator.clipboard.writeText(scan.raw_response);
+        setCopiedScanId(scan.id);
+        window.setTimeout(() => setCopiedScanId(null), 1500);
     };
 
     if (loading) {
@@ -143,7 +191,11 @@ export function RecentScans() {
                                                     scan.brand_visibility ? 'success' : 'default'
                                                 }
                                             >
-                                                {scan.brand_visibility ? 'Yes' : 'No'}
+                                                {scan.status && terminalIssueStatuses.has(scan.status)
+                                                    ? statusLabels[scan.status]
+                                                    : scan.brand_visibility
+                                                      ? 'Yes'
+                                                      : 'No'}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70">
@@ -159,17 +211,36 @@ export function RecentScans() {
                                                             <h4 className="text-[10px] font-semibold opacity-40 uppercase tracking-widest font-mono">
                                                                 Raw Answer
                                                             </h4>
-                                                            <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-mentha-forest/5 dark:bg-white/5">
-                                                                <EngineIcon
-                                                                    engine={scan.engine}
-                                                                    size={12}
-                                                                />
-                                                                <span className="text-[10px] font-mono uppercase opacity-60">
-                                                                    {getEngineDisplayName(
-                                                                        scan.engine,
-                                                                    )}{' '}
-                                                                    Response
-                                                                </span>
+                                                            <div className="flex items-center gap-2">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(event) => {
+                                                                        event.stopPropagation();
+                                                                        copyRawResponse(scan);
+                                                                    }}
+                                                                    disabled={!scan.raw_response}
+                                                                    className="inline-flex size-7 items-center justify-center rounded-md border border-mentha-forest/10 dark:border-white/10 bg-white dark:bg-mentha-dark text-mentha-forest/60 dark:text-mentha-beige/60 transition-colors hover:text-mentha-forest dark:hover:text-mentha-beige disabled:opacity-40"
+                                                                    title="Copy full response"
+                                                                    aria-label="Copy full response"
+                                                                >
+                                                                    {copiedScanId === scan.id ? (
+                                                                        <Check size={13} />
+                                                                    ) : (
+                                                                        <Copy size={13} />
+                                                                    )}
+                                                                </button>
+                                                                <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-mentha-forest/5 dark:bg-white/5">
+                                                                    <EngineIcon
+                                                                        engine={scan.engine}
+                                                                        size={12}
+                                                                    />
+                                                                    <span className="text-[10px] font-mono uppercase opacity-60">
+                                                                        {getEngineDisplayName(
+                                                                            scan.engine,
+                                                                        )}{' '}
+                                                                        Response
+                                                                    </span>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                         <div className="p-5 bg-white dark:bg-mentha-dark rounded-xl border border-mentha-forest/10 dark:border-white/10 text-[13px] max-h-80 overflow-y-auto font-sans leading-relaxed shadow-inner">
@@ -239,7 +310,8 @@ export function RecentScans() {
                                                                     {scan.raw_response}
                                                                 </ReactMarkdown>
                                                             ) : (
-                                                                'No raw response recorded.'
+                                                                scan.error_message ||
+                                                                'No raw response recorded yet.'
                                                             )}
                                                         </div>
                                                     </div>

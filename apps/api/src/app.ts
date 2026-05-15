@@ -1,4 +1,3 @@
-import { serve } from '@hono/node-server';
 import { Hono } from 'hono';
 import { compress } from 'hono/compress';
 import { cors } from 'hono/cors';
@@ -8,7 +7,6 @@ import { secureHeaders } from 'hono/secure-headers';
 import { env } from './config/env';
 import { auth } from './core/auth';
 import { logger } from './core/logger';
-import { initializeDatabase } from './db';
 import { HttpException } from './exceptions/http';
 import { aiViewMiddleware } from './middlewares/ai-view';
 import { authMiddleware } from './middlewares/auth';
@@ -149,32 +147,6 @@ app.onError((err, c) => {
         500,
     );
 });
-
-const PORT = env.PORT;
-
-// Inicializar PGlite y aplicar migraciones
-initializeDatabase()
-    .then(() => {
-        serve(
-            {
-                fetch: app.fetch,
-                port: PORT,
-            },
-            () => {
-                logger.info(
-                    {
-                        environment: env.NODE_ENV,
-                        port: PORT,
-                    },
-                    `🌿 Mentha API server running on port ${PORT}`,
-                );
-            },
-        );
-    })
-    .catch((err) => {
-        logger.error({ error: (err as Error).message }, 'Failed to initialize database');
-        process.exit(1);
-    });
 
 export default app;
 export type AppType = typeof routes;

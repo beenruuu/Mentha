@@ -11,6 +11,10 @@ export type SubmitContext = {
     sendButton: Locator | null;
     preSubmitContent: string;
     preSubmitUrl: string;
+    checkSubmitSuccess?: (
+        page: Page,
+        context: { preSubmitUrl: string },
+    ) => Promise<boolean | undefined>;
 };
 
 function hasWords(content: string): boolean {
@@ -40,6 +44,9 @@ async function ensureInputHasWords(ctx: SubmitContext, attemptLabel: string): Pr
 async function checkSubmissionSuccess(ctx: SubmitContext): Promise<boolean> {
     const { page, input, preSubmitContent, preSubmitUrl } = ctx;
     await page.waitForTimeout(500);
+
+    const providerSuccess = await ctx.checkSubmitSuccess?.(page, { preSubmitUrl });
+    if (providerSuccess !== undefined) return providerSuccess;
 
     const currentContent = await readInputContent(input).catch(() => preSubmitContent);
     if (
@@ -170,11 +177,19 @@ export async function trySubmitStrategies(
     sendButton: Locator | null,
     submitOrder: Array<'native' | 'enter' | 'force' | 'dispatch'>,
     preSubmitUrl: string,
+    checkSubmitSuccess?: SubmitContext['checkSubmitSuccess'],
 ): Promise<void> {
     const initialValue = await readInputContent(input).catch(() => '');
     const preSubmitContent = initialValue || '';
 
-    const ctx: SubmitContext = { page, input, sendButton, preSubmitContent, preSubmitUrl };
+    const ctx: SubmitContext = {
+        page,
+        input,
+        sendButton,
+        preSubmitContent,
+        preSubmitUrl,
+        checkSubmitSuccess,
+    };
 
     const strategyMap: Record<string, (ctx: SubmitContext) => Promise<boolean>> = {
         native: tryNativeClick,

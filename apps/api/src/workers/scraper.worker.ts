@@ -99,6 +99,19 @@ export const scraperWorker = new Worker<ScanJobData>(
 
         try {
             const { engine, query, brand, projectId, competitors, userId } = job.data;
+            const jobId = job.id?.toString();
+            if (!jobId) {
+                throw new Error('Scan job is missing an id');
+            }
+
+            await db
+                .update(scanJobs)
+                .set({
+                    status: 'processing',
+                    started_at: new Date(),
+                    error_message: null,
+                })
+                .where(eq(scanJobs.id, jobId));
 
             const results = [];
             const engineName = engine;
@@ -218,11 +231,6 @@ export const scraperWorker = new Worker<ScanJobData>(
                     { err: (err as Error).message },
                     'Failed to persist citations or trigger analysis',
                 );
-            }
-
-            const jobId = job.id?.toString();
-            if (!jobId) {
-                throw new Error('Scan job is missing an id');
             }
 
             // 1. Mark job as terminal. Auth/captcha/block are expected provider outcomes.

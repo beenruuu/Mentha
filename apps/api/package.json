@@ -15,9 +15,9 @@
     }
   },
   "scripts": {
-    "dev": "concurrently -n \"api,worker\" -c \"cyan,magenta\" \"tsx watch src/app.ts\" \"tsx watch src/workers/index.ts\"",
-    "start": "concurrently -n \"api,worker\" -c \"cyan,magenta\" \"tsx src/app.ts\" \"tsx src/workers/index.ts\"",
-    "start:api": "tsx src/app.ts",
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "start:api": "tsx src/server.ts",
     "start:worker": "tsx src/workers/index.ts",
     "build": "tsc",
     "typecheck": "tsc --noEmit",
