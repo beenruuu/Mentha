@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { VisibilityChart } from '@/components/ui/visibility-chart';
+import VisibilityChart from '@/components/ui/visibility-chart';
 import { useProject } from '@/context/ProjectContext';
 import { fetchFromApi } from '@/lib/api';
 

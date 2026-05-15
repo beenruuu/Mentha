@@ -32,6 +32,12 @@ export default function SettingsPage() {
     } | null>(null);
     const [apiKeyError, setApiKeyError] = useState('');
 
+    const competitorsWithKeys =
+        selectedProject?.competitors?.map((competitor, index) => ({
+            competitor,
+            key: `${competitor}-${index}`,
+        })) ?? [];
+
     useEffect(() => {
         async function loadApiKeys() {
             try {

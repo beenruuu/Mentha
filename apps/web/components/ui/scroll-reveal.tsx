@@ -40,6 +40,14 @@ export const ScrollReveal = ({
 
     if (!text && !children) return null;
 
+    const words = text.split(' ');
+    const wordOccurrences = new Map<string, number>();
+    const keyedWords = words.map((word) => {
+        const occurrence = wordOccurrences.get(word) ?? 0;
+        wordOccurrences.set(word, occurrence + 1);
+        return { word, key: `${word}-${occurrence}` };
+    });
+
     return (
         <LazyMotion features={domAnimation}>
             <div ref={containerRef} className={cn('relative z-0', className)}>

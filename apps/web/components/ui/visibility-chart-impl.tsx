@@ -5,7 +5,7 @@ import { Area, AreaChart, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } f
 import { getEngineDisplayName } from '@/lib/engines';
 import { EngineIcon } from './engine-icon';
 
-interface VisibilityChartProps {
+export interface VisibilityChartProps {
     data: Array<{
         date: string;
         visible: number;
@@ -168,6 +168,8 @@ export function VisibilityChart({ data }: VisibilityChartProps) {
         </div>
     );
 }
+
+export default VisibilityChart;
 
 function CustomDot(props: any) {
     const { cx, cy, engine, payload } = props;

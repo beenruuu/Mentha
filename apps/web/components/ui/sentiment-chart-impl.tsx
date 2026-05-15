@@ -14,6 +14,8 @@ interface SentimentChartProps {
     data: Array<{ date: string; sentiment: number | null }>;
 }
 
+export type { SentimentChartProps };
+
 export function SentimentChart({ data }: SentimentChartProps) {
     const chartData = data.map((d) => {
         const date = new Date(d.date);
@@ -69,3 +71,5 @@ export function SentimentChart({ data }: SentimentChartProps) {
         </ResponsiveContainer>
     );
 }
+
+export default SentimentChart;

@@ -13,12 +13,18 @@ interface KeywordData {
     keyword: string;
     visibilityRate: number;
     lastScanned: string;
+    intent?: string;
+    scan_frequency?: string;
+    engines?: string[];
+    totalScans: number;
+    avgSentiment?: number;
 }
 
 export function TopKeywords() {
     const { selectedProject } = useProject();
     const [keywords, setKeywords] = useState<KeywordData[]>([]);
     const [loading, setLoading] = useState(true);
+    const [expandedId, setExpandedId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!selectedProject?.id) return;

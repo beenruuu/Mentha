@@ -279,8 +279,10 @@ export default function OnboardingPage() {
                                     value={analysisResult.description}
                                     onChange={(e) =>
                                         setAnalysisResult((prev) => ({
-                                            ...prev,
+                                            name: prev?.name ?? '',
                                             description: e.target.value,
+                                            keywords: prev?.keywords ?? [],
+                                            competitors: prev?.competitors ?? [],
                                         }))
                                     }
                                     className="w-full bg-mentha-forest/5 dark:bg-white/5 rounded-xl border border-mentha-forest/10 dark:border-mentha-beige/10 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-mentha-mint/20 min-h-[120px] resize-none font-sans leading-relaxed"
