@@ -10,10 +10,25 @@ import { signOut, useSession } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 import { useSidebar } from './sidebar-context';
 
-function ProjectMark({ name }: { name: string }) {
+function ProjectMark({ name, domain }: { name: string; domain?: string }) {
+    const [imgFailed, setImgFailed] = useState(false);
+    const faviconUrl = domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=32` : null;
+    const showImg = faviconUrl && !imgFailed;
+
     return (
-        <span className="flex size-5 shrink-0 items-center justify-center rounded-sm bg-mentha-mint/15 font-mono text-[10px] font-semibold uppercase text-mentha-mint">
-            {name.slice(0, 2)}
+        <span className="flex size-5 shrink-0 items-center justify-center rounded-sm bg-mentha-mint/15 overflow-hidden">
+            {showImg ? (
+                <img
+                    src={faviconUrl!}
+                    alt=""
+                    className="size-full object-contain"
+                    onError={() => setImgFailed(true)}
+                />
+            ) : (
+                <span className="font-mono text-[10px] font-semibold uppercase text-mentha-mint">
+                    {name.slice(0, 2)}
+                </span>
+            )}
         </span>
     );
 }
@@ -69,7 +84,10 @@ export function Header() {
                             className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-mentha-forest/5 dark:hover:bg-white/5 transition-colors"
                         >
                             {!isLoading && selectedProject ? (
-                                <ProjectMark name={selectedProject.name} />
+                                <ProjectMark
+                                    name={selectedProject.name}
+                                    domain={selectedProject.domain}
+                                />
                             ) : null}
                             <span className="font-serif text-lg text-mentha-forest dark:text-mentha-beige">
                                 {isLoading
@@ -108,7 +126,10 @@ export function Header() {
                                                     : 'hover:bg-mentha-forest/5 dark:hover:bg-white/5 text-mentha-forest dark:text-mentha-beige',
                                             )}
                                         >
-                                            <ProjectMark name={project.name} />
+                                            <ProjectMark
+                                                name={project.name}
+                                                domain={project.domain}
+                                            />
                                             {project.name}
                                         </button>
                                     ))}

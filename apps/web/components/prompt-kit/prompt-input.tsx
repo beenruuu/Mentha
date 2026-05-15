@@ -36,12 +36,13 @@ export function PromptInput({
 }>) {
     return (
         <PromptInputContext.Provider value={{ value, onValueChange, isLoading, onSubmit }}>
-                        <form
+            <form
                 onSubmit={(e) => {
                     e.preventDefault();
                     onSubmit?.(e);
                 }}
-                className={className}>
+                className={className}
+            >
                 {children}
             </form>
         </PromptInputContext.Provider>
