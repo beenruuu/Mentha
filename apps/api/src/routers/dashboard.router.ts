@@ -2,11 +2,11 @@ import { Hono } from 'hono';
 
 import { DashboardController } from '../controllers/dashboard.controller';
 import { requireAuth } from '../middlewares/auth';
-import { extractProjectId } from '../middlewares/project-auth';
+import { requireProjectAccess } from '../middlewares/project-auth';
 
 const router = new Hono()
     .use('*', requireAuth)
-    .use('*', extractProjectId('projectId'))
+    .use('*', requireProjectAccess('project_id'))
     .get('/report-status', DashboardController.getReportStatus)
     .get('/share-of-model', DashboardController.getShareOfModel)
     .get('/keywords', DashboardController.getKeywordPerformance)

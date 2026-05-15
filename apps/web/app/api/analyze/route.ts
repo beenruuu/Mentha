@@ -15,7 +15,7 @@ export async function POST(req: Request) {
         };
 
         return NextResponse.json(mock);
-    } catch (err) {
+    } catch {
         return NextResponse.json({
             sentiment: 'Analyzing...',
             visibilityScore: 0,

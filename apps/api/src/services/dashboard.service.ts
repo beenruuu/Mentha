@@ -113,12 +113,21 @@ export class DashboardService {
         const blockedJobs = count('blocked');
         const failedJobs = count('failed');
         const finishedJobs =
-            completedJobs + authRequiredJobs + captchaRequiredJobs + blockedJobs + failedJobs + count('cancelled');
+            completedJobs +
+            authRequiredJobs +
+            captchaRequiredJobs +
+            blockedJobs +
+            failedJobs +
+            count('cancelled');
 
         const status =
             run.status === 'processing' || run.status === 'pending'
                 ? 'collecting'
-                : completedJobs > 0 && (authRequiredJobs > 0 || captchaRequiredJobs > 0 || blockedJobs > 0 || failedJobs > 0)
+                : completedJobs > 0 &&
+                    (authRequiredJobs > 0 ||
+                        captchaRequiredJobs > 0 ||
+                        blockedJobs > 0 ||
+                        failedJobs > 0)
                   ? 'ready_partial'
                   : completedJobs > 0
                     ? 'ready'
@@ -172,14 +181,14 @@ export class DashboardService {
         const byEngine: Record<string, EngineMetrics> = {};
         for (const r of results) {
             const engine = r.engine || 'unknown';
-            if (!byEngine[engine]) {
-                byEngine[engine] = { total: 0, visible: 0, rate: 0 };
-            }
-            byEngine[engine]!.total++;
+            const metrics = byEngine[engine] ?? { total: 0, visible: 0, rate: 0 };
+            metrics.total++;
+            byEngine[engine] = metrics;
         }
 
         for (const engine of Object.keys(byEngine)) {
-            const e = byEngine[engine]!;
+            const e = byEngine[engine];
+            if (!e) continue;
             const visible = results.filter(
                 (r) => (r.engine || 'unknown') === engine && r.brand_visibility === true,
             ).length;
@@ -212,7 +221,8 @@ export class DashboardService {
         for (let i = 6; i >= 0; i--) {
             const date = new Date();
             date.setDate(date.getDate() - i);
-            const dateStr = date.toISOString().split('T')[0]!;
+            const dateStr = date.toISOString().split('T')[0];
+            if (!dateStr) continue;
             const dayResults = results.filter((r) => {
                 const createdDate = r.created_at?.toISOString().split('T')[0];
                 return createdDate === dateStr;
@@ -384,7 +394,10 @@ export class DashboardService {
                     is_competitor: citation.is_competitor_domain ?? false,
                 };
             }
-            domainCounts[domain]!.count++;
+            const stats = domainCounts[domain];
+            if (stats) {
+                stats.count++;
+            }
         }
 
         const topDomains = Object.entries(domainCounts)
@@ -428,7 +441,10 @@ export class DashboardService {
         const brandCounts: Record<string, { count: number; domain?: string }> = {};
 
         for (const scan of scans) {
-            const analysis = scan.analysis_json as any;
+            const analysis = scan.analysis_json as {
+                brand_visibility?: boolean;
+                competitor_mentions?: Record<string, unknown>;
+            } | null;
             if (!analysis) continue;
 
             // 1. Count main brand

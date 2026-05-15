@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import type React from 'react';
 
 interface Props {
@@ -37,9 +38,11 @@ export const EngineIcon: React.FC<Props> = ({ engine, size = 20, className, inve
             }}
             className={className}
         >
-            <img
+            <Image
                 src={iconPath}
                 alt={`${engine} logo`}
+                width={size}
+                height={size}
                 style={{
                     width: '100%',
                     height: '100%',

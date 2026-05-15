@@ -15,10 +15,7 @@ scansCommand
     .command('trigger')
     .description('Trigger a new scan run')
     .requiredOption('-p, --project-id <id>', 'Project ID')
-    .option(
-        '-m, --mode <mode>',
-        'Scan execution mode: browser | api | hybrid (default: from env)',
-    )
+    .option('-m, --mode <mode>', 'Scan execution mode: browser | api | hybrid (default: from env)')
     .action(async (options) => {
         const spinner = ora('Triggering scan...').start();
 
@@ -29,9 +26,7 @@ scansCommand
             const result = await apiCall<{ runId: string; jobCount: number }>(
                 client.api.v1.scans.trigger.$post({ query }),
             );
-            spinner.succeed(
-                `Scan started: ${result.jobCount} job(s), run ID: ${result.runId}`,
-            );
+            spinner.succeed(`Scan started: ${result.jobCount} job(s), run ID: ${result.runId}`);
             if (options.mode) {
                 console.log(chalk.gray(`  Mode: ${options.mode}`));
             }

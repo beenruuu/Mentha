@@ -114,7 +114,8 @@ export class IntentExtractionService {
     private client: OpenAI;
 
     constructor() {
-        if (!env.OPENROUTER_API_KEY) throw new Error('OPENROUTER_API_KEY required for intent extraction');
+        if (!env.OPENROUTER_API_KEY)
+            throw new Error('OPENROUTER_API_KEY required for intent extraction');
         this.client = new OpenAI({
             apiKey: env.OPENROUTER_API_KEY,
             baseURL: 'https://openrouter.ai/api/v1',

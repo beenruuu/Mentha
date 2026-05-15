@@ -150,8 +150,34 @@ export class EvaluationService {
         const brandVisible = lowerResponse.includes(lowerBrand);
 
         // Sentiment: count positive vs negative keywords
-        const positiveWords = ['great', 'excellent', 'amazing', 'good', 'best', 'recommend', 'love', 'perfect', 'innovative', 'powerful', 'reliable', 'easy'];
-        const negativeWords = ['bad', 'terrible', 'awful', 'worst', 'hate', 'poor', 'expensive', 'difficult', 'slow', 'buggy', 'scam', 'problem'];
+        const positiveWords = [
+            'great',
+            'excellent',
+            'amazing',
+            'good',
+            'best',
+            'recommend',
+            'love',
+            'perfect',
+            'innovative',
+            'powerful',
+            'reliable',
+            'easy',
+        ];
+        const negativeWords = [
+            'bad',
+            'terrible',
+            'awful',
+            'worst',
+            'hate',
+            'poor',
+            'expensive',
+            'difficult',
+            'slow',
+            'buggy',
+            'scam',
+            'problem',
+        ];
         let sentiment = 0;
         if (brandVisible) {
             const posCount = positiveWords.filter((w) => lowerResponse.includes(w)).length;
@@ -163,7 +189,13 @@ export class EvaluationService {
         // Recommendation type
         let recommendation: EvaluationResult['recommendation_type'] = 'absent';
         if (brandVisible) {
-            const recommendPhrases = ['recommend', 'best choice', 'top pick', 'leading', 'suggestion'];
+            const recommendPhrases = [
+                'recommend',
+                'best choice',
+                'top pick',
+                'leading',
+                'suggestion',
+            ];
             const neutralPhrases = ['alternative', 'compare', 'versus', 'options', 'also consider'];
             const negativePhrases = ['not recommended', 'avoid', 'issues', 'problems', 'concern'];
 
@@ -203,7 +235,13 @@ export class EvaluationService {
         ];
 
         const extractedClaims = brandVisible
-            ? [{ text: `${request.brandName} is mentioned in AI response.`, type: 'fact' as const, importance: 5 }]
+            ? [
+                  {
+                      text: `${request.brandName} is mentioned in AI response.`,
+                      type: 'fact' as const,
+                      importance: 5,
+                  },
+              ]
             : [];
 
         logger.info(

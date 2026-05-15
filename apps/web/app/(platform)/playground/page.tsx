@@ -1,6 +1,7 @@
 'use client';
 
 import { Sparkles } from 'lucide-react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function PlaygroundPage() {
@@ -17,8 +18,8 @@ export default function PlaygroundPage() {
 
             <Card className="border-mentha-mint/20 bg-mentha-mint/5">
                 <CardHeader className="text-center py-12">
-                    <div className="mx-auto w-16 h-16 rounded-full bg-mentha-mint/10 flex items-center justify-center mb-4">
-                        <Sparkles className="w-8 h-8 text-mentha-mint" />
+                    <div className="mx-auto size-16 rounded-full bg-mentha-mint/10 flex items-center justify-center mb-4">
+                        <Sparkles className="size-8 text-mentha-mint" />
                     </div>
                     <CardTitle className="font-serif text-3xl mb-2">Coming Soon</CardTitle>
                     <p className="text-mentha-forest/60 dark:text-mentha-beige/60 max-w-sm mx-auto">
@@ -28,9 +29,9 @@ export default function PlaygroundPage() {
                 </CardHeader>
                 <CardContent className="flex justify-center pb-12">
                     <div className="flex gap-4 opacity-40">
-                        <div className="w-24 h-24 rounded-2xl bg-mentha-forest/5 border border-mentha-forest/10 animate-pulse" />
-                        <div className="w-24 h-24 rounded-2xl bg-mentha-forest/5 border border-mentha-forest/10 animate-pulse delay-75" />
-                        <div className="w-24 h-24 rounded-2xl bg-mentha-forest/5 border border-mentha-forest/10 animate-pulse delay-150" />
+                        <div className="size-24 rounded-2xl bg-mentha-forest/5 border border-mentha-forest/10 animate-pulse" />
+                        <div className="size-24 rounded-2xl bg-mentha-forest/5 border border-mentha-forest/10 animate-pulse delay-75" />
+                        <div className="size-24 rounded-2xl bg-mentha-forest/5 border border-mentha-forest/10 animate-pulse delay-150" />
                     </div>
                 </CardContent>
             </Card>

@@ -13,28 +13,26 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const router = useRouter();
+    const { push } = useRouter();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setError('');
-
         try {
             await signIn.email({
                 email,
                 password,
                 fetchOptions: {
                     onSuccess: () => {
-                        router.push('/dashboard');
+                        push('/dashboard');
                     },
                     onError: (ctx) => {
                         setError(ctx.error.message || 'Login failed');
                     },
                 },
             });
-        } catch (err: any) {
-            setError(err.message || 'Login failed');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Login failed');
         } finally {
             setLoading(false);
         }
@@ -46,8 +44,8 @@ export default function LoginPage() {
             <div className="hidden lg:flex lg:w-1/2 relative bg-mentha-dark overflow-hidden items-center justify-center p-12">
                 <div className="absolute inset-0 opacity-20">
                     <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,#10b982_0%,transparent_50%)]"></div>
-                    <div className="absolute top-[20%] right-[10%] w-64 h-64 border border-mentha-mint/30 rounded-full animate-pulse"></div>
-                    <div className="absolute bottom-[10%] left-[10%] w-96 h-96 border border-mentha-mint/10 rounded-full"></div>
+                    <div className="absolute top-[20%] right-[10%] size-64 border border-mentha-mint/30 rounded-full animate-pulse"></div>
+                    <div className="absolute bottom-[10%] left-[10%] size-96 border border-mentha-mint/10 rounded-full"></div>
                 </div>
 
                 <div className="relative z-10 text-center max-w-lg">
@@ -82,17 +80,21 @@ export default function LoginPage() {
 
                     {error && (
                         <div className="bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 p-4 rounded-xl mb-8 text-sm flex items-center gap-3">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                            <span className="size-1.5 rounded-full bg-red-500 animate-pulse"></span>
                             {error}
                         </div>
                     )}
 
                     <form onSubmit={handleLogin} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1">
+                            <label
+                                htmlFor="login-email"
+                                className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1"
+                            >
                                 Work Email
                             </label>
                             <input
+                                id="login-email"
                                 type="email"
                                 required
                                 value={email}
@@ -102,11 +104,15 @@ export default function LoginPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1">
+                            <label
+                                htmlFor="login-password"
+                                className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1"
+                            >
                                 Password
                             </label>
                             <div className="relative">
                                 <input
+                                    id="login-password"
                                     type={showPassword ? 'text' : 'password'}
                                     required
                                     value={password}
@@ -128,7 +134,7 @@ export default function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-mentha-mint text-mentha-dark py-5 rounded-none font-mono text-sm font-bold uppercase tracking-[0.2em] hover:bg-mentha-mint/90 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="w-full bg-mentha-mint text-mentha-dark py-5 rounded-none font-mono text-sm font-semibold uppercase tracking-[0.2em] hover:bg-mentha-mint/90 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {loading ? <Loader2 className="animate-spin" size={18} /> : null}
                                 {loading ? 'AUTHENTICATING...' : 'LOG IN TO PLATFORM'}

@@ -1,13 +1,13 @@
-import { desc, eq, and } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 
-import { CreditService } from '../core/credits';
 import { env } from '../config/env';
+import { CreditService } from '../core/credits';
 import { createLogger, logger } from '../core/logger';
+import { addScanJob } from '../core/queue';
+import type { ProviderType, SearchResult } from '../core/search/types';
 import { db } from '../db';
 import { keywords, projects, scanJobs, scanResults } from '../db/schema/core';
 import { NotFoundException } from '../exceptions/http';
-import { addScanJob } from '../core/queue';
-import type { SearchResult } from '../core/search/types';
 
 export interface ScanJobData {
     jobId: string;
@@ -23,6 +23,8 @@ export interface ScanServiceResult {
     resultId: string;
     latencyMs: number;
 }
+
+type JsonObject = Record<string, unknown>;
 
 export class ScanService {
     /**
@@ -82,7 +84,7 @@ export class ScanService {
                     .insert(scanJobs)
                     .values({
                         keyword_id: kw.id,
-                        run_id: scanRun!.id,
+                        run_id: scanRun.id,
                         engine: engineName,
                         status: 'pending',
                         priority: 'high',
@@ -154,7 +156,7 @@ export class ScanService {
                     if (executionMode === 'api' || executionMode === 'hybrid') {
                         // API mode: execute via OpenRouter directly
                         this.runApiScan(
-                            scanRun!.id,
+                            scanRun.id,
                             jobRecord.id,
                             engineName,
                             kw.query,
@@ -247,7 +249,7 @@ export class ScanService {
 
             // 4. Call Search Provider via Factory
             const provider = (await import('../core/search/factory')).createProvider(
-                data.engine as any,
+                data.engine as ProviderType,
             );
             const searchResult = await provider.search(data.query, {
                 geo: {
@@ -262,10 +264,10 @@ export class ScanService {
             const aiResponse = { usage: searchResult.usage }; // Mocking minimal aiResponse for backward compat
 
             // Try to parse JSON from AI if requested, otherwise store as raw
-            let analysisJson = {};
+            let analysisJson: JsonObject = {};
             try {
                 analysisJson = JSON.parse(rawResponse);
-            } catch (e) {
+            } catch {
                 analysisJson = { raw_content: rawResponse };
             }
 
@@ -337,7 +339,9 @@ export class ScanService {
                 .set({ status: 'processing', started_at: new Date() })
                 .where(eq(scanJobs.id, jobId));
 
-            const provider = (await import('../core/search/factory')).createProvider(engine as any);
+            const provider = (await import('../core/search/factory')).createProvider(
+                engine as ProviderType,
+            );
             const searchResult: SearchResult = await provider.search(query, {
                 maxTokens: 2000,
                 temperature: 0.1,
@@ -345,9 +349,7 @@ export class ScanService {
 
             const latencyMs = Date.now() - startTime;
 
-            const brandVisible = searchResult.content
-                .toLowerCase()
-                .includes(brand.toLowerCase());
+            const brandVisible = searchResult.content.toLowerCase().includes(brand.toLowerCase());
 
             await db.insert(scanResults).values({
                 job_id: jobId,
@@ -376,7 +378,19 @@ export class ScanService {
             await db
                 .update(keywords)
                 .set({ last_scanned_at: new Date() })
-                .where(eq(keywords.id, (await db.select({ kid: keywords.id }).from(keywords).innerJoin(scanJobs, eq(scanJobs.keyword_id, keywords.id)).where(eq(scanJobs.id, jobId)).limit(1))[0]?.kid || ''));
+                .where(
+                    eq(
+                        keywords.id,
+                        (
+                            await db
+                                .select({ kid: keywords.id })
+                                .from(keywords)
+                                .innerJoin(scanJobs, eq(scanJobs.keyword_id, keywords.id))
+                                .where(eq(scanJobs.id, jobId))
+                                .limit(1)
+                        )[0]?.kid || '',
+                    ),
+                );
 
             log.info({ latencyMs }, 'API scan completed successfully');
         } catch (error) {
@@ -419,9 +433,7 @@ export class ScanService {
             .select({ id: scanResults.id })
             .from(scanResults)
             .innerJoin(scanJobs, eq(scanResults.job_id, scanJobs.id))
-            .where(
-                and(eq(scanJobs.run_id, runId), eq(scanResults.brand_visibility, true)),
-            );
+            .where(and(eq(scanJobs.run_id, runId), eq(scanResults.brand_visibility, true)));
 
         const nextStatus =
             jobs.length > 0 && finalJobs.length >= jobs.length
@@ -443,7 +455,7 @@ export class ScanService {
             .where(eq(scanRuns.id, runId));
     }
 
-    async listResults(filters: { projectId: string; limit?: number }): Promise<any[]> {
+    async listResults(filters: { projectId: string; limit?: number }): Promise<unknown[]> {
         logger.debug({ projectId: filters.projectId }, 'Listing individual scan results');
 
         const limit = filters.limit || 20;
@@ -471,19 +483,16 @@ export class ScanService {
         // Strip model identifiers from analysis_json to avoid leaking
         // exact model names (e.g. openai/gpt-4o) to the frontend
         return results.map((r) => {
-            if (
-                r.analysis_json &&
-                typeof r.analysis_json === 'object' &&
-                'model' in (r.analysis_json as any)
-            ) {
-                const { model, ...safeJson } = r.analysis_json as any;
+            const analysisJson = r.analysis_json as JsonObject | null;
+            if (analysisJson && typeof analysisJson === 'object' && 'model' in analysisJson) {
+                const { model: _model, ...safeJson } = analysisJson;
                 return { ...r, analysis_json: safeJson };
             }
             return r;
         });
     }
 
-    async getResultById(id: string): Promise<any> {
+    async getResultById(id: string): Promise<unknown> {
         // If id corresponds to a scan_run, return run details and per-engine jobs/results
         const { scanRuns, scanJobs, scanResults: sr } = await import('../db/schema/core');
 
@@ -492,7 +501,9 @@ export class ScanService {
             // Fallback: try to find scan result by id
             const data = await db.select().from(sr).where(eq(sr.id, id)).limit(1);
             if (data.length === 0) throw new NotFoundException('Scan run/result not found');
-            return data[0]!;
+            const result = data[0];
+            if (!result) throw new NotFoundException('Scan run/result not found');
+            return result;
         }
 
         const run = runRow[0];
@@ -519,7 +530,7 @@ export class ScanService {
         return { run, jobs };
     }
 
-    async getLatestByKeyword(keywordId: string): Promise<any | null> {
+    async getLatestByKeyword(keywordId: string): Promise<unknown | null> {
         const data = await db
             .select()
             .from(scanResults)

@@ -12,6 +12,15 @@ import { table } from '../utils/table';
 
 export const projectsCommand = new Command('projects').description('Manage projects');
 
+type ProjectPayload = {
+    name: string;
+    domain: string;
+    competitors: string[];
+    description?: string;
+};
+
+type ProjectUpdatePayload = Partial<ProjectPayload>;
+
 projectsCommand
     .command('list')
     .description('List all projects')
@@ -52,7 +61,7 @@ projectsCommand
     .option('--description <text>', 'Project description')
     .option('-j, --json', 'Output as JSON')
     .action(async (options) => {
-        let projectData;
+        let projectData: ProjectPayload;
 
         if (options.name && options.domain) {
             const competitors = options.competitors
@@ -129,7 +138,7 @@ projectsCommand
     .option('--description <text>', 'Project description')
     .option('-j, --json', 'Output as JSON')
     .action(async (id, options) => {
-        let updateData: Record<string, unknown> = {};
+        let updateData: ProjectUpdatePayload = {};
 
         if (options.name || options.domain || options.competitors || options.description) {
             if (options.name) updateData.name = options.name;
@@ -176,11 +185,15 @@ projectsCommand
         const spinner = ora('Updating project...').start();
 
         try {
+            const patchProject = client.api.v1.projects[':id'].$patch as (args: {
+                param: { id: string };
+                json: ProjectUpdatePayload;
+            }) => Promise<Response>;
             const project = await apiCall<Project>(
-                client.api.v1.projects[':id'].$patch({
+                patchProject({
                     param: { id },
                     json: updateData,
-                } as any),
+                }),
             );
             spinner.succeed('Project updated successfully');
 
@@ -238,7 +251,7 @@ projectsCommand
 
         let formattedDomain = domain;
         if (!formattedDomain.startsWith('http')) {
-            formattedDomain = 'https://' + formattedDomain;
+            formattedDomain = `https://${formattedDomain}`;
         }
 
         const spinner = ora(`Analyzing ${formattedDomain}...`).start();

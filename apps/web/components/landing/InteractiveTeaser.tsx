@@ -1,17 +1,31 @@
 'use client';
 
-import { ArrowRight, Cpu, Loader2 } from 'lucide-react';
+import { Cpu, Loader2 } from 'lucide-react';
 import type React from 'react';
 import { useState } from 'react';
 
 // import { analyzeBrandPresence } from '../../services/geminiService';
 
 // Mock function until service is implemented
-const analyzeBrandPresence = async (_brand: string, _category: string) => {
+interface BrandPresenceResult {
+    visibilityScore: number;
+    sentiment: string;
+    topAssociation: string;
+    simulationOutput: string;
+    recommendation: string;
+}
+
+const analyzeBrandPresence = async (
+    brand: string,
+    category: string,
+): Promise<BrandPresenceResult> => {
     await new Promise((resolve) => setTimeout(resolve, 2000));
     return {
-        visibility_score: 78,
-        recommendations: ['Add more structured data', 'Improve entity coverage'],
+        visibilityScore: 78,
+        sentiment: 'Positive',
+        topAssociation: category,
+        simulationOutput: `${brand} is frequently associated with ${category} in AI-generated answers.`,
+        recommendation: 'Add more structured data and improve entity coverage.',
     };
 };
 
@@ -19,7 +33,7 @@ const InteractiveTeaser: React.FC = () => {
     const [brand, setBrand] = useState('');
     const [category, setCategory] = useState('');
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<any>(null);
+    const [result, setResult] = useState<BrandPresenceResult | null>(null);
 
     const handleAnalyze = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -55,10 +69,14 @@ const InteractiveTeaser: React.FC = () => {
                     <form onSubmit={handleAnalyze} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="font-mono text-xs uppercase tracking-widest ml-1">
+                                <label
+                                    htmlFor="teaser-brand"
+                                    className="font-mono text-xs uppercase tracking-widest ml-1"
+                                >
                                     Tu Marca
                                 </label>
                                 <input
+                                    id="teaser-brand"
                                     type="text"
                                     value={brand}
                                     onChange={(e) => setBrand(e.target.value)}
@@ -67,10 +85,14 @@ const InteractiveTeaser: React.FC = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="font-mono text-xs uppercase tracking-widest ml-1">
+                                <label
+                                    htmlFor="teaser-category"
+                                    className="font-mono text-xs uppercase tracking-widest ml-1"
+                                >
                                     Producto / Categoría
                                 </label>
                                 <input
+                                    id="teaser-category"
                                     type="text"
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
@@ -84,7 +106,7 @@ const InteractiveTeaser: React.FC = () => {
                             <button
                                 disabled={loading}
                                 type="submit"
-                                className="bg-mentha-mint text-mentha-dark px-8 py-4 font-mono text-sm font-bold uppercase tracking-widest hover:bg-white transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="bg-mentha-mint text-mentha-dark px-8 py-4 font-mono text-sm font-semibold uppercase tracking-widest hover:bg-white transition-colors flex items-center gap-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? <Loader2 className="animate-spin" /> : <Cpu size={16} />}
                                 <span>

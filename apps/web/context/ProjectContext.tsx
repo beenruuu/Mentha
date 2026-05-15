@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, use, useCallback, useEffect, useState } from 'react';
 
 import { fetchFromApi } from '@/lib/api';
 
@@ -86,7 +86,7 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useProject() {
-    const context = useContext(ProjectContext);
+    const context = use(ProjectContext);
     if (context === undefined) {
         throw new Error('useProject must be used within a ProjectProvider');
     }

@@ -12,8 +12,8 @@ export interface UserPayload {
 }
 
 export interface AuthVariables {
-    user: UserPayload;
-    session: any;
+    user?: UserPayload;
+    session?: NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>['session'];
 }
 
 export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(async (c, next) => {
@@ -22,18 +22,20 @@ export const authMiddleware = createMiddleware<{ Variables: AuthVariables }>(asy
     });
 
     if (!session) {
-        c.set('user', undefined as any);
-        c.set('session', undefined as any);
+        c.set('user', undefined);
+        c.set('session', undefined);
         await next();
         return;
     }
 
+    const sessionUser = session.user as typeof session.user & Pick<UserPayload, 'role' | 'plan'>;
+
     c.set('user', {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.name,
-        role: (session.user as any).role,
-        plan: (session.user as any).plan,
+        id: sessionUser.id,
+        email: sessionUser.email,
+        name: sessionUser.name,
+        role: sessionUser.role,
+        plan: sessionUser.plan,
     });
     c.set('session', session.session);
 

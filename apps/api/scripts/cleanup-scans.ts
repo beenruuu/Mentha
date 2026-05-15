@@ -1,6 +1,7 @@
-import { db } from '../src/db';
-import { scanJobs, scanResults, scanRuns, keywords } from '../src/db/schema/core';
 import { eq, inArray } from 'drizzle-orm';
+
+import { db } from '../src/db';
+import { keywords, scanJobs, scanResults, scanRuns } from '../src/db/schema/core';
 
 const projectId = 'd4fcdd25-7311-48bd-9d82-128d94a796e0';
 

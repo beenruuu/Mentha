@@ -1,8 +1,8 @@
 import { eq } from 'drizzle-orm';
 
 import { db } from '../db';
-import { creditTransactions } from '../db/schema/core';
 import { user } from '../db/schema/auth';
+import { creditTransactions } from '../db/schema/core';
 import { logger } from './logger';
 
 export const CreditService = {
@@ -30,7 +30,7 @@ export const CreditService = {
         userId: string,
         amount: number,
         description: string,
-        metadata: any = {},
+        metadata: Record<string, unknown> = {},
     ) => {
         return await db.transaction(async (tx) => {
             const [profile] = await tx.select().from(user).where(eq(user.id, userId)).for('update'); // Lock row

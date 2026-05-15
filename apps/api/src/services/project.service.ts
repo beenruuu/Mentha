@@ -54,9 +54,7 @@ export class ProjectService {
 
         // Try Camoufox scrape first — ask Perplexity about the brand
         try {
-            const { runCamoufoxUiCapture } = await import(
-                '../core/ui-capture/camoufox-provider'
-            );
+            const { runCamoufoxUiCapture } = await import('../core/ui-capture/camoufox-provider');
             const capture = await runCamoufoxUiCapture({
                 provider: 'perplexity',
                 prompt: `What is ${hostname}? Tell me about this company, what they do, their main competitors, and what people search for related to them.`,
@@ -76,7 +74,10 @@ export class ProjectService {
                 return { name, description, keywords, competitors };
             }
         } catch (error) {
-            logger.warn({ error: (error as Error).message }, 'Camoufox domain analysis failed, using heuristics');
+            logger.warn(
+                { error: (error as Error).message },
+                'Camoufox domain analysis failed, using heuristics',
+            );
         }
 
         // Fallback: heuristic from domain name
@@ -108,7 +109,11 @@ export class ProjectService {
             throw new NotFoundException('Project not found');
         }
 
-        return data[0]!;
+        const project = data[0];
+        if (!project) {
+            throw new NotFoundException('Project not found');
+        }
+        return project;
     }
 
     async create(input: CreateProjectInput): Promise<Project> {
@@ -151,12 +156,13 @@ export class ProjectService {
             .where(eq(projects.id, id))
             .returning();
 
-        if (result.length === 0) {
+        const project = result[0];
+        if (!project) {
             throw new NotFoundException('Project not found');
         }
 
         logger.info({ projectId: id }, 'Project updated successfully');
-        return result[0]!;
+        return project;
     }
 
     async delete(id: string): Promise<void> {
@@ -198,7 +204,10 @@ export function getProjectService(): ProjectService {
 function extractBrandName(text: string, domain: string): string {
     const lines = text.split('\n').filter(Boolean);
     for (const line of lines) {
-        const clean = line.replace(/^#+\s*/, '').replace(/[*_]/g, '').trim();
+        const clean = line
+            .replace(/^#+\s*/, '')
+            .replace(/[*_]/g, '')
+            .trim();
         if (clean.length > 1 && clean.length < 100 && !clean.startsWith('http')) {
             const words = clean.split(/\s+/);
             if (words.length >= 2 && words.length <= 8) return clean;
@@ -210,7 +219,10 @@ function extractBrandName(text: string, domain: string): string {
 function extractDescription(text: string): string {
     const paragraphs = text.split('\n\n').filter(Boolean);
     for (const p of paragraphs) {
-        const clean = p.replace(/^#+\s*/, '').replace(/[*_]/g, '').trim();
+        const clean = p
+            .replace(/^#+\s*/, '')
+            .replace(/[*_]/g, '')
+            .trim();
         if (clean.length > 40 && clean.length < 500) return clean;
     }
     return `${text.slice(0, 200)}...`;
@@ -263,9 +275,7 @@ function extractCompetitors(text: string, sourceDomains: string[], brandName: st
 
     for (const domain of sourceDomains) {
         if (domain.includes(brandLower.replace(/\s+/g, ''))) continue;
-        const name = domain
-            .replace(/^www\./, '')
-            .split('.')[0];
+        const name = domain.replace(/^www\./, '').split('.')[0];
         if (name && name.length > 2 && !seen.has(name)) {
             seen.add(name);
             const formatted = name.charAt(0).toUpperCase() + name.slice(1);

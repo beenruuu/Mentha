@@ -1,7 +1,7 @@
 import type { Context } from 'hono';
 
 import { logger } from '../core/logger';
-import { handleHttpException } from '../exceptions/http';
+import { BadRequestException, handleHttpException } from '../exceptions/http';
 import { getEntityService } from '../services/entity.service';
 
 const entityService = getEntityService();
@@ -24,6 +24,7 @@ export const KnowledgeGraphController = {
 
     getEntityJsonLd: async (c: Context) => {
         const slug = c.req.param('slug');
+        if (!slug) throw new BadRequestException('Entity slug is required');
 
         try {
             const jsonld = await entityService.generateJsonLd(slug);
@@ -44,6 +45,7 @@ export const KnowledgeGraphController = {
 
     getEntityClaims: async (c: Context) => {
         const slug = c.req.param('slug');
+        if (!slug) throw new BadRequestException('Entity slug is required');
 
         try {
             const entity = await entityService.getBySlug(slug);
@@ -62,6 +64,7 @@ export const KnowledgeGraphController = {
 
     getEntityFaqs: async (c: Context) => {
         const slug = c.req.param('slug');
+        if (!slug) throw new BadRequestException('Entity slug is required');
         const format = c.req.query('format');
 
         try {

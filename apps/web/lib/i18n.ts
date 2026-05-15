@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, use, useCallback, useEffect, useState } from 'react';
 
 const en = {
     // Hero
@@ -418,7 +418,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useTranslations() {
-    const context = useContext(I18nContext);
+    const context = use(I18nContext);
     if (context === undefined) {
         throw new Error('useTranslations must be used within an I18nProvider');
     }

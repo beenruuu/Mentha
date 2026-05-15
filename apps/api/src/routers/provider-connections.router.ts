@@ -7,7 +7,11 @@ import { applyRateLimit, RATE_LIMITS } from '../middlewares/rate-limit-middlewar
 const router = new Hono()
     .use('*', requireAuth)
     .get('/', applyRateLimit(RATE_LIMITS.API), ProviderConnectionsController.list)
-    .post('/:provider/connect', applyRateLimit(RATE_LIMITS.API), ProviderConnectionsController.connect)
+    .post(
+        '/:provider/connect',
+        applyRateLimit(RATE_LIMITS.API),
+        ProviderConnectionsController.connect,
+    )
     .post(
         '/:provider/disconnect',
         applyRateLimit(RATE_LIMITS.API),

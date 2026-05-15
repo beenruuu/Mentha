@@ -26,11 +26,14 @@ export function encryptApiKey(plaintext: string): string {
 export function decryptApiKey(encryptedData: string): string {
     const key = deriveKey();
     const parts = encryptedData.split(':');
-    if (parts.length < 3) throw new Error('Invalid encrypted key format');
+    const [ivHex, authTagHex, ...encryptedParts] = parts;
+    if (!ivHex || !authTagHex || encryptedParts.length === 0) {
+        throw new Error('Invalid encrypted key format');
+    }
 
-    const iv = Buffer.from(parts[0]!, 'hex');
-    const authTag = Buffer.from(parts[1]!, 'hex');
-    const encrypted = parts.slice(2).join(':');
+    const iv = Buffer.from(ivHex, 'hex');
+    const authTag = Buffer.from(authTagHex, 'hex');
+    const encrypted = encryptedParts.join(':');
 
     const decipher = createDecipheriv(ALGORITHM, key, iv);
     decipher.setAuthTag(authTag);

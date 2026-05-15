@@ -25,7 +25,7 @@ export function Introduction() {
                         staggerDelay={0.03}
                         threshold={0.3}
                         duration={0.5}
-                        textClassName="text-xl md:text-2xl lg:text-3xl text-gray-500 dark:text-gray-400 font-light leading-relaxed max-w-4xl mx-auto"
+                        textClassName="text-xl md:text-2xl lg:text-3xl text-zinc-500 dark:text-zinc-400 font-light leading-relaxed max-w-4xl mx-auto"
                     >
                         Search behavior is changing. Users ask questions, not keywords. Your
                         optimization strategy needs to evolve from keywords to entities and context.

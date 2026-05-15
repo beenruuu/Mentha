@@ -126,7 +126,9 @@ Return strictly a JSON array of strings. Example: ["query 1", "query 2"]`;
         });
 
         const results = await Promise.all(promises);
-        results.forEach((group) => probes.push(...group));
+        for (const group of results) {
+            probes.push(...group);
+        }
 
         return probes;
     }

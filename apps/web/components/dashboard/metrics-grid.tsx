@@ -5,9 +5,17 @@ import { useEffect, useState } from 'react';
 import { useProject } from '@/context/ProjectContext';
 import { fetchFromApi } from '@/lib/api';
 
+interface DashboardMetrics {
+    visibilityRate: number;
+    visibleCount: number;
+    totalScans: number;
+    period: string;
+    avgSentiment: number;
+}
+
 export function MetricsGrid() {
     const { selectedProject } = useProject();
-    const [metrics, setMetrics] = useState<any>(null);
+    const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -32,31 +40,33 @@ export function MetricsGrid() {
     if (loading || !metrics) {
         return (
             <section className="metrics-grid">
-                {[...Array(4)].map((_, i) => (
-                    <div
-                        key={i}
-                        className="metric-card"
-                        style={{
-                            height: '100px',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '12px',
-                        }}
-                    >
+                {Array.from({ length: 4 }, (_, cardIndex) => `metric-skeleton-${cardIndex}`).map(
+                    (cardKey) => (
                         <div
-                            className="skeleton"
-                            style={{ width: '60%', height: '14px', borderRadius: '4px' }}
-                        ></div>
-                        <div
-                            className="skeleton"
-                            style={{ width: '40%', height: '24px', borderRadius: '4px' }}
-                        ></div>
-                        <div
-                            className="skeleton"
-                            style={{ width: '80%', height: '12px', borderRadius: '4px' }}
-                        ></div>
-                    </div>
-                ))}
+                            key={cardKey}
+                            className="metric-card"
+                            style={{
+                                height: '100px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: '12px',
+                            }}
+                        >
+                            <div
+                                className="skeleton"
+                                style={{ width: '60%', height: '14px', borderRadius: '4px' }}
+                            ></div>
+                            <div
+                                className="skeleton"
+                                style={{ width: '40%', height: '24px', borderRadius: '4px' }}
+                            ></div>
+                            <div
+                                className="skeleton"
+                                style={{ width: '80%', height: '12px', borderRadius: '4px' }}
+                            ></div>
+                        </div>
+                    ),
+                )}
             </section>
         );
     }

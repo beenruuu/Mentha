@@ -1,5 +1,7 @@
 'use client';
 
+import { useRef, useState } from 'react';
+
 import { EngineBreakdown } from '@/components/dashboard/engine-breakdown';
 import { MetricCards } from '@/components/dashboard/metric-cards';
 import { RecentScans } from '@/components/dashboard/recent-scans';
@@ -8,9 +10,10 @@ import { TopBrands } from '@/components/dashboard/top-brands';
 import { TopKeywords } from '@/components/dashboard/top-keywords';
 import { VisibilityChartCard } from '@/components/dashboard/visibility-chart-card';
 import { useProject } from '@/context/ProjectContext';
-import { exportToZIP } from '@/lib/export';
 import { fetchFromApi } from '@/lib/api';
-import { useRef, useState } from 'react';
+import { exportToZIP } from '@/lib/export';
+
+type ExportDatasetRow = Record<string, unknown>;
 
 export default function DashboardPage() {
     const { selectedProject } = useProject();
@@ -42,7 +45,7 @@ export default function DashboardPage() {
         const baseName = `mentha-export-${selectedProject.name.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}`;
 
         try {
-            const datasets: { data: any[]; name: string }[] = [];
+            const datasets: { data: ExportDatasetRow[]; name: string }[] = [];
 
             // 1. Visibility Timeline
             const shareResponse = await fetchFromApi(
@@ -109,7 +112,17 @@ export default function DashboardPage() {
                             disabled={!selectedProject}
                             className="flex items-center gap-2 px-4 py-2 border border-mentha-mint text-mentha-forest dark:text-mentha-beige rounded-xl font-sans text-sm font-medium hover:bg-mentha-mint/5 transition-all disabled:opacity-50"
                         >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <svg
+                                aria-hidden="true"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            >
                                 <circle cx="11" cy="11" r="8" />
                                 <path d="m21 21-4.3-4.3" />
                             </svg>
@@ -118,19 +131,40 @@ export default function DashboardPage() {
 
                         {showScanModal && (
                             <>
-                                <div className="fixed inset-0 z-10" onClick={() => setShowScanModal(false)} />
-                                <div ref={modalRef} className="absolute right-0 top-12 z-20 w-80 rounded-2xl border border-mentha-forest/10 dark:border-mentha-beige/10 bg-white dark:bg-mentha-forest shadow-xl p-5 space-y-4">
+                                <button
+                                    type="button"
+                                    aria-label="Close scan mode menu"
+                                    className="fixed inset-0 z-10"
+                                    onClick={() => setShowScanModal(false)}
+                                />
+                                <div
+                                    ref={modalRef}
+                                    className="absolute right-0 top-12 z-20 w-80 rounded-2xl border border-mentha-forest/10 dark:border-mentha-beige/10 bg-white dark:bg-mentha-forest shadow-xl p-5 space-y-4"
+                                >
                                     <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-mentha-mint">
                                         Scan Execution Mode
                                     </p>
                                     <div className="space-y-2">
                                         {[
-                                            { value: 'browser', label: 'Browser', desc: 'Camoufox navigates AI engine UIs — real responses, needs Python + Playwright' },
-                                            { value: 'api', label: 'API', desc: 'Calls OpenRouter directly — fast, no browser needed' },
-                                            { value: 'hybrid', label: 'Hybrid', desc: 'Both browser + API in parallel — maximum coverage' },
+                                            {
+                                                value: 'browser',
+                                                label: 'Browser',
+                                                desc: 'Camoufox navigates AI engine UIs — real responses, needs Python + Playwright',
+                                            },
+                                            {
+                                                value: 'api',
+                                                label: 'API',
+                                                desc: 'Calls OpenRouter directly — fast, no browser needed',
+                                            },
+                                            {
+                                                value: 'hybrid',
+                                                label: 'Hybrid',
+                                                desc: 'Both browser + API in parallel — maximum coverage',
+                                            },
                                         ].map((opt) => (
                                             <label
                                                 key={opt.value}
+                                                htmlFor={`scanMode-${opt.value}`}
                                                 className={`flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
                                                     scanMode === opt.value
                                                         ? 'bg-mentha-mint/10 border border-mentha-mint/30'
@@ -139,6 +173,7 @@ export default function DashboardPage() {
                                             >
                                                 <input
                                                     type="radio"
+                                                    id={`scanMode-${opt.value}`}
                                                     name="scanMode"
                                                     value={opt.value}
                                                     checked={scanMode === opt.value}
@@ -176,6 +211,7 @@ export default function DashboardPage() {
                         className="flex items-center gap-2 px-4 py-2 bg-mentha-forest dark:bg-mentha-beige text-white dark:text-mentha-forest rounded-xl font-sans text-sm font-medium hover:opacity-90 transition-all disabled:opacity-50"
                     >
                         <svg
+                            aria-hidden="true"
                             width="16"
                             height="16"
                             viewBox="0 0 24 24"

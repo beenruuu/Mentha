@@ -178,7 +178,9 @@ optimizationCommand
         try {
             const response = await fetch(`${aeoBaseUrl}/llms.txt/adapters`);
             if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
-            const json = (await response.json()) as { data: Array<{ name: string; instructions: string[] }> };
+            const json = (await response.json()) as {
+                data: Array<{ name: string; instructions: string[] }>;
+            };
             spinner.succeed(`Found ${json.data.length} framework adapters`);
 
             if (options.json || config.outputFormat === 'json') {
@@ -186,7 +188,9 @@ optimizationCommand
             } else {
                 console.log(`\n${chalk.cyan.bold('Framework adapters')}\n`);
                 for (const adapter of json.data) {
-                    console.log(`  ${chalk.green(adapter.name.padEnd(12))} ${adapter.instructions[0]}`);
+                    console.log(
+                        `  ${chalk.green(adapter.name.padEnd(12))} ${adapter.instructions[0]}`,
+                    );
                 }
                 console.log('');
             }
@@ -209,7 +213,12 @@ optimizationCommand
                 `${aeoBaseUrl}/llms.txt/report?url=${encodeURIComponent(url)}`,
             );
             if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
-            const json = (await response.json()) as { data: { score: { overallScore: number }; events: Array<{ title: string; action: string }> } };
+            const json = (await response.json()) as {
+                data: {
+                    score: { overallScore: number };
+                    events: Array<{ title: string; action: string }>;
+                };
+            };
             spinner.succeed('AEO operational report generated');
 
             if (options.json || config.outputFormat === 'json') {

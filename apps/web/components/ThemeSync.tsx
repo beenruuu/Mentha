@@ -15,8 +15,7 @@ export function ThemeSync({ children }: ThemeSyncProps) {
     const [themeKey, setThemeKey] = useState(0);
 
     useEffect(() => {
-        const handleThemeChange = (event: Event) => {
-            const customEvent = event as CustomEvent;
+        const handleThemeChange = () => {
             // Forzar re-render de todos los componentes
             setThemeKey((prev) => prev + 1);
         };

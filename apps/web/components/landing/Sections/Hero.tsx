@@ -9,7 +9,7 @@ interface HeroProps {
     theme: Theme;
 }
 
-const Hero: React.FC<HeroProps> = ({ theme }) => {
+const Hero: React.FC<HeroProps> = ({ theme: _theme }) => {
     const { t } = useTranslations();
 
     return (
@@ -34,7 +34,7 @@ const Hero: React.FC<HeroProps> = ({ theme }) => {
                         {t.heroDescription}
                     </p>
 
-                    <div className="flex items-center space-x-4 justify-center">
+                    <div className="flex items-center gap-x-4 justify-center">
                         <div className="h-px w-12 bg-current"></div>
                         <span className="font-mono text-sm uppercase">{t.heroScroll}</span>
                     </div>

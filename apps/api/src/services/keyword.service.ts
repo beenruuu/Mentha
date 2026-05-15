@@ -66,7 +66,11 @@ export class KeywordService {
             throw new NotFoundException('Keyword not found');
         }
 
-        return data[0]!;
+        const keyword = data[0];
+        if (!keyword) {
+            throw new NotFoundException('Keyword not found');
+        }
+        return keyword;
     }
 
     async create(input: CreateKeywordInput): Promise<Keyword> {
@@ -103,12 +107,13 @@ export class KeywordService {
             .where(eq(keywords.id, id))
             .returning();
 
-        if (result.length === 0) {
+        const keyword = result[0];
+        if (!keyword) {
             throw new NotFoundException('Keyword not found');
         }
 
         logger.info({ keywordId: id }, 'Keyword updated successfully');
-        return result[0]!;
+        return keyword;
     }
 
     async delete(id: string): Promise<void> {
@@ -135,11 +140,12 @@ export class KeywordService {
             .where(eq(keywords.id, id))
             .returning();
 
-        if (result.length === 0) {
+        const keyword = result[0];
+        if (!keyword) {
             throw new NotFoundException('Keyword not found');
         }
 
-        return result[0]!;
+        return keyword;
     }
 
     async exists(id: string): Promise<boolean> {

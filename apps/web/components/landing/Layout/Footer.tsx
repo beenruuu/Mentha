@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
         >
             <div className="max-w-7xl mx-auto px-8 md:px-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-8">
                 {/* Column 1: Brand & Newsletter */}
-                <div className="md:col-span-2 lg:col-span-1 space-y-8">
+                <div className="md:col-span-2 lg:col-span-1 gap-y-8">
                     <div className="space-y-4">
                         <h4 className="font-mono text-xs uppercase tracking-widest text-mentha-forest dark:text-mentha-beige">
                             {t.footerNewsletter}
@@ -27,7 +27,10 @@ const Footer: React.FC = () => {
                                 placeholder={t.footerEmailPlaceholder}
                                 className="bg-transparent w-full focus:outline-none font-mono text-sm placeholder-current placeholder-opacity-40 text-mentha-forest dark:text-mentha-beige"
                             />
-                            <button className="font-mono text-xs uppercase text-mentha-forest dark:text-mentha-beige hover:text-mentha-mint transition-colors">
+                            <button
+                                type="button"
+                                className="font-mono text-xs uppercase text-mentha-forest dark:text-mentha-beige hover:text-mentha-mint transition-colors"
+                            >
                                 {t.footerSubmit}
                             </button>
                         </div>
@@ -38,12 +41,14 @@ const Footer: React.FC = () => {
                         </p>
                         <div className="flex items-center gap-4 pt-2">
                             <button
+                                type="button"
                                 onClick={() => toggleLocale('es')}
                                 className={`flex items-center gap-1 font-mono text-[10px] transition-all ${locale === 'es' ? 'text-mentha-mint underline decoration-mentha-mint' : 'text-mentha-forest/60 dark:text-mentha-beige/60 hover:text-mentha-mint'}`}
                             >
                                 <span>🇪🇸</span> ESPAÑOL
                             </button>
                             <button
+                                type="button"
                                 onClick={() => toggleLocale('en')}
                                 className={`flex items-center gap-1 font-mono text-[10px] transition-all ${locale === 'en' ? 'text-mentha-mint underline decoration-mentha-mint' : 'text-mentha-forest/60 dark:text-mentha-beige/60 hover:text-mentha-mint'}`}
                             >
@@ -58,13 +63,13 @@ const Footer: React.FC = () => {
                     <h4 className="font-mono text-xs uppercase tracking-widest text-mentha-forest dark:text-mentha-beige">
                         {t.footerProduct}
                     </h4>
-                    <ul className="space-y-3">
+                    <ul className="gap-y-3">
                         {[
                             { name: t.footerVisibilityTracking, href: '/login' },
                             { name: t.footerPromptDiscovery, href: '/login' },
                             { name: t.footerInsights, href: '/login' },
                             { name: t.footerSentimentAnalysis, href: '/login' },
-                            { name: t.footerMenthaMCP, href: '#', soon: true },
+                            { name: t.footerMenthaMCP, href: '/login', soon: true },
                         ].map((item) => (
                             <li key={item.name} className="flex items-center gap-2">
                                 <a
@@ -88,15 +93,15 @@ const Footer: React.FC = () => {
                     <h4 className="font-mono text-xs uppercase tracking-widest text-mentha-forest dark:text-mentha-beige">
                         {t.footerSolutions}
                     </h4>
-                    <ul className="space-y-3">
+                    <ul className="gap-y-3">
                         {[
-                            { name: t.footerSEOManagers },
-                            { name: t.footerInHouseMarketers },
-                            { name: t.footerAgencies },
+                            { name: t.footerSEOManagers, href: '/login' },
+                            { name: t.footerInHouseMarketers, href: '/login' },
+                            { name: t.footerAgencies, href: '/login' },
                         ].map((item) => (
                             <li key={item.name} className="flex items-center gap-2">
                                 <a
-                                    href="#"
+                                    href={item.href}
                                     className="font-sans text-sm text-mentha-forest/70 dark:text-mentha-beige/70 hover:text-mentha-mint hover:translate-x-1 inline-block transition-all"
                                 >
                                     {item.name}
@@ -114,18 +119,18 @@ const Footer: React.FC = () => {
                     <h4 className="font-mono text-xs uppercase tracking-widest text-mentha-forest dark:text-mentha-beige">
                         {t.footerResources}
                     </h4>
-                    <ul className="space-y-3">
+                    <ul className="gap-y-3">
                         {[
-                            { name: t.footerBlog, href: '#', soon: true },
-                            { name: t.footerCustomers, href: '#', soon: true },
+                            { name: t.footerBlog, href: '/login', soon: true },
+                            { name: t.footerCustomers, href: '/login', soon: true },
                             {
                                 name: t.footerFreeTool,
                                 href: 'https://github.com/beenruuu/mentha',
                                 isExternal: true,
                             },
-                            { name: t.footerKnowledgeBase, href: '#', soon: true },
-                            { name: t.footerAPIDocs, href: '#', soon: true },
-                            { name: t.footerMCPDocs, href: '#', soon: true },
+                            { name: t.footerKnowledgeBase, href: '/login', soon: true },
+                            { name: t.footerAPIDocs, href: '/login', soon: true },
+                            { name: t.footerMCPDocs, href: '/login', soon: true },
                         ].map((item) => (
                             <li key={item.name} className="flex items-center gap-2">
                                 <a
@@ -154,16 +159,16 @@ const Footer: React.FC = () => {
                     <h4 className="font-mono text-xs uppercase tracking-widest text-mentha-forest dark:text-mentha-beige">
                         {t.footerCompany}
                     </h4>
-                    <ul className="space-y-3">
+                    <ul className="gap-y-3">
                         {[
-                            { name: t.footerAboutUs, soon: true },
-                            { name: t.footerPrivacyPolicy, soon: true },
-                            { name: t.footerTermsOfService, soon: true },
-                            { name: t.footerDataProtection, soon: true },
+                            { name: t.footerAboutUs, href: '/login', soon: true },
+                            { name: t.footerPrivacyPolicy, href: '/login', soon: true },
+                            { name: t.footerTermsOfService, href: '/login', soon: true },
+                            { name: t.footerDataProtection, href: '/login', soon: true },
                         ].map((item) => (
                             <li key={item.name} className="flex items-center gap-2">
                                 <a
-                                    href="#"
+                                    href={item.href}
                                     className="font-sans text-sm text-mentha-forest/70 dark:text-mentha-beige/70 hover:text-mentha-mint hover:translate-x-1 inline-block transition-all"
                                 >
                                     {item.name}

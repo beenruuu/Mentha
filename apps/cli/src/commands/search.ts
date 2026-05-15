@@ -31,13 +31,15 @@ searchCommand
             maxTokens: parseInt(options.maxTokens, 10),
             geo: {},
         };
+        const geo = searchOptions.geo ?? {};
+        searchOptions.geo = geo;
 
         if (options.country) {
-            searchOptions.geo!.country = options.country;
+            geo.country = options.country;
         }
 
         if (options.location) {
-            searchOptions.geo!.location = options.location;
+            geo.location = options.location;
         }
 
         const provider = options.provider as ProviderType;
@@ -88,11 +90,7 @@ searchCommand
             spinner.fail('Search failed');
             console.error(formatter.error((error as Error).message));
             console.log(chalk.yellow('\nTip: Make sure API keys are configured in apps/api/.env'));
-            console.log(
-                chalk.gray(
-                    'Required: OPENROUTER_API_KEY configured in apps/api/.env',
-                ),
-            );
+            console.log(chalk.gray('Required: OPENROUTER_API_KEY configured in apps/api/.env'));
             process.exit(1);
         }
     });

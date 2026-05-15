@@ -30,6 +30,7 @@ export function MetricCard({
     const trendIcons = {
         up: (
             <svg
+                aria-hidden="true"
                 width="12"
                 height="12"
                 viewBox="0 0 12 12"
@@ -43,6 +44,7 @@ export function MetricCard({
         ),
         down: (
             <svg
+                aria-hidden="true"
                 width="12"
                 height="12"
                 viewBox="0 0 12 12"
@@ -85,7 +87,7 @@ export function MetricCard({
                     )}
                 </div>
                 {icon && (
-                    <div className="w-10 h-10 rounded-full bg-mentha-mint/10 flex items-center justify-center text-mentha-mint">
+                    <div className="size-10 rounded-full bg-mentha-mint/10 flex items-center justify-center text-mentha-mint">
                         {icon}
                     </div>
                 )}

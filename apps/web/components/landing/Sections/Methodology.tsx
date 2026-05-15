@@ -54,7 +54,7 @@ const Methodology: React.FC = () => {
                     >
                         <div className="flex justify-between w-full">
                             <span className="font-mono text-xl">{step.id}</span>
-                            <div className="h-2 w-2 bg-mentha-mint rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <div className="size-2 bg-mentha-mint rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
 
                         <div>

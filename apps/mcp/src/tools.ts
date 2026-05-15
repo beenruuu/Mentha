@@ -1,5 +1,4 @@
 import OpenAI from 'openai';
-import { z } from 'zod';
 
 import { menthaClient } from './client';
 
@@ -126,7 +125,9 @@ export const analyzeCitability = async (args: { content: string; brandName: stri
                                 structuredData: 65,
                                 brandEntity: 78,
                             },
-                            recommendations: ['Add citations and schema for stronger QA-readiness.'],
+                            recommendations: [
+                                'Add citations and schema for stronger QA-readiness.',
+                            ],
                         },
                         null,
                         2,

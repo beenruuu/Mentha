@@ -96,22 +96,21 @@ Devuelve SOLO JSON sin explicación:
      * Escanear menciones de marca en plataformas AI
      */
     async scanBrandMentions(brandName: string): Promise<BrandMentionResult[]> {
-        const provider = createProvider('openrouter');
-
         const queries = [
-            'Qué sabes sobre ' + brandName,
-            'Recomiéndame ' + brandName,
-            'Alternativas a ' + brandName,
+            `Qué sabes sobre ${brandName}`,
+            `Recomiéndame ${brandName}`,
+            `Alternativas a ${brandName}`,
         ];
 
         const results: BrandMentionResult[] = [];
         const platforms = ['perplexity', 'openai', 'claude', 'gemini'];
+        const query = queries[0];
 
         for (const platform of platforms) {
             try {
                 const provider = createProvider(platform as ProviderType);
-                if (await provider.testConnection()) {
-                    const response = await provider.search(queries[0]!, {
+                if (query && (await provider.testConnection())) {
+                    const response = await provider.search(query, {
                         temperature: 0.1,
                     });
                     results.push(this.parseBrandMention(response, platform, brandName));
@@ -127,7 +126,7 @@ Devuelve SOLO JSON sin explicación:
     /**
      * Analizar acceso de crawlers AI
      */
-    async analyzeCrawlers(robotsTxt: string, domain: string): Promise<CrawlerAnalysis> {
+    async analyzeCrawlers(robotsTxt: string, _domain: string): Promise<CrawlerAnalysis> {
         const aiCrawlers = [
             'GPTBot',
             'ClaudeBot',
@@ -142,8 +141,6 @@ Devuelve SOLO JSON sin explicación:
 
         const allowed: string[] = [];
         const blocked: string[] = [];
-        const notFound: string[] = [];
-
         for (const crawler of aiCrawlers) {
             const regex = new RegExp(`User-agent:\\s*${crawler}[\\s\\S]*?(?=User-agent:|$)`);
             const match = robotsTxt.match(regex);

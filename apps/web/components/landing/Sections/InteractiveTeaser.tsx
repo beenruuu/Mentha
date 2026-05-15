@@ -6,11 +6,19 @@ import { useState } from 'react';
 
 import { useTranslations } from '@/lib/i18n';
 
+interface TeaserResult {
+    visibilityScore: number;
+    sentiment: string;
+    topAssociation: string;
+    simulationOutput: string;
+    recommendation: string;
+}
+
 const InteractiveTeaser: React.FC = () => {
     const [brand, setBrand] = useState('');
     const [category, setCategory] = useState('');
     const [loading, setLoading] = useState(false);
-    const [result, setResult] = useState<any>(null);
+    const [result, setResult] = useState<TeaserResult | null>(null);
     const { t } = useTranslations();
 
     const handleAnalyze = async (e: React.FormEvent) => {
@@ -55,10 +63,14 @@ const InteractiveTeaser: React.FC = () => {
                     <form onSubmit={handleAnalyze} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="font-mono text-xs uppercase tracking-widest ml-1">
+                                <label
+                                    htmlFor="section-teaser-brand"
+                                    className="font-mono text-xs uppercase tracking-widest ml-1"
+                                >
                                     {t.teaserBrandLabel}
                                 </label>
                                 <input
+                                    id="section-teaser-brand"
                                     type="text"
                                     value={brand}
                                     onChange={(e) => setBrand(e.target.value)}
@@ -67,10 +79,14 @@ const InteractiveTeaser: React.FC = () => {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="font-mono text-xs uppercase tracking-widest ml-1">
+                                <label
+                                    htmlFor="section-teaser-category"
+                                    className="font-mono text-xs uppercase tracking-widest ml-1"
+                                >
                                     {t.teaserCategoryLabel}
                                 </label>
                                 <input
+                                    id="section-teaser-category"
                                     type="text"
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value)}
@@ -84,7 +100,7 @@ const InteractiveTeaser: React.FC = () => {
                             <button
                                 disabled={loading}
                                 type="submit"
-                                className="bg-mentha-mint text-mentha-dark px-8 py-4 font-mono text-sm font-bold uppercase tracking-widest hover:bg-mentha-mint/90 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="bg-mentha-mint text-mentha-dark px-8 py-4 font-mono text-sm font-semibold uppercase tracking-widest hover:bg-mentha-mint/90 transition-colors flex items-center gap-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? <Loader2 className="animate-spin" /> : <Cpu size={16} />}
                                 <span>{loading ? t.teaserBtnLoading : t.teaserBtnRun}</span>

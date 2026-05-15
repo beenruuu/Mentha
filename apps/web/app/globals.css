@@ -17,6 +17,17 @@ html.dark {
     @apply transition-colors duration-300;
 }
 
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
 /* But exclude elements where transitions might cause issues */
 input,
 textarea,

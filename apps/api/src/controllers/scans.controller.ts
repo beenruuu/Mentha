@@ -5,6 +5,12 @@ import { BadRequestException, handleHttpException } from '../exceptions/http';
 import { getScanService } from '../services/scan.service';
 
 const scanService = getScanService();
+const validModes = ['browser', 'api', 'hybrid'] as const;
+type ScanExecutionMode = (typeof validModes)[number];
+
+function isScanExecutionMode(value: string): value is ScanExecutionMode {
+    return validModes.includes(value as ScanExecutionMode);
+}
 
 export const ScanController = {
     list: async (c: Context) => {
@@ -36,6 +42,9 @@ export const ScanController = {
 
     getById: async (c: Context) => {
         const id = c.req.param('id');
+        if (!id) {
+            throw new BadRequestException('Scan id is required');
+        }
 
         try {
             const result = await scanService.getResultById(id);
@@ -59,10 +68,7 @@ export const ScanController = {
             throw new BadRequestException('project_id is required');
         }
 
-        const validModes = ['browser', 'api', 'hybrid'] as const;
-        const executionMode = mode && validModes.includes(mode as any)
-            ? (mode as 'browser' | 'api' | 'hybrid')
-            : undefined;
+        const executionMode = mode && isScanExecutionMode(mode) ? mode : undefined;
 
         try {
             const result = await scanService.triggerProjectScan(project_id, executionMode);

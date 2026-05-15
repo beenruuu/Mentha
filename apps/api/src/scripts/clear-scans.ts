@@ -1,6 +1,7 @@
 import 'dotenv/config';
+
 import { db } from '../db/index';
-import { scanRuns, scanJobs, scanResults, citations } from '../db/schema/core';
+import { citations, scanJobs, scanResults, scanRuns } from '../db/schema/core';
 
 async function main() {
     console.log('Clearing scan data...');

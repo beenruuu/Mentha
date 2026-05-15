@@ -54,13 +54,18 @@ const Services: React.FC = () => {
                             </p>
 
                             {/* Abstract Viz Placeholder */}
-                            <div className="w-full h-32 border border-mentha-forest dark:border-mentha-beige border-opacity-30 p-2 flex items-end space-x-1">
-                                {Array.from({ length: 12 }).map((_, i) => (
+                            <div className="w-full h-32 border border-mentha-forest dark:border-mentha-beige border-opacity-30 p-2 flex items-end gap-x-1">
+                                {Array.from({ length: 12 }, (_, barIndex) => ({
+                                    key: `${service.id}-bar-${barIndex}`,
+                                    height: barHeights[
+                                        (serviceIndex * 12 + barIndex) % barHeights.length
+                                    ],
+                                })).map((bar) => (
                                     <div
-                                        key={i}
+                                        key={bar.key}
                                         className="flex-1 bg-current opacity-20 group-hover:bg-mentha-mint transition-all duration-500"
                                         style={{
-                                            height: `${barHeights[(serviceIndex * 12 + i) % barHeights.length]}%`,
+                                            height: `${bar.height}%`,
                                         }}
                                     ></div>
                                 ))}

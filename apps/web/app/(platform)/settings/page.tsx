@@ -1,11 +1,11 @@
 'use client';
 
 import { Eye, EyeOff, Moon, Sun } from 'lucide-react';
-import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProject } from '@/context/ProjectContext';
+import { useThemeSync } from '@/hooks/useThemeSync';
 
 interface ApiKeyInfo {
     id: string;
@@ -16,12 +16,8 @@ interface ApiKeyInfo {
 
 export default function SettingsPage() {
     const { selectedProject, projects } = useProject();
-    const { theme, setTheme } = useTheme();
-    const [mounted, setMounted] = useState(false);
-    const [formData, setFormData] = useState({
-        name: '',
-        domain: '',
-    });
+    const { theme, setTheme, mounted } = useThemeSync();
+    const [formData, setFormData] = useState({ name: '', domain: '' });
     const [apiKey, setApiKey] = useState('');
     const [showKey, setShowKey] = useState(false);
     const [savedKey, setSavedKey] = useState<ApiKeyInfo | null>(null);
@@ -33,10 +29,6 @@ export default function SettingsPage() {
         error?: string;
     } | null>(null);
     const [apiKeyError, setApiKeyError] = useState('');
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     useEffect(() => {
         if (selectedProject) {
@@ -223,7 +215,7 @@ export default function SettingsPage() {
                                     Status
                                 </span>
                                 <span className="flex items-center gap-2 font-mono text-xs text-mentha-mint">
-                                    <span className="w-2 h-2 rounded-full bg-mentha-mint" />
+                                    <span className="size-2 rounded-full bg-mentha-mint" />
                                     Active
                                 </span>
                             </div>
@@ -232,7 +224,7 @@ export default function SettingsPage() {
                                     Database
                                 </span>
                                 <span className="flex items-center gap-2 font-mono text-xs text-mentha-mint">
-                                    <span className="w-2 h-2 rounded-full bg-mentha-mint" />
+                                    <span className="size-2 rounded-full bg-mentha-mint" />
                                     Connected
                                 </span>
                             </div>
@@ -255,9 +247,9 @@ export default function SettingsPage() {
                     <CardContent>
                         {selectedProject?.competitors && selectedProject.competitors.length > 0 ? (
                             <div className="flex flex-wrap gap-2">
-                                {selectedProject.competitors.map((competitor, index) => (
+                                {competitorsWithKeys.map(({ competitor, key }) => (
                                     <span
-                                        key={`${competitor}-${index}`}
+                                        key={key}
                                         className="inline-flex items-center px-3 py-1 rounded-full font-sans text-sm bg-mentha-forest/5 dark:bg-white/5 text-mentha-forest/70 dark:text-mentha-beige/70"
                                     >
                                         {competitor}
@@ -279,7 +271,10 @@ export default function SettingsPage() {
                     <CardContent>
                         <div className="space-y-4">
                             <div>
-                                <label className="block font-mono text-xs uppercase tracking-widest text-mentha-forest/60 dark:text-mentha-beige/60 mb-1">
+                                <label
+                                    htmlFor="openrouter-api-key"
+                                    className="block font-mono text-xs uppercase tracking-widest text-mentha-forest/60 dark:text-mentha-beige/60 mb-1"
+                                >
                                     OpenRouter
                                 </label>
                                 <p className="font-sans text-xs text-mentha-forest/40 dark:text-mentha-beige/40 mb-3">
@@ -288,11 +283,12 @@ export default function SettingsPage() {
                                 </p>
                                 {savedKey && (
                                     <div className="flex items-center gap-2 mb-3 px-4 py-2 rounded-xl bg-mentha-mint/5 border border-mentha-mint/20">
-                                        <span className="w-2 h-2 rounded-full bg-mentha-mint" />
+                                        <span className="size-2 rounded-full bg-mentha-mint" />
                                         <span className="font-mono text-xs text-mentha-mint">
                                             Key saved: {savedKey.key_preview || '********'}
                                         </span>
                                         <button
+                                            type="button"
                                             onClick={handleRemoveApiKey}
                                             className="ml-auto font-mono text-[10px] uppercase tracking-wider text-red-400 hover:text-red-300 transition-colors"
                                         >
@@ -303,6 +299,7 @@ export default function SettingsPage() {
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">
                                         <input
+                                            id="openrouter-api-key"
                                             type={showKey ? 'text' : 'password'}
                                             value={apiKey}
                                             onChange={(e) => setApiKey(e.target.value)}
@@ -322,6 +319,7 @@ export default function SettingsPage() {
                                         </button>
                                     </div>
                                     <button
+                                        type="button"
                                         onClick={handleSaveApiKey}
                                         disabled={saving || !apiKey.trim()}
                                         className="px-6 py-3 rounded-xl bg-mentha-forest dark:bg-mentha-beige text-white dark:text-mentha-forest font-sans text-sm transition-colors hover:opacity-90 disabled:opacity-40 whitespace-nowrap"
@@ -330,6 +328,7 @@ export default function SettingsPage() {
                                     </button>
                                     {savedKey && (
                                         <button
+                                            type="button"
                                             onClick={handleTestApiKey}
                                             disabled={testing}
                                             className="px-4 py-3 rounded-xl border border-mentha-forest/20 dark:border-mentha-beige/20 font-sans text-sm transition-colors hover:bg-mentha-forest/5 dark:hover:bg-white/5 whitespace-nowrap"
@@ -375,6 +374,7 @@ export default function SettingsPage() {
                                 </p>
                             </div>
                             <button
+                                type="button"
                                 onClick={async () => {
                                     if (!selectedProject) return;
                                     if (
@@ -388,7 +388,7 @@ export default function SettingsPage() {
                                                 method: 'DELETE',
                                             });
                                             window.location.href = '/dashboard';
-                                        } catch (err) {
+                                        } catch {
                                             alert('Failed to delete project');
                                         }
                                     }

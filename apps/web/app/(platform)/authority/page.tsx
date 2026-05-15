@@ -25,6 +25,13 @@ interface CitationData {
     is_competitor_domain: boolean;
 }
 
+interface CitationDomainResponse {
+    domain: string;
+    count: number;
+    is_brand?: boolean;
+    is_competitor?: boolean;
+}
+
 export default function AuthorityPage() {
     const { selectedProject } = useProject();
     const [domains, setDomains] = useState<DomainData[]>([]);
@@ -41,12 +48,14 @@ export default function AuthorityPage() {
                     `/dashboard/citations?project_id=${selectedProject?.id}`,
                 );
                 // Map snake_case API fields to camelCase for component
-                const mappedDomains = (response.data || []).map((d: any) => ({
-                    domain: d.domain,
-                    count: d.count,
-                    isBrand: d.is_brand ?? false,
-                    isCompetitor: d.is_competitor ?? false,
-                }));
+                const mappedDomains = ((response.data || []) as CitationDomainResponse[]).map(
+                    (d) => ({
+                        domain: d.domain,
+                        count: d.count,
+                        isBrand: d.is_brand ?? false,
+                        isCompetitor: d.is_competitor ?? false,
+                    }),
+                );
                 setDomains(mappedDomains);
                 setCitations(response.raw || []);
             } catch (error) {
@@ -83,6 +92,7 @@ export default function AuthorityPage() {
                     trend="up"
                     icon={
                         <svg
+                            aria-hidden="true"
                             width="20"
                             height="20"
                             viewBox="0 0 24 24"
@@ -102,6 +112,7 @@ export default function AuthorityPage() {
                     trend="up"
                     icon={
                         <svg
+                            aria-hidden="true"
                             width="20"
                             height="20"
                             viewBox="0 0 24 24"
@@ -122,6 +133,7 @@ export default function AuthorityPage() {
                     trend="neutral"
                     icon={
                         <svg
+                            aria-hidden="true"
                             width="20"
                             height="20"
                             viewBox="0 0 24 24"
@@ -140,6 +152,7 @@ export default function AuthorityPage() {
                     trend="neutral"
                     icon={
                         <svg
+                            aria-hidden="true"
                             width="20"
                             height="20"
                             viewBox="0 0 24 24"
@@ -163,20 +176,17 @@ export default function AuthorityPage() {
                     </CardHeader>
                     <CardContent>
                         {loading ? (
-                            <div className="space-y-3">
-                                {[1, 2, 3].map((i) => (
-                                    <div
-                                        key={i}
-                                        className="h-8 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse"
-                                    />
-                                ))}
+                            <div className="gap-y-3">
+                                <div className="h-8 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse" />
+                                <div className="h-8 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse" />
+                                <div className="h-8 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse" />
                             </div>
                         ) : domains.length === 0 ? (
                             <p className="font-sans text-sm text-mentha-forest/60 dark:text-mentha-beige/60 text-center py-8">
                                 No domains recorded yet
                             </p>
                         ) : (
-                            <div className="space-y-3">
+                            <div className="gap-y-3">
                                 {domains.slice(0, 10).map((domain) => (
                                     <div
                                         key={domain.domain}
@@ -184,7 +194,7 @@ export default function AuthorityPage() {
                                     >
                                         <div className="flex items-center gap-2">
                                             <span
-                                                className={`w-2 h-2 rounded-full ${domain.isBrand ? 'bg-blue-500' : domain.isCompetitor ? 'bg-red-500' : 'bg-mentha-mint'}`}
+                                                className={`size-2 rounded-full ${domain.isBrand ? 'bg-blue-500' : domain.isCompetitor ? 'bg-red-500' : 'bg-mentha-mint'}`}
                                             />
                                             <span className="font-serif text-sm text-mentha-forest dark:text-mentha-beige">
                                                 {domain.domain}
@@ -216,12 +226,9 @@ export default function AuthorityPage() {
                         <CardContent>
                             {loading ? (
                                 <div className="space-y-4">
-                                    {[1, 2, 3].map((i) => (
-                                        <div
-                                            key={i}
-                                            className="h-20 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse"
-                                        />
-                                    ))}
+                                    <div className="h-20 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse" />
+                                    <div className="h-20 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse" />
+                                    <div className="h-20 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse" />
                                 </div>
                             ) : citations.length === 0 ? (
                                 <p className="font-sans text-sm text-mentha-forest/60 dark:text-mentha-beige/60 text-center py-8">

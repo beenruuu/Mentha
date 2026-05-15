@@ -13,6 +13,7 @@ const navItems = [
         href: '/dashboard',
         icon: (
             <svg
+                aria-hidden="true"
                 width="18"
                 height="18"
                 viewBox="0 0 24 24"
@@ -34,6 +35,7 @@ const navItems = [
         href: '/keywords',
         icon: (
             <svg
+                aria-hidden="true"
                 width="18"
                 height="18"
                 viewBox="0 0 24 24"
@@ -53,6 +55,7 @@ const navItems = [
         href: '/authority',
         icon: (
             <svg
+                aria-hidden="true"
                 width="18"
                 height="18"
                 viewBox="0 0 24 24"
@@ -71,6 +74,7 @@ const navItems = [
         href: '/optimization',
         icon: (
             <svg
+                aria-hidden="true"
                 width="18"
                 height="18"
                 viewBox="0 0 24 24"
@@ -92,6 +96,7 @@ const navItems = [
         locked: true,
         icon: (
             <svg
+                aria-hidden="true"
                 width="18"
                 height="18"
                 viewBox="0 0 24 24"
@@ -110,6 +115,7 @@ const navItems = [
         href: '/billing',
         icon: (
             <svg
+                aria-hidden="true"
                 width="18"
                 height="18"
                 viewBox="0 0 24 24"
@@ -129,6 +135,7 @@ const navItems = [
         href: '/settings',
         icon: (
             <svg
+                aria-hidden="true"
                 width="18"
                 height="18"
                 viewBox="0 0 24 24"
@@ -187,7 +194,7 @@ export function Sidebar() {
                     {/* Botón para colapsar/expandir sidebar */}
                     <button
                         type="button"
-                        className="ml-auto w-8 h-8 flex items-center justify-center rounded-lg hover:bg-mentha-forest/5 dark:hover:bg-white/5 transition-colors text-mentha-forest dark:text-mentha-beige"
+                        className="ml-auto size-8 flex items-center justify-center rounded-lg hover:bg-mentha-forest/5 dark:hover:bg-white/5 transition-colors text-mentha-forest dark:text-mentha-beige"
                         aria-label={isCollapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
                         onClick={toggle}
                     >
@@ -195,6 +202,7 @@ export function Sidebar() {
                         {isCollapsed ? (
                             // Icono de expandir (flecha a la derecha)
                             <svg
+                                aria-hidden="true"
                                 width="20"
                                 height="20"
                                 viewBox="0 0 20 20"
@@ -208,6 +216,7 @@ export function Sidebar() {
                         ) : (
                             // Icono de colapsar (flecha a la izquierda)
                             <svg
+                                aria-hidden="true"
                                 width="20"
                                 height="20"
                                 viewBox="0 0 20 20"

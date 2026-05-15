@@ -44,12 +44,10 @@ export function MetricCards() {
     if (loading) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map((i) => (
-                    <div
-                        key={i}
-                        className="h-32 rounded-2xl bg-mentha-forest/5 dark:bg-white/5 animate-pulse"
-                    />
-                ))}
+                <div className="h-32 rounded-2xl bg-mentha-forest/5 dark:bg-white/5 animate-pulse" />
+                <div className="h-32 rounded-2xl bg-mentha-forest/5 dark:bg-white/5 animate-pulse" />
+                <div className="h-32 rounded-2xl bg-mentha-forest/5 dark:bg-white/5 animate-pulse" />
+                <div className="h-32 rounded-2xl bg-mentha-forest/5 dark:bg-white/5 animate-pulse" />
             </div>
         );
     }
@@ -75,6 +73,7 @@ export function MetricCards() {
                 trend="up"
                 icon={
                     <svg
+                        aria-hidden="true"
                         width="20"
                         height="20"
                         viewBox="0 0 24 24"
@@ -98,6 +97,7 @@ export function MetricCards() {
                 trend="up"
                 icon={
                     <svg
+                        aria-hidden="true"
                         width="20"
                         height="20"
                         viewBox="0 0 24 24"
@@ -117,6 +117,7 @@ export function MetricCards() {
                 trend={summary?.avgSentiment && summary.avgSentiment > 0.5 ? 'up' : 'neutral'}
                 icon={
                     <svg
+                        aria-hidden="true"
                         width="20"
                         height="20"
                         viewBox="0 0 24 24"
@@ -142,6 +143,7 @@ export function MetricCards() {
                 trend="up"
                 icon={
                     <svg
+                        aria-hidden="true"
                         width="20"
                         height="20"
                         viewBox="0 0 24 24"

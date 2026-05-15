@@ -1,9 +1,11 @@
 import JSZip from 'jszip';
 
+type ExportRow = Record<string, unknown>;
+
 /**
  * Convert data array to CSV string
  */
-function convertToCSVString(data: any[]): string {
+function convertToCSVString(data: ExportRow[]): string {
     if (!data || data.length === 0) return '';
 
     const headers = Array.from(new Set(data.flatMap((obj) => Object.keys(obj))));
@@ -32,7 +34,10 @@ function convertToCSVString(data: any[]): string {
 /**
  * Utility to export multiple datasets to a single ZIP file containing CSVs
  */
-export async function exportToZIP(datasets: { data: any[]; name: string }[], zipFilename: string) {
+export async function exportToZIP(
+    datasets: { data: ExportRow[]; name: string }[],
+    zipFilename: string,
+) {
     const zip = new JSZip();
 
     for (const dataset of datasets) {
@@ -57,7 +62,7 @@ export async function exportToZIP(datasets: { data: any[]; name: string }[], zip
 /**
  * Utility to export data to CSV (single file)
  */
-export function exportToCSV(data: any[], filename: string) {
+export function exportToCSV(data: ExportRow[], filename: string) {
     const csvContent = convertToCSVString(data);
     if (!csvContent) return;
 

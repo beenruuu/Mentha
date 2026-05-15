@@ -52,85 +52,77 @@ configCommand
             }),
     )
     .addCommand(
-        new Command('show')
-            .description('Show current API key status')
-            .action(async () => {
-                const spinner = ora('Fetching API keys...').start();
-                try {
-                    const result = await apiCall<{ data: ApiKeyInfo[] }>(
-                        client.api.v1.settings['api-keys'].$get(),
-                    );
-                    spinner.stop();
-
-                    const keys = Array.isArray(result) ? result : result.data;
-                    const orKey = (keys || []).find(
-                        (k: ApiKeyInfo) => k.provider === 'openrouter',
-                    );
-
-                    if (orKey) {
-                        console.log(formatter.success('OpenRouter API key configured:'));
-                        console.log(`  Preview:    ${chalk.cyan(orKey.key_preview || '********')}`);
-                        console.log(`  Active:     ${chalk.green('✓')}`);
-                        console.log(`  Updated:    ${chalk.gray(orKey.updated_at || 'unknown')}`);
-                    } else {
-                        console.log(
-                            chalk.yellow('No OpenRouter API key configured. Using server default.'),
-                        );
-                    }
-                } catch (error) {
-                    spinner.fail('Failed to fetch API keys');
-                    console.error(formatter.error((error as Error).message));
-                    process.exit(1);
-                }
-            }),
-    )
-    .addCommand(
-        new Command('test')
-            .description('Test the configured API key')
-            .action(async () => {
-                const spinner = ora('Testing API key...').start();
-                try {
-                    const result = await apiCall<{ valid: boolean; label?: string }>(
-                        client.api.v1.settings['api-keys'].test.$post({
-                            json: { provider: 'openrouter' },
-                        }),
-                    );
-                    spinner.stop();
-
-                    if (result.valid) {
-                        console.log(formatter.success(`✓ Key valid: ${result.label || 'OpenRouter'}`));
-                    } else {
-                        console.error(formatter.error('Key rejected by OpenRouter'));
-                    }
-                } catch (error) {
-                    spinner.fail('Test failed');
-                    console.error(formatter.error((error as Error).message));
-                    process.exit(1);
-                }
-            }),
-    )
-    .addCommand(
-        new Command('remove')
-            .description('Remove the configured API key')
-            .action(async () => {
-                const confirm = await prompt.confirm(
-                    'Remove your OpenRouter API key? Scans will use the server default.',
+        new Command('show').description('Show current API key status').action(async () => {
+            const spinner = ora('Fetching API keys...').start();
+            try {
+                const result = await apiCall<{ data: ApiKeyInfo[] }>(
+                    client.api.v1.settings['api-keys'].$get(),
                 );
-                if (!confirm) {
-                    console.log(chalk.gray('Cancelled'));
-                    return;
-                }
+                spinner.stop();
 
-                const spinner = ora('Removing API key...').start();
-                try {
-                    await client.api.v1.settings['api-keys'][':provider'].$delete({
-                        param: { provider: 'openrouter' },
-                    });
-                    spinner.succeed('API key removed');
-                } catch (error) {
-                    spinner.fail('Failed to remove API key');
-                    console.error(formatter.error((error as Error).message));
-                    process.exit(1);
+                const keys = Array.isArray(result) ? result : result.data;
+                const orKey = (keys || []).find((k: ApiKeyInfo) => k.provider === 'openrouter');
+
+                if (orKey) {
+                    console.log(formatter.success('OpenRouter API key configured:'));
+                    console.log(`  Preview:    ${chalk.cyan(orKey.key_preview || '********')}`);
+                    console.log(`  Active:     ${chalk.green('✓')}`);
+                    console.log(`  Updated:    ${chalk.gray(orKey.updated_at || 'unknown')}`);
+                } else {
+                    console.log(
+                        chalk.yellow('No OpenRouter API key configured. Using server default.'),
+                    );
                 }
-            }),
+            } catch (error) {
+                spinner.fail('Failed to fetch API keys');
+                console.error(formatter.error((error as Error).message));
+                process.exit(1);
+            }
+        }),
+    )
+    .addCommand(
+        new Command('test').description('Test the configured API key').action(async () => {
+            const spinner = ora('Testing API key...').start();
+            try {
+                const result = await apiCall<{ valid: boolean; label?: string }>(
+                    client.api.v1.settings['api-keys'].test.$post({
+                        json: { provider: 'openrouter' },
+                    }),
+                );
+                spinner.stop();
+
+                if (result.valid) {
+                    console.log(formatter.success(`✓ Key valid: ${result.label || 'OpenRouter'}`));
+                } else {
+                    console.error(formatter.error('Key rejected by OpenRouter'));
+                }
+            } catch (error) {
+                spinner.fail('Test failed');
+                console.error(formatter.error((error as Error).message));
+                process.exit(1);
+            }
+        }),
+    )
+    .addCommand(
+        new Command('remove').description('Remove the configured API key').action(async () => {
+            const confirm = await prompt.confirm(
+                'Remove your OpenRouter API key? Scans will use the server default.',
+            );
+            if (!confirm) {
+                console.log(chalk.gray('Cancelled'));
+                return;
+            }
+
+            const spinner = ora('Removing API key...').start();
+            try {
+                await client.api.v1.settings['api-keys'][':provider'].$delete({
+                    param: { provider: 'openrouter' },
+                });
+                spinner.succeed('API key removed');
+            } catch (error) {
+                spinner.fail('Failed to remove API key');
+                console.error(formatter.error((error as Error).message));
+                process.exit(1);
+            }
+        }),
     );

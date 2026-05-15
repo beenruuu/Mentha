@@ -1,7 +1,7 @@
 import { createAuthClient } from 'better-auth/react';
 
 const authClient = createAuthClient({
-    baseURL: (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1') + '/auth',
+    baseURL: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/auth`,
     user: {
         additionalFields: {
             role: {

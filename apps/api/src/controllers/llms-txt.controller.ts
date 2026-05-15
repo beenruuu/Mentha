@@ -1,6 +1,7 @@
 import type { Context } from 'hono';
 
 import { logger } from '../core/logger';
+import { BadRequestException } from '../exceptions/http';
 import { getLlmsTxtService } from '../services/llms-txt.service';
 
 const llmsTxtService = getLlmsTxtService();
@@ -62,7 +63,9 @@ export const LlmsTxtController = {
 
     generateArtifact: async (c: Context) => {
         try {
-            const artifact = await llmsTxtService.generateArtifact(c.req.param('name'));
+            const name = c.req.param('name');
+            if (!name) throw new BadRequestException('Artifact name is required');
+            const artifact = await llmsTxtService.generateArtifact(name);
             if (!artifact) {
                 return c.json({ error: 'Unknown AI-readable artifact' }, 404);
             }
@@ -117,7 +120,9 @@ export const LlmsTxtController = {
 
     getFrameworkAdapter: async (c: Context) => {
         try {
-            const adapter = llmsTxtService.getFrameworkAdapter(c.req.param('name'));
+            const name = c.req.param('name');
+            if (!name) throw new BadRequestException('Framework adapter name is required');
+            const adapter = llmsTxtService.getFrameworkAdapter(name);
             if (!adapter) return c.json({ error: 'Unknown framework adapter' }, 404);
             return c.json({ data: adapter });
         } catch (error) {

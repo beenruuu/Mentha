@@ -134,7 +134,10 @@ export class DomainService {
             throw new NotFoundException('Domain not found');
         }
 
-        const domainRecord = domainData[0]!;
+        const domainRecord = domainData[0];
+        if (!domainRecord) {
+            throw new NotFoundException('Domain not found');
+        }
         const verificationToken = domainRecord.verification_token;
         const method = domainRecord.verification_method;
 
@@ -187,7 +190,11 @@ export class DomainService {
             throw new NotFoundException('Domain not found');
         }
 
-        return domainData[0]!;
+        const domainRecord = domainData[0];
+        if (!domainRecord) {
+            throw new NotFoundException('Domain not found');
+        }
+        return domainRecord;
     }
 
     async create(data: InsertDomain): Promise<Domain> {

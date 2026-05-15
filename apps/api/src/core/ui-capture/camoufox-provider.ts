@@ -1,14 +1,13 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-
 import type { Browser, BrowserContext, Page } from 'playwright';
 
 import { env } from '../../config/env';
 import { logger } from '../../core/logger';
-import { PROVIDER_CONFIGS } from './providers/index';
 import { readProviderStorageState } from './provider-sessions';
+import { PROVIDER_CONFIGS } from './providers/index';
 import { trySubmitStrategies } from './submit-strategies';
-import { type UiCaptureRequest, type UiCaptureResult } from './types';
+import type { UiCaptureRequest, UiCaptureResult } from './types';
 
 const execFileAsync = promisify(execFile);
 
@@ -191,11 +190,7 @@ function toPrimitiveRecord(value: unknown): Record<string, PrimitiveLaunchValue>
 
     const result: Record<string, PrimitiveLaunchValue> = {};
     for (const [key, item] of Object.entries(value)) {
-        if (
-            typeof item === 'string' ||
-            typeof item === 'number' ||
-            typeof item === 'boolean'
-        ) {
+        if (typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean') {
             result[key] = item;
         }
     }
@@ -331,7 +326,9 @@ async function extractFallbackSources(page: Page) {
     );
 }
 
-async function classifyCapture(page: Page): Promise<Pick<UiCaptureResult, 'status' | 'failureReason'>> {
+async function classifyCapture(
+    page: Page,
+): Promise<Pick<UiCaptureResult, 'status' | 'failureReason'>> {
     const currentUrl = page.url().toLowerCase();
     const text = await page
         .locator('body')
@@ -435,9 +432,11 @@ export async function runCamoufoxUiCapture(request: UiCaptureRequest): Promise<U
         const captureStatus = await classifyCapture(page);
 
         if (request.screenshotPath) {
-            await page.screenshot({ path: request.screenshotPath, fullPage: true }).catch((error) => {
-                logger.warn({ error: (error as Error).message }, 'Screenshot capture failed');
-            });
+            await page
+                .screenshot({ path: request.screenshotPath, fullPage: true })
+                .catch((error) => {
+                    logger.warn({ error: (error as Error).message }, 'Screenshot capture failed');
+                });
         }
 
         const latencyMs = Date.now() - start;

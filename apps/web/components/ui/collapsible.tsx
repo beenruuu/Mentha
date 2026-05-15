@@ -14,6 +14,7 @@ export function Collapsible({ title, children, defaultOpen = false }: Collapsibl
     return (
         <div className="border border-mentha-forest/10 dark:border-mentha-beige/10 rounded-xl overflow-hidden">
             <button
+                type="button"
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full flex items-center justify-between px-4 py-3 bg-mentha-forest/5 dark:bg-white/5 hover:bg-mentha-forest/10 dark:hover:bg-white/10 transition-colors"
             >
@@ -21,6 +22,7 @@ export function Collapsible({ title, children, defaultOpen = false }: Collapsibl
                     {title}
                 </p>
                 <svg
+                    aria-hidden="true"
                     className={`w-4 h-4 text-mentha-forest/60 dark:text-mentha-beige/60 transition-transform ${
                         isOpen ? 'rotate-180' : ''
                     }`}

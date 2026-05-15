@@ -4,12 +4,12 @@ import { dirname, join } from 'node:path';
 import { promisify } from 'node:util';
 
 import { env } from '../../config/env';
-import { type UiCaptureRequest, type UiCaptureResult } from './types';
+import type { UiCaptureRequest, UiCaptureResult } from './types';
 
 const execFileAsync = promisify(execFile);
 const CAMOUFOX_OPTIONS_TIMEOUT_MS = 30_000;
 
-const CAMOUFOX_OPTIONS_SCRIPT = String.raw`
+const CAMOUFOX_OPTIONS_SCRIPT = `
 import json
 import os
 import sys

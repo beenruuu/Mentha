@@ -44,9 +44,9 @@ export function TopBrands() {
                     <CardTitle>Top Brands (SOV)</CardTitle>
                 </CardHeader>
                 <div className="space-y-4 p-6">
-                    {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded" />
-                    ))}
+                    <div className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded" />
+                    <div className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded" />
+                    <div className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded" />
                 </div>
             </Card>
         );
@@ -67,13 +67,13 @@ export function TopBrands() {
                         {brands.map((brand, index) => (
                             <div key={brand.name} className="flex items-center">
                                 {brand.domain ? (
-                                    <div className="w-8 h-8 rounded-lg bg-mentha-mint/10 border border-mentha-mint/20 flex items-center justify-center mr-4 shadow-sm">
-                                        <span className="font-mono font-bold text-[10px] uppercase text-mentha-mint">
+                                    <div className="size-8 rounded-lg bg-mentha-mint/10 border border-mentha-mint/20 flex items-center justify-center mr-4 shadow-sm">
+                                        <span className="font-mono font-semibold text-[10px] uppercase text-mentha-mint">
                                             {brand.name.substring(0, 2)}
                                         </span>
                                     </div>
                                 ) : (
-                                    <div className="w-8 h-8 rounded-lg bg-mentha-forest/10 dark:bg-white/10 flex items-center justify-center font-mono font-bold text-[10px] mr-4 opacity-40">
+                                    <div className="size-8 rounded-lg bg-mentha-forest/10 dark:bg-white/10 flex items-center justify-center font-mono font-semibold text-[10px] mr-4 opacity-40">
                                         #{index + 1}
                                     </div>
                                 )}

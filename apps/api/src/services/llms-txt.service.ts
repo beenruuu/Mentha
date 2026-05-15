@@ -172,17 +172,22 @@ export class LlmsTxtService {
                 throw new Error('Entity not found');
             }
 
+            const selectedEntity = entity[0];
+            if (!selectedEntity) {
+                throw new Error('Entity not found');
+            }
+
             entitiesData = entity;
             claimsData = await db
                 .select()
                 .from(claims)
-                .where(eq(claims.entity_id, entity[0]!.id))
+                .where(eq(claims.entity_id, selectedEntity.id))
                 .orderBy(desc(claims.importance));
 
             faqsData = await db
                 .select()
                 .from(faqVectors)
-                .where(eq(faqVectors.entity_id, entity[0]!.id))
+                .where(eq(faqVectors.entity_id, selectedEntity.id))
                 .orderBy(desc(faqVectors.view_count));
         } else {
             const fullData = await this.generateFull();
@@ -268,7 +273,10 @@ export class LlmsTxtService {
         files: string[];
         instructions: string[];
     }> {
-        return FRAMEWORK_ADAPTERS.map((name) => this.getFrameworkAdapter(name)!);
+        return FRAMEWORK_ADAPTERS.map((name) => this.getFrameworkAdapter(name)).filter(
+            (adapter): adapter is NonNullable<ReturnType<typeof this.getFrameworkAdapter>> =>
+                adapter !== null,
+        );
     }
 
     getFrameworkAdapter(name: string): {

@@ -149,18 +149,20 @@ export class OpenRouterProvider implements ISearchProvider {
 
             // Fallback to Markdown URL extraction if no explicit citations found
             if (extractedCitations.length === 0) {
-                const urlRegex = /\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g;
-                let match: RegExpExecArray | null;
+                const urlRegex = /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g;
+                let match = urlRegex.exec(content);
                 let pos = 1;
-                while ((match = urlRegex.exec(content)) !== null) {
+                while (match !== null) {
                     try {
                         const url = match[2];
                         if (!url || extractedCitations.find((citation) => citation.url === url)) {
+                            match = urlRegex.exec(content);
                             continue;
                         }
                         const domain = new URL(url).hostname.replace(/^www\./, '');
                         extractedCitations.push({ position: pos++, url, domain, title: match[1] });
                     } catch {}
+                    match = urlRegex.exec(content);
                 }
             }
 

@@ -1,19 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Line, LineChart, ResponsiveContainer, YAxis } from 'recharts';
+import { useCallback, useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { useProject } from '@/context/ProjectContext';
 import { fetchFromApi } from '@/lib/api';
 import { AddKeywordModal } from './add-keyword-modal';
@@ -38,7 +29,7 @@ export function KeywordsTable() {
     const [showAddModal, setShowAddModal] = useState(false);
     const [expandedId, setExpandedId] = useState<string | null>(null);
 
-    const loadKeywords = async () => {
+    const loadKeywords = useCallback(async () => {
         if (!selectedProject?.id) return;
 
         setLoading(true);
@@ -52,11 +43,11 @@ export function KeywordsTable() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [selectedProject?.id]);
 
     useEffect(() => {
         loadKeywords();
-    }, [selectedProject?.id]);
+    }, [loadKeywords]);
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to delete this keyword?')) return;
@@ -85,32 +76,6 @@ export function KeywordsTable() {
         commercial: 'bg-orange-100/50 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400',
     };
 
-    const renderTrend = (trendData: number[] | undefined) => {
-        if (!trendData || trendData.length === 0)
-            return <span className="text-xs text-mentha-forest/40">No data</span>;
-
-        const data = trendData.map((v, i) => ({ val: v, index: i }));
-        const color = trendData[trendData.length - 1] > 50 ? '#22c55e' : '#ef4444';
-
-        return (
-            <div className="h-8 w-24">
-                <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={data}>
-                        <YAxis domain={[0, 100]} hide />
-                        <Line
-                            type="monotone"
-                            dataKey="val"
-                            stroke={color}
-                            strokeWidth={2}
-                            dot={false}
-                            isAnimationActive={false}
-                        />
-                    </LineChart>
-                </ResponsiveContainer>
-            </div>
-        );
-    };
-
     return (
         <>
             <Card>
@@ -134,13 +99,10 @@ export function KeywordsTable() {
                     </div>
 
                     {loading ? (
-                        <div className="space-y-3">
-                            {[1, 2, 3].map((i) => (
-                                <div
-                                    key={i}
-                                    className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse"
-                                />
-                            ))}
+                        <div className="gap-y-3">
+                            <div className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse" />
+                            <div className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse" />
+                            <div className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse" />
                         </div>
                     ) : filteredKeywords.length === 0 ? (
                         <div className="text-center py-12">
@@ -190,7 +152,7 @@ export function KeywordsTable() {
                                     </button>
 
                                     {expandedId === kw.id && (
-                                        <div className="ml-3 mt-2 p-3 rounded-lg bg-mentha-forest/5 dark:bg-white/5 border border-mentha-forest/10 dark:border-white/10 space-y-3 text-sm">
+                                        <div className="ml-3 mt-2 p-3 rounded-lg bg-mentha-forest/5 dark:bg-white/5 border border-mentha-forest/10 dark:border-white/10 gap-y-3 text-sm">
                                             <div className="grid grid-cols-2 gap-3">
                                                 <div>
                                                     <p className="font-mono text-xs uppercase opacity-60">
@@ -225,7 +187,10 @@ export function KeywordsTable() {
                                                     <p className="font-mono text-xs uppercase opacity-60">
                                                         Last Scanned
                                                     </p>
-                                                    <p className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70">
+                                                    <p
+                                                        className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70"
+                                                        suppressHydrationWarning
+                                                    >
                                                         {kw.lastScanned
                                                             ? new Date(
                                                                   kw.lastScanned,

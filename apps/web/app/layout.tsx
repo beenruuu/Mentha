@@ -2,6 +2,7 @@ import './globals.css';
 
 import type { Metadata } from 'next';
 import { Instrument_Serif, Inter, Space_Mono } from 'next/font/google';
+import Script from 'next/script';
 
 import { ThemeProvider } from '@/components/ThemeProvider';
 import { ThemeSync } from '@/components/ThemeSync';
@@ -83,18 +84,12 @@ export default function RootLayout({
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
-                <script
-                    dangerouslySetInnerHTML={{
-                        __html: `
-                            try {
-                                const theme = localStorage.getItem('mentha_theme') || 'light';
-                                const html = document.documentElement;
-                                html.classList.remove('light', 'dark');
-                                html.classList.add(theme);
-                            } catch (e) {}
-                        `,
-                    }}
-                />
+                {process.env.NODE_ENV === 'development' && (
+                    <Script
+                        src="https://unpkg.com/react-scan/dist/auto.global.js"
+                        strategy="lazyOnload"
+                    />
+                )}
             </head>
             <body
                 className={`${instrumentSerif.variable} ${inter.variable} ${spaceMono.variable} font-sans`}

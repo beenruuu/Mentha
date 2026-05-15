@@ -6,7 +6,7 @@ const getApiBaseUrl = () => {
         // If we are in a codespace or similar, the URL usually changes the port in the subdomain
         const origin = window.location.origin;
         if (origin.includes('-3000')) {
-            return origin.replace('-3000', '-4000') + '/api/v1';
+            return `${origin.replace('-3000', '-4000')}/api/v1`;
         }
     }
 

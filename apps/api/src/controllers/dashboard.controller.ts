@@ -38,7 +38,7 @@ export const DashboardController = {
 
         try {
             const daysNum = Math.max(1, Math.min(365, parseInt(days, 10) || 30));
-            if (isNaN(daysNum)) {
+            if (Number.isNaN(daysNum)) {
                 throw new BadRequestException('Invalid days parameter: must be a number');
             }
 
@@ -79,7 +79,7 @@ export const DashboardController = {
 
         try {
             const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 20));
-            if (isNaN(limitNum)) {
+            if (Number.isNaN(limitNum)) {
                 throw new BadRequestException('Invalid limit parameter: must be a number');
             }
 
@@ -118,7 +118,7 @@ export const DashboardController = {
 
         try {
             const limitNum = Math.max(1, Math.min(500, parseInt(limit, 10) || 100));
-            if (isNaN(limitNum)) {
+            if (Number.isNaN(limitNum)) {
                 throw new BadRequestException('Invalid limit parameter: must be a number');
             }
 
@@ -153,7 +153,7 @@ export const DashboardController = {
 
         try {
             const limitNum = Math.max(1, Math.min(50, parseInt(limit, 10) || 10));
-            if (isNaN(limitNum)) {
+            if (Number.isNaN(limitNum)) {
                 throw new BadRequestException('Invalid limit parameter: must be a number');
             }
 

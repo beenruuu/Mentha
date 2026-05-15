@@ -48,7 +48,10 @@ async function fileExists(path: string): Promise<boolean> {
     }
 }
 
-export async function readProviderStorageState(userId: string | undefined, provider: UiCaptureProvider) {
+export async function readProviderStorageState(
+    userId: string | undefined,
+    provider: UiCaptureProvider,
+) {
     if (!userId) return null;
     const path = getProviderSessionPath(userId, provider);
     if (!(await fileExists(path))) return null;
@@ -81,7 +84,10 @@ export async function listProviderConnections(userId: string): Promise<ProviderC
     );
 }
 
-export async function disconnectProvider(userId: string, provider: UiCaptureProvider): Promise<void> {
+export async function disconnectProvider(
+    userId: string,
+    provider: UiCaptureProvider,
+): Promise<void> {
     connectingProviders.delete(`${userId}:${provider}`);
     await rm(getProviderSessionPath(userId, provider), { force: true });
 }

@@ -5,32 +5,20 @@ import { useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { useProject } from '@/context/ProjectContext';
 import { fetchFromApi } from '@/lib/api';
 
 interface KeywordData {
     id: string;
     keyword: string;
-    intent: string;
-    lastScanned: string;
-    totalScans: number;
     visibilityRate: number;
-    avgSentiment: number;
+    lastScanned: string;
 }
 
 export function TopKeywords() {
     const { selectedProject } = useProject();
     const [keywords, setKeywords] = useState<KeywordData[]>([]);
     const [loading, setLoading] = useState(true);
-    const [expandedId, setExpandedId] = useState<string | null>(null);
 
     useEffect(() => {
         if (!selectedProject?.id) return;
@@ -57,10 +45,10 @@ export function TopKeywords() {
                 <CardHeader>
                     <CardTitle>Top Keywords</CardTitle>
                 </CardHeader>
-                <div className="space-y-3">
-                    {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded" />
-                    ))}
+                <div className="gap-y-3">
+                    <div className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded" />
+                    <div className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded" />
+                    <div className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded" />
                 </div>
             </Card>
         );
@@ -148,7 +136,10 @@ export function TopKeywords() {
                                                 <p className="font-mono text-xs uppercase opacity-60">
                                                     Last Scanned
                                                 </p>
-                                                <p className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70">
+                                                <p
+                                                    className="font-mono text-xs text-mentha-forest/70 dark:text-mentha-beige/70"
+                                                    suppressHydrationWarning
+                                                >
                                                     {kw.lastScanned
                                                         ? new Date(
                                                               kw.lastScanned,

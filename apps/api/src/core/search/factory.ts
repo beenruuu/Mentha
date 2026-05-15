@@ -1,5 +1,5 @@
-import { logger } from '../logger';
 import { env } from '../../config/env';
+import { logger } from '../logger';
 import { MockSearchProvider } from './mock.provider';
 import { OpenRouterProvider } from './openrouter.provider';
 import type { ISearchProvider, ProviderType } from './types';

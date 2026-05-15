@@ -1,7 +1,7 @@
 import type { Context } from 'hono';
 
 import { logger } from '../core/logger';
-import { handleHttpException } from '../exceptions/http';
+import { BadRequestException, handleHttpException } from '../exceptions/http';
 import { getKeywordService } from '../services/keyword.service';
 
 const keywordService = getKeywordService();
@@ -57,6 +57,7 @@ export const KeywordController = {
 
     delete: async (c: Context) => {
         const id = c.req.param('id');
+        if (!id) throw new BadRequestException('Keyword id is required');
 
         try {
             await keywordService.delete(id);

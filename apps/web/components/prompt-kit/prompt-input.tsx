@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { createContext, useContext } from 'react';
+import { createContext, use } from 'react';
 
 interface PromptContextProps {
     value: string;
@@ -11,6 +11,14 @@ interface PromptContextProps {
 }
 
 const PromptInputContext = createContext<PromptContextProps | null>(null);
+
+function usePromptInput() {
+    const context = use(PromptInputContext);
+    if (context === null) {
+        throw new Error('usePromptInput must be used within a PromptInput');
+    }
+    return context;
+}
 
 export function PromptInput({
     value,
@@ -28,13 +36,7 @@ export function PromptInput({
 }>) {
     return (
         <PromptInputContext.Provider value={{ value, onValueChange, isLoading, onSubmit }}>
-            <form
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    onSubmit?.(e);
-                }}
-                className={className}
-            >
+            <form action={onSubmit} className={className}>
                 {children}
             </form>
         </PromptInputContext.Provider>
@@ -48,10 +50,7 @@ export function PromptInputTextarea({
     placeholder?: string;
     className?: string;
 }) {
-    const ctx = useContext(PromptInputContext);
-    if (!ctx) {
-        return <textarea placeholder={placeholder} className={className} />;
-    }
+    const ctx = usePromptInput();
 
     return (
         <textarea

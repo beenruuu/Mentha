@@ -15,14 +15,11 @@ export default function RegisterPage() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
-    const router = useRouter();
+    const { push } = useRouter();
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setError('');
-        setSuccess(false);
-
         try {
             await signUp.email({
                 name,
@@ -30,15 +27,15 @@ export default function RegisterPage() {
                 password,
                 fetchOptions: {
                     onSuccess: () => {
-                        router.push('/onboarding');
+                        push('/onboarding');
                     },
                     onError: (ctx) => {
                         setError(ctx.error.message || 'Registration failed');
                     },
                 },
             });
-        } catch (err: any) {
-            setError(err.message || 'Registration failed');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Registration failed');
         } finally {
             setLoading(false);
         }
@@ -51,9 +48,14 @@ export default function RegisterPage() {
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute top-0 right-0 w-full h-full bg-[conic-gradient(from_0deg_at_50%_50%,#10b982_0%,transparent_100%)]"></div>
                     <div className="grid grid-cols-10 gap-4 opacity-20">
-                        {[...Array(100)].map((_, i) => (
-                            <div key={i} className="w-1 h-1 bg-mentha-mint rounded-full"></div>
-                        ))}
+                        {Array.from({ length: 100 }, (_, dotIndex) => `dot-${dotIndex}`).map(
+                            (dotKey) => (
+                                <div
+                                    key={dotKey}
+                                    className="size-1 bg-mentha-mint rounded-full"
+                                ></div>
+                            ),
+                        )}
                     </div>
                 </div>
 
@@ -91,24 +93,28 @@ export default function RegisterPage() {
 
                     {error && (
                         <div className="bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 p-4 rounded-xl mb-8 text-sm flex items-center gap-3">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                            <span className="size-1.5 rounded-full bg-red-500 animate-pulse"></span>
                             {error}
                         </div>
                     )}
 
                     {success && (
                         <div className="bg-mentha-mint/10 border border-mentha-mint/20 text-mentha-forest dark:text-mentha-mint p-4 rounded-xl mb-8 text-sm flex items-center gap-3">
-                            <span className="w-1.5 h-1.5 rounded-full bg-mentha-mint animate-pulse"></span>
-                            Account created successfully! Redirecting...
+                            <span className="size-1.5 rounded-full bg-mentha-mint animate-pulse"></span>
+                            Account created successfully! Redirecting…
                         </div>
                     )}
 
                     <form onSubmit={handleRegister} className="space-y-6">
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1">
+                            <label
+                                htmlFor="register-name"
+                                className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1"
+                            >
                                 Full Name
                             </label>
                             <input
+                                id="register-name"
                                 type="text"
                                 required
                                 value={name}
@@ -118,10 +124,14 @@ export default function RegisterPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1">
+                            <label
+                                htmlFor="register-email"
+                                className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1"
+                            >
                                 Work Email
                             </label>
                             <input
+                                id="register-email"
                                 type="email"
                                 required
                                 value={email}
@@ -131,11 +141,15 @@ export default function RegisterPage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <label className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1">
+                            <label
+                                htmlFor="register-password"
+                                className="block text-[10px] font-mono uppercase tracking-[0.2em] text-mentha-forest/60 dark:text-mentha-beige/60 ml-1"
+                            >
                                 Password
                             </label>
                             <div className="relative">
                                 <input
+                                    id="register-password"
                                     type={showPassword ? 'text' : 'password'}
                                     required
                                     value={password}
@@ -157,7 +171,7 @@ export default function RegisterPage() {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-mentha-mint text-mentha-dark py-5 rounded-none font-mono text-sm font-bold uppercase tracking-[0.2em] hover:bg-mentha-mint/90 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                                className="w-full bg-mentha-mint text-mentha-dark py-5 rounded-none font-mono text-sm font-semibold uppercase tracking-[0.2em] hover:bg-mentha-mint/90 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
                             >
                                 {loading ? <Loader2 className="animate-spin" size={18} /> : null}
                                 {loading ? 'CREATING ACCOUNT...' : 'REGISTER & START SCANNING'}

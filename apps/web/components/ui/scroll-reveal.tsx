@@ -1,13 +1,14 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { domAnimation, LazyMotion, m } from 'framer-motion';
 import type React from 'react';
 import { useRef } from 'react';
 
 import { cn } from '@/lib/utils';
 
 interface ScrollRevealProps {
-    children: React.ReactNode;
+    children?: React.ReactNode;
+    text?: string;
     className?: string;
     textClassName?: string;
     size?: 'sm' | 'md' | 'lg';
@@ -24,6 +25,7 @@ interface ScrollRevealProps {
 
 export const ScrollReveal = ({
     children,
+    text: textProp,
     className,
     textClassName,
     align = 'left',
@@ -34,35 +36,36 @@ export const ScrollReveal = ({
     duration = 0.5,
 }: ScrollRevealProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const text = typeof children === 'string' ? children : '';
-    const words = text.split(' ');
+    const text = textProp ?? '';
 
-    if (!text) return null;
+    if (!text && !children) return null;
 
     return (
-        <div ref={containerRef} className={cn('relative z-0', className)}>
-            <div
-                className={cn(
-                    'flex flex-wrap gap-x-[0.3em] leading-tight',
-                    align === 'center' && 'justify-center',
-                    align === 'right' && 'justify-end',
-                    textClassName,
-                )}
-            >
-                {words.map((word, i) => (
-                    <Word
-                        key={i}
-                        delay={i * staggerDelay}
-                        enableBlur={enableBlur}
-                        baseOpacity={baseOpacity}
-                        blurStrength={blurStrength}
-                        duration={duration}
-                    >
-                        {word}
-                    </Word>
-                ))}
+        <LazyMotion features={domAnimation}>
+            <div ref={containerRef} className={cn('relative z-0', className)}>
+                <div
+                    className={cn(
+                        'flex flex-wrap gap-x-[0.3em] leading-tight',
+                        align === 'center' && 'justify-center',
+                        align === 'right' && 'justify-end',
+                        textClassName,
+                    )}
+                >
+                    {keyedWords.map(({ word, key }, i) => (
+                        <Word
+                            key={key}
+                            delay={i * staggerDelay}
+                            enableBlur={enableBlur}
+                            baseOpacity={baseOpacity}
+                            blurStrength={blurStrength}
+                            duration={duration}
+                        >
+                            {word}
+                        </Word>
+                    ))}
+                </div>
             </div>
-        </div>
+        </LazyMotion>
     );
 };
 
@@ -77,7 +80,7 @@ interface WordProps {
 
 const Word = ({ children, delay, enableBlur, baseOpacity, blurStrength, duration }: WordProps) => {
     return (
-        <motion.span
+        <m.span
             initial={{
                 opacity: baseOpacity,
                 filter: enableBlur ? `blur(${blurStrength}px)` : 'none',
@@ -97,6 +100,6 @@ const Word = ({ children, delay, enableBlur, baseOpacity, blurStrength, duration
             viewport={{ once: true, margin: '-10%' }}
         >
             {children}
-        </motion.span>
+        </m.span>
     );
 };

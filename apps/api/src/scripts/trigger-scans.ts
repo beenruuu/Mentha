@@ -1,4 +1,5 @@
 import 'dotenv/config';
+
 import { db } from '../db/index';
 import { projects } from '../db/schema/core';
 import { getScanService } from '../services/scan.service';

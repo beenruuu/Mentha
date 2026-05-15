@@ -25,7 +25,7 @@ const FAQ: React.FC = () => {
             q: t.faqQ4,
             a: t.faqA4,
         },
-    ];
+    ].map((faq) => ({ ...faq, key: faq.q }));
 
     return (
         <section className="border-b border-mentha-forest dark:border-mentha-beige">
@@ -34,7 +34,7 @@ const FAQ: React.FC = () => {
                 <div className="md:col-span-4 p-12 md:p-24 border-b md:border-b-0 md:border-r border-mentha-forest dark:border-mentha-beige flex flex-col justify-between">
                     <div>
                         <span className="font-mono text-xs uppercase tracking-widest text-mentha-mint mb-4 block">
-                            /// FAQ_MODULE
+                            / FAQ_MODULE
                         </span>
                         <h2 className="font-serif text-5xl leading-tight">{t.faqTitle}</h2>
                     </div>
@@ -45,10 +45,11 @@ const FAQ: React.FC = () => {
                 <div className="md:col-span-8">
                     {faqs.map((faq, index) => (
                         <div
-                            key={index}
+                            key={faq.key}
                             className="border-b border-mentha-forest dark:border-mentha-beige last:border-b-0"
                         >
                             <button
+                                type="button"
                                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
                                 className="w-full text-left p-8 md:p-12 flex justify-between items-center group hover:text-mentha-mint transition-colors duration-300"
                             >

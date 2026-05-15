@@ -28,7 +28,9 @@ export class RAGSimulator {
 
     constructor() {
         const apiKey = env.OPENROUTER_API_KEY;
-        this.client = apiKey ? new OpenAI({ apiKey, baseURL: 'https://openrouter.ai/api/v1' }) : null;
+        this.client = apiKey
+            ? new OpenAI({ apiKey, baseURL: 'https://openrouter.ai/api/v1' })
+            : null;
     }
 
     async embed(text: string): Promise<number[]> {
@@ -137,7 +139,8 @@ export class RAGSimulator {
                 .where(eq(entities.slug, entitySlug))
                 .limit(1);
 
-            if (entityData.length > 0) {
+            const entity = entityData[0];
+            if (entity) {
                 data = await db
                     .select({
                         id: faqVectors.id,
@@ -146,7 +149,7 @@ export class RAGSimulator {
                         category: faqVectors.category,
                     })
                     .from(faqVectors)
-                    .where(eq(faqVectors.entity_id, entityData[0]!.id));
+                    .where(eq(faqVectors.entity_id, entity.id));
             } else {
                 data = [];
             }

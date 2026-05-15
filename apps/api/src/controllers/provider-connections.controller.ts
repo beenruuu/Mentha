@@ -1,12 +1,12 @@
 import type { Context } from 'hono';
 
+import { logger } from '../core/logger';
 import {
     disconnectProvider,
     listProviderConnections,
     startProviderConnection,
 } from '../core/ui-capture/provider-sessions';
 import type { UiCaptureProvider } from '../core/ui-capture/types';
-import { logger } from '../core/logger';
 import { BadRequestException, handleHttpException } from '../exceptions/http';
 
 const CONNECTABLE_PROVIDERS: UiCaptureProvider[] = [
@@ -31,7 +31,10 @@ export const ProviderConnectionsController = {
             const connections = await listProviderConnections(user.id);
             return c.json({ data: connections });
         } catch (error) {
-            logger.error({ error: (error as Error).message }, 'Failed to list provider connections');
+            logger.error(
+                { error: (error as Error).message },
+                'Failed to list provider connections',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -39,11 +42,16 @@ export const ProviderConnectionsController = {
     connect: async (c: Context) => {
         try {
             const user = c.get('user');
-            const provider = parseProvider(c.req.param('provider'));
+            const providerParam = c.req.param('provider');
+            if (!providerParam) throw new BadRequestException('Provider is required');
+            const provider = parseProvider(providerParam);
             const result = await startProviderConnection(user.id, provider);
             return c.json({ data: result }, 202);
         } catch (error) {
-            logger.error({ error: (error as Error).message }, 'Failed to start provider connection');
+            logger.error(
+                { error: (error as Error).message },
+                'Failed to start provider connection',
+            );
             return handleHttpException(c, error);
         }
     },
@@ -51,7 +59,9 @@ export const ProviderConnectionsController = {
     disconnect: async (c: Context) => {
         try {
             const user = c.get('user');
-            const provider = parseProvider(c.req.param('provider'));
+            const providerParam = c.req.param('provider');
+            if (!providerParam) throw new BadRequestException('Provider is required');
+            const provider = parseProvider(providerParam);
             await disconnectProvider(user.id, provider);
             return c.json({ data: { provider, connected: false } });
         } catch (error) {

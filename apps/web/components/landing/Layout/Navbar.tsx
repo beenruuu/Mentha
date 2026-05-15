@@ -1,4 +1,5 @@
 import { Menu, Moon, Sun, X } from 'lucide-react';
+import Link from 'next/link';
 import React from 'react';
 
 import { Theme } from '@/components/types';
@@ -27,13 +28,13 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, isDemo }) => {
             <div className="max-w-[1920px] mx-auto px-8 md:px-16 lg:px-24 h-20 flex items-center justify-between">
                 {/* Logo */}
                 <div className="flex-shrink-0">
-                    <a href="#" className="font-serif text-3xl tracking-tight">
+                    <Link href="/" className="font-serif text-3xl tracking-tight">
                         Mentha<span className="text-mentha-mint text-4xl">.</span>
-                    </a>
+                    </Link>
                 </div>
 
                 {/* Desktop Nav */}
-                <div className="hidden md:flex items-center space-x-12">
+                <div className="hidden md:flex items-center gap-x-12">
                     {navLinks.map((link) => (
                         <a
                             key={link.label}
@@ -46,15 +47,13 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, isDemo }) => {
                 </div>
 
                 {/* Actions */}
-                <div className="hidden md:flex items-center space-x-6">
+                <div className="hidden md:flex items-center gap-x-6">
                     <GithubStars />
 
                     <button
+                        type="button"
                         onClick={toggleTheme}
-                        className={`
-              p-2 rounded-full border border-mentha-forest dark:border-mentha-beige transition-all
-              hover:opacity-60
-            `}
+                        className="p-2 rounded-full border border-mentha-forest dark:border-mentha-beige transition-all hover:opacity-60"
                         aria-label="Toggle Theme"
                     >
                         {theme === Theme.LIGHT ? <Moon size={16} /> : <Sun size={16} />}
@@ -65,7 +64,7 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, isDemo }) => {
                         target={isDemo ? '_blank' : undefined}
                         rel={isDemo ? 'noopener noreferrer' : undefined}
                         className={`
-              px-6 py-3 font-sans text-sm font-bold tracking-wide transition-all duration-300
+              px-6 py-3 font-sans text-sm font-semibold tracking-wide transition-all duration-300
               ${
                   theme === Theme.LIGHT
                       ? 'bg-mentha-forest text-mentha-beige border border-transparent hover:bg-transparent hover:text-mentha-forest hover:border-mentha-forest'
@@ -80,7 +79,7 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, isDemo }) => {
                 {/* Mobile Menu Button */}
                 <div className="flex items-center gap-4 md:hidden">
                     <GithubStars />
-                    <button onClick={() => setIsOpen(!isOpen)}>
+                    <button type="button" onClick={() => setIsOpen(!isOpen)}>
                         {isOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
                 </div>
@@ -88,7 +87,7 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, isDemo }) => {
 
             {/* Mobile Menu */}
             {isOpen && (
-                <div className="md:hidden absolute top-20 left-0 w-full h-screen bg-mentha-beige dark:bg-mentha-dark bg-opacity-95 dark:bg-opacity-95 border-t border-mentha-forest dark:border-mentha-beige flex flex-col p-8 space-y-8 animate-in slide-in-from-top-10 duration-300 z-50 backdrop-blur-sm">
+                <div className="md:hidden absolute top-20 left-0 w-full h-screen bg-mentha-beige dark:bg-mentha-dark bg-opacity-95 dark:bg-opacity-95 border-t border-mentha-forest dark:border-mentha-beige flex flex-col p-8 gap-y-8 animate-in slide-in-from-top-10 duration-300 z-50 backdrop-blur-sm">
                     {navLinks.map((link) => (
                         <a
                             key={link.label}
@@ -101,8 +100,9 @@ const Navbar: React.FC<NavbarProps> = ({ theme, toggleTheme, isDemo }) => {
                     ))}
                     <div className="pt-8 border-t border-mentha-forest dark:border-mentha-beige w-full flex justify-between items-center">
                         <button
+                            type="button"
                             onClick={toggleTheme}
-                            className="flex items-center space-x-2 font-mono text-sm uppercase tracking-widest"
+                            className="flex items-center gap-x-2 font-mono text-sm uppercase tracking-widest"
                         >
                             {theme === Theme.LIGHT ? <Moon size={16} /> : <Sun size={16} />}
                             <span>

@@ -30,13 +30,16 @@ export const OpenRouterController = {
             );
 
             if (!hasCredits) {
-                return c.json(
-                    {
+                return new Response(
+                    JSON.stringify({
                         error: 'Insufficient credits',
                         message: 'You have exhausted your daily quota or credit balance.',
+                    }),
+                    {
+                        status: 402,
+                        headers: { 'Content-Type': 'application/json' },
                     },
-                    402,
-                ) as any;
+                );
             }
 
             // Setup default model and other OpenRouter specific params
@@ -66,10 +69,15 @@ export const OpenRouterController = {
                     },
                     'OpenRouter API error',
                 );
-                return c.json(
-                    { error: 'Failed to communicate with OpenRouter', details: errorData },
-                    // @ts-expect-error
-                    response.status,
+                return new Response(
+                    JSON.stringify({
+                        error: 'Failed to communicate with OpenRouter',
+                        details: errorData,
+                    }),
+                    {
+                        status: response.status,
+                        headers: { 'Content-Type': 'application/json' },
+                    },
                 );
             }
 

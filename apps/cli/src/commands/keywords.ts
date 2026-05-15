@@ -61,7 +61,13 @@ keywordsCommand
     .option('-e, --engines <engines>', 'Engines (comma-separated)')
     .option('-j, --json', 'Output as JSON')
     .action(async (options) => {
-        let keywordData;
+        let keywordData: {
+            project_id: string;
+            query: string;
+            intent: string;
+            scan_frequency: string;
+            engines: string[];
+        };
 
         if (options.projectId && options.query) {
             const engines = options.engines

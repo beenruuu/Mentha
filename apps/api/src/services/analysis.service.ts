@@ -1,9 +1,8 @@
 import { eq } from 'drizzle-orm';
 
-import { scanResults, scanJobs, keywords, projects } from '@/db/schema/core';
+import { keywords, projects, scanJobs, scanResults } from '@/db/schema/core';
 import { createLogger } from '../core/logger';
 import { db } from '../db';
-import { createProvider } from '@/core/search/factory';
 import { getEntityService } from './entity.service';
 import { getEvaluationService } from './evaluation.service';
 
@@ -116,12 +115,12 @@ export class AnalysisService {
                             try {
                                 await entitySvc.create({
                                     name: ent.name,
-                                    entity_type: ent.type as any,
+                                    entity_type: ent.type,
                                     description: ent.description,
                                     slug: ent.name.toLowerCase().replace(/[^a-z0-9]/g, '-'),
                                     is_primary: ent.name.toLowerCase() === data.brand.toLowerCase(),
                                 });
-                            } catch (err) {
+                            } catch {
                                 // Ignore duplicates or errors
                             }
                         }

@@ -3,10 +3,11 @@ import { Hono } from 'hono';
 
 import { ProjectController } from '../controllers/projects.controller';
 import { requireAuth } from '../middlewares/auth';
+import { requireProjectAccess } from '../middlewares/project-auth';
 import {
+    analyzeDomainSchema,
     createProjectSchema,
     updateProjectSchema,
-    analyzeDomainSchema,
 } from '../schemas/project.schema';
 
 const router = new Hono()
@@ -14,8 +15,13 @@ const router = new Hono()
     .get('/', ProjectController.list)
     .post('/', zValidator('json', createProjectSchema), ProjectController.create)
     .post('/analyze', zValidator('json', analyzeDomainSchema), ProjectController.analyzeDomain)
-    .get('/:id', ProjectController.getById)
-    .patch('/:id', zValidator('json', updateProjectSchema), ProjectController.update)
-    .delete('/:id', ProjectController.delete);
+    .get('/:id', requireProjectAccess('id'), ProjectController.getById)
+    .patch(
+        '/:id',
+        requireProjectAccess('id'),
+        zValidator('json', updateProjectSchema),
+        ProjectController.update,
+    )
+    .delete('/:id', requireProjectAccess('id'), ProjectController.delete);
 
 export default router;

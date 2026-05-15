@@ -13,7 +13,6 @@ import Services from '@/components/landing/Sections/Services';
 import SocialProof from '@/components/landing/Sections/SocialProof';
 import TheShift from '@/components/landing/Sections/TheShift';
 import { Theme } from '@/components/types';
-
 import { I18nProvider } from '@/lib/i18n';
 
 const isDemo = process.env.NEXT_PUBLIC_DEMO_MODE === 'true';

@@ -7,8 +7,8 @@ dotenv.config();
 import { RESOURCE_METADATA, TOOL_DESCRIPTIONS } from './constants';
 import * as Resources from './resources';
 import {
-    aiReadinessScoreSchema,
     aeoOperationalReportSchema,
+    aiReadinessScoreSchema,
     brandMentionsSchema,
     citabilitySchema,
     crawlerAnalysisSchema,
@@ -20,8 +20,8 @@ import {
 import {
     analyzeCitability,
     analyzeCrawlers,
-    generateAiReadableFiles,
     generateAeoReport,
+    generateAiReadableFiles,
     generateLlmsTxt,
     geoAudit,
     listProjects,

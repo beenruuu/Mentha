@@ -32,16 +32,14 @@ const SocialProof: React.FC = () => {
                 ...
                 <div className="mt-24 grid grid-cols-2 md:grid-cols-4 gap-12 opacity-50 grayscale mix-blend-multiply dark:mix-blend-screen">
                     {/* Abstract Placeholders for Logos to maintain "Wireframe" aesthetic */}
-                    {['FINTECH_CORP', 'LUXURY_EST', 'SAAS_GLOBAL', 'FUTURE_MEDIA'].map(
-                        (logo, i) => (
-                            <div
-                                key={i}
-                                className="h-12 border border-mentha-forest dark:border-mentha-beige flex items-center justify-center font-mono text-xs tracking-widest"
-                            >
-                                [ {logo} ]
-                            </div>
-                        ),
-                    )}
+                    {['FINTECH_CORP', 'LUXURY_EST', 'SAAS_GLOBAL', 'FUTURE_MEDIA'].map((logo) => (
+                        <div
+                            key={logo}
+                            className="h-12 border border-mentha-forest dark:border-mentha-beige flex items-center justify-center font-mono text-xs tracking-widest"
+                        >
+                            [ {logo} ]
+                        </div>
+                    ))}
                 </div>
             </div>
         </section>

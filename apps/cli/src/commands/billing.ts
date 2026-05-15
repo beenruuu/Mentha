@@ -20,7 +20,7 @@ billingCommand
             const res = await apiCall<{ data: Array<Record<string, unknown>> }>(
                 client.api.v1.billing.transactions.$get(),
             );
-            const transactions = Array.isArray(res) ? res : (res as any).data || [];
+            const transactions = Array.isArray(res) ? res : res.data || [];
             spinner.succeed(`Found ${transactions.length} transaction(s)`);
 
             if (options.json || config.outputFormat === 'json') {
@@ -35,7 +35,7 @@ billingCommand
                         const sign = amount >= 0 ? '+' : '';
                         console.log(
                             `  ${chalk.cyan(formatter.date(String(tx.created_at || '')))}  ` +
-                                `${amount >= 0 ? chalk.green(sign + amount) : chalk.red(String(amount))}  ` +
+                                `${amount >= 0 ? chalk.green(`${sign}${amount}`) : chalk.red(String(amount))}  ` +
                                 `${chalk.gray(String(tx.description || tx.type || ''))}`,
                         );
                     }
@@ -59,7 +59,7 @@ billingCommand
             const res = await apiCall<{ data: Array<Record<string, unknown>> }>(
                 client.api.v1.billing.transactions.$get(),
             );
-            const transactions = Array.isArray(res) ? res : (res as any).data || [];
+            const transactions = Array.isArray(res) ? res : res.data || [];
             spinner.succeed('Credit info retrieved');
 
             const latestTx = transactions[0];
@@ -70,7 +70,7 @@ billingCommand
 
             if (transactions.length > 0) {
                 console.log(
-                    `  Latest:    ${latestAmount >= 0 ? chalk.green('+' + latestAmount) : chalk.red(latestAmount)} credits`,
+                    `  Latest:    ${latestAmount >= 0 ? chalk.green(`+${latestAmount}`) : chalk.red(latestAmount)} credits`,
                 );
                 console.log(`  ${chalk.gray(`on ${formatter.date(String(latestTx.created_at))}`)}`);
             }

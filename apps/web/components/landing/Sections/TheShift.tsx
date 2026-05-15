@@ -1,28 +1,15 @@
 'use client';
 
 import { ArrowUp, Copy, ThumbsDown, ThumbsUp } from 'lucide-react';
-import React, { useState } from 'react';
+import type React from 'react';
 
 import { useTranslations } from '@/lib/i18n';
 
-const TheShift: React.FC = () => {
-    const [prompt, setPrompt] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [response, setResponse] = useState('');
-    const { t } = useTranslations();
+type LandingTranslations = ReturnType<typeof useTranslations>['t'];
 
-    const handlePrompt = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!prompt) return;
-        setIsLoading(true);
-        setResponse('');
-        setTimeout(() => {
-            setResponse(
-                `Based on the current knowledge graph, the optimal strategy for "${prompt}" involves leveraging semantic content clusters and injecting brand authority into high-ranking citation sources.`,
-            );
-            setIsLoading(false);
-        }, 2000);
-    };
+const TheShift: React.FC = () => {
+    const { t } = useTranslations();
+    const tickerItems = Array.from({ length: 10 }, (_, itemIndex) => `shift-ticker-${itemIndex}`);
 
     return (
         <section
@@ -32,17 +19,15 @@ const TheShift: React.FC = () => {
             {/* Ticker */}
             <div className="w-full border-b border-mentha-forest dark:border-mentha-beige bg-mentha-mint text-mentha-forest py-3 select-none overflow-hidden">
                 <div className="whitespace-nowrap flex animate-marquee">
-                    {Array(10)
-                        .fill(null)
-                        .map((_, i) => (
-                            <span
-                                key={i}
-                                className="mx-8 font-mono text-xs font-bold uppercase tracking-widest flex items-center"
-                            >
-                                <span className="w-2 h-2 bg-mentha-forest rounded-full mr-2"></span>
-                                {t.shiftMarquee}
-                            </span>
-                        ))}
+                    {tickerItems.map((tickerKey) => (
+                        <span
+                            key={tickerKey}
+                            className="mx-8 font-mono text-xs font-semibold uppercase tracking-widest flex items-center"
+                        >
+                            <span className="size-2 bg-mentha-forest rounded-full mr-2"></span>
+                            {t.shiftMarquee}
+                        </span>
+                    ))}
                 </div>
             </div>
 
@@ -60,7 +45,7 @@ const TheShift: React.FC = () => {
 
                     <div className="space-y-12">
                         <div className="relative pl-8 border-l border-mentha-forest dark:border-mentha-beige border-opacity-30">
-                            <span className="absolute -left-[5px] top-0 w-2.5 h-2.5 bg-current rounded-full opacity-30"></span>
+                            <span className="absolute -left-[5px] top-0 size-2.5 bg-current rounded-full opacity-30"></span>
                             <h3 className="font-mono text-sm uppercase tracking-widest mb-2 opacity-70 line-through">
                                 {t.shiftLegacyHeader}
                             </h3>
@@ -70,7 +55,7 @@ const TheShift: React.FC = () => {
                         </div>
 
                         <div className="relative pl-8 border-l-2 border-mentha-mint">
-                            <span className="absolute -left-[5px] top-0 w-2.5 h-2.5 bg-mentha-mint rounded-full"></span>
+                            <span className="absolute -left-[5px] top-0 size-2.5 bg-mentha-mint rounded-full"></span>
                             <h3 className="font-mono text-sm uppercase tracking-widest mb-2 text-mentha-mint">
                                 {t.shiftCurrentHeader}
                             </h3>
@@ -117,13 +102,13 @@ const TheShift: React.FC = () => {
 export default TheShift;
 
 // Adapted PromptInputBasic for AI-like experience
-function PromptInputBasic({ t }: { t: any }) {
+function PromptInputBasic({ t }: { t: LandingTranslations }) {
     // Conversación simulada fija
     return (
         <div className="w-full max-w-xl">
             <div className="mb-2">
                 <div className="flex justify-end mb-3">
-                    <div className="max-w-[600px] rounded-xl bg-slate-100 dark:bg-mentha-dark/60 border border-slate-200 dark:border-mentha-beige/30 px-4 py-2 font-serif text-base text-slate-800 dark:text-mentha-beige">
+                    <div className="max-w-[600px] rounded-xl bg-zinc-100 dark:bg-mentha-dark/60 border border-zinc-200 dark:border-mentha-beige/30 px-4 py-2 font-serif text-base text-zinc-800 dark:text-mentha-beige">
                         {t.shiftMockQuestion}
                     </div>
                 </div>
@@ -132,7 +117,7 @@ function PromptInputBasic({ t }: { t: any }) {
                         {t.shiftMockAnswer}
                     </div>
                     <div
-                        className="flex gap-3 mt-3 text-slate-400 dark:text-mentha-beige/60 ml-4"
+                        className="flex gap-3 mt-3 text-zinc-400 dark:text-mentha-beige/60 ml-4"
                         style={{ marginLeft: '1rem' }}
                     >
                         <button
@@ -140,21 +125,21 @@ function PromptInputBasic({ t }: { t: any }) {
                             aria-label="Copy answer"
                             className="hover:text-mentha-mint transition-colors"
                         >
-                            <Copy className="w-5 h-5" />
+                            <Copy className="size-5" />
                         </button>
                         <button
                             type="button"
                             aria-label="Like answer"
                             className="hover:text-mentha-mint transition-colors"
                         >
-                            <ThumbsUp className="w-5 h-5" />
+                            <ThumbsUp className="size-5" />
                         </button>
                         <button
                             type="button"
                             aria-label="Dislike answer"
                             className="hover:text-mentha-mint transition-colors"
                         >
-                            <ThumbsDown className="w-5 h-5" />
+                            <ThumbsDown className="size-5" />
                         </button>
                     </div>
                 </div>
@@ -163,13 +148,13 @@ function PromptInputBasic({ t }: { t: any }) {
             <div className="relative mt-6">
                 <textarea
                     placeholder={t.shiftMockPlaceholder}
-                    className="w-full min-h-[48px] max-h-[48px] text-base resize-none bg-white dark:bg-mentha-dark/60 border border-slate-300 dark:border-mentha-beige/50 rounded-2xl px-3 py-3 font-mono placeholder-slate-500 dark:placeholder-mentha-beige/80 focus:outline-none overflow-hidden placeholder:text-base select-none pr-12"
+                    className="w-full min-h-[48px] max-h-[48px] text-base resize-none bg-white dark:bg-mentha-dark/60 border border-zinc-300 dark:border-mentha-beige/50 rounded-2xl p-3 font-mono placeholder-zinc-500 dark:placeholder-mentha-beige/80 focus:outline-none overflow-hidden placeholder:text-base select-none pr-12"
                     disabled
                     style={{ WebkitTextFillColor: 'inherit', opacity: 1 }}
                 />
                 <button
                     type="button"
-                    className="absolute right-3 top-[8px] h-8 w-8 rounded-full bg-slate-900 text-white hover:bg-slate-800 shadow text-base flex items-center justify-center opacity-60 cursor-not-allowed"
+                    className="absolute right-3 top-[8px] size-8 rounded-full bg-zinc-900 text-white hover:bg-zinc-800 shadow text-base flex items-center justify-center opacity-60 cursor-not-allowed"
                     disabled
                     tabIndex={-1}
                     aria-label="Send message"

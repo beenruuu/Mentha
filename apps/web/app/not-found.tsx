@@ -26,7 +26,7 @@ export default function NotFound() {
                 <div className="pt-8">
                     <Link
                         href="/dashboard"
-                        className="inline-block bg-mentha-mint text-mentha-dark px-10 py-4 font-mono text-xs font-bold uppercase tracking-widest hover:bg-mentha-mint/90 transition-all rounded-full"
+                        className="inline-block bg-mentha-mint text-mentha-dark px-10 py-4 font-mono text-xs font-semibold uppercase tracking-widest hover:bg-mentha-mint/90 transition-all rounded-full"
                     >
                         Back to Intelligence Center
                     </Link>
@@ -35,8 +35,8 @@ export default function NotFound() {
 
             {/* Decorative element */}
             <div className="fixed bottom-0 left-0 w-full h-1/3 pointer-events-none overflow-hidden opacity-20">
-                <div className="absolute -bottom-24 -left-24 w-96 h-96 border border-mentha-mint rounded-full"></div>
-                <div className="absolute -bottom-48 -right-48 w-[32rem] h-[32rem] border border-mentha-mint/30 rounded-full animate-pulse"></div>
+                <div className="absolute -bottom-24 -left-24 size-96 border border-mentha-mint rounded-full"></div>
+                <div className="absolute -bottom-48 -right-48 size-[32rem] border border-mentha-mint/30 rounded-full animate-pulse"></div>
             </div>
         </div>
     );

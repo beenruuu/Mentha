@@ -1,6 +1,7 @@
 'use client';
 
 import { CreditCard } from 'lucide-react';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function BillingPage() {
@@ -17,8 +18,8 @@ export default function BillingPage() {
 
             <Card className="border-mentha-mint/20 bg-mentha-mint/5">
                 <CardHeader className="text-center py-12">
-                    <div className="mx-auto w-16 h-16 rounded-full bg-mentha-mint/10 flex items-center justify-center mb-4">
-                        <CreditCard className="w-8 h-8 text-mentha-mint" />
+                    <div className="mx-auto size-16 rounded-full bg-mentha-mint/10 flex items-center justify-center mb-4">
+                        <CreditCard className="size-8 text-mentha-mint" />
                     </div>
                     <CardTitle className="font-serif text-3xl mb-2">Coming Soon</CardTitle>
                     <p className="text-mentha-forest/60 dark:text-mentha-beige/60 max-w-sm mx-auto">
@@ -32,19 +33,19 @@ export default function BillingPage() {
                             <h3 className="font-mono text-xs uppercase tracking-widest mb-2">
                                 Free
                             </h3>
-                            <p className="font-serif text-2xl font-bold">0€</p>
+                            <p className="font-serif text-2xl font-semibold">0€</p>
                         </div>
                         <div className="p-4 border-x border-mentha-forest/10 dark:border-white/10">
                             <h3 className="font-mono text-xs uppercase tracking-widest mb-2">
                                 Pro
                             </h3>
-                            <p className="font-serif text-2xl font-bold">49€</p>
+                            <p className="font-serif text-2xl font-semibold">49€</p>
                         </div>
                         <div className="p-4">
                             <h3 className="font-mono text-xs uppercase tracking-widest mb-2">
                                 Enterprise
                             </h3>
-                            <p className="font-serif text-2xl font-bold">Custom</p>
+                            <p className="font-serif text-2xl font-semibold">Custom</p>
                         </div>
                     </div>
                 </CardContent>

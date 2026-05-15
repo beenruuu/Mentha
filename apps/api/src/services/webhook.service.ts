@@ -64,13 +64,14 @@ export class WebhookService {
             .where(eq(profiles.id, userId))
             .returning();
 
-        if (result.length === 0) {
+        const profile = result[0];
+        if (!profile) {
             logger.warn({ userId }, 'Profile not found for update, creating new one');
             return await this.createProfile(record);
         }
 
         logger.info({ userId }, 'Profile updated successfully');
-        return result[0]!;
+        return profile;
     }
 
     async deleteProfile(record: Record<string, unknown>): Promise<void> {

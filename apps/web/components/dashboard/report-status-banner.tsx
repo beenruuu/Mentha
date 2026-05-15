@@ -162,14 +162,18 @@ export function ReportStatusBanner() {
                 status.status === 'needs_connection') && (
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                     {PROVIDERS.map((provider) => {
-                        const connection = connections.find((item) => item.provider === provider.key);
+                        const connection = connections.find(
+                            (item) => item.provider === provider.key,
+                        );
                         return (
                             <button
                                 key={provider.key}
                                 type="button"
                                 onClick={() => connectProvider(provider.key)}
-                                disabled={loadingProvider === provider.key || connection?.connecting}
-                                className="flex items-center justify-between gap-3 rounded-xl border border-mentha-forest/10 dark:border-mentha-beige/10 bg-white/60 dark:bg-white/5 px-3 py-3 text-left disabled:opacity-60"
+                                disabled={
+                                    loadingProvider === provider.key || connection?.connecting
+                                }
+                                className="flex items-center justify-between gap-3 rounded-xl border border-mentha-forest/10 dark:border-mentha-beige/10 bg-white/60 dark:bg-white/5 p-3 text-left disabled:opacity-60"
                             >
                                 <span className="flex items-center gap-2">
                                     <EngineIcon engine={provider.key} size={18} invert="light" />

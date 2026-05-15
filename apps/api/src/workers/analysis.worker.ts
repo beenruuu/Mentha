@@ -38,7 +38,7 @@ export const analysisWorker = new Worker<AnalysisJobData>(
             await db
                 .update(scanResults)
                 .set({
-                    analysis_json: evaluation as any,
+                    analysis_json: evaluation as unknown as Record<string, unknown>,
                     sentiment_score: evaluation.sentiment_score,
                     brand_visibility: evaluation.brand_visibility,
                     recommendation_type: evaluation.recommendation_type,

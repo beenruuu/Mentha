@@ -1,8 +1,14 @@
 import { db } from '../db';
-import { user, session, account } from '../db/schema/auth';
-import { profiles } from '../db/schema/core';
-import { projects } from '../db/schema/core';
-import { keywords, scanJobs, scanResults, citations, creditTransactions } from '../db/schema/core';
+import { account, session, user } from '../db/schema/auth';
+import {
+    citations,
+    creditTransactions,
+    keywords,
+    profiles,
+    projects,
+    scanJobs,
+    scanResults,
+} from '../db/schema/core';
 
 async function resetAll() {
     console.log('🗑️  Cleaning ALL data...');
@@ -10,52 +16,52 @@ async function resetAll() {
     // Delete in dependency order
     try {
         await db.delete(citations);
-    } catch (e) {
+    } catch {
         /* ok */
     }
     try {
         await db.delete(scanResults);
-    } catch (e) {
+    } catch {
         /* ok */
     }
     try {
         await db.delete(scanJobs);
-    } catch (e) {
+    } catch {
         /* ok */
     }
     try {
         await db.delete(keywords);
-    } catch (e) {
+    } catch {
         /* ok */
     }
     try {
         await db.delete(creditTransactions);
-    } catch (e) {
+    } catch {
         /* ok */
     }
     try {
         await db.delete(projects);
-    } catch (e) {
+    } catch {
         /* ok */
     }
     try {
         await db.delete(profiles);
-    } catch (e) {
+    } catch {
         /* ok */
     }
     try {
         await db.delete(session);
-    } catch (e) {
+    } catch {
         /* ok */
     }
     try {
         await db.delete(account);
-    } catch (e) {
+    } catch {
         /* ok */
     }
     try {
         await db.delete(user);
-    } catch (e) {
+    } catch {
         /* ok */
     }
 

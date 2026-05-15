@@ -3,18 +3,18 @@ import { Hono } from 'hono';
 
 import { KeywordController } from '../controllers/keywords.controller';
 import { requireAuth } from '../middlewares/auth';
-import { extractProjectId, requireProjectAccess } from '../middlewares/project-auth';
+import { requireKeywordAccess, requireProjectAccess } from '../middlewares/project-auth';
 import { createKeywordSchema } from '../schemas/keyword.schema';
 
 const router = new Hono()
     .use('*', requireAuth)
-    .get('/', extractProjectId('projectId'), KeywordController.list)
+    .get('/', requireProjectAccess('project_id'), KeywordController.list)
     .post(
         '/',
-        extractProjectId('projectId'),
+        requireProjectAccess('project_id'),
         zValidator('json', createKeywordSchema),
         KeywordController.create,
     )
-    .delete('/:id', requireProjectAccess('projectId'), KeywordController.delete);
+    .delete('/:id', requireKeywordAccess('id'), KeywordController.delete);
 
 export default router;

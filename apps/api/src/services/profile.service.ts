@@ -37,7 +37,11 @@ export class ProfileService {
             throw new NotFoundException('Profile not found');
         }
 
-        return data[0]!;
+        const profile = data[0];
+        if (!profile) {
+            throw new NotFoundException('Profile not found');
+        }
+        return profile;
     }
 
     async create(input: CreateProfileInput): Promise<Profile> {
@@ -98,12 +102,13 @@ export class ProfileService {
             .where(eq(profiles.id, id))
             .returning();
 
-        if (result.length === 0) {
+        const profile = result[0];
+        if (!profile) {
             throw new NotFoundException('Profile not found');
         }
 
         logger.info({ profileId: id }, 'Profile updated successfully');
-        return result[0]!;
+        return profile;
     }
 
     async delete(id: string): Promise<void> {

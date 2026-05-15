@@ -1,7 +1,7 @@
+import { PGlite } from '@electric-sql/pglite';
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate } from 'drizzle-orm/pglite/migrator';
-import { PGlite } from '@electric-sql/pglite';
 
 import { env } from '../config/env';
 import { logger } from '../core/logger';
@@ -9,7 +9,9 @@ import { logger } from '../core/logger';
 let queryClient: PGlite;
 
 if (env.DATABASE_URL) {
-    throw new Error('Remote PostgreSQL not supported in this build. Remove DATABASE_URL to use PGlite.');
+    throw new Error(
+        'Remote PostgreSQL not supported in this build. Remove DATABASE_URL to use PGlite.',
+    );
 } else {
     queryClient = new PGlite({ dataDir: './mentha_db' });
 }

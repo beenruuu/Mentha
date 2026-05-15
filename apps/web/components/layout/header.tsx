@@ -2,7 +2,7 @@
 
 import { Coins, LogOut, Moon, Sun } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import { useProject } from '@/context/ProjectContext';
 import { useThemeSync } from '@/hooks/useThemeSync';
@@ -12,7 +12,7 @@ import { useSidebar } from './sidebar-context';
 
 function ProjectMark({ name }: { name: string }) {
     return (
-        <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm bg-mentha-mint/15 font-mono text-[10px] font-bold uppercase text-mentha-mint">
+        <span className="flex size-5 shrink-0 items-center justify-center rounded-sm bg-mentha-mint/15 font-mono text-[10px] font-semibold uppercase text-mentha-mint">
             {name.slice(0, 2)}
         </span>
     );
@@ -23,7 +23,7 @@ export function Header() {
     const { projects, selectedProject, setSelectedProjectId, isLoading } = useProject();
     const { isCollapsed } = useSidebar();
     const { theme, setTheme, mounted, isTransitioning } = useThemeSync();
-    const router = useRouter();
+    const { push } = useRouter();
     const { data: session } = useSession();
 
     const toggleTheme = () => {
@@ -36,7 +36,7 @@ export function Header() {
         await signOut({
             fetchOptions: {
                 onSuccess: () => {
-                    router.push('/login');
+                    push('/login');
                 },
             },
         });
@@ -77,6 +77,7 @@ export function Header() {
                                     : selectedProject?.name || 'Select Project'}
                             </span>
                             <svg
+                                aria-hidden="true"
                                 width="12"
                                 height="12"
                                 viewBox="0 0 12 12"
@@ -84,7 +85,6 @@ export function Header() {
                                 stroke="currentColor"
                                 strokeWidth="1.5"
                                 className="text-mentha-forest/60 dark:text-mentha-beige/60"
-                                aria-label="Expand project list"
                             >
                                 <path d="M3 4.5L6 7.5L9 4.5" strokeLinecap="round" />
                             </svg>
@@ -135,7 +135,7 @@ export function Header() {
                     {user && (
                         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-mentha-mint/10 border border-mentha-mint/20 text-mentha-mint">
                             <Coins size={14} />
-                            <span className="font-mono text-xs font-bold">
+                            <span className="font-mono text-xs font-semibold">
                                 {(user.credit_balance || 0) + (user.daily_quota || 0)} CREDITS
                             </span>
                         </div>

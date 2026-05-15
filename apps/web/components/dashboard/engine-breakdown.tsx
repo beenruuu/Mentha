@@ -59,9 +59,9 @@ export function EngineBreakdown() {
                     <CardTitle>Engine Performance</CardTitle>
                 </CardHeader>
                 <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-8 bg-mentha-forest/10 dark:bg-white/5 rounded" />
-                    ))}
+                    <div className="h-8 bg-mentha-forest/10 dark:bg-white/5 rounded" />
+                    <div className="h-8 bg-mentha-forest/10 dark:bg-white/5 rounded" />
+                    <div className="h-8 bg-mentha-forest/10 dark:bg-white/5 rounded" />
                 </div>
             </Card>
         );
@@ -83,7 +83,7 @@ export function EngineBreakdown() {
                             <div className="flex items-center justify-between text-sm">
                                 <span className="flex items-center gap-2 font-sans text-mentha-forest/70 dark:text-mentha-beige/70">
                                     <span
-                                        className="flex h-6 w-6 items-center justify-center rounded-lg bg-mentha-forest/5 dark:bg-mentha-mint/10"
+                                        className="flex size-6 items-center justify-center rounded-lg bg-mentha-forest/5 dark:bg-mentha-mint/10"
                                         style={{ color: engine.color }}
                                     >
                                         <EngineIcon engine={engine.key} size={14} invert="auto" />

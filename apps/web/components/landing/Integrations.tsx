@@ -22,7 +22,7 @@ export default function Integrations() {
                             {t.integrationsTitleSuffix}
                         </h2>
 
-                        <p className="text-gray-500 dark:text-gray-400 mt-4 text-lg font-light leading-relaxed">
+                        <p className="text-zinc-500 dark:text-zinc-400 mt-4 text-lg font-light leading-relaxed">
                             {t.integrationsDescription}
                         </p>
                     </div>

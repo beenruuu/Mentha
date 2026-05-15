@@ -21,7 +21,7 @@ const ENGINES = [
 ] as const;
 
 export default function OnboardingPage() {
-    const router = useRouter();
+    const { push } = useRouter();
     const { refreshProjects, setSelectedProject } = useProject();
 
     const [step, setStep] = useState(1);
@@ -35,7 +35,10 @@ export default function OnboardingPage() {
         competitors: string[];
     } | null>(null);
 
-    const [_scanRunId, setScanRunId] = useState<string | null>(null);
+    const scanRunIdRef = useRef<string | null>(null);
+    const setScanRunId = (value: string | null) => {
+        scanRunIdRef.current = value;
+    };
     const [totalJobs, setTotalJobs] = useState(0);
     const [scanMode, setScanMode] = useState<'browser' | 'api' | 'hybrid'>('browser');
     const [completedJobs, setCompletedJobs] = useState(0);
@@ -57,7 +60,7 @@ export default function OnboardingPage() {
 
         let formattedDomain = domain;
         if (!formattedDomain.startsWith('http')) {
-            formattedDomain = 'https://' + formattedDomain;
+            formattedDomain = `https://${formattedDomain}`;
         }
 
         setIsAnalyzing(true);
@@ -84,7 +87,7 @@ export default function OnboardingPage() {
         const elapsed = Date.now() - startTime;
 
         if (elapsed >= MAX_POLL_TIME) {
-            router.push('/dashboard');
+            push('/dashboard');
             return;
         }
 
@@ -94,13 +97,15 @@ export default function OnboardingPage() {
                 const { run, jobs = [] } = res.data;
 
                 setCompletedJobs(run.completed_jobs || 0);
-                setFailedJobs(jobs.filter((job: { status?: string }) => job.status === 'failed').length);
+                setFailedJobs(
+                    jobs.filter((job: { status?: string }) => job.status === 'failed').length,
+                );
                 setProcessingJobs(
                     jobs.filter((job: { status?: string }) => job.status === 'processing').length,
                 );
 
                 if (run.status === 'completed' || run.status === 'failed') {
-                    router.push('/dashboard');
+                    push('/dashboard');
                     return;
                 }
             } catch {
@@ -116,7 +121,7 @@ export default function OnboardingPage() {
 
         let formattedDomain = domain;
         if (!formattedDomain.startsWith('http')) {
-            formattedDomain = 'https://' + formattedDomain;
+            formattedDomain = `https://${formattedDomain}`;
         }
 
         setIsCreatingProject(true);
@@ -154,15 +159,18 @@ export default function OnboardingPage() {
                 );
             }
 
-            const scanRes = await fetchFromApi(`/scans/trigger?project_id=${newProject.id}&mode=${scanMode}`, {
-                method: 'POST',
-            });
+            const scanRes = await fetchFromApi(
+                `/scans/trigger?project_id=${newProject.id}&mode=${scanMode}`,
+                {
+                    method: 'POST',
+                },
+            );
 
             const { runId, jobCount } = scanRes.data;
             setScanRunId(runId);
             setTotalJobs(jobCount || 0);
             setIsCreatingProject(false);
-            router.push('/dashboard');
+            pollScanStatus(runId, newProject.id, Date.now());
         } catch (error) {
             console.error('Failed to create project:', error);
             alert('Failed to create project');
@@ -190,7 +198,7 @@ export default function OnboardingPage() {
             {step === 1 && (
                 <form
                     onSubmit={handleAnalyze}
-                    className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700"
+                    className="gap-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700"
                 >
                     <div className="space-y-2">
                         <label
@@ -213,7 +221,7 @@ export default function OnboardingPage() {
                     <Button
                         type="submit"
                         disabled={!domain || isAnalyzing}
-                        className="w-full py-5 rounded-none font-mono text-sm font-bold uppercase tracking-[0.2em]"
+                        className="w-full py-5 rounded-none font-mono text-sm font-semibold uppercase tracking-[0.2em]"
                     >
                         {isAnalyzing ? 'Analyzing...' : 'Analyze Brand'}
                     </Button>
@@ -221,8 +229,8 @@ export default function OnboardingPage() {
             )}
 
             {step === 2 && (
-                <div className="text-center py-12 space-y-8 animate-in fade-in duration-500">
-                    <div className="relative mx-auto w-16 h-16">
+                <div className="text-center py-12 gap-y-8 animate-in fade-in duration-500">
+                    <div className="relative mx-auto size-16">
                         <div className="absolute inset-0 rounded-full border-2 border-mentha-mint/20" />
                         <div className="absolute inset-0 rounded-full border-2 border-mentha-mint border-t-transparent animate-spin" />
                     </div>
@@ -232,7 +240,7 @@ export default function OnboardingPage() {
                             Connecting to <span className="text-mentha-mint">{domain}</span>
                         </p>
                         <p className="font-mono text-xs text-mentha-forest/60 dark:text-mentha-beige/60 animate-pulse">
-                            Researching your website so Mentha can understand your brand...
+                            Researching your website so Mentha can understand your brand…
                         </p>
                     </div>
 
@@ -262,7 +270,7 @@ export default function OnboardingPage() {
                             <div className="space-y-2">
                                 <label
                                     htmlFor="brand-description"
-                                    className="text-[10px] uppercase tracking-widest font-bold text-mentha-forest/40 dark:text-mentha-beige/40"
+                                    className="text-[10px] uppercase tracking-widest font-semibold text-mentha-forest/40 dark:text-mentha-beige/40"
                                 >
                                     Brand Description
                                 </label>
@@ -270,10 +278,10 @@ export default function OnboardingPage() {
                                     id="brand-description"
                                     value={analysisResult.description}
                                     onChange={(e) =>
-                                        setAnalysisResult({
-                                            ...analysisResult,
+                                        setAnalysisResult((prev) => ({
+                                            ...prev,
                                             description: e.target.value,
-                                        })
+                                        }))
                                     }
                                     className="w-full bg-mentha-forest/5 dark:bg-white/5 rounded-xl border border-mentha-forest/10 dark:border-mentha-beige/10 p-4 text-sm focus:outline-none focus:ring-2 focus:ring-mentha-mint/20 min-h-[120px] resize-none font-sans leading-relaxed"
                                     placeholder="Describe what your brand does..."
@@ -283,7 +291,7 @@ export default function OnboardingPage() {
 
                         <div className="space-y-6">
                             <div>
-                                <h4 className="text-[10px] uppercase tracking-widest font-bold text-mentha-forest/40 dark:text-mentha-beige/40 mb-3">
+                                <h4 className="text-[10px] uppercase tracking-widest font-semibold text-mentha-forest/40 dark:text-mentha-beige/40 mb-3">
                                     Suggested Prompts to Track
                                 </h4>
                                 <div className="flex flex-wrap gap-2">
@@ -295,7 +303,7 @@ export default function OnboardingPage() {
 
                             {analysisResult.competitors.length > 0 && (
                                 <div>
-                                    <h4 className="text-[10px] uppercase tracking-widest font-bold text-mentha-forest/40 dark:text-mentha-beige/40 mb-3">
+                                    <h4 className="text-[10px] uppercase tracking-widest font-semibold text-mentha-forest/40 dark:text-mentha-beige/40 mb-3">
                                         Identified Competitors
                                     </h4>
                                     <div className="flex flex-wrap gap-2">
@@ -346,7 +354,9 @@ export default function OnboardingPage() {
                             Back
                         </Button>
                         <Button onClick={handleCreateProject} disabled={isCreatingProject}>
-                            {isCreatingProject ? 'Starting AI Scans...' : 'Create Project & Start Tracking'}
+                            {isCreatingProject
+                                ? 'Starting AI Scans...'
+                                : 'Create Project & Start Tracking'}
                         </Button>
                     </div>
 
@@ -365,12 +375,12 @@ export default function OnboardingPage() {
             )}
 
             {step === 4 && (
-                <div className="text-center py-8 space-y-8 animate-in fade-in duration-500">
-                    <div className="relative mx-auto w-20 h-20">
+                <div className="text-center py-8 gap-y-8 animate-in fade-in duration-500">
+                    <div className="relative mx-auto size-20">
                         <div className="absolute inset-0 rounded-full border-2 border-mentha-mint/20" />
                         <div className="absolute inset-0 rounded-full border-2 border-mentha-mint border-t-transparent animate-spin" />
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="font-mono text-lg text-mentha-mint font-bold">
+                            <span className="font-mono text-lg text-mentha-mint font-semibold">
                                 {progressPct}%
                             </span>
                         </div>
@@ -385,7 +395,7 @@ export default function OnboardingPage() {
                         </p>
                     </div>
 
-                    <div className="max-w-md mx-auto space-y-3">
+                    <div className="max-w-md mx-auto gap-y-3">
                         <div className="h-2 bg-mentha-forest/10 dark:bg-white/10 rounded-full overflow-hidden">
                             <div
                                 className="h-full rounded-full bg-mentha-mint transition-all duration-500 ease-out"
@@ -467,7 +477,7 @@ export default function OnboardingPage() {
                         provider answers finish.
                     </p>
 
-                    <Button variant="outline" onClick={() => router.push('/dashboard')}>
+                    <Button variant="outline" onClick={() => push('/dashboard')}>
                         Continue to Dashboard
                     </Button>
                 </div>

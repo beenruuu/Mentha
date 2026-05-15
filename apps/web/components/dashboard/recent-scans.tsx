@@ -22,7 +22,10 @@ interface ScanData {
     engine: string;
     query: string;
     raw_response?: string;
-    analysis_json?: any;
+    analysis_json?: {
+        competitor_mentions?: Record<string, boolean>;
+        recommendation_type?: string;
+    };
     brand_visibility: boolean;
     sentiment_score: number;
     created_at: string;
@@ -81,10 +84,10 @@ export function RecentScans() {
                 <CardHeader>
                     <CardTitle>Recent AI Answers</CardTitle>
                 </CardHeader>
-                <div className="space-y-3 p-6">
-                    {[1, 2, 3].map((i) => (
-                        <div key={i} className="h-16 bg-mentha-forest/10 dark:bg-white/5 rounded" />
-                    ))}
+                <div className="gap-y-3 p-6">
+                    <div className="h-16 bg-mentha-forest/10 dark:bg-white/5 rounded" />
+                    <div className="h-16 bg-mentha-forest/10 dark:bg-white/5 rounded" />
+                    <div className="h-16 bg-mentha-forest/10 dark:bg-white/5 rounded" />
                 </div>
             </Card>
         );
@@ -153,7 +156,7 @@ export function RecentScans() {
                                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                                     <div className="md:col-span-2 space-y-4">
                                                         <div className="flex items-center justify-between">
-                                                            <h4 className="text-[10px] font-bold opacity-40 uppercase tracking-widest font-mono">
+                                                            <h4 className="text-[10px] font-semibold opacity-40 uppercase tracking-widest font-mono">
                                                                 Raw Answer
                                                             </h4>
                                                             <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-mentha-forest/5 dark:bg-white/5">
@@ -195,7 +198,7 @@ export function RecentScans() {
                                                                             </li>
                                                                         ),
                                                                         strong: ({ children }) => (
-                                                                            <strong className="font-bold text-mentha-forest dark:text-mentha-beige">
+                                                                            <strong className="font-semibold text-mentha-forest dark:text-mentha-beige">
                                                                                 {children}
                                                                             </strong>
                                                                         ),
@@ -242,7 +245,7 @@ export function RecentScans() {
                                                     </div>
                                                     <div className="space-y-6">
                                                         <div>
-                                                            <h4 className="text-[10px] font-bold opacity-40 uppercase tracking-widest font-mono mb-3">
+                                                            <h4 className="text-[10px] font-semibold opacity-40 uppercase tracking-widest font-mono mb-3">
                                                                 Intelligence Insights
                                                             </h4>
                                                             <div className="space-y-4">
@@ -253,30 +256,41 @@ export function RecentScans() {
                                                                     <div className="flex flex-wrap gap-2">
                                                                         {scan.analysis_json
                                                                             ?.competitor_mentions &&
-                                                                        Object.keys(
+                                                                        Object.values(
                                                                             scan.analysis_json
                                                                                 .competitor_mentions,
-                                                                        ).length > 0 ? (
+                                                                        ).some(Boolean) ? (
                                                                             Object.entries(
                                                                                 scan.analysis_json
                                                                                     .competitor_mentions,
-                                                                            ).map(
+                                                                            ).reduce<
+                                                                                React.ReactNode[]
+                                                                            >(
                                                                                 (
+                                                                                    acc,
                                                                                     [
                                                                                         comp,
                                                                                         mentioned,
                                                                                     ],
-                                                                                    i,
-                                                                                ) =>
-                                                                                    mentioned && (
-                                                                                        <Badge
-                                                                                            key={i}
-                                                                                            variant="outline"
-                                                                                            className="text-[10px] bg-white dark:bg-mentha-dark border-red-500/20 text-red-500"
-                                                                                        >
-                                                                                            {comp}
-                                                                                        </Badge>
-                                                                                    ),
+                                                                                ) => {
+                                                                                    if (mentioned) {
+                                                                                        acc.push(
+                                                                                            <Badge
+                                                                                                key={
+                                                                                                    comp
+                                                                                                }
+                                                                                                variant="outline"
+                                                                                                className="text-[10px] bg-white dark:bg-mentha-dark border-red-500/20 text-red-500"
+                                                                                            >
+                                                                                                {
+                                                                                                    comp
+                                                                                                }
+                                                                                            </Badge>,
+                                                                                        );
+                                                                                    }
+                                                                                    return acc;
+                                                                                },
+                                                                                [],
                                                                             )
                                                                         ) : (
                                                                             <span className="text-xs opacity-60">
@@ -290,7 +304,7 @@ export function RecentScans() {
                                                                         Sentiment Score
                                                                     </p>
                                                                     <div className="flex items-center gap-3">
-                                                                        <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                                                                        <div className="flex-1 h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
                                                                             <div
                                                                                 className={`h-full transition-all duration-1000 ${scan.sentiment_score != null && scan.sentiment_score > 0.3 ? 'bg-green-500' : scan.sentiment_score != null && scan.sentiment_score < -0.3 ? 'bg-red-500' : 'bg-yellow-500'}`}
                                                                                 style={{
@@ -298,7 +312,7 @@ export function RecentScans() {
                                                                                 }}
                                                                             />
                                                                         </div>
-                                                                        <span className="text-[10px] font-mono font-bold">
+                                                                        <span className="text-[10px] font-mono font-semibold">
                                                                             {scan.sentiment_score !=
                                                                             null
                                                                                 ? (

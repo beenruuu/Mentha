@@ -93,7 +93,11 @@ export class EntityService {
             throw new NotFoundException('Entity not found');
         }
 
-        return data[0]!;
+        const entity = data[0];
+        if (!entity) {
+            throw new NotFoundException('Entity not found');
+        }
+        return entity;
     }
 
     async create(data: InsertEntity): Promise<Entity> {
@@ -127,12 +131,13 @@ export class EntityService {
             .where(eq(entities.slug, slug))
             .returning();
 
-        if (result.length === 0) {
+        const entity = result[0];
+        if (!entity) {
             throw new NotFoundException('Entity not found');
         }
 
         logger.info({ slug }, 'Entity updated successfully');
-        return result[0]!;
+        return entity;
     }
 
     async delete(slug: string): Promise<void> {
@@ -317,7 +322,7 @@ export class EntityService {
 
         const data = await db.select().from(entities).where(conditions).limit(1);
 
-        return data.length > 0 ? data[0]! : null;
+        return data[0] ?? null;
     }
 }
 

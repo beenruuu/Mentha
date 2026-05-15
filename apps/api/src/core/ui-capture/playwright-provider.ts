@@ -2,7 +2,7 @@ import { mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
 import { env } from '../../config/env';
-import { type UiCaptureRequest, type UiCaptureResult } from './types';
+import type { UiCaptureRequest, UiCaptureResult } from './types';
 
 const PROVIDER_URLS: Record<UiCaptureRequest['provider'], (prompt: string) => string> = {
     perplexity: (prompt) => `https://www.perplexity.ai/search?q=${encodeURIComponent(prompt)}`,

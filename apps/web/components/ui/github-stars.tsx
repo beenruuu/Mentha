@@ -1,7 +1,8 @@
 'use client';
 
 import { Github } from 'lucide-react';
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 const REPO_URL = 'https://github.com/beenruuu/mentha';
 const API_URL = 'https://api.github.com/repos/beenruuu/mentha';
@@ -10,43 +11,44 @@ const CACHE_DURATION = 1000 * 60 * 10; // 10 minutes
 
 export const GithubStars: React.FC = () => {
     const [stars, setStars] = useState<string | number>('GitHub');
+    const [loading, setLoading] = useState(true);
+
+    const fetchStars = useCallback(async () => {
+        const cachedData = sessionStorage.getItem(CACHE_KEY);
+        if (cachedData) {
+            const { value, timestamp } = JSON.parse(cachedData);
+            if (Date.now() - timestamp < CACHE_DURATION) {
+                setStars(value);
+                setLoading(false);
+                return;
+            }
+        }
+
+        try {
+            const response = await fetch(API_URL);
+            if (response.ok) {
+                const data = await response.json();
+                const count = data.stargazers_count;
+                const label = Number.isFinite(count) ? `★ ${count}` : 'GitHub';
+                setStars(label);
+                sessionStorage.setItem(
+                    CACHE_KEY,
+                    JSON.stringify({
+                        value: label,
+                        timestamp: Date.now(),
+                    }),
+                );
+            }
+        } catch (error) {
+            console.error('Failed to fetch GitHub stars', error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
     useEffect(() => {
-        const fetchStars = async () => {
-            // Check cache first
-            const cachedData = sessionStorage.getItem(CACHE_KEY);
-            if (cachedData) {
-                const { value, timestamp } = JSON.parse(cachedData);
-                if (Date.now() - timestamp < CACHE_DURATION) {
-                    setStars(value);
-                    return;
-                }
-            }
-
-            try {
-                const response = await fetch(API_URL);
-                if (response.ok) {
-                    const data = await response.json();
-                    const count = data.stargazers_count;
-                    const label = Number.isFinite(count) ? `★ ${count}` : 'GitHub';
-                    setStars(label);
-                    // Update cache
-                    sessionStorage.setItem(
-                        CACHE_KEY,
-                        JSON.stringify({
-                            value: label,
-                            timestamp: Date.now(),
-                        }),
-                    );
-                }
-            } catch (error) {
-                console.error('Failed to fetch GitHub stars', error);
-                setStars('GitHub');
-            }
-        };
-
         fetchStars();
-    }, []);
+    }, [fetchStars]);
 
     return (
         <a
@@ -58,8 +60,8 @@ export const GithubStars: React.FC = () => {
             title="Open Mentha on GitHub"
         >
             <Github size={14} className="text-current group-hover:scale-110 transition-transform" />
-            <span className="font-mono text-[10px] uppercase tracking-wider font-bold">
-                {stars}
+            <span className="font-mono text-[10px] uppercase tracking-wider font-semibold">
+                {loading ? '...' : stars}
             </span>
         </a>
     );

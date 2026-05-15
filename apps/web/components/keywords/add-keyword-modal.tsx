@@ -57,12 +57,11 @@ export function AddKeywordModal({ onClose, onSuccess }: AddKeywordModalProps) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none">
-            <div
+            <button
+                type="button"
+                aria-label="Close keyword modal"
                 className="fixed inset-0 bg-mentha-dark/50 backdrop-blur-sm pointer-events-auto"
                 onClick={onClose}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === 'Escape' && onClose()}
             />
             <div className="relative w-full max-w-md bg-mentha-beige dark:bg-mentha-dark rounded-2xl border border-mentha-forest/10 dark:border-mentha-beige/10 shadow-xl p-6 pointer-events-auto z-10">
                 <div className="flex items-center justify-between mb-6">
@@ -75,6 +74,7 @@ export function AddKeywordModal({ onClose, onSuccess }: AddKeywordModalProps) {
                         className="text-mentha-forest/40 dark:text-mentha-beige/40 hover:text-mentha-forest dark:hover:text-mentha-beige"
                     >
                         <svg
+                            aria-hidden="true"
                             width="20"
                             height="20"
                             viewBox="0 0 20 20"
@@ -166,10 +166,10 @@ export function AddKeywordModal({ onClose, onSuccess }: AddKeywordModalProps) {
                                         onChange={() => toggleEngine(engine)}
                                         className="sr-only"
                                     />
-                                    <div className="flex h-5 w-5 items-center justify-center">
+                                    <div className="flex size-5 items-center justify-center">
                                         <EngineIcon engine={engine} size={16} />
                                     </div>
-                                    <span className="font-mono text-[10px] uppercase tracking-wider font-bold">
+                                    <span className="font-mono text-[10px] uppercase tracking-wider font-semibold">
                                         {getEngineDisplayName(engine)}
                                     </span>
                                 </label>

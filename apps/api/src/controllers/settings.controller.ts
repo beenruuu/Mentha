@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 import type { Context } from 'hono';
 
-import { encryptApiKey, decryptApiKey } from '../core/encryption';
+import { decryptApiKey, encryptApiKey } from '../core/encryption';
 import { logger } from '../core/logger';
 import { db } from '../db';
 import { userApiKeys } from '../db/schema/core';
@@ -59,6 +59,11 @@ export const SettingsController = {
                 .limit(1);
 
             if (existing.length > 0) {
+                const existingKey = existing[0];
+                if (!existingKey) {
+                    throw new Error('API key lookup failed');
+                }
+
                 const updated = await db
                     .update(userApiKeys)
                     .set({
@@ -67,15 +72,19 @@ export const SettingsController = {
                         is_active: true,
                         updated_at: new Date(),
                     })
-                    .where(eq(userApiKeys.id, existing[0]!.id))
+                    .where(eq(userApiKeys.id, existingKey.id))
                     .returning();
+                const updatedKey = updated[0];
+                if (!updatedKey) {
+                    throw new Error('Failed to update API key');
+                }
 
                 return c.json({
                     data: {
-                        id: updated[0]!.id,
-                        provider: updated[0]!.provider,
-                        key_preview: updated[0]!.key_preview,
-                        is_active: updated[0]!.is_active,
+                        id: updatedKey.id,
+                        provider: updatedKey.provider,
+                        key_preview: updatedKey.key_preview,
+                        is_active: updatedKey.is_active,
                     },
                 });
             }
@@ -89,13 +98,17 @@ export const SettingsController = {
                     key_preview: preview,
                 })
                 .returning();
+            const insertedKey = inserted[0];
+            if (!insertedKey) {
+                throw new Error('Failed to insert API key');
+            }
 
             return c.json({
                 data: {
-                    id: inserted[0]!.id,
-                    provider: inserted[0]!.provider,
-                    key_preview: inserted[0]!.key_preview,
-                    is_active: inserted[0]!.is_active,
+                    id: insertedKey.id,
+                    provider: insertedKey.provider,
+                    key_preview: insertedKey.key_preview,
+                    is_active: insertedKey.is_active,
                 },
             });
         } catch (error) {
@@ -110,6 +123,7 @@ export const SettingsController = {
             if (!user) throw new Error('Unauthorized');
 
             const provider = c.req.param('provider');
+            if (!provider) throw new Error('Provider is required');
 
             await db
                 .update(userApiKeys)
@@ -150,7 +164,12 @@ export const SettingsController = {
                 return c.json({ error: 'No API key found for this provider' }, 404);
             }
 
-            const decrypted = decryptApiKey(keyRecord[0]!.key_encrypted);
+            const activeKey = keyRecord[0];
+            if (!activeKey) {
+                return c.json({ error: 'No API key found for this provider' }, 404);
+            }
+
+            const decrypted = decryptApiKey(activeKey.key_encrypted);
 
             const response = await fetch('https://openrouter.ai/api/v1/auth/key', {
                 headers: { Authorization: `Bearer ${decrypted}` },

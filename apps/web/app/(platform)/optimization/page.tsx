@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Download, FileText, ShieldCheck } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,20 +68,21 @@ export default function OptimizationPage() {
     const [report, setReport] = useState<ReadinessReport | null>(null);
     const [adapters, setAdapters] = useState<FrameworkAdapter[]>([]);
 
-    useEffect(() => {
-        async function loadEntities() {
-            setLoading(true);
-            try {
-                const response = await fetchFromApi('/kg/entities');
-                setEntities(response.data || []);
-            } catch (error) {
-                console.error('Failed to load entities', error);
-            } finally {
-                setLoading(false);
-            }
+    const loadEntities = useCallback(async () => {
+        setLoading(true);
+        try {
+            const response = await fetchFromApi('/kg/entities');
+            setEntities(response.data || []);
+        } catch (error) {
+            console.error('Failed to load entities', error);
+        } finally {
+            setLoading(false);
         }
-        loadEntities();
     }, []);
+
+    useEffect(() => {
+        loadEntities();
+    }, [loadEntities]);
 
     useEffect(() => {
         async function loadAeoData() {
@@ -113,7 +114,9 @@ export default function OptimizationPage() {
             }
         }
 
-        loadAeoData();
+        if (selectedProject?.domain) {
+            loadAeoData();
+        }
     }, [selectedProject?.domain]);
 
     const handleViewSchema = async (entity: EntityData) => {
@@ -147,6 +150,7 @@ export default function OptimizationPage() {
                     trend="up"
                     icon={
                         <svg
+                            aria-hidden="true"
                             width="20"
                             height="20"
                             viewBox="0 0 24 24"
@@ -166,6 +170,7 @@ export default function OptimizationPage() {
                     trend={primaryEntity ? 'up' : 'neutral'}
                     icon={
                         <svg
+                            aria-hidden="true"
                             width="20"
                             height="20"
                             viewBox="0 0 24 24"
@@ -184,6 +189,7 @@ export default function OptimizationPage() {
                     trend="neutral"
                     icon={
                         <svg
+                            aria-hidden="true"
                             width="20"
                             height="20"
                             viewBox="0 0 24 24"
@@ -267,7 +273,7 @@ export default function OptimizationPage() {
                         <CardTitle>Operational Events</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-3">
+                        <div className="gap-y-3">
                             {(report?.events || []).length === 0 ? (
                                 <div className="flex items-center gap-2 text-sm text-mentha-forest/60 dark:text-mentha-beige/60">
                                     <ShieldCheck size={16} className="text-mentha-mint" />
@@ -329,13 +335,10 @@ export default function OptimizationPage() {
                         </CardHeader>
                         <CardContent>
                             {loading ? (
-                                <div className="space-y-3">
-                                    {[1, 2, 3].map((i) => (
-                                        <div
-                                            key={i}
-                                            className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse"
-                                        />
-                                    ))}
+                                <div className="gap-y-3">
+                                    <div className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse" />
+                                    <div className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse" />
+                                    <div className="h-12 bg-mentha-forest/10 dark:bg-white/5 rounded animate-pulse" />
                                 </div>
                             ) : entities.length === 0 ? (
                                 <div className="text-center py-12">

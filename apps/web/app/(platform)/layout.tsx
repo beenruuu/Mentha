@@ -13,20 +13,20 @@ import { cn } from '@/lib/utils';
 
 function PlatformLayoutInner({ children }: { children: React.ReactNode }) {
     const { isCollapsed } = useSidebar();
-    const router = useRouter();
+    const { push } = useRouter();
     const { data: session, isPending } = useSession();
     const isQaMode = process.env.NEXT_PUBLIC_MENTHA_QA_MODE === 'true';
 
     useEffect(() => {
         if (!isPending && !session) {
-            router.push('/login');
+            push('/login');
         }
-    }, [session, isPending, router]);
+    }, [session, isPending, push]);
 
     if (isPending) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-mentha-beige dark:bg-mentha-dark">
-                <div className="w-8 h-8 border-2 border-mentha-mint border-t-transparent rounded-full animate-spin"></div>
+                <div className="size-8 border-2 border-mentha-mint border-t-transparent rounded-full animate-spin"></div>
             </div>
         );
     }

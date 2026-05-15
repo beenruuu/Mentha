@@ -1,7 +1,8 @@
+import { eq } from 'drizzle-orm';
+
 import { hashPassword } from '../core/hash';
 import { db } from '../db';
 import { profiles } from '../db/schema/core';
-import { eq } from 'drizzle-orm';
 
 async function seedQaUser() {
     const email = 'qa@mentha.io';

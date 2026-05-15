@@ -7,7 +7,7 @@ import { getRedisConnection, QUEUE_NAMES, type ScanJobData } from '../core/queue
 import { runCamoufoxUiCapture } from '../core/ui-capture/camoufox-provider';
 import type { UiCaptureProvider } from '../core/ui-capture/types';
 import { db } from '../db';
-import { keywords, scanJobs, scanResults, citations, projects } from '../db/schema/core';
+import { citations, keywords, projects, scanJobs, scanResults } from '../db/schema/core';
 import { AnalysisService } from '../services/analysis.service';
 
 const ENGINE_TO_UI_PROVIDER: Record<string, UiCaptureProvider> = {
@@ -57,7 +57,10 @@ function classifyErrorStatus(message: string): FinalJobStatus {
 async function updateRunProgress(runId: string) {
     const { scanRuns } = await import('../db/schema/core');
 
-    const jobs = await db.select({ status: scanJobs.status }).from(scanJobs).where(eq(scanJobs.run_id, runId));
+    const jobs = await db
+        .select({ status: scanJobs.status })
+        .from(scanJobs)
+        .where(eq(scanJobs.run_id, runId));
     const finalJobs = jobs.filter((item) => FINAL_JOB_STATUSES.has(item.status || ''));
     const completedCount = jobs.filter((item) => item.status === 'completed').length;
     const visibleCount = await db
@@ -102,7 +105,10 @@ export const scraperWorker = new Worker<ScanJobData>(
             logger.debug({ engine: engineName }, 'Scraping with Camoufox');
 
             const provider = getUiProvider(engineName);
-            logger.info({ provider, query: query.slice(0, 80) }, 'Starting Camoufox scrape for scan');
+            logger.info(
+                { provider, query: query.slice(0, 80) },
+                'Starting Camoufox scrape for scan',
+            );
             const captureResult = await runCamoufoxUiCapture({
                 provider,
                 prompt: query,
@@ -214,22 +220,29 @@ export const scraperWorker = new Worker<ScanJobData>(
                 );
             }
 
+            const jobId = job.id?.toString();
+            if (!jobId) {
+                throw new Error('Scan job is missing an id');
+            }
+
             // 1. Mark job as terminal. Auth/captcha/block are expected provider outcomes.
             await db
                 .update(scanJobs)
                 .set({
                     status: finalStatus,
                     error_message:
-                        finalStatus === 'completed' ? null : captureResult.failureReason || finalStatus,
+                        finalStatus === 'completed'
+                            ? null
+                            : captureResult.failureReason || finalStatus,
                     completed_at: new Date(),
                 })
-                .where(eq(scanJobs.id, job.id!));
+                .where(eq(scanJobs.id, jobId));
 
             // 2. Update progress in scan_runs.
             const jobRecord = await db
                 .select()
                 .from(scanJobs)
-                .where(eq(scanJobs.id, job.id!))
+                .where(eq(scanJobs.id, jobId))
                 .limit(1);
             const runId = jobRecord[0]?.run_id;
 
@@ -270,6 +283,11 @@ export const scraperWorker = new Worker<ScanJobData>(
             );
 
             try {
+                const jobId = job.id?.toString();
+                if (!jobId) {
+                    throw new Error('Scraper job is missing an id');
+                }
+
                 const status = classifyErrorStatus(errorMsg);
                 await db
                     .update(scanJobs)
@@ -278,12 +296,12 @@ export const scraperWorker = new Worker<ScanJobData>(
                         error_message: errorMsg,
                         completed_at: new Date(),
                     })
-                    .where(eq(scanJobs.id, job.id as any));
+                    .where(eq(scanJobs.id, jobId));
 
                 const jobRecord = await db
                     .select({ runId: scanJobs.run_id })
                     .from(scanJobs)
-                    .where(eq(scanJobs.id, job.id as any))
+                    .where(eq(scanJobs.id, jobId))
                     .limit(1);
                 if (jobRecord[0]?.runId) await updateRunProgress(jobRecord[0].runId);
 

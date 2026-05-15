@@ -1,9 +1,10 @@
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import type { Context } from 'hono';
 
 import { logger } from '../core/logger';
 import { db } from '../db';
-import { creditTransactions, profiles } from '../db/schema/core';
+import { user as authUser } from '../db/schema/auth';
+import { creditTransactions } from '../db/schema/core';
 import { handleHttpException } from '../exceptions/http';
 
 export const BillingController = {
@@ -35,6 +36,7 @@ export const BillingController = {
     topUp: async (c: Context) => {
         try {
             const user = c.get('user');
+            if (!user) throw new Error('Unauthorized');
             const body = await c.req.json();
             const { amount, description } = body;
 
@@ -45,9 +47,12 @@ export const BillingController = {
             return await db.transaction(async (tx) => {
                 // Update profile balance
                 await tx
-                    .update(profiles)
-                    .set({ credit_balance: (profiles.credit_balance as any) + amount })
-                    .where(eq(profiles.id, user.id));
+                    .update(authUser)
+                    .set({
+                        credit_balance: sql`${authUser.credit_balance} + ${amount}`,
+                        updatedAt: new Date(),
+                    })
+                    .where(eq(authUser.id, user.id));
 
                 // Log transaction
                 const [transaction] = await tx

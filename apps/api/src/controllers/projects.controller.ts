@@ -1,7 +1,7 @@
 import type { Context } from 'hono';
 
 import { logger } from '../core/logger';
-import { handleHttpException } from '../exceptions/http';
+import { BadRequestException, handleHttpException } from '../exceptions/http';
 import { getProjectService } from '../services/project.service';
 
 const projectService = getProjectService();
@@ -67,6 +67,7 @@ export const ProjectController = {
 
     getById: async (c: Context) => {
         const id = c.req.param('id');
+        if (!id) throw new BadRequestException('Project id is required');
 
         try {
             const project = await projectService.getById(id);
@@ -84,6 +85,7 @@ export const ProjectController = {
 
     update: async (c: Context) => {
         const id = c.req.param('id');
+        if (!id) throw new BadRequestException('Project id is required');
         const updates = await c.req.json();
 
         try {
@@ -102,6 +104,7 @@ export const ProjectController = {
 
     delete: async (c: Context) => {
         const id = c.req.param('id');
+        if (!id) throw new BadRequestException('Project id is required');
 
         try {
             await projectService.delete(id);
