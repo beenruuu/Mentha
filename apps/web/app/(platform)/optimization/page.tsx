@@ -84,40 +84,40 @@ export default function OptimizationPage() {
         loadEntities();
     }, [loadEntities]);
 
-    useEffect(() => {
-        async function loadAeoData() {
-            try {
-                const [artifactRes, adapterRes] = await Promise.all([
-                    fetch(`${AEO_BASE_URL}/llms.txt/artifacts`),
-                    fetch(`${AEO_BASE_URL}/llms.txt/adapters`),
-                ]);
-                if (artifactRes.ok) {
-                    const data = await artifactRes.json();
-                    setArtifacts(data.data || []);
-                }
-                if (adapterRes.ok) {
-                    const data = await adapterRes.json();
-                    setAdapters(data.data || []);
-                }
-
-                if (selectedProject?.domain) {
-                    const reportRes = await fetch(
-                        `${AEO_BASE_URL}/llms.txt/report?url=${encodeURIComponent(selectedProject.domain)}`,
-                    );
-                    if (reportRes.ok) {
-                        const data = await reportRes.json();
-                        setReport(data.data || null);
-                    }
-                }
-            } catch (error) {
-                console.error('Failed to load AEO optimization data', error);
+    const loadAeoData = useCallback(async () => {
+        try {
+            const [artifactRes, adapterRes] = await Promise.all([
+                fetch(`${AEO_BASE_URL}/llms.txt/artifacts`),
+                fetch(`${AEO_BASE_URL}/llms.txt/adapters`),
+            ]);
+            if (artifactRes.ok) {
+                const data = await artifactRes.json();
+                setArtifacts(data.data || []);
             }
-        }
+            if (adapterRes.ok) {
+                const data = await adapterRes.json();
+                setAdapters(data.data || []);
+            }
 
+            if (selectedProject?.domain) {
+                const reportRes = await fetch(
+                    `${AEO_BASE_URL}/llms.txt/report?url=${encodeURIComponent(selectedProject.domain)}`,
+                );
+                if (reportRes.ok) {
+                    const data = await reportRes.json();
+                    setReport(data.data || null);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load AEO optimization data', error);
+        }
+    }, [selectedProject?.domain]);
+
+    useEffect(() => {
         if (selectedProject?.domain) {
             loadAeoData();
         }
-    }, [selectedProject?.domain]);
+    }, [loadAeoData]);
 
     const handleViewSchema = async (entity: EntityData) => {
         setSelectedEntity(entity);

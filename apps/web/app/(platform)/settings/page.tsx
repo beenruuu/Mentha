@@ -17,7 +17,9 @@ interface ApiKeyInfo {
 export default function SettingsPage() {
     const { selectedProject, projects } = useProject();
     const { theme, setTheme, mounted } = useThemeSync();
-    const [formData, setFormData] = useState({ name: '', domain: '' });
+    const formData = selectedProject
+        ? { name: selectedProject.name, domain: selectedProject.domain }
+        : { name: '', domain: '' };
     const [apiKey, setApiKey] = useState('');
     const [showKey, setShowKey] = useState(false);
     const [savedKey, setSavedKey] = useState<ApiKeyInfo | null>(null);
@@ -29,15 +31,6 @@ export default function SettingsPage() {
         error?: string;
     } | null>(null);
     const [apiKeyError, setApiKeyError] = useState('');
-
-    useEffect(() => {
-        if (selectedProject) {
-            setFormData({
-                name: selectedProject.name,
-                domain: selectedProject.domain,
-            });
-        }
-    }, [selectedProject]);
 
     useEffect(() => {
         async function loadApiKeys() {
