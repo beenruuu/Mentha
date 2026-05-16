@@ -20,6 +20,7 @@ pnpm-debug.log*
 logs/
 .vercel
 .env*.local
+*.tsbuildinfo
 
 # PostgreSQL database (runtime)
 apps/api/mentha_db/

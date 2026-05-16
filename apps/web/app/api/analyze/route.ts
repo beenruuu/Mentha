@@ -5,7 +5,7 @@ export async function POST(req: Request) {
         const body = await req.json();
         const { brand, category } = body || {};
 
-        // Mock response to avoid external dependency on @google/genai at build time
+        // Mock response to avoid external provider calls at build time.
         const mock = {
             sentiment: 'Neutral',
             visibilityScore: 42,

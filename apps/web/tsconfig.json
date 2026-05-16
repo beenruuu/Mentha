@@ -8,6 +8,7 @@
     "jsx": "preserve",
     "noEmit": true,
     "incremental": true,
+    "tsBuildInfoFile": ".next/cache/tsconfig.tsbuildinfo",
     "allowJs": true,
     "plugins": [
       {
